@@ -138,8 +138,8 @@ function TopNavItem({
         onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = HOVER }}
         onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'none' }}
       >
-        {item.label}
-        {hasDropdown && <span style={{ fontSize: 10, opacity: 0.7 }}>▾</span>}
+        {item.labelTh || item.label}
+        {hasDropdown && <span style={{ fontSize: 14, opacity: 0.9, lineHeight: 1 }}>▾</span>}
       </button>
 
       {/* dropdown panel */}
@@ -149,11 +149,13 @@ function TopNavItem({
           top:          '100%',
           left:         0,
           minWidth:     220,
-          background:   '#1e3a5f',
-          borderRadius: '0 0 6px 6px',
-          boxShadow:    '0 6px 20px rgba(0,0,0,0.4)',
+          background:   '#ffffff',
+          borderRadius: '0 0 8px 8px',
+          boxShadow:    '0 6px 20px rgba(0,0,0,0.15)',
           zIndex:       200,
           paddingBottom: 4,
+          border:       '1px solid #e5e7eb',
+          borderTop:    'none',
         }}>
           {subItems.map(sub => {
             const subActive = activeSUrl === sub.sUrl
@@ -165,18 +167,18 @@ function TopNavItem({
                   display:     'block',
                   width:       '100%',
                   textAlign:   'left',
-                  background:  subActive ? ACTIVE : 'none',
+                  background:  subActive ? '#eff6ff' : 'none',
                   border:      'none',
                   borderLeft:  subActive ? `3px solid ${ACCENT}` : '3px solid transparent',
-                  color:       '#fff',
+                  color:       subActive ? '#1d4ed8' : '#374151',
                   padding:     '9px 18px',
                   cursor:      'pointer',
                   fontSize:    13,
                   fontFamily:  'inherit',
                   whiteSpace:  'nowrap',
                 }}
-                onMouseEnter={e => { if (!subActive) e.currentTarget.style.background = HOVER }}
-                onMouseLeave={e => { e.currentTarget.style.background = subActive ? ACTIVE : 'none' }}
+                onMouseEnter={e => { if (!subActive) { e.currentTarget.style.background = '#f3f4f6'; e.currentTarget.style.color = '#111827' } }}
+                onMouseLeave={e => { e.currentTarget.style.background = subActive ? '#eff6ff' : 'none'; e.currentTarget.style.color = subActive ? '#1d4ed8' : '#374151' }}
               >
                 {sub.labelTh || sub.label}
               </button>
@@ -283,8 +285,8 @@ export default function MasterLayout({ appName, children }: Props) {
   }, [activePage, appName])
 
   // ── derived: menu grouped by level ────────────────────────────────────────
-  const level2Items = menuItems.filter(i => i.iLevel === 2 && i.iSequence > 0)
 
+  // Build level3ByParent first — needed to detect "empty" duplicate home items
   const level3ByParent: Record<number, MenuItem[]> = {}
   for (const item of menuItems) {
     if (item.iLevel === 3 && item.iParentId != null) {
@@ -292,6 +294,19 @@ export default function MasterLayout({ appName, children }: Props) {
       level3ByParent[item.iParentId].push(item)
     }
   }
+
+  // level-2 top-bar tabs:
+  //   • always skip seq=0 (that's the home button shown separately)
+  //   • also skip any item whose label matches homeLabel AND has no children/sUrl
+  //     (Oracle sometimes stores a duplicate "หน้าแรก" row with seq>0)
+  const level2Items = menuItems.filter(i => {
+    if (i.iLevel !== 2 || i.iSequence <= 0) return false
+    const lbl = i.labelTh || i.label
+    const hasChildren = (level3ByParent[i.iSequence] ?? []).length > 0
+    const hasSUrl     = !!sUrlToFolder(i.sUrl)
+    if (lbl === homeLabel && !hasChildren && !hasSUrl) return false
+    return true
+  })
 
   const isModule = !!appName
 
@@ -379,7 +394,7 @@ export default function MasterLayout({ appName, children }: Props) {
                 onMouseEnter={e => { if (activePage !== null) e.currentTarget.style.background = HOVER }}
                 onMouseLeave={e => { if (activePage !== null) e.currentTarget.style.background = 'none' }}
               >
-                🏠 {homeLabel}
+                {homeLabel}
               </button>
 
               {/* level-2 items (with optional level-3 dropdowns)

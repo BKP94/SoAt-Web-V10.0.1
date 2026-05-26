@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Oracle.ManagedDataAccess.Client;
 using SoAt.Domain.Entities.Common;
 using SoAt.Domain.Entities.Fin;
+using SoAt.Domain.Entities.Mem;
 using SoAt.Domain.Entities.System;
 
 namespace SoAt.Infrastructure.Persistence;
@@ -22,6 +23,7 @@ public static class DatabaseSeeder
         await SyncCounterSplitFromOracleAsync(db, config);
         await SeedBranchesFromOracleAsync(db, config);
         await SeedFinConstantFromOracleAsync(db, config);
+        await SeedMemUcfFromOracleAsync(db, config);
     }
 
     static async Task SeedSecurityAppsAsync(AppDbContext db)
@@ -347,6 +349,302 @@ public static class DatabaseSeeder
         catch
         {
             // Oracle not reachable — sc_fin_m_constant will remain empty
+        }
+    }
+
+    // ── Mem UCF lookup tables + sc_cnt_m_coop ──────────────────────────────────
+    // เปิด Oracle connection ครั้งเดียว แล้ว seed ทุก lookup table ของ sctelnewbma
+    static async Task SeedMemUcfFromOracleAsync(AppDbContext db, IConfiguration config)
+    {
+        // ตรวจว่ามีตาราง UCF ที่ยังไม่มีข้อมูลหรือไม่
+        bool anyNeeded =
+            !await db.ScMemMUcfPrenames.AnyAsync()          ||
+            !await db.ScMemMUcfMemberTypes.AnyAsync()       ||
+            !await db.ScMemMUcfMemberGroups.AnyAsync()      ||
+            !await db.ScMemMUcfElectionGroups.AnyAsync()    ||
+            !await db.ScMemMUcfNationalities.AnyAsync()     ||
+            !await db.ScMemMUcfMarriageStatuses.AnyAsync()  ||
+            !await db.ScMemMUcfBloods.AnyAsync()            ||
+            !await db.ScMemMUcfProvinces.AnyAsync()         ||
+            !await db.ScMemMUcfDistricts.AnyAsync()         ||
+            !await db.ScMemMUcfSubdistricts.AnyAsync()      ||
+            !await db.ScMemMUcfApplicationTypes.AnyAsync()  ||
+            !await db.ScMemMUcfConcerns.AnyAsync()          ||
+            !await db.ScMemMUcfGroupPositions.AnyAsync()    ||
+            !await db.ScMemMUcfPositions.AnyAsync()         ||
+            !await db.ScCntMCoops.AnyAsync();
+
+        if (!anyNeeded) return;
+
+        try
+        {
+            await using var conn = new OracleConnection(OracleConnStr(config));
+            await conn.OpenAsync();
+
+            // ── sc_mem_m_ucf_prename ──────────────────────────────────────────
+            if (!await db.ScMemMUcfPrenames.AnyAsync())
+            {
+                await using var cmd = conn.CreateCommand();
+                cmd.CommandText = "SELECT prename_code, prename, sex, marriage_status FROM sc_mem_m_ucf_prename ORDER BY prename_code";
+                await using var r = await cmd.ExecuteReaderAsync();
+                var rows = new List<ScMemMUcfPrename>();
+                while (await r.ReadAsync())
+                    rows.Add(new ScMemMUcfPrename
+                    {
+                        PrenameCode    = r.GetString(0),
+                        Prename        = r.IsDBNull(1) ? null : r.GetString(1),
+                        Sex            = r.IsDBNull(2) ? null : r.GetString(2),
+                        MarriageStatus = r.IsDBNull(3) ? null : r.GetString(3),
+                    });
+                if (rows.Count > 0) { db.ScMemMUcfPrenames.AddRange(rows); await db.SaveChangesAsync(); }
+            }
+
+            // ── sc_mem_m_ucf_member_type ──────────────────────────────────────
+            if (!await db.ScMemMUcfMemberTypes.AnyAsync())
+            {
+                await using var cmd = conn.CreateCommand();
+                cmd.CommandText = "SELECT mem_type_code, mem_type_desc, maximun_share, not_salary, mproc_apart FROM sc_mem_m_ucf_member_type ORDER BY mem_type_code";
+                await using var r = await cmd.ExecuteReaderAsync();
+                var rows = new List<ScMemMUcfMemberType>();
+                while (await r.ReadAsync())
+                    rows.Add(new ScMemMUcfMemberType
+                    {
+                        MemTypeCode  = r.GetString(0),
+                        MemTypeDesc  = r.IsDBNull(1) ? null : r.GetString(1),
+                        MaximunShare = r.IsDBNull(2) ? null : r.GetDecimal(2),
+                        NotSalary    = r.IsDBNull(3) ? null : r.GetString(3),
+                        MprocApart   = r.IsDBNull(4) ? null : r.GetString(4),
+                    });
+                if (rows.Count > 0) { db.ScMemMUcfMemberTypes.AddRange(rows); await db.SaveChangesAsync(); }
+            }
+
+            // ── sc_mem_m_ucf_member_group ─────────────────────────────────────
+            if (!await db.ScMemMUcfMemberGroups.AnyAsync())
+            {
+                await using var cmd = conn.CreateCommand();
+                cmd.CommandText = "SELECT member_group_no, member_group_name, mem_type_default, not_sal, ingore_dropshr_rule FROM sc_mem_m_ucf_member_group ORDER BY member_group_no";
+                await using var r = await cmd.ExecuteReaderAsync();
+                var rows = new List<ScMemMUcfMemberGroup>();
+                while (await r.ReadAsync())
+                    rows.Add(new ScMemMUcfMemberGroup
+                    {
+                        MemberGroupNo      = r.GetString(0),
+                        MemberGroupName    = r.IsDBNull(1) ? null : r.GetString(1),
+                        MemTypeDefault     = r.IsDBNull(2) ? null : r.GetString(2),
+                        NotSal             = r.IsDBNull(3) ? null : r.GetString(3),
+                        IngoreDropshrRule  = r.IsDBNull(4) ? null : r.GetString(4),
+                    });
+                if (rows.Count > 0) { db.ScMemMUcfMemberGroups.AddRange(rows); await db.SaveChangesAsync(); }
+            }
+
+            // ── sc_mem_m_ucf_election_group ───────────────────────────────────
+            if (!await db.ScMemMUcfElectionGroups.AnyAsync())
+            {
+                await using var cmd = conn.CreateCommand();
+                cmd.CommandText = "SELECT election_group, election_group_name, election_zone FROM sc_mem_m_ucf_election_group ORDER BY election_group";
+                await using var r = await cmd.ExecuteReaderAsync();
+                var rows = new List<ScMemMUcfElectionGroup>();
+                while (await r.ReadAsync())
+                    rows.Add(new ScMemMUcfElectionGroup
+                    {
+                        ElectionGroup     = r.GetString(0),
+                        ElectionGroupName = r.IsDBNull(1) ? null : r.GetString(1),
+                        ElectionZone      = r.IsDBNull(2) ? null : r.GetString(2),
+                    });
+                if (rows.Count > 0) { db.ScMemMUcfElectionGroups.AddRange(rows); await db.SaveChangesAsync(); }
+            }
+
+            // ── sc_mem_m_ucf_nationality ──────────────────────────────────────
+            if (!await db.ScMemMUcfNationalities.AnyAsync())
+            {
+                await using var cmd = conn.CreateCommand();
+                cmd.CommandText = "SELECT nationality_code, nationality_description FROM sc_mem_m_ucf_nationality ORDER BY nationality_code";
+                await using var r = await cmd.ExecuteReaderAsync();
+                var rows = new List<ScMemMUcfNationality>();
+                while (await r.ReadAsync())
+                    rows.Add(new ScMemMUcfNationality
+                    {
+                        NationalityCode        = r.GetString(0),
+                        NationalityDescription = r.IsDBNull(1) ? null : r.GetString(1),
+                    });
+                if (rows.Count > 0) { db.ScMemMUcfNationalities.AddRange(rows); await db.SaveChangesAsync(); }
+            }
+
+            // ── sc_mem_m_ucf_marriage_status ──────────────────────────────────
+            // Oracle column: marriage_status_code (PK), marriage_status (description — not marriage_status_name)
+            if (!await db.ScMemMUcfMarriageStatuses.AnyAsync())
+            {
+                await using var cmd = conn.CreateCommand();
+                cmd.CommandText = "SELECT marriage_status_code, marriage_status FROM sc_mem_m_ucf_marriage_status ORDER BY marriage_status_code";
+                await using var r = await cmd.ExecuteReaderAsync();
+                var rows = new List<ScMemMUcfMarriageStatus>();
+                while (await r.ReadAsync())
+                    rows.Add(new ScMemMUcfMarriageStatus
+                    {
+                        MarriageStatusCode = r.GetString(0),
+                        MarriageStatusName = r.IsDBNull(1) ? null : r.GetString(1),
+                    });
+                if (rows.Count > 0) { db.ScMemMUcfMarriageStatuses.AddRange(rows); await db.SaveChangesAsync(); }
+            }
+
+            // ── sc_mem_m_ucf_blood ────────────────────────────────────────────
+            if (!await db.ScMemMUcfBloods.AnyAsync())
+            {
+                await using var cmd = conn.CreateCommand();
+                cmd.CommandText = "SELECT blood_code, blood_desc FROM sc_mem_m_ucf_blood ORDER BY blood_code";
+                await using var r = await cmd.ExecuteReaderAsync();
+                var rows = new List<ScMemMUcfBlood>();
+                while (await r.ReadAsync())
+                    rows.Add(new ScMemMUcfBlood
+                    {
+                        BloodCode = r.GetString(0),
+                        BloodDesc = r.IsDBNull(1) ? null : r.GetString(1),
+                    });
+                if (rows.Count > 0) { db.ScMemMUcfBloods.AddRange(rows); await db.SaveChangesAsync(); }
+            }
+
+            // ── sc_mem_m_ucf_province ─────────────────────────────────────────
+            if (!await db.ScMemMUcfProvinces.AnyAsync())
+            {
+                await using var cmd = conn.CreateCommand();
+                cmd.CommandText = "SELECT province_code, province_name FROM sc_mem_m_ucf_province ORDER BY province_code";
+                await using var r = await cmd.ExecuteReaderAsync();
+                var rows = new List<ScMemMUcfProvince>();
+                while (await r.ReadAsync())
+                    rows.Add(new ScMemMUcfProvince
+                    {
+                        ProvinceCode = r.GetString(0),
+                        ProvinceName = r.IsDBNull(1) ? null : r.GetString(1),
+                    });
+                if (rows.Count > 0) { db.ScMemMUcfProvinces.AddRange(rows); await db.SaveChangesAsync(); }
+            }
+
+            // ── sc_mem_m_ucf_district ─────────────────────────────────────────
+            if (!await db.ScMemMUcfDistricts.AnyAsync())
+            {
+                await using var cmd = conn.CreateCommand();
+                cmd.CommandText = "SELECT district_code, district_name, province_code, post_code FROM sc_mem_m_ucf_district ORDER BY district_code";
+                await using var r = await cmd.ExecuteReaderAsync();
+                var rows = new List<ScMemMUcfDistrict>();
+                while (await r.ReadAsync())
+                    rows.Add(new ScMemMUcfDistrict
+                    {
+                        DistrictCode = r.GetString(0),
+                        DistrictName = r.IsDBNull(1) ? null : r.GetString(1),
+                        ProvinceCode = r.IsDBNull(2) ? null : r.GetString(2),
+                        PostCode     = r.IsDBNull(3) ? null : r.GetString(3),
+                    });
+                if (rows.Count > 0) { db.ScMemMUcfDistricts.AddRange(rows); await db.SaveChangesAsync(); }
+            }
+
+            // ── sc_mem_m_ucf_subdistrict ──────────────────────────────────────
+            if (!await db.ScMemMUcfSubdistricts.AnyAsync())
+            {
+                await using var cmd = conn.CreateCommand();
+                cmd.CommandText = "SELECT subdistrict_code, subdistrict_name, district_code FROM sc_mem_m_ucf_subdistrict ORDER BY subdistrict_code";
+                await using var r = await cmd.ExecuteReaderAsync();
+                var rows = new List<ScMemMUcfSubdistrict>();
+                while (await r.ReadAsync())
+                    rows.Add(new ScMemMUcfSubdistrict
+                    {
+                        SubdistrictCode = r.GetString(0),
+                        SubdistrictName = r.IsDBNull(1) ? null : r.GetString(1),
+                        DistrictCode    = r.IsDBNull(2) ? null : r.GetString(2),
+                    });
+                if (rows.Count > 0) { db.ScMemMUcfSubdistricts.AddRange(rows); await db.SaveChangesAsync(); }
+            }
+
+            // ── sc_mem_m_ucf_application_type ─────────────────────────────────
+            if (!await db.ScMemMUcfApplicationTypes.AnyAsync())
+            {
+                await using var cmd = conn.CreateCommand();
+                cmd.CommandText = "SELECT appl_type_code, appl_type_name, application_fee, mem_type_code FROM sc_mem_m_ucf_application_type ORDER BY appl_type_code";
+                await using var r = await cmd.ExecuteReaderAsync();
+                var rows = new List<ScMemMUcfApplicationType>();
+                while (await r.ReadAsync())
+                    rows.Add(new ScMemMUcfApplicationType
+                    {
+                        ApplTypeCode   = r.GetString(0),
+                        ApplTypeName   = r.IsDBNull(1) ? null : r.GetString(1),
+                        ApplicationFee = r.IsDBNull(2) ? null : r.GetDecimal(2),
+                        MemTypeCode    = r.IsDBNull(3) ? null : r.GetString(3),
+                    });
+                if (rows.Count > 0) { db.ScMemMUcfApplicationTypes.AddRange(rows); await db.SaveChangesAsync(); }
+            }
+
+            // ── sc_mem_m_ucf_concern ──────────────────────────────────────────
+            // Oracle PK column: conceern_code (typo) → PostgreSQL: concern_code (fixed)
+            if (!await db.ScMemMUcfConcerns.AnyAsync())
+            {
+                await using var cmd = conn.CreateCommand();
+                cmd.CommandText = "SELECT conceern_code, related_na FROM sc_mem_m_ucf_concern ORDER BY sort_order";
+                await using var r = await cmd.ExecuteReaderAsync();
+                var rows = new List<ScMemMUcfConcern>();
+                while (await r.ReadAsync())
+                    rows.Add(new ScMemMUcfConcern
+                    {
+                        ConcernCode = r.GetString(0),
+                        RelatedNa   = r.IsDBNull(1) ? null : r.GetString(1),
+                    });
+                if (rows.Count > 0) { db.ScMemMUcfConcerns.AddRange(rows); await db.SaveChangesAsync(); }
+            }
+
+            // ── sc_mem_m_ucf_group_position ───────────────────────────────────
+            if (!await db.ScMemMUcfGroupPositions.AnyAsync())
+            {
+                await using var cmd = conn.CreateCommand();
+                cmd.CommandText = "SELECT group_position, description, NVL(sort_order, 0) FROM sc_mem_m_ucf_group_position ORDER BY sort_order";
+                await using var r = await cmd.ExecuteReaderAsync();
+                var rows = new List<ScMemMUcfGroupPosition>();
+                while (await r.ReadAsync())
+                    rows.Add(new ScMemMUcfGroupPosition
+                    {
+                        GroupPosition = r.GetString(0),
+                        Description   = r.IsDBNull(1) ? null : r.GetString(1),
+                        SortOrder     = r.IsDBNull(2) ? null : (int)r.GetDecimal(2),
+                    });
+                if (rows.Count > 0) { db.ScMemMUcfGroupPositions.AddRange(rows); await db.SaveChangesAsync(); }
+            }
+
+            // ── sc_mem_m_ucf_position ─────────────────────────────────────────
+            if (!await db.ScMemMUcfPositions.AnyAsync())
+            {
+                await using var cmd = conn.CreateCommand();
+                cmd.CommandText = "SELECT position_code, position_name, NVL(sort_order, 0) FROM sc_mem_m_ucf_position ORDER BY sort_order";
+                await using var r = await cmd.ExecuteReaderAsync();
+                var rows = new List<ScMemMUcfPosition>();
+                while (await r.ReadAsync())
+                    rows.Add(new ScMemMUcfPosition
+                    {
+                        PositionCode = r.GetString(0),
+                        PositionName = r.IsDBNull(1) ? null : r.GetString(1),
+                        SortOrder    = r.IsDBNull(2) ? null : (int)r.GetDecimal(2),
+                    });
+                if (rows.Count > 0) { db.ScMemMUcfPositions.AddRange(rows); await db.SaveChangesAsync(); }
+            }
+
+            // ── sc_cnt_m_coop (single-row config) ─────────────────────────────
+            if (!await db.ScCntMCoops.AnyAsync())
+            {
+                await using var cmd = conn.CreateCommand();
+                cmd.CommandText = "SELECT coop_no, count_resign, auto_approve_newmem, mem_type_ongroup FROM sc_cnt_m_coop";
+                await using var r = await cmd.ExecuteReaderAsync();
+                if (await r.ReadAsync())
+                {
+                    db.ScCntMCoops.Add(new ScCntMCoop
+                    {
+                        CoopNo            = r.GetString(0),
+                        CountResign       = r.IsDBNull(1) ? null : (int)r.GetDecimal(1),
+                        AutoApproveNewmem = r.IsDBNull(2) ? null : r.GetString(2),
+                        MemTypeOngroup    = r.IsDBNull(3) ? null : r.GetString(3),
+                    });
+                    await db.SaveChangesAsync();
+                }
+            }
+        }
+        catch
+        {
+            // Oracle not reachable — UCF lookup tables will remain empty
         }
     }
 }

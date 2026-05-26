@@ -17,6 +17,7 @@ public static class DatabaseSeeder
     {
         await SeedSecurityAppsAsync(db);
         await SeedSecurityAppsLevel2FromOracleAsync(db, config);
+        await SeedSecurityAppsLevel3FromOracleAsync(db, config);   // ← level 3 แยก
         await SeedSecurityUsersFromOracleAsync(db, config);
         await SyncCounterSplitFromOracleAsync(db, config);
         await SeedBranchesFromOracleAsync(db, config);
@@ -70,6 +71,7 @@ public static class DatabaseSeeder
         await db.SaveChangesAsync();
     }
 
+    // seed ทั้ง level=2 (top bar) และ level=3 (dropdown items)
     static async Task SeedSecurityAppsLevel2FromOracleAsync(AppDbContext db, IConfiguration config)
     {
         if (await db.SiSecurityApps.AnyAsync(a => a.ILevel == 2)) return;
@@ -81,33 +83,38 @@ public static class DatabaseSeeder
 
             await using var cmd = oraConn.CreateCommand();
             cmd.CommandText = @"
-                SELECT i_menu_id, NVL(i_parent_id, 0), app_name, app_text, app_text_english,
+                SELECT i_menu_id, i_parent_id, app_name, app_text, app_text_english,
                        active, i_level, NVL(i_sequence, 0), NVL(order_no, 0),
-                       shot_app, icon_name, s_url, NVL(i_parent_id, 0), sub_app_name, remark
+                       shot_app, icon_name, s_url, sub_app_name, remark
                 FROM si_security_apps
-                WHERE i_level = 2";
+                WHERE i_level IN (2, 3)
+                ORDER BY i_level, i_sequence";
 
             await using var reader = await cmd.ExecuteReaderAsync();
             var items = new List<SiSecurityApp>();
 
             while (await reader.ReadAsync())
             {
+                // columns: 0=i_menu_id, 1=i_parent_id, 2=app_name, 3=app_text,
+                //          4=app_text_english, 5=active, 6=i_level, 7=i_sequence,
+                //          8=order_no, 9=shot_app, 10=icon_name, 11=s_url,
+                //          12=sub_app_name, 13=remark
                 items.Add(new SiSecurityApp
                 {
                     IMenuId        = (int)reader.GetDecimal(0),
                     IParentId      = reader.IsDBNull(1) ? null : (int)reader.GetDecimal(1),
-                    AppName        = reader.IsDBNull(2) ? null : reader.GetString(2),
-                    AppText        = reader.IsDBNull(3) ? null : reader.GetString(3),
-                    AppTextEnglish = reader.IsDBNull(4) ? null : reader.GetString(4),
+                    AppName        = reader.IsDBNull(2)  ? null : reader.GetString(2),
+                    AppText        = reader.IsDBNull(3)  ? null : reader.GetString(3),
+                    AppTextEnglish = reader.IsDBNull(4)  ? null : reader.GetString(4),
                     Active         = !reader.IsDBNull(5) && reader.GetString(5) == "1",
                     ILevel         = (int)reader.GetDecimal(6),
-                    ISequence      = reader.IsDBNull(7) ? 0 : (int)reader.GetDecimal(7),
-                    OrderNo        = reader.IsDBNull(8) ? 0 : (int)reader.GetDecimal(8),
+                    ISequence      = reader.IsDBNull(7)  ? 0    : (int)reader.GetDecimal(7),
+                    OrderNo        = reader.IsDBNull(8)  ? 0    : (int)reader.GetDecimal(8),
                     ShotApp        = reader.IsDBNull(9)  ? null : reader.GetString(9),
                     IconName       = reader.IsDBNull(10) ? null : reader.GetString(10),
                     SUrl           = reader.IsDBNull(11) ? null : reader.GetString(11),
-                    SubAppName     = reader.IsDBNull(13) ? null : reader.GetString(13),
-                    Remark         = reader.IsDBNull(14) ? null : reader.GetString(14),
+                    SubAppName     = reader.IsDBNull(12) ? null : reader.GetString(12),
+                    Remark         = reader.IsDBNull(13) ? null : reader.GetString(13),
                 });
             }
 
@@ -120,6 +127,70 @@ public static class DatabaseSeeder
         catch
         {
             // Oracle not reachable — level 2 menus will be empty
+        }
+    }
+
+    // seed level=3 (dropdown sub-items)
+    // force=false → skip ถ้ามีอยู่แล้ว
+    // force=true  → ลบแล้ว insert ใหม่จาก Oracle (ใช้จาก /api/sc/sync-menu)
+    public static async Task SeedSecurityAppsLevel3FromOracleAsync(
+        AppDbContext db, IConfiguration config, bool force = false)
+    {
+        if (!force && await db.SiSecurityApps.AnyAsync(a => a.ILevel == 3)) return;
+        if (force)
+        {
+            var old = db.SiSecurityApps.Where(a => a.ILevel == 3);
+            db.SiSecurityApps.RemoveRange(old);
+            await db.SaveChangesAsync();
+        }
+
+        try
+        {
+            await using var oraConn = new OracleConnection(OracleConnStr(config));
+            await oraConn.OpenAsync();
+
+            await using var cmd = oraConn.CreateCommand();
+            cmd.CommandText = @"
+                SELECT i_menu_id, i_parent_id, app_name, app_text, app_text_english,
+                       active, i_level, NVL(i_sequence, 0), NVL(order_no, 0),
+                       shot_app, icon_name, s_url, sub_app_name, remark
+                FROM si_security_apps
+                WHERE i_level = 3
+                ORDER BY app_name, i_sequence";
+
+            await using var reader = await cmd.ExecuteReaderAsync();
+            var items = new List<SiSecurityApp>();
+
+            while (await reader.ReadAsync())
+            {
+                items.Add(new SiSecurityApp
+                {
+                    IMenuId        = (int)reader.GetDecimal(0),
+                    IParentId      = reader.IsDBNull(1)  ? null : (int)reader.GetDecimal(1),
+                    AppName        = reader.IsDBNull(2)  ? null : reader.GetString(2),
+                    AppText        = reader.IsDBNull(3)  ? null : reader.GetString(3),
+                    AppTextEnglish = reader.IsDBNull(4)  ? null : reader.GetString(4),
+                    Active         = !reader.IsDBNull(5) && reader.GetString(5) == "1",
+                    ILevel         = (int)reader.GetDecimal(6),
+                    ISequence      = reader.IsDBNull(7)  ? 0    : (int)reader.GetDecimal(7),
+                    OrderNo        = reader.IsDBNull(8)  ? 0    : (int)reader.GetDecimal(8),
+                    ShotApp        = reader.IsDBNull(9)  ? null : reader.GetString(9),
+                    IconName       = reader.IsDBNull(10) ? null : reader.GetString(10),
+                    SUrl           = reader.IsDBNull(11) ? null : reader.GetString(11),
+                    SubAppName     = reader.IsDBNull(12) ? null : reader.GetString(12),
+                    Remark         = reader.IsDBNull(13) ? null : reader.GetString(13),
+                });
+            }
+
+            if (items.Count > 0)
+            {
+                db.SiSecurityApps.AddRange(items);
+                await db.SaveChangesAsync();
+            }
+        }
+        catch
+        {
+            // Oracle not reachable — level 3 dropdown menus will be empty
         }
     }
 

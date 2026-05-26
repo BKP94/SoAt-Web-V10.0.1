@@ -19,18 +19,22 @@ public class ScAppService(AppDbContext db) : IScAppService
                 a.IconName))
             .ToListAsync();
 
-    // level=2 items for a module — seq=0 is home, seq>0 are menu items
+    // level=2 (top bar) + level=3 (dropdown children) for a module
+    // seq=0 on level-2 = home item
     public async Task<IEnumerable<ScMenuItemDto>> GetMenuAsync(string appName)
         => await db.SiSecurityApps
-            .Where(a => a.ILevel == 2 && a.AppName == appName)
-            .OrderBy(a => a.ISequence)
+            .Where(a => (a.ILevel == 2 || a.ILevel == 3) && a.AppName == appName)
+            .OrderBy(a => a.ILevel).ThenBy(a => a.ISequence)
             .Select(a => new ScMenuItemDto(
                 a.IMenuId,
                 a.AppName ?? "",
                 a.AppTextEnglish ?? a.AppText ?? "",
+                a.AppText ?? a.AppTextEnglish ?? "",
                 a.ISequence,
                 a.IconName,
-                a.SUrl))
+                a.SUrl,
+                a.ILevel,
+                a.IParentId))
             .ToListAsync();
 
     // สาขาทั้งหมดจาก sc_com_m_branch สำหรับ login modal dropdown

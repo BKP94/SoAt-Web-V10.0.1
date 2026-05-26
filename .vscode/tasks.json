@@ -1,0 +1,68 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    // ── Backend ──────────────────────────────────────────────────────────────
+    {
+      "label": "🚀 Backend: Start",
+      "type": "shell",
+      "command": "dotnet watch",
+      "options": { "cwd": "${workspaceFolder}/backend/SoAt.API" },
+      "group": "build",
+      "presentation": {
+        "group": "dev",
+        "panel": "dedicated",
+        "reveal": "always"
+      },
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "🔨 Backend: Build",
+      "type": "shell",
+      "command": "dotnet build",
+      "options": { "cwd": "${workspaceFolder}/backend/SoAt.API" },
+      "group": "build",
+      "presentation": {
+        "group": "build",
+        "panel": "dedicated",
+        "reveal": "always"
+      },
+      "problemMatcher": "$msCompile"
+    },
+    // ── Frontend ─────────────────────────────────────────────────────────────
+    {
+      "label": "⚡ Frontend: Start",
+      "type": "shell",
+      "command": "pnpm dev",
+      "options": { "cwd": "${workspaceFolder}/frontend" },
+      "presentation": {
+        "group": "dev",
+        "panel": "dedicated",
+        "reveal": "always"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "📦 Frontend: Build",
+      "type": "shell",
+      "command": "pnpm build",
+      "options": { "cwd": "${workspaceFolder}/frontend" },
+      "presentation": {
+        "group": "build",
+        "panel": "dedicated",
+        "reveal": "always"
+      },
+      "problemMatcher": []
+    },
+    // ── Compound ─────────────────────────────────────────────────────────────
+    {
+      "label": "▶▶ Dev: Start All",
+      "dependsOn": ["🚀 Backend: Start", "⚡ Frontend: Start"],
+      "dependsOrder": "parallel",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    }
+  ]
+}

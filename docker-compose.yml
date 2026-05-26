@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: soat-postgres
+    environment:
+      POSTGRES_USER: soat
+      POSTGRES_PASSWORD: soat1234
+      POSTGRES_DB: soatdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - soat-pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  soat-pgdata:

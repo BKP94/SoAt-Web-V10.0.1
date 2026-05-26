@@ -1,0 +1,31 @@
+@import "tailwindcss";
+@import "@fontsource/prompt/300.css";
+@import "@fontsource/prompt/400.css";
+@import "@fontsource/prompt/500.css";
+@import "@fontsource/prompt/600.css";
+@import "@fontsource/prompt/700.css";
+@import "@fontsource/prompt/400-italic.css";
+
+:root {
+  color-scheme: light;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Prompt', 'Segoe UI', Tahoma, system-ui, -apple-system, sans-serif;
+  font-weight: 400;
+  background: #f0f2f5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}

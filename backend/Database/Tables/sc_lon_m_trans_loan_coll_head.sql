@@ -1,0 +1,35 @@
+﻿CREATE TABLE sc_lon_m_trans_loan_coll_head (
+	transfer_doc_no varchar(10) NOT NULL,
+	membership_no varchar(15),
+	loan_contract_no varchar(15),
+	transfer_date timestamp,
+	principal_balance decimal(15,2),
+	last_access_date timestamp,
+	transfer_status char(1),
+	principal_of_loan decimal(15,2),
+	period_payment decimal(15,2),
+	begining_of_contract timestamp,
+	last_period double precision,
+	int_transfer_amount decimal(15,2),
+	installment double precision,
+	cancel_date timestamp,
+	cancel_id varchar(16),
+	payment_type_code varchar(6),
+	interest_arrear decimal(15,2) DEFAULT 0,
+	fee_normal decimal(15,2) DEFAULT 0,
+	fee_law decimal(15,2) DEFAULT 0,
+	last_calcint_date timestamp,
+	entry_id varchar(16),
+	entry_date timestamp,
+	entry_pc varchar(3),
+	entry_br varchar(6),
+	cancel_pc varchar(3),
+	cancel_br varchar(6),
+	calcint_date timestamp,
+	principal_transfer decimal(15,2) DEFAULT 0,
+	share_stock double precision DEFAULT 0,
+	loan_code char(1)
+) ;
+ALTER TABLE sc_lon_m_trans_loan_coll_head ADD PRIMARY KEY (transfer_doc_no);
+
+

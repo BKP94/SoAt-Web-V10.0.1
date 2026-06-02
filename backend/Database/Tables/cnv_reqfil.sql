@@ -1,0 +1,33 @@
+﻿CREATE TABLE cnv_reqfil (
+	bk_type varchar(2),
+	bk_num varchar(5),
+	bk_year varchar(4),
+	req_date integer,
+	mem_no varchar(5),
+	req_amt decimal(13,2),
+	lon_amt decimal(13,2),
+	app_amt decimal(13,2),
+	bal_amt decimal(13,2),
+	bk_des varchar(2),
+	wage_amt integer,
+	inst_amt decimal(13,2),
+	term_no smallint,
+	start_dt integer,
+	fl_corr varchar(1),
+	req_no varchar(10),
+	lst_seq smallint,
+	docstat varchar(1),
+	bokterm varchar(6),
+	usr_id1 smallint,
+	usr_id2 smallint,
+	psn_no1 varchar(35),
+	psn_no2 varchar(35),
+	stk_amt decimal(13,2),
+	stk_trm smallint,
+	pay_dat integer,
+	flg_pay varchar(1),
+	flintrat varchar(1),
+	gp_rate varchar(2)
+) ;
+
+

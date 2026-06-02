@@ -1,0 +1,42 @@
+﻿CREATE TABLE sc_lon_req_coll_law_land (
+	doc_no varchar(15) NOT NULL,
+	teedin_branch varchar(50),
+	teedin varchar(50),
+	land_address_no varchar(100),
+	book_no varchar(50),
+	page_no varchar(100) DEFAULT '0',
+	portion1 varchar(100),
+	land_number varchar(100),
+	explore varchar(100),
+	all_rai varchar(100) DEFAULT '0',
+	all_nharn varchar(100) DEFAULT '0',
+	all_square_two_meters varchar(100) DEFAULT '0',
+	lh_no varchar(50),
+	book_page_no varchar(50),
+	extension varchar(100),
+	moo varchar(50),
+	tambol varchar(50),
+	district_code varchar(6) DEFAULT '00',
+	district_des varchar(50),
+	province_code varchar(6) DEFAULT '00',
+	province_des varchar(50),
+	appraisal_text varchar(100),
+	appraise_company decimal(15,2),
+	appraise_coop decimal(15,2),
+	appraise_land decimal(15,2),
+	count_land double precision DEFAULT 1,
+	owner_co varchar(6),
+	portion2 varchar(100),
+	km_no varchar(100),
+	address_no varchar(100),
+	mooban varchar(200),
+	soi varchar(100),
+	road varchar(100),
+	temp_conno varchar(15),
+	temp_reqno varchar(15),
+	include_status varchar(6) DEFAULT '01'
+) ;
+ALTER TABLE sc_lon_req_coll_law_land ADD PRIMARY KEY (doc_no);
+ALTER TABLE sc_lon_req_coll_law_land ALTER COLUMN doc_no SET NOT NULL;
+
+

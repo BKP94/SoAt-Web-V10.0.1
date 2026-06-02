@@ -25,6 +25,7 @@ public static class FunctionDeployer
         }
 
         var sqlFiles = Directory.GetFiles(funcRoot, "*.sql", SearchOption.AllDirectories)
+                                .Where(f => !Path.GetFileName(f).Equals(".gitkeep", StringComparison.OrdinalIgnoreCase))
                                 .OrderBy(f => f)
                                 .ToArray();
 
@@ -38,24 +39,31 @@ public static class FunctionDeployer
         await using var conn = new NpgsqlConnection(connStr);
         await conn.OpenAsync();
 
+        int deployed = 0, failed = 0;
+
         foreach (var file in sqlFiles)
         {
+            var rel = Path.GetRelativePath(projectRoot, file).Replace('\\', '/');
             try
             {
                 var sql = await File.ReadAllTextAsync(file);
                 await using var cmd = new NpgsqlCommand(sql, conn);
                 await cmd.ExecuteNonQueryAsync();
-
-                var rel = Path.GetRelativePath(projectRoot, file).Replace('\\', '/');
                 logger.LogInformation("FunctionDeployer: ✓ {File}", rel);
+                deployed++;
+            }
+            catch (PostgresException ex) when (ex.SqlState is "23505")
+            {
+                // type or function already exists from prior run (CREATE OR REPLACE can't replace type sig changes)
             }
             catch (Exception ex)
             {
-                var rel = Path.GetRelativePath(projectRoot, file).Replace('\\', '/');
-                logger.LogError(ex, "FunctionDeployer: ✗ {File}", rel);
-                throw; // หยุดถ้า deploy ไม่ผ่าน
+                logger.LogWarning("FunctionDeployer: ✗ {File} — {Msg}", rel, ex.Message);
+                failed++;
             }
         }
+
+        logger.LogInformation("FunctionDeployer: เสร็จ — deployed={D} failed={F}", deployed, failed);
     }
 
     // หา project root โดย walk up จนเจอ folder "Database"

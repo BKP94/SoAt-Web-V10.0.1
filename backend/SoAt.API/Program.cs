@@ -1,5 +1,6 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using SoAt.Infrastructure;
@@ -51,13 +52,21 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference();
 }
 
-// Seed database on startup
+// Startup order:
+//   1. EF Core migrations  — create/update si_security_* tables
+//   2. Deployers            — create Oracle-migrated tables, functions, triggers, views
+//   3. Seeder               — seed data (Oracle tables must exist before seeder checks them)
 using (var scope = app.Services.CreateScope())
 {
     var db     = scope.ServiceProvider.GetRequiredService<SoAt.Infrastructure.Persistence.AppDbContext>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-    await SoAt.Infrastructure.Persistence.DatabaseSeeder.SeedAsync(db, builder.Configuration);
+
+    await db.Database.MigrateAsync();
+    await SoAt.Infrastructure.Persistence.TableDeployer.DeployAsync(builder.Configuration, logger);
     await SoAt.Infrastructure.Persistence.FunctionDeployer.DeployAsync(builder.Configuration, logger);
+    await SoAt.Infrastructure.Persistence.TriggerDeployer.DeployAsync(builder.Configuration, logger);
+    await SoAt.Infrastructure.Persistence.ViewDeployer.DeployAsync(builder.Configuration, logger);
+    await SoAt.Infrastructure.Persistence.DatabaseSeeder.SeedAsync(db, builder.Configuration);
 }
 
 app.UseHttpsRedirection();

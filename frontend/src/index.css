@@ -6,6 +6,10 @@
 @import "@fontsource/prompt/700.css";
 @import "@fontsource/prompt/400-italic.css";
 
+/* ── Font: Prompt (Thai/Latin) ───────────────────────────────────────────── */
+/* import order ใน main.tsx: dx.fluent.saas.light.css → material-icons.css → index.css
+   ทำให้ rules ด้านล่างนี้ override DevExtreme ได้โดยไม่ต้อง !important             */
+
 :root {
   color-scheme: light;
 }
@@ -28,4 +32,79 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   DevExtreme — Prompt font + Modern Fluent overrides
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Global font: บังคับ Prompt ทุก DevExtreme widget ─────────────────── */
+.dx-widget {
+  font-family: 'Prompt', 'Segoe UI', Tahoma, system-ui, -apple-system, sans-serif;
+}
+
+/* ── 2. Input fields: rounded ─────────────────────────────────────────────── */
+/* focus glow ไม่ override — ให้ theme (Carmine/Fluent/ฯลฯ) จัดการเอง          */
+.dx-texteditor.dx-editor-outlined {
+  border-radius: 7px;
+}
+
+/* ── 3. Buttons: rounded ─────────────────────────────────────────────────── */
+.dx-button {
+  border-radius: 7px;
+}
+
+/* ── 4. Popup: rounded + deeper shadow ───────────────────────────────────── */
+.dx-popup-wrapper > .dx-overlay-content {
+  border-radius: 10px !important;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.16) !important;
+}
+
+/* ── 5. Dropdown list overlay (SelectBox / DropDownBox) ──────────────────── */
+.dx-selectbox-popup-wrapper > .dx-overlay-content,
+.dx-dropdowneditor-overlay  > .dx-overlay-content {
+  border-radius: 8px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10) !important;
+  overflow: hidden;
+}
+
+/* ── 6. DataGrid: rounded container + clean header ───────────────────────── */
+.dx-datagrid {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0 !important;
+}
+.dx-datagrid-headers .dx-header-row > td {
+  background-color: #f1f5f9 !important;
+  font-weight: 600;
+  font-size: 12px;
+  color: #475569;
+  letter-spacing: 0.01em;
+}
+
+/* ── 7. TabPanel: icon-top + underline indicator (.dx-tab-icon-top) ─────── */
+/* ปรับแค่ layout + underline indicator — ไม่ override สี/background ของ theme */
+
+/* เพิ่ม underline indicator ใต้ tab (ใช้ currentColor → ตามสีของ theme เอง) */
+.dx-tab-icon-top .dx-tab {
+  border-radius:  0 !important;
+  border-bottom:  2px solid transparent;
+  transition:     border-color 0.15s ease;
+}
+.dx-tab-icon-top .dx-tab.dx-tab-selected {
+  border-bottom-color: currentColor;
+}
+
+/* ── 8. Form group caption ────────────────────────────────────────────────── */
+.dx-form-group-with-caption .dx-form-group-caption {
+  font-weight: 600;
+  font-size: 13px;
+  color: #1a3760;
+}
+
+/* ── 9. Form field labels ─────────────────────────────────────────────────── */
+.dx-field-item-label-text {
+  font-weight: 500;
+  color: #374151;
 }

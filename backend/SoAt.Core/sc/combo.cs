@@ -1,5 +1,8 @@
 namespace sc
 {
+    /// <summary>Generic code+name pair — return type ของ sc.db.getComboAsync</summary>
+    public record ComboItem(string Code, string Name);
+
     public class combo
     {
         public const string _ITEM_CODE = "ITEM_CODE";

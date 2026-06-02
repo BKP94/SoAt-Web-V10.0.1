@@ -1,0 +1,43 @@
+﻿CREATE TABLE sc_rep_total_loan_by_day (
+	loan_type varchar(6) NOT NULL,
+	day1 varchar(6),
+	day2 varchar(6),
+	day3 varchar(6),
+	day4 varchar(6),
+	day5 varchar(6),
+	day6 varchar(6),
+	day7 varchar(6),
+	day8 varchar(6),
+	day9 varchar(6),
+	day10 varchar(6),
+	day11 varchar(6),
+	day12 varchar(6),
+	day13 varchar(6),
+	day14 varchar(6),
+	day15 varchar(6),
+	day16 varchar(6),
+	day17 varchar(6),
+	day18 varchar(6),
+	day19 varchar(6),
+	day20 varchar(6),
+	day21 varchar(6),
+	day22 varchar(6),
+	day23 varchar(6),
+	day24 varchar(6),
+	day25 varchar(6),
+	day26 varchar(6),
+	day27 varchar(6),
+	day28 varchar(6),
+	day29 varchar(6),
+	day30 varchar(6),
+	day31 varchar(6),
+	total_loan decimal(38,2),
+	total_contract decimal(38,2),
+	total_paid decimal(38,2),
+	rep_month numeric(38),
+	rep_year numeric(38)
+) ;
+ALTER TABLE sc_rep_total_loan_by_day ADD PRIMARY KEY (loan_type);
+ALTER TABLE sc_rep_total_loan_by_day ALTER COLUMN loan_type SET NOT NULL;
+
+

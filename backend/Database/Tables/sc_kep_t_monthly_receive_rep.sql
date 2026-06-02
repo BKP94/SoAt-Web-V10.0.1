@@ -1,0 +1,92 @@
+﻿CREATE TABLE sc_kep_t_monthly_receive_rep (
+	membership_no varchar(15) NOT NULL,
+	receive_year double precision NOT NULL,
+	receive_month double precision NOT NULL,
+	seq_no double precision NOT NULL,
+	receipt_no varchar(15),
+	deposit_no varchar(15),
+	deposit_amount decimal(15,2),
+	period_of_share double precision,
+	money_of_share decimal(15,2),
+	money_of_fee decimal(15,2),
+	money_of_etc decimal(15,2),
+	contract_of_emer_loan varchar(15),
+	period_of_emer_loan double precision,
+	principal_of_emer_loan decimal(15,2),
+	interest_of_emer_loan decimal(15,2),
+	contract_of_norm_loan varchar(15),
+	period_of_norm_loan double precision,
+	principal_of_norm_loan decimal(15,2),
+	interest_of_norm_loan decimal(15,2),
+	contract_of_special_loan varchar(15),
+	period_of_special_loan double precision,
+	principal_of_special_loan decimal(15,2),
+	interest_of_special_loan decimal(15,2),
+	emer_type varchar(6),
+	norm_type varchar(6),
+	spec_type varchar(6),
+	emer_bal decimal(15,2),
+	norm_bal decimal(15,2),
+	spec_bal decimal(15,2),
+	emer_intarr_pay decimal(15,2),
+	norm_intarr_pay decimal(15,2),
+	spec_intarr_pay decimal(15,2),
+	emer_int_share_coll decimal(15,2),
+	norm_int_share_coll decimal(15,2),
+	spec_int_share_coll decimal(15,2),
+	group_position varchar(6),
+	share_coll_status char(1),
+	group_mem char(1),
+	emer_status char(1),
+	total_amount decimal(15,2),
+	norm_project char(1),
+	money_of_cm decimal(15,2),
+	description varchar(250),
+	special_type varchar(6) DEFAULT '00',
+	non_type varchar(6) DEFAULT '00',
+	kep_method varchar(3),
+	deposit_account_no varchar(15),
+	type_return char(1) DEFAULT '0',
+	return_date timestamp,
+	money_of_mi decimal(15,2) DEFAULT 0,
+	contract_of_loan varchar(15),
+	period_of_loan double precision DEFAULT 0,
+	principal_of_loan decimal(15,2) DEFAULT 0,
+	interest_of_loan decimal(15,2) DEFAULT 0,
+	loan_type varchar(6) DEFAULT '00',
+	loan_bal decimal(15,2) DEFAULT 0,
+	membership_ownitem varchar(7),
+	money_return_post decimal(15,2) DEFAULT 0,
+	salary_in decimal(15,2) DEFAULT 0,
+	mproc_total_keep decimal(15,2) DEFAULT 0,
+	insure_arr decimal(15,2) DEFAULT 0,
+	principal_of_share decimal(15,2) DEFAULT 0,
+	receive_type varchar(3) NOT NULL DEFAULT 'KEP',
+	member_group_no varchar(15),
+	unkeep_return char(1) DEFAULT '0',
+	contract_of_mlcol varchar(15),
+	principal_of_mlcol decimal(15,2) DEFAULT 0,
+	interest_of_mlcol decimal(15,2) DEFAULT 0,
+	contract_of_sos_loan varchar(15),
+	period_of_sos_loan double precision,
+	sos_type varchar(6),
+	principal_of_sos_loan decimal(15,2) DEFAULT 0,
+	interest_of_sos_loan decimal(15,2) DEFAULT 0,
+	sos_bal decimal(15,2) DEFAULT 0,
+	sos_intarr_pay decimal(15,2) DEFAULT 0,
+	kep_limit decimal(15,2) DEFAULT 0
+) ;
+COMMENT ON TABLE sc_kep_t_monthly_receive_rep IS E'!NN!';
+CREATE INDEX idx_kep_rep_amt ON sc_kep_t_monthly_receive_rep (total_amount);
+CREATE INDEX idx_kep_rep_emer_type ON sc_kep_t_monthly_receive_rep (emer_type);
+CREATE INDEX idx_kep_rep_memno ON sc_kep_t_monthly_receive_rep (membership_no);
+CREATE INDEX idx_kep_rep_month ON sc_kep_t_monthly_receive_rep (receive_month);
+CREATE INDEX idx_kep_rep_norm_type ON sc_kep_t_monthly_receive_rep (norm_type);
+CREATE INDEX idx_kep_rep_recno ON sc_kep_t_monthly_receive_rep (receipt_no);
+CREATE INDEX idx_kep_rep_seq_no ON sc_kep_t_monthly_receive_rep (seq_no);
+CREATE INDEX idx_kep_rep_spec_type ON sc_kep_t_monthly_receive_rep (spec_type);
+CREATE INDEX idx_kep_rep_year ON sc_kep_t_monthly_receive_rep (receive_year);
+ALTER TABLE sc_kep_t_monthly_receive_rep ADD PRIMARY KEY (membership_no,receive_year,receive_month,receive_type,seq_no);
+ALTER TABLE sc_kep_t_monthly_receive_rep ALTER COLUMN receive_type SET NOT NULL;
+
+

@@ -1,0 +1,30 @@
+﻿CREATE TABLE sc_dep_m_transfer (
+	deposit_account_no char(15),
+	group_transfer double precision,
+	seq_no double precision,
+	operate_date timestamp,
+	item_type char(3),
+	transfer_amount decimal(15,2),
+	remark varchar(100),
+	entry_id varchar(20),
+	client varchar(20),
+	entry_date timestamp,
+	working_date timestamp,
+	op_transfer_date timestamp,
+	op_transfer_id varchar(20),
+	op_transfer_client varchar(20),
+	op_transfer_iddate timestamp,
+	op_transfer_workdate timestamp,
+	transfer_status char(1),
+	branch_id char(2),
+	transfer_branch_id char(2),
+	loan_contract_no char(15),
+	reject_status char(1),
+	reject_desc varchar(100),
+	trans_code char(3),
+	item_group char(3),
+	fin_status char(1),
+	vourcher_no char(15)
+) ;
+
+

@@ -1,0 +1,46 @@
+﻿CREATE TABLE sc_lon_req_coll_law_house (
+	doc_no varchar(15) NOT NULL,
+	seq_no double precision NOT NULL DEFAULT 0,
+	section_id double precision,
+	house_type varchar(2) DEFAULT '00',
+	house_detail varchar(100) DEFAULT '00',
+	address_no varchar(50),
+	moo varchar(50),
+	mooban varchar(100),
+	road varchar(50),
+	soi varchar(50),
+	tambol varchar(50),
+	district_code varchar(6) DEFAULT '00',
+	province_code varchar(6) DEFAULT '00',
+	postcode varchar(10),
+	house_age varchar(100),
+	house_state varchar(100),
+	house_utilization varchar(100),
+	house_space varchar(100),
+	house_comment varchar(100),
+	appraise_company decimal(15,2),
+	appraise_coop decimal(15,2),
+	appraise_house decimal(15,2),
+	insure_company varchar(100),
+	insure_no varchar(100),
+	insure_bdate timestamp,
+	insure_edate timestamp,
+	insure_cost decimal(15,2),
+	insure_amount decimal(15,2),
+	building_type varchar(6),
+	lower_wall_type varchar(6),
+	upper_wall_type varchar(6),
+	floor_type varchar(6),
+	frame_roof_type varchar(6),
+	roof_type varchar(6),
+	used_to varchar(150),
+	total_area decimal(15,2) DEFAULT 0,
+	level_building double precision DEFAULT 0,
+	distance_building varchar(150),
+	structure_roof varchar(6)
+) ;
+ALTER TABLE sc_lon_req_coll_law_house ADD PRIMARY KEY (doc_no,seq_no);
+ALTER TABLE sc_lon_req_coll_law_house ALTER COLUMN doc_no SET NOT NULL;
+ALTER TABLE sc_lon_req_coll_law_house ALTER COLUMN seq_no SET NOT NULL;
+
+

@@ -1,0 +1,33 @@
+﻿CREATE TABLE cnv_applfm (
+	docnum varchar(10),
+	docdat integer,
+	mem_no varchar(5),
+	fname varchar(20),
+	sname varchar(25),
+	address varchar(40),
+	tamb_no smallint,
+	post_no integer,
+	tel varchar(25),
+	depar varchar(2),
+	sbdep varchar(2),
+	posit varchar(3),
+	salary decimal(10,2),
+	bri_day integer,
+	sex varchar(1),
+	prenam varchar(15),
+	sttusm varchar(1),
+	sonnum smallint,
+	term_no smallint,
+	stktrma decimal(9,2),
+	post_c smallint,
+	oth_amt decimal(7,2),
+	flapprv varchar(1),
+	tax_id varchar(12),
+	cardid varchar(15),
+	grp_bol varchar(2),
+	membtyp varchar(1),
+	pson_id varchar(8),
+	usr_id1 smallint
+) ;
+
+

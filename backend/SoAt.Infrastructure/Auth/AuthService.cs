@@ -1,27 +1,21 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Dapper;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using SoAt.Application.Auth;
-using SoAt.Infrastructure.Persistence;
 
 namespace SoAt.Infrastructure.Auth;
 
-public class AuthService(IDbConnectionFactory dbFactory, IConfiguration config) : IAuthService
+public class AuthService(sc.dbFactory dbFactory, IConfiguration config) : IAuthService
 {
     public async Task<LoginResult?> LoginAsync(LoginCommand command)
     {
-        await using var conn = (Npgsql.NpgsqlConnection)await dbFactory.CreateAsync();
+        await using var scDb = dbFactory.create();
 
-        var user = await conn.QuerySingleOrDefaultAsync<UserRow>(
-            """
-            SELECT user_id, user_name, branch_id, passwords
-            FROM si_security_user
-            WHERE user_id = @UserId AND close_status = '0'
-            """,
-            new { command.UserId });
+        var user = await scDb.getOneAsync<UserRow>(
+            "SELECT user_id, user_name, branch_id, passwords FROM si_security_user WHERE user_id = {0} AND close_status = '0'",
+            command.UserId);
 
         if (user is null) return null;
 
@@ -36,7 +30,6 @@ public class AuthService(IDbConnectionFactory dbFactory, IConfiguration config) 
         }
 
         var displayName = user.user_name ?? user.user_id;
-        // ถ้า client เลือกสาขา → ใช้สาขาที่เลือก, ไม่งั้นใช้ branch_id ของ user
         var branchId    = !string.IsNullOrWhiteSpace(command.BranchId)
             ? command.BranchId
             : (user.branch_id ?? "");

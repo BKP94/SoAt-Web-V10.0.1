@@ -1,0 +1,45 @@
+﻿CREATE TABLE sc_acc_m_expire (
+	material_id varchar(10),
+	description varchar(100),
+	method double precision,
+	rate_expire decimal(12,10),
+	amount_value decimal(15,2),
+	first_used_day timestamp,
+	first_expire_year decimal(15,2),
+	accu_expire_amount decimal(15,2),
+	last_cal_used timestamp,
+	cal_id varchar(50),
+	cal_id_date timestamp,
+	expire_date timestamp,
+	status char(1),
+	entry_id varchar(15),
+	entry_date timestamp,
+	branch_id varchar(6),
+	group_exp varchar(5),
+	balance decimal(15,2),
+	cut_paid_status double precision,
+	type_exp varchar(5),
+	doc_old varchar(15),
+	remark varchar(100),
+	count_item decimal(15,2),
+	shelf_id varchar(3),
+	cutout_date timestamp,
+	ending_of_account_cal timestamp,
+	cal_value_atcurrent char(1) DEFAULT '0',
+	end_used_day timestamp,
+	material_ref varchar(10),
+	source char(1) DEFAULT '0',
+	cut_date timestamp,
+	special_balance decimal(15,2) DEFAULT 0,
+	user_keep varchar(16),
+	accu_method char(1) DEFAULT '0',
+	sale_amount decimal(15,2),
+	reference_no varchar(50),
+	buy_in_date timestamp,
+	company_name varchar(100)
+) ;
+CREATE INDEX idx_acc_expire_bal ON sc_acc_m_expire (balance);
+CREATE INDEX idx_acc_expire_rate ON sc_acc_m_expire (rate_expire);
+CREATE INDEX idx_acc_expire_status ON sc_acc_m_expire (status);
+
+

@@ -1,12 +1,12 @@
--- ============================================================
+﻿-- ============================================================
 -- Oracle: pka_fin_daily.fp_counter_opened
 -- ============================================================
 -- ตรวจสอบว่าเคาน์เตอร์ของ user ที่ login อยู่เปิดแล้วหรือยัง
 --
 -- Dependencies:
 --   fp_finance_date(true)          ← วันที่การเงิน
---   current_setting('app.login_id') ← แทน pka_com_login.login_id
---   current_setting('app.login_br') ← แทน pka_com_login.login_br
+--   current_setting('app.login_id') ← แทน current_setting('app.login_id', true)
+--   current_setting('app.login_br') ← แทน current_setting('app.login_br', true)
 --   sc_fin_journal_head
 --
 -- Returns: '1' = เปิดแล้ว, '0' = ยังไม่เปิด

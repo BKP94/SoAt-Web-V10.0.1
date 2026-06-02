@@ -1,0 +1,45 @@
+﻿CREATE TABLE sc_dep_m_fixed_item (
+	deposit_account_no varchar(15) NOT NULL,
+	ref_seq_no double precision NOT NULL,
+	fixed_date timestamp,
+	fixed_amount decimal(15,2),
+	fixed_dued_date timestamp,
+	fixed_dued_month_count double precision,
+	fixed_dued_int decimal(15,2),
+	fixed_monthly_int decimal(15,2),
+	fixed_paid_monthly_int decimal(15,2),
+	fixed_next_monthly_dued timestamp,
+	interest_rate decimal(8,6),
+	cheque_no varchar(20),
+	bank_code varchar(6),
+	bank_branch_id varchar(6),
+	cheque_clearing_status char(1),
+	clearing_date timestamp,
+	clearing_user varchar(15),
+	start_int_cheque_date timestamp,
+	interest_arrear decimal(15,2),
+	interest_arrear_date timestamp,
+	interest_cut decimal(15,2),
+	interest_cut_date timestamp,
+	officer_id varchar(15),
+	operate_date timestamp,
+	branch_id varchar(6),
+	fixed_paid_int decimal(15,2),
+	fixed_paid_date timestamp,
+	fixed_paid_due_date timestamp,
+	working_day timestamp,
+	fixed_last_monthly_due timestamp,
+	first_monthly_int decimal(15,2),
+	first_fixed_amount decimal(15,2),
+	first_dued_date timestamp,
+	first_fixed_date timestamp,
+	int_old decimal(15,2) DEFAULT 0,
+	intmonth_old decimal(15,2) DEFAULT 0,
+	times_dued double precision DEFAULT 0,
+	temp_amt decimal(15,2)
+) ;
+COMMENT ON TABLE sc_dep_m_fixed_item IS E'!NN!';
+CREATE INDEX idx_dep_fixitem_clsm ON sc_dep_m_fixed_item (deposit_account_no, fixed_amount);
+ALTER TABLE sc_dep_m_fixed_item ADD PRIMARY KEY (deposit_account_no,ref_seq_no);
+
+

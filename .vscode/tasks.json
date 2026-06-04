@@ -1,12 +1,12 @@
 {
   "version": "2.0.0",
   "tasks": [
-    // ── Backend ──────────────────────────────────────────────────────────────
+    // ── scCenter (host: login + landing + DB deploy) ─────────────────────────
     {
-      "label": "🚀 Backend: Start",
+      "label": "🚀 scCenter: Start",
       "type": "shell",
       "command": "dotnet watch",
-      "options": { "cwd": "${workspaceFolder}/backend/SoAt.API" },
+      "options": { "cwd": "${workspaceFolder}/scCenter" },
       "group": "build",
       "presentation": {
         "group": "dev",
@@ -15,11 +15,26 @@
       },
       "problemMatcher": "$msCompile"
     },
+    // ── scTeller (module) ────────────────────────────────────────────────────
     {
-      "label": "🔨 Backend: Build",
+      "label": "🧾 scTeller: Start",
       "type": "shell",
-      "command": "dotnet build",
-      "options": { "cwd": "${workspaceFolder}/backend/SoAt.API" },
+      "command": "dotnet watch",
+      "options": { "cwd": "${workspaceFolder}/scTeller" },
+      "group": "build",
+      "presentation": {
+        "group": "dev",
+        "panel": "dedicated",
+        "reveal": "always"
+      },
+      "problemMatcher": "$msCompile"
+    },
+    // ── Build (ทั้ง solution) ─────────────────────────────────────────────────
+    {
+      "label": "🔨 Build: Solution",
+      "type": "shell",
+      "command": "dotnet build SoAt.slnx",
+      "options": { "cwd": "${workspaceFolder}" },
       "group": "build",
       "presentation": {
         "group": "build",
@@ -27,36 +42,11 @@
         "reveal": "always"
       },
       "problemMatcher": "$msCompile"
-    },
-    // ── Frontend ─────────────────────────────────────────────────────────────
-    {
-      "label": "⚡ Frontend: Start",
-      "type": "shell",
-      "command": "pnpm dev",
-      "options": { "cwd": "${workspaceFolder}/frontend" },
-      "presentation": {
-        "group": "dev",
-        "panel": "dedicated",
-        "reveal": "always"
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "📦 Frontend: Build",
-      "type": "shell",
-      "command": "pnpm build",
-      "options": { "cwd": "${workspaceFolder}/frontend" },
-      "presentation": {
-        "group": "build",
-        "panel": "dedicated",
-        "reveal": "always"
-      },
-      "problemMatcher": []
     },
     // ── Compound ─────────────────────────────────────────────────────────────
     {
       "label": "▶▶ Dev: Start All",
-      "dependsOn": ["🚀 Backend: Start", "⚡ Frontend: Start"],
+      "dependsOn": ["🚀 scCenter: Start", "🧾 scTeller: Start"],
       "dependsOrder": "parallel",
       "group": {
         "kind": "build",

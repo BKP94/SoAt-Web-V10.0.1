@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/sc/">
+    <Project Path="sc/SoAt.Application/SoAt.Application.csproj" />
+    <Project Path="sc/SoAt.Domain/SoAt.Domain.csproj" />
+    <Project Path="sc/SoAt.Infrastructure/SoAt.Infrastructure.csproj" />
+    <Project Path="sc/SoAt.Core/SoAt.Core.csproj" />
+  </Folder>
+  <Project Path="scCenter/scCenter.csproj" />
+  <Project Path="scTeller/scTeller.csproj" />
+</Solution>

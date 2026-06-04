@@ -1,9 +1,0 @@
-﻿CREATE TABLE si_security_group_menu (
-	i_menu_id double precision NOT NULL DEFAULT 0,
-	group_id varchar(16) NOT NULL
-) ;
-ALTER TABLE si_security_group_menu ADD PRIMARY KEY (i_menu_id,group_id);
-ALTER TABLE si_security_group_menu ALTER COLUMN i_menu_id SET NOT NULL;
-ALTER TABLE si_security_group_menu ALTER COLUMN group_id SET NOT NULL;
-
-

@@ -1,0 +1,18 @@
+@page "/"
+
+<PageTitle>scTeller — ระบบเทลเลอร์</PageTitle>
+
+<AuthorizeView>
+    <Authorized>
+        <h1>ระบบเทลเลอร์ (scTeller)</h1>
+        <p>เข้าสู่ระบบในชื่อ <strong>@context.User.Identity?.Name</strong>
+           — สาขา <strong>@context.User.FindFirst("branch_id")?.Value</strong></p>
+
+        <div class="center-modules">
+            <a class="module-card" href="/sctelnewbma">สมัครสมาชิก (sctelnewbma)</a>
+            <div class="module-card placeholder">รับฝาก-ถอน</div>
+            <div class="module-card placeholder">ชำระหนี้</div>
+            <div class="module-card placeholder">…</div>
+        </div>
+    </Authorized>
+</AuthorizeView>

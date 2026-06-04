@@ -1,0 +1,148 @@
+/* ── SoAt Portal — modern launcher (custom chrome, ไม่ใช่ DevExpress component) ──
+   ใช้ฟอนต์ Prompt (global), โทนน้ำเงิน DevExpress */
+
+.portal {
+    --pri: #2f6bb3;
+    --pri-d: #244f86;
+    --ink: #1f2733;
+    --muted: #6b7685;
+    --line: #e6eaf1;
+    min-height: 100vh;
+    background: #f4f7fc;
+    padding-bottom: 3rem;
+}
+
+/* ── Hero ─────────────────────────────────────────────────────────── */
+.pt-hero {
+    position: relative;
+    text-align: center;
+    color: #fff;
+    padding: 2.4rem 1.5rem 2.8rem;
+    background: linear-gradient(135deg, #3a72bd 0%, #244f86 100%);
+    border-radius: 0 0 28px 28px;
+    box-shadow: 0 8px 24px rgba(36, 79, 134, .25);
+}
+
+.pt-logo { height: 60px; margin-bottom: 1rem; filter: drop-shadow(0 2px 6px rgba(0,0,0,.18)); }
+.pt-greet { margin: 0; font-size: 1.7rem; font-weight: 600; letter-spacing: .2px; }
+.pt-sub { margin: .35rem 0 1.3rem; font-size: .92rem; opacity: .9; font-weight: 300; }
+
+.pt-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: .6rem; }
+.pt-chip {
+    background: rgba(255, 255, 255, .15);
+    border: 1px solid rgba(255, 255, 255, .25);
+    backdrop-filter: blur(6px);
+    border-radius: 999px;
+    padding: .35rem .95rem;
+    font-size: .82rem;
+    font-weight: 300;
+}
+.pt-chip-k { font-weight: 600; opacity: .8; margin-right: .35rem; }
+
+/* ── Sections ─────────────────────────────────────────────────────── */
+.pt-section { max-width: 1280px; margin: 0 auto; padding: 1.6rem 2rem 0; }
+
+.pt-h2 {
+    display: flex; align-items: center; gap: .5rem;
+    font-size: 1.05rem; font-weight: 600; color: var(--ink);
+    margin: 0 0 .9rem;
+}
+.pt-h2-ic { color: #f0a92b; }
+
+.pt-loading, .pt-empty {
+    text-align: center; color: var(--muted); padding: 2.5rem; font-weight: 300;
+}
+
+/* ── Category pills ───────────────────────────────────────────────── */
+.pt-pills {
+    max-width: 1280px; margin: 1.8rem auto 0; padding: 0 2rem;
+    display: flex; flex-wrap: wrap; gap: .55rem;
+}
+.pt-pill {
+    font-family: inherit; cursor: pointer;
+    border: 1px solid var(--line); background: #fff; color: var(--ink);
+    border-radius: 999px; padding: .45rem 1rem; font-size: .88rem;
+    display: inline-flex; align-items: center; gap: .45rem;
+    transition: all .14s ease;
+}
+.pt-pill:hover { border-color: var(--pri); color: var(--pri); }
+.pt-pill.on { background: var(--pri); border-color: var(--pri); color: #fff; box-shadow: 0 3px 10px rgba(47,107,179,.3); }
+.pt-pill-n {
+    font-size: .72rem; background: rgba(0,0,0,.07); color: inherit;
+    border-radius: 999px; padding: .05rem .45rem; min-width: 1.3rem; text-align: center;
+}
+.pt-pill.on .pt-pill-n { background: rgba(255,255,255,.25); }
+
+/* ── Grid + cards ─────────────────────────────────────────────────── */
+.pt-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+    gap: 1rem;
+}
+
+.pt-card {
+    position: relative;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 1.3rem .8rem 1.1rem;
+    transition: transform .14s ease, box-shadow .14s ease, border-color .14s ease;
+}
+.pt-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 26px rgba(36, 79, 134, .14);
+    border-color: #cfe0f5;
+}
+
+.pt-card-link {
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center; text-decoration: none; color: var(--ink);
+}
+
+.pt-icon-wrap {
+    width: 88px; height: 88px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(circle at 50% 35%, #eef4fc 0%, #f6f9fd 100%);
+    margin-bottom: .7rem;
+    transition: background .14s ease;
+}
+.pt-card:hover .pt-icon-wrap { background: radial-gradient(circle at 50% 35%, #e1edfb 0%, #eef4fc 100%); }
+
+.pt-icon { width: 60px; height: 60px; object-fit: contain; }
+.pt-icon-empty { width: 60px; height: 60px; border: 1px dashed #cbd5e3; border-radius: 12px; }
+
+.pt-en { font-size: .98rem; font-weight: 600; color: var(--ink); line-height: 1.2; }
+.pt-th { font-size: .78rem; color: var(--muted); margin-top: .15rem; font-weight: 300; }
+
+/* ปักหมุด star */
+.pt-star {
+    position: absolute; top: .5rem; right: .5rem;
+    width: 28px; height: 28px; border: none; border-radius: 50%;
+    background: transparent; color: #d3d9e2; font-size: 1.05rem; line-height: 1;
+    cursor: pointer; transition: all .12s ease; z-index: 2;
+}
+.pt-star:hover { background: #f1f4f9; color: #f0a92b; transform: scale(1.12); }
+.pt-star.on { color: #f0a92b; }
+
+/* badges */
+.pt-badge {
+    position: absolute; top: .6rem; left: .6rem;
+    font-size: .68rem; font-weight: 500;
+    background: #eceff3; color: #8a94a3;
+    border-radius: 999px; padding: .12rem .55rem;
+}
+.pt-badge-soon { background: #fff4e0; color: #c7891b; }
+
+/* states */
+.pt-inactive { opacity: .55; }
+.pt-inactive .pt-icon { filter: grayscale(80%); }
+.pt-inactive:hover { transform: none; box-shadow: none; border-color: var(--line); }
+
+.pt-soon .pt-card-link { cursor: default; }
+
+/* ── Responsive ───────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+    .pt-section, .pt-pills { padding-left: 1rem; padding-right: 1rem; }
+    .pt-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: .7rem; }
+    .pt-greet { font-size: 1.35rem; }
+}

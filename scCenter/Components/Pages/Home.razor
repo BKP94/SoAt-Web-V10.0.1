@@ -1,0 +1,216 @@
+@page "/"
+@layout LauncherLayout
+@rendermode InteractiveServer
+@using SoAt.Application.Sc
+@inject IScAppService ScApps
+@inject IConfiguration Config
+@inject IJSRuntime JS
+
+<PageTitle>ระบบบริหารงานสหกรณ์ออมทรัพย์ — SoAt</PageTitle>
+
+<div class="portal">
+
+    @* ── Hero ──────────────────────────────────────────────── *@
+    <header class="pt-hero">
+        <img class="pt-logo" src="ImgMenu/soat_1.png" alt="SO-AT Solution" />
+        <h1 class="pt-greet">@Greeting</h1>
+        <p class="pt-sub">ระบบบริหารงานสหกรณ์ออมทรัพย์ · เลือกระบบงานที่ต้องการ</p>
+
+        <div class="pt-chips">
+            <span class="pt-chip"><span class="pt-chip-k">ผู้ใช้งาน</span> @UserName · สาขา @BranchId</span>
+            <span class="pt-chip"><span class="pt-chip-k">วันที่การเงิน</span> @(_info?.FinanceDate ?? "—")</span>
+            <span class="pt-chip"><span class="pt-chip-k">ฐานข้อมูล</span> @SysName</span>
+        </div>
+    </header>
+
+    @if (_apps is null)
+    {
+        <div class="pt-loading">กำลังโหลด…</div>
+    }
+    else
+    {
+        @* ── Pinned ───────────────────────────────────────── *@
+        @if (_favApps.Count > 0)
+        {
+            <section class="pt-section">
+                <h2 class="pt-h2"><span class="pt-h2-ic">★</span> ปักหมุด</h2>
+                <div class="pt-grid">
+                    @foreach (var app in _favApps) { @Card(app) }
+                </div>
+            </section>
+        }
+
+        @* ── Recent ───────────────────────────────────────── *@
+        @if (_recentApps.Count > 0)
+        {
+            <section class="pt-section">
+                <h2 class="pt-h2"><span class="pt-h2-ic">🕘</span> ใช้ล่าสุด</h2>
+                <div class="pt-grid">
+                    @foreach (var app in _recentApps) { @Card(app) }
+                </div>
+            </section>
+        }
+
+        @* ── Category pills ───────────────────────────────── *@
+        <nav class="pt-pills">
+            <button class="pt-pill @(SelectedCat is null ? "on" : "")" @onclick="() => SelectedCat = null">
+                ทั้งหมด <span class="pt-pill-n">@_apps.Count</span>
+            </button>
+            @foreach (var c in _categories)
+            {
+                var n = _apps.Count(a => CatOf(a.AppName) == c);
+                <button class="pt-pill @(SelectedCat == c ? "on" : "")" @onclick="() => SelectedCat = c">
+                    @c <span class="pt-pill-n">@n</span>
+                </button>
+            }
+        </nav>
+
+        @* ── Main grid ────────────────────────────────────── *@
+        <section class="pt-section">
+            <div class="pt-grid">
+                @foreach (var app in Filtered) { @Card(app) }
+            </div>
+            @if (!Filtered.Any())
+            {
+                <div class="pt-empty">ไม่มีระบบงานในหมวดนี้</div>
+            }
+        </section>
+    }
+</div>
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
+
+    private IReadOnlyList<ScAppDto>? _apps;
+    private ScCenterInfoDto?         _info;
+    private string UserName = "ผู้เยี่ยมชม";
+    private string BranchId = "—";
+
+    private List<string>  _categories = new();
+    private Dictionary<string, string> _catMap = new(StringComparer.OrdinalIgnoreCase);
+    private string? SelectedCat;
+
+    private List<string> _favs   = new();
+    private List<string> _recent = new();
+
+    private string Version  => Config["App:Version"] ?? "";
+    private string SysName  => string.IsNullOrEmpty(_info?.SysName) ? "—" : _info!.SysName;
+
+    private string Greeting
+    {
+        get
+        {
+            var h = DateTime.Now.Hour;
+            var part = h < 12 ? "สวัสดีตอนเช้า" : h < 17 ? "สวัสดีตอนบ่าย" : "สวัสดีตอนเย็น";
+            return UserName == "ผู้เยี่ยมชม" ? $"{part} 👋" : $"{part}, คุณ{UserName} 👋";
+        }
+    }
+
+    private IEnumerable<ScAppDto> Filtered =>
+        SelectedCat is null ? _apps! : _apps!.Where(a => CatOf(a.AppName) == SelectedCat);
+
+    private List<ScAppDto> _favApps =>
+        _favs.Select(n => _apps!.FirstOrDefault(a => string.Equals(a.AppName, n, StringComparison.OrdinalIgnoreCase)))
+             .Where(a => a is not null).Cast<ScAppDto>().ToList();
+
+    private List<ScAppDto> _recentApps =>
+        _recent.Select(n => _apps!.FirstOrDefault(a => string.Equals(a.AppName, n, StringComparison.OrdinalIgnoreCase)))
+               .Where(a => a is not null).Cast<ScAppDto>().ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _apps = (await ScApps.GetAppsAsync(level: 1))
+            .Where(a => !string.Equals(a.AppName, "scCenter", StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        _info = await ScApps.GetCenterInfoAsync();
+
+        // หมวด ← config Categories (สร้าง lookup AppName→หมวด)
+        foreach (var cat in Config.GetSection("Categories").GetChildren())
+        {
+            _categories.Add(cat.Key);
+            foreach (var item in cat.GetChildren())
+                if (!string.IsNullOrWhiteSpace(item.Value))
+                    _catMap[item.Value!] = cat.Key;
+        }
+
+        if (AuthState is not null)
+        {
+            var user = (await AuthState).User;
+            if (user.Identity?.IsAuthenticated == true)
+            {
+                UserName = user.Identity.Name ?? "ผู้ใช้งาน";
+                BranchId = user.FindFirst("branch_id")?.Value is { Length: > 0 } b ? b : "—";
+            }
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        // โหลด favorites/recent จาก localStorage (ทำได้หลัง interactive เท่านั้น)
+        _favs   = (await JS.InvokeAsync<string[]>("soatPortal.getFavorites")).ToList();
+        _recent = (await JS.InvokeAsync<string[]>("soatPortal.getRecent")).ToList();
+        StateHasChanged();
+    }
+
+    private async Task ToggleFav(string appName)
+    {
+        _favs = (await JS.InvokeAsync<string[]>("soatPortal.toggleFavorite", appName)).ToList();
+    }
+
+    private string CatOf(string appName) => _catMap.TryGetValue(appName, out var c) ? c : "อื่นๆ";
+    private bool   IsFav(string appName) => _favs.Contains(appName, StringComparer.OrdinalIgnoreCase);
+
+    private string? ModuleUrl(string appName)
+        => Config[$"Modules:{appName}"] is { Length: > 0 } u ? u : null;
+
+    private RenderFragment Card(ScAppDto app) => @<text>
+        @{
+            var url       = ModuleUrl(app.AppName);
+            var clickable = app.Active && url is not null;
+            var stateCss  = !app.Active ? "pt-card pt-inactive"
+                            : url is null ? "pt-card pt-soon"
+                            : "pt-card";
+        }
+        <div class="@stateCss">
+            <button class="pt-star @(IsFav(app.AppName) ? "on" : "")"
+                    title="@(IsFav(app.AppName) ? "เอาออกจากปักหมุด" : "ปักหมุด")"
+                    @onclick="() => ToggleFav(app.AppName)">★</button>
+
+            @if (clickable)
+            {
+                <a class="pt-card-link" href="@url" onclick="soatPortal.pushRecent('@app.AppName')">
+                    @CardInner(app)
+                </a>
+            }
+            else
+            {
+                <div class="pt-card-link">@CardInner(app)</div>
+            }
+
+            @if (!app.Active)
+            {
+                <span class="pt-badge">ปิดใช้งาน</span>
+            }
+            else if (url is null)
+            {
+                <span class="pt-badge pt-badge-soon">เร็วๆ นี้</span>
+            }
+        </div>
+    </text>;
+
+    private RenderFragment CardInner(ScAppDto app) => @<text>
+        <div class="pt-icon-wrap">
+            @if (!string.IsNullOrWhiteSpace(app.IconName))
+            {
+                <img class="pt-icon" src="ImgMenu/@app.IconName" alt="" />
+            }
+            else
+            {
+                <div class="pt-icon pt-icon-empty"></div>
+            }
+        </div>
+        <div class="pt-en">@app.AppTextEnglish</div>
+        <div class="pt-th">@app.AppTextThai</div>
+    </text>;
+}

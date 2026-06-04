@@ -1,0 +1,35 @@
+@inherits LayoutComponentBase
+@inject IConfiguration Config
+
+<div class="app-shell">
+    <header class="app-topbar">
+        <a class="app-brand" href="@ScCenterUrl">SoAt</a>
+        <span class="app-module">scTeller — ระบบเทลเลอร์</span>
+
+        <div class="app-topbar-spacer"></div>
+
+        <AuthorizeView>
+            <Authorized>
+                <span class="app-user">@context.User.Identity?.Name</span>
+                <form method="post" action="/logout" class="app-logout-form">
+                    <AntiforgeryToken />
+                    <button type="submit" class="app-logout">ออกจากระบบ</button>
+                </form>
+            </Authorized>
+        </AuthorizeView>
+    </header>
+
+    <main class="app-main">
+        @Body
+    </main>
+</div>
+
+<div id="blazor-error-ui" data-nosnippet>
+    An unhandled error has occurred.
+    <a href="." class="reload">Reload</a>
+    <span class="dismiss">🗙</span>
+</div>
+
+@code {
+    private string ScCenterUrl => Config["ScCenter:Url"] ?? "http://localhost:5100";
+}

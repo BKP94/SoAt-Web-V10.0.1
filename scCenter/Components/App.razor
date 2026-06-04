@@ -1,0 +1,28 @@
+﻿@inject IConfiguration Config
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    @* ฟอนต์ Prompt (self-host — ใช้ได้บน intranet ไม่พึ่ง Google CDN) *@
+    <link rel="stylesheet" href="fonts/prompt.css" />
+    @* DevExpress theme (Bootstrap 5) — เปลี่ยน theme ที่ appsettings "DevExpress:Theme" จุดเดียว *@
+    <link rel="stylesheet" href="_content/DevExpress.Blazor.Themes/@(Config["DevExpress:Theme"] ?? "office-white").bs5.min.css" />
+    <ResourcePreloader />
+    <link rel="stylesheet" href="@Assets["app.css"]" />
+    <link rel="stylesheet" href="@Assets["scCenter.styles.css"]" />
+    <ImportMap />
+    <HeadOutlet />
+</head>
+
+<body>
+    <Routes />
+    <ReconnectModal />
+    <script src="js/portal.js"></script>
+    <script src="@Assets["_framework/blazor.web.js"]"></script>
+</body>
+
+</html>

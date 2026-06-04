@@ -11,7 +11,19 @@
 
 > **ทิศ frontend (ตัดสินใจ 2026-06-04):** เปลี่ยนจาก React/TypeScript → **Blazor Server + DevExpress**
 > เหตุผล: ทีมถนัด C#, ผู้ใช้ใน intranet (จุดอ่อน Blazor Server ไม่กระทบ), และ reuse legacy XtraReports ~2,900 ตัวได้
-> React (`frontend/`) ถูกลบออกแล้ว (commit `da07ed6`) — โครง Blazor ยังไม่ scaffold (รอ DevExpress license)
+> React (`frontend/`) ถูกลบออกแล้ว (commit `da07ed6`). **โครง Blazor scaffold แล้ว (2026-06-04)** + **ใส่ DevExpress.Blazor 25.2.7 แล้ว (2026-06-04)** — theme `office-white` (bs5) | ⚠️ license ปัจจุบันเป็น evaluation (build เตือน DX1000) ยังไม่ผ่าน license จริง
+
+### โครงสร้าง repo (หลัง scaffold Blazor)
+แต่ละ module = **Blazor Server app แยกตัวจริง** (รันแยก port ได้ เหมือน legacy ที่แต่ละ `sc*` แยก IIS site) — ยังไม่ login → เด้งไป **scCenter** (login กลาง)
+```
+SoAt.slnx                  ← solution ที่ root (รวมทุก project)
+sc/                        ← service layer (เดิม backend/): SoAt.Core(sc/*) / Application / Infrastructure / Domain / API
+scCenter/                  ← Blazor host: login + landing + รัน DB deployers (port 5100)
+scTeller/                  ← module ตัวอย่าง (port 5110), folder ย่อยตรง legacy เช่น Pages/sctelnewbma/
+```
+- **Auth ข้าม app:** shared cookie `SoAt.Auth` + DataProtection key ring ร่วม (`%LOCALAPPDATA%\SoAt\keys`, `SetApplicationName("SoAt")`) → module อ่าน cookie ที่ scCenter เซ็นได้ (cookie ไม่แยกตาม port บน localhost). module ตั้ง `FallbackPolicy=RequireAuthenticatedUser` + `OnRedirectToLogin` → `{ScCenter:Url}/login?returnUrl=<absolute>`
+- **scCenter เท่านั้นที่รัน deployers** (module assume DB พร้อม). Login = static SSR (`Account/Login.razor`) เรียก `IAuthService.AuthenticateAsync` แล้ว `HttpContext.SignInAsync`
+- module ใหม่: `dotnet new blazor --interactivity Server --empty -o sc<Module>` ที่ root, copy auth block จาก `scTeller/Program.cs`, ref `sc/SoAt.*`, เพิ่มใน SoAt.slnx — **อย่าตั้ง folder ย่อยชื่อซ้ำ root namespace** (เช่น folder `scTeller` ใน project scTeller → namespace ชน)
 
 **Legacy structure:** 65+ projects — `sc*` = แต่ละ module (scAccount, scAtm, scHr, scDeposit, scInvestment, ...), `rc*` = report ของแต่ละ module, `sc/` = core library กลาง. รายชื่อ module เต็มดูใน `C:\SoAt_PEAN\` — ชื่อ folder ใหม่ต้องตรง legacy เป๊ะ (case-sensitive).
 
@@ -68,7 +80,7 @@ await conn.ExecuteAsync("SET LOCAL app.login_br = @br", new { br = branchId });
 - **Auth: cookie-based** (Blazor Server) — service เรียกตรงผ่าน DI, ไม่ผ่าน HTTP/JWT
 
 ### Blazor Server + DevExpress (frontend)
-> โครงยังไม่ scaffold — รอ DevExpress license. หลักการด้านล่างคือสิ่งที่ตัดสินใจแล้ว, รายละเอียด UI pattern (layout/component) จะนิยามตอน scaffold + ลง DevExpress
+> โครง scaffold + ลง DevExpress.Blazor 25.2.7 แล้ว (2026-06-04). **Wiring จุดเดียวต่อ app:** csproj (`DevExpress.Blazor` + `.Themes`), `Program.cs` (`AddDevExpressBlazor()`), `_Imports.razor` (`@using DevExpress.Blazor`), `App.razor` (theme `<link>` อ่านจาก config). **เปลี่ยน theme = แก้ `appsettings.json` → `"DevExpress:Theme"` เท่านั้น** (ค่า: `office-white`/`blazing-berry`/`blazing-dark`/`purple`)
 - Component = PascalCase `.razor`, module folder ตรง legacy เป๊ะ (case-sensitive)
 - Navigation: scCenter เป็น public landing, login เมื่อเข้า module
 - **Format/value ทุกตัวมาจาก `sc.*`** (อย่า hardcode ในหน้า) — ผูกกับ utility C# โดยตรง:
@@ -89,42 +101,40 @@ await conn.ExecuteAsync("SET LOCAL app.login_br = @br", new { br = branchId });
 ---
 
 ## Architecture Decisions (ตัดสินใจแล้ว)
-- **.NET Core layers:** `SoAt.Application` (DTO+services) / `SoAt.Infrastructure` (sc.db, persistence, deployers) / `SoAt.Core` (sc/* library) / `SoAt.Domain`
-  - `SoAt.API` (controllers) มีอยู่จากยุค React — Blazor Server เรียก service ตรงผ่าน DI, ไม่ต้องผ่าน controller (จะเก็บไว้/ตัด ตอน scaffold Blazor)
+- **.NET Core layers (อยู่ใน `sc/`):** `SoAt.Application` (DTO+services) / `SoAt.Infrastructure` (sc.db, persistence, EF migrations, seeder) / `SoAt.Core` (sc/* library) / `SoAt.Domain`
+  - **ตัด `SoAt.API` + JWT แล้ว (2026-06-04)** — Blazor app (scCenter/module) เรียก service ตรงผ่าน DI ไม่ผ่าน REST/controller. auth เหลือ cookie อย่างเดียว (`IAuthService.AuthenticateAsync`)
 - Backend: **`sc.db`** สำหรับ query+CRUD ทั้งหมด, **EF Core** สำหรับ Migrations เท่านั้น
 - Dropdown: **`sc.db.getComboAsync` + `sc.combo.*`** — ไม่เขียน SQL เอง
 - DB naming: คงชื่อ Oracle เดิม | EF Core snake_case: **manual loop** ใน OnModelCreating (EFCore.NamingConventions ไม่รองรับ EF Core 10)
 - **Frontend: Blazor Server + DevExpress** (เปลี่ยนจาก React 2026-06-04) | Auth: **cookie-based** (service ผ่าน DI)
 
 ### ยังไม่ตัดสินใจ
-- [ ] Scaffold โครง Blazor Server (รอ DevExpress license — ติด user/pass ตอนติดตั้ง)
-- [ ] เก็บหรือตัด `SoAt.API` controllers — [ ] เริ่ม migrate module ไหนก่อน — [ ] Module-level permission
+- [ ] register DevExpress license จริง (ตอนนี้ evaluation → DX1000 + watermark) — ห้าม redistribute จนกว่า license ผ่าน
+- [ ] เริ่ม migrate module ไหนก่อน — [ ] Module-level permission
 - [ ] federation strategy ของ `view_tel_get_creamation` (dblink 3 Oracle DB)
+- [x] Scaffold โครง Blazor Server — **เสร็จ 2026-06-04** (scCenter host + scTeller module, cookie auth ข้าม app)
+- [x] ใส่ DevExpress.Blazor 25.2.7 — **เสร็จ 2026-06-04** (theme office-white, config-driven, build 0 error)
 
 ---
 
-## Database Deployers (รันตอน API startup)
-ทุก deployer **idempotent** + **log-and-continue** (error ไม่ทำให้ API ตาย). PL team แก้ `.sql` ใน `Database/` แล้ว restart API → อัปเดต DB ทันที.
+## Database Schema (pgAdmin-managed — เปลี่ยน 2026-06-04)
+**PostgreSQL เป็น source of truth ของ schema `sc_*`** (table/function/trigger/view ที่ migrate จาก Oracle). **PL team แก้ schema ที่ pgAdmin 4 โดยตรง** — ไม่มี SQL deployers + folder `Database/` อีกแล้ว (ลบทิ้ง 2026-06-04, กู้จาก git history commit `4f4a925`/`162c67d` ได้ถ้าต้องการ)
 
-**ลำดับ Program.cs:** `MigrateAsync → TableDeployer → FunctionDeployer → TriggerDeployer → ViewDeployer → DatabaseSeeder`
+> เดิมใช้ "SQL-first deploy" (deployers ปั๊ม 2,378 .sql ทุก startup) — ช้า + ขัดกับ workflow จริงที่ PL ใช้ pgAdmin. เลิกใช้แล้ว
 
-| Deployer | Source | กลยุทธ์ |
-|----------|--------|---------|
-| TableDeployer    | `Database/Tables/**/*.sql`    | `CREATE TABLE IF NOT EXISTS` statement-by-statement, `z_fk_*.sql` ท้ายสุด |
-| FunctionDeployer | `Database/Functions/**/*.sql` | `CREATE OR REPLACE FUNCTION` |
-| TriggerDeployer  | `Database/Triggers/**/*.sql`  | `DROP TRIGGER IF EXISTS` + `CREATE` |
-| ViewDeployer     | `Database/Views/**/*.sql`     | `CREATE OR REPLACE VIEW` |
-
-**Skip codes (benign re-run):** 42P07=table exists, 42710=object exists, 42701=column exists, 42703=column not found (stale COMMENT), 42P16=multiple PK, 23505=type/function exists
+**ยังเหลือใน `scCenter/Program.cs` startup (2 อย่าง — เร็ว, idempotent):**
+1. `db.Database.MigrateAsync()` — **EF Core Migrations** สร้าง/อัปเดต table ของแอปเอง (`si_security_apps`, `si_security_user` — auth/permission, ไม่ใช่ schema Oracle). migration อยู่ที่ `sc/SoAt.Infrastructure/Migrations/`
+2. `DatabaseSeeder.SeedAsync()` — ย้าย **ข้อมูล** จาก Oracle → PG (สาขา, ตารางอ้างอิง mem UCF, security users) แบบ count-check แล้วข้าม. ต้องการให้ table ปลายทาง (สร้างใน pgAdmin) มีอยู่ก่อน ไม่งั้น try/catch ข้ามเงียบ
 
 ---
 
 ## สถานะ Stack ใหม่ (2026-06-04)
-- Backend: build clean, sc.db migration สมบูรณ์ — API ที่ `http://localhost:5139`
-- **Frontend: ลบ React ออกแล้ว** (commit `da07ed6`) — รอ scaffold Blazor Server (รอ DevExpress license)
-- **DB deploy:** Tables 1,460 / Functions 352 + 46 stub / Triggers 376 / **Views 171/171 ✅**
-- **Step 6 เสร็จ** (commit `4f4a925`): 46 Oracle package functions implement เป็น PG stub ใน `Database/Functions/_pkg_stubs/` (16 schemas: pka, pka_com_function, pkb_kromss, pka_srv_datetime, pka_estate, pka_lon_*, pka_hr_*, pka_mem_det, pka_wef ...) จาก source จริง `legacy_ora_src/` (gitignored). เหลือ 1 view defer = `VIEW_TEL_GET_CREAMATION.sql.deferred` (federate 3 Oracle DB ผ่าน dblink)
+- Backend: build clean, sc.db migration สมบูรณ์ — service layer ย้ายเป็น `sc/` (เดิม `backend/`). **ตัด SoAt.API + JWT ทิ้งแล้ว** (Blazor เรียก service ตรงผ่าน DI)
+- **Frontend: Blazor scaffold + DevExpress 25.2.7 แล้ว** — `scCenter` (host, :5100) + `scTeller` (module, :5110), cookie auth ข้าม app, build+run ผ่าน. theme `office-white` (config-driven, จุดเดียวที่ `appsettings DevExpress:Theme`). ⚠️ license ยังเป็น evaluation (DX1000)
+- **DB schema:** คุมที่ **pgAdmin** แล้ว (ลบ SQL deployers + `Database/` 2026-06-04). schema เดิมที่ deploy ไว้ (Tables 1,460 / Functions 352+46 stub / Triggers 376 / Views 171) ยังอยู่ใน PG — จากนี้แก้ที่ pgAdmin
+- **ประวัติ (git):** schema `.sql` ทั้งหมด + Step 6 (46 package stubs ใน `Database/Functions/_pkg_stubs/`) + 1 view defer (`VIEW_TEL_GET_CREAMATION` federate 3 Oracle DB) เก็บใน history commit `162c67d`/`4f4a925` — กู้คืนได้ถ้าต้องการ reference
 
 ### ถัดไป
-1. Scaffold Blazor Server project (ทำได้เลย, ใส่ DevExpress ทีหลังเมื่อ license พร้อม)
-2. เลือก module แรกที่จะ migrate ขึ้น Blazor
+1. register DevExpress license จริง (แทน evaluation) — DevExpress License Manager / `DevExpress_License.txt`
+2. migrate module แรกขึ้น Blazor ด้วย DevExpress component (เช่น `sctelnewbma` ใน scTeller — มี service `ISctelnewbmaService` พร้อมแล้ว); UI bind `sc.*` (mask/value/combo) ตาม Coding Guidelines
+3. ต่อ landing scCenter เข้า `IScAppService.GetAppsAsync()` แทนรายการ module ที่ hardcode

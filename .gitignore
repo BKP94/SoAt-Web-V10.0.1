@@ -1,9 +1,9 @@
 # .NET
-backend/**/bin/
-backend/**/obj/
-backend/**/*.user
-backend/**/*.suo
-backend/.vs/
+**/bin/
+**/obj/
+**/*.user
+**/*.suo
+.vs/
 
 # Environment
 .env

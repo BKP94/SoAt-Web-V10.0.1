@@ -1,7 +1,0 @@
-<Solution>
-  <Project Path="SoAt.API/SoAt.API.csproj" />
-  <Project Path="SoAt.Application/SoAt.Application.csproj" />
-  <Project Path="SoAt.Domain/SoAt.Domain.csproj" />
-  <Project Path="SoAt.Infrastructure/SoAt.Infrastructure.csproj" />
-  <Project Path="SoAt.Core/SoAt.Core.csproj" />
-</Solution>

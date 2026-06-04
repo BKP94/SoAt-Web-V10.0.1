@@ -1,0 +1,89 @@
+@page "/login"
+@using System.ComponentModel.DataAnnotations
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authentication.Cookies
+@using SoAt.Application.Auth
+@inject IAuthService AuthService
+@inject NavigationManager Nav
+
+@* Static SSR (ไม่มี @rendermode) — จำเป็นเพื่อให้ HttpContext.SignInAsync เขียน cookie ได้ *@
+
+<PageTitle>เข้าสู่ระบบ — SoAt</PageTitle>
+
+<div class="login-page">
+    <div class="login-card">
+        <h1 class="login-title">SoAt</h1>
+        <p class="login-sub">ระบบสหกรณ์ออมทรัพย์</p>
+
+        <EditForm Model="Input" FormName="login" OnValidSubmit="DoLoginAsync">
+            <DataAnnotationsValidator />
+
+            <label class="fld">
+                <span>ชื่อผู้ใช้</span>
+                <InputText @bind-Value="Input.UserId" autocomplete="username" />
+            </label>
+
+            <label class="fld">
+                <span>รหัสผ่าน</span>
+                <InputText type="password" @bind-Value="Input.Password" autocomplete="current-password" />
+            </label>
+
+            @if (!string.IsNullOrEmpty(_error))
+            {
+                <div class="login-error">@_error</div>
+            }
+
+            <button type="submit" class="login-btn">เข้าสู่ระบบ</button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    [SupplyParameterFromForm]
+    private LoginInput Input { get; set; } = new();
+
+    [SupplyParameterFromQuery(Name = "returnUrl")]
+    private string? ReturnUrl { get; set; }
+
+    private string? _error;
+
+    private async Task DoLoginAsync()
+    {
+        var user = await AuthService.AuthenticateAsync(
+            new LoginCommand(Input.UserId, Input.Password));
+
+        if (user is null)
+        {
+            _error = "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง";
+            return;
+        }
+
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.NameIdentifier, user.UserId),
+            new(ClaimTypes.Name, user.DisplayName),
+            new("branch_id", user.BranchId),
+        };
+        var identity  = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        var principal = new ClaimsPrincipal(identity);
+
+        await HttpContext.SignInAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme, principal);
+
+        // returnUrl อาจเป็น absolute URL ของ module app (เช่น http://localhost:5110/...)
+        Nav.NavigateTo(string.IsNullOrWhiteSpace(ReturnUrl) ? "/" : ReturnUrl, forceLoad: true);
+    }
+
+    public sealed class LoginInput
+    {
+        [Required(ErrorMessage = "กรุณากรอกชื่อผู้ใช้")]
+        public string UserId { get; set; } = "";
+
+        [Required(ErrorMessage = "กรุณากรอกรหัสผ่าน")]
+        public string Password { get; set; } = "";
+    }
+}

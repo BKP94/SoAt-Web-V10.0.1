@@ -1,6 +1,0 @@
-@SoAt.API_HostAddress = http://localhost:5139
-
-GET {{SoAt.API_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

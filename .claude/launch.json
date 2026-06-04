@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "scCenter",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "scCenter", "--no-launch-profile", "--urls", "http://localhost:5199"],
+      "env": { "ASPNETCORE_ENVIRONMENT": "Development" },
+      "port": 5199
+    }
+  ]
+}

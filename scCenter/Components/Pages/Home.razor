@@ -1,10 +1,16 @@
 @page "/"
 @layout LauncherLayout
 @rendermode InteractiveServer
+@implements IDisposable
 @using SoAt.Application.Sc
+@using Microsoft.AspNetCore.Antiforgery
 @inject IScAppService ScApps
 @inject IConfiguration Config
 @inject IJSRuntime JS
+@inject sc.dbFactory DbFactory
+@inject IAntiforgery Antiforgery
+@inject IHttpContextAccessor HttpAccessor
+@inject PersistentComponentState AppState
 
 <PageTitle>ระบบบริหารงานสหกรณ์ออมทรัพย์ — SoAt</PageTitle>
 
@@ -78,8 +84,109 @@
     }
 </div>
 
+@* ── Login overlay popup (เด้งทับ landing เมื่อคลิกระบบที่ยังไม่ login) ──────────
+   form เป็น native POST ไป /auth/login (full page) — antiforgery token มาจาก
+   prerender ผ่าน PersistentComponentState (Home เป็น interactive จึงเรียก
+   AntiforgeryToken component ตรงๆ ไม่ได้) *@
+<div class="lg-overlay @(_showLogin ? "is-open" : "")">
+    <div class="lg-overlay-back" @onclick="CloseLogin"></div>
+    <div class="lg-pop">
+        <button type="button" class="lg-modal-x" @onclick="CloseLogin" aria-label="ปิด">
+            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M4.08859 4.21569L4.14645 4.14645C4.32001 3.97288 4.58944 3.9536 4.78431 4.08859L4.85355 4.14645L10 9.293L15.1464 4.14645C15.32 3.97288 15.5894 3.9536 15.7843 4.08859L15.8536 4.14645C16.0271 4.32001 16.0464 4.58944 15.9114 4.78431L15.8536 4.85355L10.707 10L15.8536 15.1464C16.0271 15.32 16.0464 15.5894 15.9114 15.7843L15.8536 15.8536C15.68 16.0271 15.4106 16.0464 15.2157 15.9114L15.1464 15.8536L10 10.707L4.85355 15.8536C4.67999 16.0271 4.41056 16.0464 4.21569 15.9114L4.14645 15.8536C3.97288 15.68 3.9536 15.4106 4.08859 15.2157L4.14645 15.1464L9.293 10L4.14645 4.85355C3.97288 4.67999 3.9536 4.41056 4.08859 4.21569Z"/></svg>
+        </button>
+
+        @* ── แผงแบรนด์ (ซ้าย) ─────────────────────────────── *@
+        <aside class="lg-brand">
+            <div class="lg-brand-mark">SoAt</div>
+            <h2 class="lg-brand-title">ระบบสหกรณ์ออมทรัพย์</h2>
+            <p class="lg-brand-text">บริหารจัดการเงินฝาก เงินกู้ และสมาชิกภาพ<br />อย่างปลอดภัยในระบบเดียว</p>
+            <div class="lg-brand-foot">© @DateTime.Now.Year SoAt Cooperative</div>
+        </aside>
+
+        @* ── แผงฟอร์ม (ขวา) ──────────────────────────────── *@
+        <section class="lg-form">
+            <h1 class="lg-title">เข้าสู่ระบบ</h1>
+            <p class="lg-sub">
+                @(string.IsNullOrEmpty(_loginAppText) ? "กรุณากรอกข้อมูลเพื่อเข้าใช้งาน" : $"เพื่อเข้าใช้งาน{_loginAppText}")
+            </p>
+
+            <form method="post" action="/auth/login">
+                <input type="hidden" name="__RequestVerificationToken" value="@_afToken" />
+                <input type="hidden" name="returnUrl" value="@_loginTarget" />
+
+                @if (_hasError)
+                {
+                    <div class="lg-error">ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง</div>
+                }
+
+                <div class="lg-fld">
+                    <label for="ov-user">ชื่อผู้ใช้</label>
+                    <div class="lg-input lg-input--user">
+                        <input id="ov-user" name="userId" autocomplete="username"
+                               placeholder="รหัสผู้ใช้งาน" required />
+                    </div>
+                </div>
+
+                <div class="lg-fld">
+                    <label for="ov-pass">รหัสผ่าน</label>
+                    <div class="lg-input lg-input--lock">
+                        <input id="ov-pass" name="password" type="password"
+                               autocomplete="current-password" placeholder="••••••••" required />
+                    </div>
+                </div>
+
+                <div class="lg-fld">
+                    <label for="ov-branch">สาขา</label>
+                    <div class="lg-input lg-input--branch">
+                        <select id="ov-branch" name="branchId" required>
+                            <option value="">— เลือกสาขา —</option>
+                            @foreach (var b in _branches)
+                            {
+                                <option value="@b.Code">@b.Code — @b.Name</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="lg-row">
+                    <button type="button" class="lg-forgot" @onclick="() => _showForgot = true">ลืมรหัสผ่าน?</button>
+                </div>
+
+                <button type="submit" class="lg-btn">เข้าสู่ระบบ</button>
+            </form>
+        </section>
+    </div>
+</div>
+
+@* ── Modal "ลืมรหัสผ่าน" (popup ในตัว — เปิดทับ overlay login) ───────────── *@
+@if (_showForgot)
+{
+    <div class="lg-modal is-open">
+        <div class="lg-modal-back" @onclick="() => _showForgot = false"></div>
+        <div class="lg-modal-card">
+            <button type="button" class="lg-modal-x" @onclick="() => _showForgot = false" aria-label="ปิด">
+                <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M4.08859 4.21569L4.14645 4.14645C4.32001 3.97288 4.58944 3.9536 4.78431 4.08859L4.85355 4.14645L10 9.293L15.1464 4.14645C15.32 3.97288 15.5894 3.9536 15.7843 4.08859L15.8536 4.14645C16.0271 4.32001 16.0464 4.58944 15.9114 4.78431L15.8536 4.85355L10.707 10L15.8536 15.1464C16.0271 15.32 16.0464 15.5894 15.9114 15.7843L15.8536 15.8536C15.68 16.0271 15.4106 16.0464 15.2157 15.9114L15.1464 15.8536L10 10.707L4.85355 15.8536C4.67999 16.0271 4.41056 16.0464 4.21569 15.9114L4.14645 15.8536C3.97288 15.68 3.9536 15.4106 4.08859 15.2157L4.14645 15.1464L9.293 10L4.14645 4.85355C3.97288 4.67999 3.9536 4.41056 4.08859 4.21569Z"/></svg>
+            </button>
+            <div class="lg-modal-icon">🔑</div>
+            <h3>ลืมรหัสผ่าน?</h3>
+            <p>ด้วยเหตุผลด้านความปลอดภัย การรีเซ็ตรหัสผ่านต้องดำเนินการโดยผู้ดูแลระบบ
+               กรุณาติดต่อเจ้าหน้าที่ฝ่ายไอทีของสหกรณ์เพื่อขอรหัสผ่านใหม่</p>
+            <ul class="lg-modal-contact">
+                <li><span>โทรภายใน</span><strong>ต่อ 1234</strong></li>
+                <li><span>อีเมล</span><strong>it-support@soat.coop</strong></li>
+            </ul>
+            <button type="button" class="lg-btn lg-btn--ghost" @onclick="() => _showForgot = false">เข้าใจแล้ว</button>
+        </div>
+    </div>
+}
+
 @code {
     [CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
+
+    // query: module เด้งมา (returnUrl), login fail (error), หรือกด "เข้าสู่ระบบ" (login=1)
+    [SupplyParameterFromQuery(Name = "returnUrl")] private string? ReturnUrlQuery { get; set; }
+    [SupplyParameterFromQuery(Name = "error")]     private string? ErrorQuery     { get; set; }
+    [SupplyParameterFromQuery(Name = "login")]     private string? LoginQuery     { get; set; }
 
     private IReadOnlyList<ScAppDto>? _apps;
     private ScCenterInfoDto?         _info;
@@ -92,6 +199,17 @@
 
     private List<string> _favs   = new();
     private List<string> _recent = new();
+
+    // ── login overlay state ──
+    private bool   _isAuthed;
+    private bool   _showLogin;
+    private string? _loginTarget;     // returnUrl ของ module ที่คลิก
+    private string? _loginAppText;    // ชื่อระบบ (แสดงใน popup)
+    private bool   _hasError;         // login ล้มเหลว (จาก query error=1)
+    private bool   _showForgot;       // modal "ลืมรหัสผ่าน"
+    private List<sc.ComboItem> _branches = [];
+    private string? _afToken;         // antiforgery token (จาก prerender)
+    private PersistingComponentStateSubscription _persistSub;
 
     private string Version  => Config["App:Version"] ?? "";
     private string SysName  => string.IsNullOrEmpty(_info?.SysName) ? "—" : _info!.SysName;
@@ -117,12 +235,34 @@
         _recent.Select(n => _apps!.FirstOrDefault(a => string.Equals(a.AppName, n, StringComparison.OrdinalIgnoreCase)))
                .Where(a => a is not null).Cast<ScAppDto>().ToList();
 
+    protected override void OnInitialized()
+    {
+        // antiforgery token: prerender มี HttpContext → ดึง token แล้วเก็บผ่าน
+        //   PersistentComponentState ให้ใช้ต่อใน interactive circuit (ที่ไม่มี HttpContext)
+        if (!AppState.TryTakeFromJson("af-token", out _afToken))
+        {
+            var ctx = HttpAccessor.HttpContext;
+            if (ctx is not null) _afToken = Antiforgery.GetAndStoreTokens(ctx).RequestToken;
+        }
+        _persistSub = AppState.RegisterOnPersisting(() =>
+        {
+            AppState.PersistAsJson("af-token", _afToken);
+            return Task.CompletedTask;
+        });
+    }
+
+    public void Dispose() => _persistSub.Dispose();
+
     protected override async Task OnInitializedAsync()
     {
         _apps = (await ScApps.GetAppsAsync(level: 1))
             .Where(a => !string.Equals(a.AppName, "scCenter", StringComparison.OrdinalIgnoreCase))
             .ToList();
         _info = await ScApps.GetCenterInfoAsync();
+
+        // สาขาสำหรับ dropdown ใน login overlay (combo code+name — ตาม Coding Guideline)
+        await using (var db = DbFactory.create())
+            _branches = await db.getComboAsync(sc.combo.sc_com_m_branch);
 
         // หมวด ← config Categories (สร้าง lookup AppName→หมวด)
         foreach (var cat in Config.GetSection("Categories").GetChildren())
@@ -138,11 +278,31 @@
             var user = (await AuthState).User;
             if (user.Identity?.IsAuthenticated == true)
             {
+                _isAuthed = true;
                 UserName = user.Identity.Name ?? "ผู้ใช้งาน";
                 BranchId = user.FindFirst("branch_id")?.Value is { Length: > 0 } b ? b : "—";
             }
         }
+
+        // ยังไม่ login + มี query (module เด้งมา / login fail / กดเข้าสู่ระบบ) → เปิด popup เลย
+        if (!_isAuthed && (ReturnUrlQuery is not null || ErrorQuery is not null || LoginQuery is not null))
+        {
+            _showLogin   = true;
+            _hasError    = ErrorQuery is not null;
+            _loginTarget = ReturnUrlQuery;
+        }
     }
+
+    // คลิกระบบที่ยังไม่ login → เปิด popup (returnUrl = URL ของ module ที่คลิก)
+    private async Task OpenLogin(string url, string appName, string appText)
+    {
+        _loginTarget  = url;
+        _loginAppText = appText;
+        _showLogin    = true;
+        await JS.InvokeVoidAsync("soatPortal.pushRecent", appName);   // จำว่ากำลังจะเข้าระบบไหน
+    }
+
+    private void CloseLogin() => _showLogin = false;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -177,11 +337,20 @@
                     title="@(IsFav(app.AppName) ? "เอาออกจากปักหมุด" : "ปักหมุด")"
                     @onclick="() => ToggleFav(app.AppName)">★</button>
 
-            @if (clickable)
+            @if (clickable && _isAuthed)
             {
+                @* login แล้ว → เข้า module ตรง (cross-app, cookie ใช้ร่วมกัน) *@
                 <a class="pt-card-link" href="@url" onclick="soatPortal.pushRecent('@app.AppName')">
                     @CardInner(app)
                 </a>
+            }
+            else if (clickable)
+            {
+                @* ยังไม่ login → เด้ง popup login ทับ landing *@
+                <button type="button" class="pt-card-link"
+                        @onclick="() => OpenLogin(url!, app.AppName, app.AppTextThai)">
+                    @CardInner(app)
+                </button>
             }
             else
             {

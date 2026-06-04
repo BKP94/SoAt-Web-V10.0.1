@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -9,19 +9,19 @@ using scTeller.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ── Blazor Server ───────────────────────────────────────────────
+// โ”€โ”€ Blazor Server โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-// ── DevExpress Blazor (theme link อยู่ที่ App.razor, ค่าจาก appsettings "DevExpress:Theme") ──
-//   25.2 ใช้ Bootstrap 5 เป็น default ตัวเดียว (BootstrapVersion option ถูก deprecated แล้ว)
+// โ”€โ”€ DevExpress Blazor (theme link เธญเธขเธนเนเธ—เธตเน App.razor, เธเนเธฒเธเธฒเธ appsettings "DevExpress:Theme") โ”€โ”€
+//   25.2 เนเธเน Bootstrap 5 เน€เธเนเธ default เธ•เธฑเธงเน€เธ”เธตเธขเธง (BootstrapVersion option เธ–เธนเธ deprecated เนเธฅเนเธง)
 builder.Services.AddDevExpressBlazor();
 
-// ── Backend services (sc.dbFactory, AppDbContext, application services) ──
-//   module ไม่รัน deployers — scCenter เป็นคน deploy DB
+// โ”€โ”€ Backend services (sc.dbFactory, AppDbContext, application services) โ”€โ”€
+//   module เนเธกเนเธฃเธฑเธ deployers โ€” scCenter เน€เธเนเธเธเธ deploy DB
 builder.Services.AddInfrastructure(builder.Configuration);
 
-// ── Shared cookie auth — อ่าน cookie ที่ scCenter เซ็น (key ring เดียวกัน) ──
+// โ”€โ”€ Shared cookie auth โ€” เธญเนเธฒเธ cookie เธ—เธตเน scCenter เน€เธเนเธ (key ring เน€เธ”เธตเธขเธงเธเธฑเธ) โ”€โ”€
 var keysDir = Path.Combine(
     Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SoAt", "keys");
 Directory.CreateDirectory(keysDir);
@@ -39,16 +39,16 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.ExpireTimeSpan    = TimeSpan.FromHours(cookieHours);
         options.SlidingExpiration = true;
 
-        // ยังไม่ login → เด้งไปหน้า login ของ scCenter พร้อม returnUrl กลับมา module
+        // เธขเธฑเธเนเธกเน login โ’ เน€เธ”เนเธเนเธเธซเธเนเธฒ login เธเธญเธ scCenter เธเธฃเนเธญเธก returnUrl เธเธฅเธฑเธเธกเธฒ module
         options.Events.OnRedirectToLogin = ctx =>
         {
             var returnUrl = ctx.Request.GetEncodedUrl();
-            ctx.Response.Redirect($"{scCenterUrl}/login?returnUrl={Uri.EscapeDataString(returnUrl)}");
+            ctx.Response.Redirect($"{scCenterUrl}/?returnUrl={Uri.EscapeDataString(returnUrl)}");
             return Task.CompletedTask;
         };
     });
 
-// ทั้ง module ต้อง login ก่อน (fallback policy)
+// เธ—เธฑเนเธ module เธ•เนเธญเธ login เธเนเธญเธ (fallback policy)
 builder.Services.AddAuthorization(options =>
 {
     options.FallbackPolicy = new AuthorizationPolicyBuilder()
@@ -59,11 +59,11 @@ builder.Services.AddCascadingAuthenticationState();
 
 var app = builder.Build();
 
-// ── Init sc core library ────────────────────────────────────────
+// โ”€โ”€ Init sc core library โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
 sc.log.init(app.Services.GetRequiredService<ILoggerFactory>());
 sc.app.init(builder.Configuration);
 
-// ── HTTP pipeline ───────────────────────────────────────────────
+// โ”€โ”€ HTTP pipeline โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
@@ -80,7 +80,7 @@ app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
-// ── Logout endpoint (cookie sign-out — ใช้ key ring ร่วม) ───────
+// โ”€โ”€ Logout endpoint (cookie sign-out โ€” เนเธเน key ring เธฃเนเธงเธก) โ”€โ”€โ”€โ”€โ”€โ”€โ”€
 app.MapPost("/logout", async (HttpContext http) =>
 {
     await http.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);

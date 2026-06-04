@@ -1,0 +1,15 @@
+@page "/"
+
+<PageTitle>scWelfare — ระบบสวัสดิการ</PageTitle>
+
+<AuthorizeView>
+    <Authorized>
+        <h1>ระบบสวัสดิการ (scWelfare)</h1>
+        <p>เข้าสู่ระบบในชื่อ <strong>@context.User.Identity?.Name</strong>
+           — สาขา <strong>@context.User.FindFirst("branch_id")?.Value</strong></p>
+
+        <div class="center-modules">
+            <div class="module-card placeholder">ยังไม่มีเมนู</div>
+        </div>
+    </Authorized>
+</AuthorizeView>

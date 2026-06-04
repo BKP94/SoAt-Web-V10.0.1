@@ -13,6 +13,9 @@ appsettings.Development.json
 # Oracle source reference (legacy, local-only — used to build PG stub functions)
 legacy_ora_src/
 
+# Claude Code — local-only (permissions ฯลฯ); launch.json แชร์ได้
+.claude/settings.local.json
+
 # OS
 .DS_Store
 Thumbs.db

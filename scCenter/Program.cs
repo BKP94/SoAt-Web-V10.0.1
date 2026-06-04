@@ -1,8 +1,11 @@
 using System.IO;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using SoAt.Application.Auth;
 using SoAt.Infrastructure;
 using scCenter.Components;
 
@@ -38,14 +41,16 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         //   ส่วน dev (http://localhost) ยังส่ง cookie ได้ปกติ
         options.Cookie.SameSite     = SameSiteMode.Lax;
         options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-        options.LoginPath         = "/login";
+        // login เป็น popup ที่ landing (/) เท่านั้น — ไม่มีหน้า /login แล้ว
+        options.LoginPath         = "/";
         options.LogoutPath        = "/logout";
-        options.AccessDeniedPath  = "/login";
+        options.AccessDeniedPath  = "/";
         options.ExpireTimeSpan    = TimeSpan.FromHours(cookieHours);
         options.SlidingExpiration = true;
     });
 builder.Services.AddAuthorization();
 builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddHttpContextAccessor();   // login overlay (Home) อ่าน antiforgery token ตอน prerender
 
 // antiforgery cookie — Secure ตามสกีมเช่นกัน (แก้ DevTools issue เรื่อง SameSite/HTTPS)
 builder.Services.AddAntiforgery(o =>
@@ -90,11 +95,62 @@ app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
+// ── Login endpoint (cookie sign-in) ─────────────────────────────
+//   ที่เดียวที่ทำ authenticate + SignInAsync — ใช้โดย login overlay ที่
+//   landing (Home). ต้อง POST แบบ form (antiforgery token).
+app.MapPost("/auth/login", async (
+    HttpContext http,
+    IAuthService auth,
+    IConfiguration config,
+    [FromForm] string userId,
+    [FromForm] string password,
+    [FromForm] string? branchId,
+    [FromForm] string? returnUrl) =>
+{
+    // กัน open-redirect: อนุญาตเฉพาะ path สัมพัทธ์ หรือ URL ที่อยู่ใน config "Modules" เท่านั้น
+    var safeReturn = SafeReturnUrl(returnUrl, config);
+
+    var user = await auth.AuthenticateAsync(new LoginCommand(userId, password, branchId));
+    if (user is null)
+    {
+        var rt = safeReturn is null ? "" : $"&returnUrl={Uri.EscapeDataString(safeReturn)}";
+        return Results.Redirect($"/?error=1{rt}");
+    }
+
+    var claims = new List<Claim>
+    {
+        new(ClaimTypes.NameIdentifier, user.UserId),
+        new(ClaimTypes.Name, user.DisplayName),
+        new("branch_id", user.BranchId),
+    };
+    var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+    await http.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
+
+    return Results.Redirect(safeReturn ?? "/");
+});
+
 // ── Logout endpoint (cookie sign-out) ───────────────────────────
 app.MapPost("/logout", async (HttpContext http) =>
 {
     await http.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
     return Results.Redirect("/");
 });
+
+// returnUrl ปลอดภัย: path สัมพัทธ์ ("/...") หรือ absolute URL ที่ตรงกับ module ใน config "Modules"
+static string? SafeReturnUrl(string? returnUrl, IConfiguration config)
+{
+    if (string.IsNullOrWhiteSpace(returnUrl)) return null;
+    if (returnUrl.StartsWith('/') && !returnUrl.StartsWith("//")) return returnUrl;   // relative path
+
+    var modules = config.GetSection("Modules").GetChildren().Select(m => m.Value);
+    foreach (var url in modules)
+    {
+        if (string.IsNullOrWhiteSpace(url)) continue;
+        if (returnUrl.Equals(url, StringComparison.OrdinalIgnoreCase)
+         || returnUrl.StartsWith(url.TrimEnd('/') + "/", StringComparison.OrdinalIgnoreCase))
+            return returnUrl;
+    }
+    return null;   // ไม่อยู่ใน allowlist → ทิ้ง
+}
 
 app.Run();

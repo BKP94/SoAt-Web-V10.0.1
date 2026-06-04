@@ -5,6 +5,37 @@
     <Project Path="sc/SoAt.Infrastructure/SoAt.Infrastructure.csproj" />
     <Project Path="sc/SoAt.Core/SoAt.Core.csproj" />
   </Folder>
+  <Project Path="scAccount/scAccount.csproj" />
+  <Project Path="scAdmin/scAdmin.csproj" />
+  <Project Path="scApprove/scApprove.csproj" />
+  <Project Path="scAtm/scAtm.csproj" />
+  <Project Path="scBillpayment/scBillpayment.csproj" />
   <Project Path="scCenter/scCenter.csproj" />
+  <Project Path="scCoordinate/scCoordinate.csproj" />
+  <Project Path="scCremation/scCremation.csproj" />
+  <Project Path="scDeposit/scDeposit.csproj" />
+  <Project Path="scEdocument/scEdocument.csproj" />
+  <Project Path="scElections/scElections.csproj" />
+  <Project Path="scEoffice/scEoffice.csproj" />
+  <Project Path="scEstate/scEstate.csproj" />
+  <Project Path="scExp/scExp.csproj" />
+  <Project Path="scFinance/scFinance.csproj" />
+  <Project Path="scFund/scFund.csproj" />
+  <Project Path="scHr/scHr.csproj" />
+  <Project Path="scInsurance/scInsurance.csproj" />
+  <Project Path="scInvestment/scInvestment.csproj" />
+  <Project Path="scKeepColl/scKeepColl.csproj" />
+  <Project Path="scKeeping/scKeeping.csproj" />
+  <Project Path="scLaw/scLaw.csproj" />
+  <Project Path="scMobile/scMobile.csproj" />
+  <Project Path="scPermit/scPermit.csproj" />
+  <Project Path="scProDATA/scProDATA.csproj" />
+  <Project Path="scReport/scReport.csproj" />
+  <Project Path="scRing2Me/scRing2Me.csproj" />
+  <Project Path="scScholarship/scScholarship.csproj" />
+  <Project Path="scServices/scServices.csproj" />
+  <Project Path="scStock/scStock.csproj" />
   <Project Path="scTeller/scTeller.csproj" />
+  <Project Path="scTransbank/scTransbank.csproj" />
+  <Project Path="scWelfare/scWelfare.csproj" />
 </Solution>

@@ -5,11 +5,6 @@ backend/**/*.user
 backend/**/*.suo
 backend/.vs/
 
-# Node
-frontend/node_modules/
-frontend/dist/
-frontend/.env.local
-
 # Environment
 .env
 .env.local

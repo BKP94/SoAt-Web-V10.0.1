@@ -5,9 +5,13 @@
 
 | | Legacy (`C:\SoAt_PEAN`) | Target (โปรเจคนี้) |
 |---|---|---|
-| Frontend | ASP.NET Web Forms + DevExpress 17.1.6 | React + TypeScript |
-| Backend | C# .NET Framework 4.8 | .NET Core Web API |
+| Frontend | ASP.NET Web Forms + DevExpress 17.1.6 | **Blazor Server + DevExpress** |
+| Backend | C# .NET Framework 4.8 | .NET Core (services เรียกตรงผ่าน DI) |
 | Database | Oracle 19c | PostgreSQL (Npgsql + EF Core migrations) |
+
+> **ทิศ frontend (ตัดสินใจ 2026-06-04):** เปลี่ยนจาก React/TypeScript → **Blazor Server + DevExpress**
+> เหตุผล: ทีมถนัด C#, ผู้ใช้ใน intranet (จุดอ่อน Blazor Server ไม่กระทบ), และ reuse legacy XtraReports ~2,900 ตัวได้
+> React (`frontend/`) ถูกลบออกแล้ว (commit `da07ed6`) — โครง Blazor ยังไม่ scaffold (รอ DevExpress license)
 
 **Legacy structure:** 65+ projects — `sc*` = แต่ละ module (scAccount, scAtm, scHr, scDeposit, scInvestment, ...), `rc*` = report ของแต่ละ module, `sc/` = core library กลาง. รายชื่อ module เต็มดูใน `C:\SoAt_PEAN\` — ชื่อ folder ใหม่ต้องตรง legacy เป๊ะ (case-sensitive).
 
@@ -57,65 +61,45 @@ await conn.ExecuteAsync("SET LOCAL app.login_br = @br", new { br = branchId });
   - `"M=ชาย/F=หญิง"` → static key=value
   - `"#table|pk_col|desc_col[|type|filter]"` → query DB
   - `"select ... as item_code, ... as item_desc from ..."` → SQL ตรง
-  - return `sc.ComboItem` (combo.cs) → ส่ง frontend เป็น `ComboItemDto { code, name }`
+  - return `sc.ComboItem` (combo.cs) → Blazor component bind ตรง (Value=`code`, Text=`name`)
 - **`sc.combo.*` constants** — ใช้แทน SQL เขียนเอง, ตรวจ combo.cs ก่อนเสมอ
 - **`sc.scCoop.ofParse(membership_no)`** — validate + pad zeros (size จาก sc_cnt_m_coop)
 - **EF Core ใช้เฉพาะ Migrations** (schema) — ไม่ inject `AppDbContext` ใน service
-- JWT สำหรับ authentication
+- **Auth: cookie-based** (Blazor Server) — service เรียกตรงผ่าน DI, ไม่ผ่าน HTTP/JWT
 
-### React + TypeScript
-- strict TS, Component = PascalCase, module folder ตรง legacy เป๊ะ (case-sensitive) ที่ `src/pages/sc[Module]/index.tsx`
-- Navigation: scCenter เป็น public landing, login popup เมื่อ click module icon
-- DevExtreme React สำหรับ UI components
-- **Format constants** — ทุก page กำหนดที่ top of file พร้อม comment อ้างอิง `sc.*`:
-  ```ts
-  const MASK_IDCARD = '9-9999-99999-99-9'           // sc.mask.maskIdCard
-  const FMT_DATE_TH = { /* dd/mm/(yyyy+543) */ }     // sc.value.toStringTH — พ.ศ. display, ค.ศ. storage
-  const FMT_MONEY = { format: '#,##0.00', min: 0 }   // sc.mask.maskDecimal
-  const FMT_PERCENT2 = { format: '#,##0.00', min: 0, max: 100 } // sc.mask.maskPercent2
-  ```
-- **วันที่** → `FMT_DATE_TH` (พ.ศ. display, ค.ศ. storage) เสมอ
-- **เลขบัตร ปชช.** → `mask: MASK_IDCARD` เสมอ | **เงิน** → `FMT_MONEY` | **จำนวนเต็ม** → `{ format: '#,##0' }` | **%** → `FMT_PERCENT2`
-- **Dropdown** → type `ComboItemDto { code, name }` เสมอ
-
-### React — Page Layout Pattern (page ซับซ้อนแยกไฟล์)
-- `index.tsx` — orchestrator: state + layout constants + API calls
-- `Header.tsx` — form หลัก (scrollable, flex:1, maxHeight: 55vh, overflowY: auto)
-- `Detail.tsx` (optional), `Tabs.tsx` (แท็บเพิ่มเติม), `Operate.tsx` (ปุ่มวงกลม fixed width ขวาสุด)
-- `types.ts` — interfaces + format constants ที่แชร์
-- หน้าเรียบง่ายไม่ต้องครบทุก section (เช่น sctelnewbma ไม่มี Detail)
-- **Layout constants** ใน `index.tsx`: `MASTER_WIDTH = '80%'` (content area), `BTN = 68→76px`
-  - index wrapper: `width:100%, padding:'12px 16px'` | master: `MASTER_WIDTH, margin:'0 auto', flex, gap:10`
-  - Left (Header+Tabs): `flex:1, minWidth:0, flexDirection:column, gap:10` | Right (Operate): `minWidth: BTN+8`
-- **Material Icons** (`material-icons` npm, import ใน `main.tsx`): `<span className="material-icons">{icon}</span>` (text ligature). DevExtreme Button `icon` prop ใช้ CSS class → ไม่รองรับ ligature → ใช้ plain `<button>` + span แทน
-- **Circular Buttons (Operate)** — plain `<button>` + `borderRadius:'50%'` + Material Icons span ข้างใน + label span ด้านล่าง
-
-### DevExtreme Theme Rules (ห้ามละเมิด)
-- เปลี่ยน theme → แก้แค่ import ใน `main.tsx` บรรทัดเดียว
-- CSS override → แตะแค่ layout (border-radius, underline, icon-top) **ห้าม** override สี/focus/shadow
-- **ห้ามแก้ `node_modules/`** — ใช้ `index.css` override
-- ใช้ `currentColor` แทน hardcode สี | Scoped CSS ใส่ className (เช่น `dx-tab-icon-top`)
+### Blazor Server + DevExpress (frontend)
+> โครงยังไม่ scaffold — รอ DevExpress license. หลักการด้านล่างคือสิ่งที่ตัดสินใจแล้ว, รายละเอียด UI pattern (layout/component) จะนิยามตอน scaffold + ลง DevExpress
+- Component = PascalCase `.razor`, module folder ตรง legacy เป๊ะ (case-sensitive)
+- Navigation: scCenter เป็น public landing, login เมื่อเข้า module
+- **Format/value ทุกตัวมาจาก `sc.*`** (อย่า hardcode ในหน้า) — ผูกกับ utility C# โดยตรง:
+  - **วันที่** → `sc.value.toStringTH` — พ.ศ. display, ค.ศ. storage เสมอ
+  - **เลขบัตร ปชช.** → `sc.mask.maskIdCard` (`9-9999-99999-99-9`)
+  - **เงิน** → `sc.mask.maskDecimal` (`#,##0.00`) | **จำนวนเต็ม** → `#,##0` | **%** → `sc.mask.maskPercent2`
+  - **Dropdown** → bind `sc.ComboItem` (Value=`code`, Text=`name`) จาก `sc.db.getComboAsync(sc.combo.*)`
+- **DevExpress theme** — เปลี่ยน theme ที่จุดเดียว (config), ห้าม override สี/focus/shadow, แตะได้แค่ layout
 
 ---
 
 ## Claude Working Rules (สำคัญมาก — ทำทุกครั้ง)
 1. **อ่าน `sc/` ก่อนเขียนโค้ดใหม่เสมอ** (`mask.cs`, `value.cs`, `combo.cs`, `css.cs`, `att.cs`, `scCoop.cs`, `util.cs`, `db.cs`) — เพื่อรู้ว่ามี utility/constant อะไรแล้ว
 2. **ถ้าไม่แน่ใจ ถามก่อน** — ห้ามคิดเองแล้วเขียนทันที ต้องรอ confirm
-3. **UI ต้องเชื่อม C# ชัดเจน** — format constant ทุกตัวใน frontend มี comment อ้างอิง `sc.*` ที่มา
+3. **UI ต้องเชื่อม C# ชัดเจน** — format/value ทุกตัวเรียกจาก `sc.*` ตรง (mask, value, combo) ไม่ hardcode ในหน้า
 4. **ใช้ `sc.combo.*` แทน SQL เขียนเอง** — ตรวจ combo.cs ก่อน, dropdown code+name → `getComboAsync(sc.combo.xxx)`
 
 ---
 
 ## Architecture Decisions (ตัดสินใจแล้ว)
-- **.NET Core layers:** `SoAt.API` (controllers) / `SoAt.Application` (DTO+services) / `SoAt.Infrastructure` (sc.db, persistence, deployers) / `SoAt.Core` (sc/* library)
+- **.NET Core layers:** `SoAt.Application` (DTO+services) / `SoAt.Infrastructure` (sc.db, persistence, deployers) / `SoAt.Core` (sc/* library) / `SoAt.Domain`
+  - `SoAt.API` (controllers) มีอยู่จากยุค React — Blazor Server เรียก service ตรงผ่าน DI, ไม่ต้องผ่าน controller (จะเก็บไว้/ตัด ตอน scaffold Blazor)
 - Backend: **`sc.db`** สำหรับ query+CRUD ทั้งหมด, **EF Core** สำหรับ Migrations เท่านั้น
 - Dropdown: **`sc.db.getComboAsync` + `sc.combo.*`** — ไม่เขียน SQL เอง
 - DB naming: คงชื่อ Oracle เดิม | EF Core snake_case: **manual loop** ใน OnModelCreating (EFCore.NamingConventions ไม่รองรับ EF Core 10)
-- Auth: **JWT** (ยังไม่มี refresh token)
-- UI lib: **DevExtreme React 25.2.7** (Community) | Theme: **`dx.carmine.css`** | Icons: **Material Icons** | Font: **Prompt** ทั้งระบบ (component ใช้ `fontFamily: 'inherit'`)
+- **Frontend: Blazor Server + DevExpress** (เปลี่ยนจาก React 2026-06-04) | Auth: **cookie-based** (service ผ่าน DI)
 
 ### ยังไม่ตัดสินใจ
-- [ ] เริ่ม migrate module ไหนก่อน — [ ] Refresh Token — [ ] Module-level permission
+- [ ] Scaffold โครง Blazor Server (รอ DevExpress license — ติด user/pass ตอนติดตั้ง)
+- [ ] เก็บหรือตัด `SoAt.API` controllers — [ ] เริ่ม migrate module ไหนก่อน — [ ] Module-level permission
+- [ ] federation strategy ของ `view_tel_get_creamation` (dblink 3 Oracle DB)
 
 ---
 
@@ -135,8 +119,12 @@ await conn.ExecuteAsync("SET LOCAL app.login_br = @br", new { br = branchId });
 
 ---
 
-## สถานะ Stack ใหม่ (2026-05-28)
-- Backend: build clean (0 err/warn), JWT auth, sc.db migration สมบูรณ์
-- Frontend: build clean, scCenter + 31 module placeholders, sctelnewbma clean code สมบูรณ์
-- **DB deploy (Step 5):** Tables 1,460 / Functions 352 / Triggers 376 / Views 100 — API ที่ `http://localhost:5139`
-- **ค้าง (Step 6):** Views fail 72 ตัว เพราะอ้าง Oracle package functions (~35 functions, 14 packages: pka_com_function, pka_srv_datetime, pka_dep, pka_estate, pka_hr_leave ...) ที่ยังไม่ migrate → ต้องสร้าง stub functions
+## สถานะ Stack ใหม่ (2026-06-04)
+- Backend: build clean, sc.db migration สมบูรณ์ — API ที่ `http://localhost:5139`
+- **Frontend: ลบ React ออกแล้ว** (commit `da07ed6`) — รอ scaffold Blazor Server (รอ DevExpress license)
+- **DB deploy:** Tables 1,460 / Functions 352 + 46 stub / Triggers 376 / **Views 171/171 ✅**
+- **Step 6 เสร็จ** (commit `4f4a925`): 46 Oracle package functions implement เป็น PG stub ใน `Database/Functions/_pkg_stubs/` (16 schemas: pka, pka_com_function, pkb_kromss, pka_srv_datetime, pka_estate, pka_lon_*, pka_hr_*, pka_mem_det, pka_wef ...) จาก source จริง `legacy_ora_src/` (gitignored). เหลือ 1 view defer = `VIEW_TEL_GET_CREAMATION.sql.deferred` (federate 3 Oracle DB ผ่าน dblink)
+
+### ถัดไป
+1. Scaffold Blazor Server project (ทำได้เลย, ใส่ DevExpress ทีหลังเมื่อ license พร้อม)
+2. เลือก module แรกที่จะ migrate ขึ้น Blazor

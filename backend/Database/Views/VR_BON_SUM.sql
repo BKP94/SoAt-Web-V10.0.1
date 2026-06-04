@@ -9,7 +9,7 @@ SET check_function_bodies = false;
 CREATE OR REPLACE VIEW vr_bon_sum (account_year, membership_no, loan_11, loan_50, mcn_amt, loan_define, all_amt) AS SELECT DISTINCT sc_kep_cut_bonus_item.account_year
 , sc_kep_cut_bonus_item.membership_no
 
-,( 	SELECT coalesce( sum( sc_kep_cut_bonus_item.item_amount  ) , 0 ) 
+,( 	SELECT coalesce( sum( sub.item_amount  ) , 0 ) 
 	 FROM sc_kep_cut_bonus_item  sub
 	WHERE sub.account_year =  sc_kep_cut_bonus_item.account_year   
 	AND		sub.membership_no =   sc_kep_cut_bonus_item.membership_no   
@@ -17,7 +17,7 @@ CREATE OR REPLACE VIEW vr_bon_sum (account_year, membership_no, loan_11, loan_50
      AND  		sub.loan_percent  > 0 
 	AND		sub.loan_type = '11'    ) as lon_11
 
-,( 	SELECT coalesce( sum( sc_kep_cut_bonus_item.item_amount  ) , 0 ) 
+,( 	SELECT coalesce( sum( sub.item_amount  ) , 0 ) 
 	 FROM sc_kep_cut_bonus_item  sub
 	WHERE sub.account_year =  sc_kep_cut_bonus_item.account_year   
 	AND		sub.membership_no =   sc_kep_cut_bonus_item.membership_no   
@@ -25,13 +25,13 @@ CREATE OR REPLACE VIEW vr_bon_sum (account_year, membership_no, loan_11, loan_50
      AND  		sub.loan_percent  > 0 
 	AND		sub.loan_type = '50'    ) as lon_50
 
-,( 	SELECT coalesce( sum( sc_kep_cut_bonus_item.item_amount  ) , 0 ) 
+,( 	SELECT coalesce( sum( sub.item_amount  ) , 0 ) 
 	 FROM sc_kep_cut_bonus_item  sub
 	WHERE sub.account_year =  sc_kep_cut_bonus_item.account_year   
 	AND		sub.membership_no =   sc_kep_cut_bonus_item.membership_no   
 	AND		sub.keeping_type_group =  'MCN'      ) as mcn_amt
 
-,( 	SELECT coalesce( sum( sc_kep_cut_bonus_item.item_amount  ) , 0 ) 
+,( 	SELECT coalesce( sum( sub.item_amount  ) , 0 ) 
 	 FROM sc_kep_cut_bonus_item  sub
 	WHERE sub.account_year =  sc_kep_cut_bonus_item.account_year   
 	AND		sub.membership_no =   sc_kep_cut_bonus_item.membership_no   
@@ -39,7 +39,7 @@ CREATE OR REPLACE VIEW vr_bon_sum (account_year, membership_no, loan_11, loan_50
      AND  		sub.loan_percent  = 0  ) as lon_define
 
 
-,( 	SELECT coalesce( sum( sc_kep_cut_bonus_item.item_amount  ) , 0 ) 
+,( 	SELECT coalesce( sum( sub.item_amount  ) , 0 ) 
 	 FROM sc_kep_cut_bonus_item  sub
 	WHERE sub.account_year =  sc_kep_cut_bonus_item.account_year   
 	AND		sub.membership_no =   sc_kep_cut_bonus_item.membership_no    ) as all_amt

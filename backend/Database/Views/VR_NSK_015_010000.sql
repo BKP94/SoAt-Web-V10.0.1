@@ -17,7 +17,7 @@ CREATE OR REPLACE VIEW vr_nsk_015_010000 (monthly_date, deposit_account_no, item
          sc_cls_mon_dep_accno.last_calcint_date,   
          sc_cls_mon_dep_accno.deposit_balance,   
          sc_cls_mon_dep_accno.int_arrear,   
-         ( CASE WHEN   sc_dep_m_constant.clsmonth_include_lastday ='1' THEN  1   ELSE 0 END   + sc_cls_mon_dep_accno.monthly_date  ) as arrear_date  
+         ( sc_cls_mon_dep_accno.monthly_date + ( CASE WHEN   sc_dep_m_constant.clsmonth_include_lastday ='1' THEN  1   ELSE 0 END ) * interval '1 day'  ) as arrear_date
     FROM sc_cls_mon_dep_accno,
          sc_dep_m_rule ,
          sc_dep_m_constant  

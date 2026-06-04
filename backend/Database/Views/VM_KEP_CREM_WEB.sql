@@ -24,11 +24,11 @@ CREATE OR REPLACE VIEW vm_kep_crem_web (membership_no, receive_year, receive_mon
          pka_com_function.fp_get_moneythai( sc_kep_t_monthly_receive_det.money_amount_not ) as money_amount_thai,      
          sc_cnt_m_coop.treasurer_name,   
          sc_cnt_m_coop.auditor_name
-    FROM sc_kep_t_monthly_receive@DB_CREM,   
-         sc_mem_m_membership_registered@DB_CREM,  
-         sc_kep_t_monthly_receive_det@DB_CREM,
-         sc_mem_m_ucf_member_group@DB_CREM,
-         sc_cnt_m_coop@DB_CREM  
+    FROM sc_kep_t_monthly_receive,   
+         sc_mem_m_membership_registered,  
+         sc_kep_t_monthly_receive_det,
+         sc_mem_m_ucf_member_group,
+         sc_cnt_m_coop  
    WHERE ( sc_kep_t_monthly_receive.membership_no = sc_mem_m_membership_registered.membership_no ) and ( sc_kep_t_monthly_receive.membership_no = sc_kep_t_monthly_receive_det.membership_no ) and ( sc_kep_t_monthly_receive.receive_year = sc_kep_t_monthly_receive_det.receive_year ) and ( sc_kep_t_monthly_receive.receive_month = sc_kep_t_monthly_receive_det.receive_month ) and ( sc_kep_t_monthly_receive.seq_no = sc_kep_t_monthly_receive_det.seq_no ) and ( sc_mem_m_ucf_member_group.member_group_no = sc_kep_t_monthly_receive.member_group_no ) 
          and sc_kep_t_monthly_receive.agent_active = '1'
  and pka.isCoop('TGE')= '1';

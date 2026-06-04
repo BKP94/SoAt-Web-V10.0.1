@@ -12,9 +12,9 @@ CREATE OR REPLACE VIEW view_tel_mem_wef (membership_no, wef_type, wef_desc, oper
          sc_wef_req.operate_date,   
          sc_wef_req.total_receive,   
          CASE WHEN  sc_wef_req.approve_status ='1' THEN  'อนุมัติ'   ELSE 'รออนุมัติ' END  as approve_status ,   
-         CASE WHEN  sc_wef_req.approve_status ='1' THEN  sc_wef_req.approve_date   ELSE '' END  as  approve_date,   
+         CASE WHEN  sc_wef_req.approve_status ='1' THEN  sc_wef_req.approve_date   ELSE NULL END  as  approve_date,   
 	     --decode( sc_wef_req.paid_status , '1' , 'จ่ายแล้ว' , 'รอจ่าย' ) as paid_status ,   
-         CASE WHEN  sc_wef_req.paid_status ='1' THEN  '1'               ELSE ( select coalesce( min( return_status ) , 0 )             FROM sc_fin_money_return             where 1=1             and cancel_status = '0'             and refno1 = sc_wef_req.requestment_no ) END  as paid_status , 
+         CASE WHEN  sc_wef_req.paid_status ='1' THEN  '1'               ELSE ( select coalesce( min( return_status ) , '0' )             FROM sc_fin_money_return             where 1=1             and cancel_status = '0'             and refno1 = sc_wef_req.requestment_no ) END  as paid_status , 
          
          CASE WHEN  sc_wef_req.paid_status ='1' THEN  sc_wef_req.paid_date            ELSE ( select coalesce( min( paid_date ) , null )             from sc_fin_money_return             where 1=1             and cancel_status = '0'             and refno1 = sc_wef_req.requestment_no ) END    as  paid_date ,
          pka_wef.fp_wef_paid_desc( sc_wef_req.wef_type , sc_wef_req.requestment_no ) as wef_detail    

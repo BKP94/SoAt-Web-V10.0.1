@@ -22,7 +22,7 @@ from (
      --Niorn 2023-05-04 TGE  Credit pending 
      , CASE WHEN  pka.isCoop('TGE')     ='1' THEN  sc_lon_m_loan_card.principal_balance - pending_amount      ELSE sc_lon_m_loan_card.principal_balance END   as principal_balance 
      
-    , pka_mobile_lon.fp_cal_int( sc_lon_m_loan_card.loan_contract_no,to_date(statement_timestamp() ,'dd/mm/yyyy')) as interest
+    , pka_mobile_lon.fp_cal_int( sc_lon_m_loan_card.loan_contract_no,current_date) as interest
 
 
    ,sc_lon_m_contract.period_payment_amount

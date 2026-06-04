@@ -9,7 +9,7 @@ SET check_function_bodies = false;
 CREATE OR REPLACE VIEW vr_wef_smt (membership_no, approve_date, mem_age, smt_date, piad_date) AS select membership_no
 
 , approve_date 
-, date_trunc('day', mem_age/12)
+, trunc(mem_age/12.0)
 , pka_srv_datetime.fp_RelativeMonth( approve_date  , mem_age  )  as smt_date 
 , PKA_WEF_REQ_SMT.fp_cals_paid_rate(  mem_age   )   as paid_rate
  FROM ( 

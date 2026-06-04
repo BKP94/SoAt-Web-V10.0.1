@@ -15,6 +15,9 @@ frontend/.env.local
 .env.local
 appsettings.Development.json
 
+# Oracle source reference (legacy, local-only — used to build PG stub functions)
+legacy_ora_src/
+
 # OS
 .DS_Store
 Thumbs.db

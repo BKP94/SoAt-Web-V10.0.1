@@ -37,31 +37,54 @@ public static class ViewDeployer
         await using var conn = new NpgsqlConnection(connStr);
         await conn.OpenAsync();
 
-        int deployed = 0, failed = 0;
+        int deployed = 0;
 
-        foreach (var file in sqlFiles)
+        // Multi-pass: views can depend on other views. Deploy alphabetically, then
+        // retry the failures — each pass may satisfy dependencies created in the prior
+        // pass. Stop when a pass makes no progress (remaining = real errors).
+        var pending = sqlFiles.ToList();
+        var lastErrors = new Dictionary<string, string>();
+
+        while (pending.Count > 0)
         {
-            var rel = Path.GetRelativePath(projectRoot, file).Replace('\\', '/');
-            try
+            var stillFailing = new List<string>();
+            lastErrors.Clear();
+
+            foreach (var file in pending)
             {
-                var sql = await File.ReadAllTextAsync(file);
-                await using var cmd = new NpgsqlCommand(sql, conn);
-                await cmd.ExecuteNonQueryAsync();
-                logger.LogInformation("ViewDeployer: ✓ {File}", rel);
-                deployed++;
+                var rel = Path.GetRelativePath(projectRoot, file).Replace('\\', '/');
+                try
+                {
+                    var sql = await File.ReadAllTextAsync(file);
+                    await using var cmd = new NpgsqlCommand(sql, conn);
+                    await cmd.ExecuteNonQueryAsync();
+                    logger.LogInformation("ViewDeployer: ✓ {File}", rel);
+                    deployed++;
+                }
+                catch (PostgresException ex) when (ex.SqlState is "23505")
+                {
+                    // type already exists from prior run — silent skip
+                }
+                catch (Exception ex)
+                {
+                    stillFailing.Add(file);
+                    lastErrors[rel] = ex.Message;
+                }
             }
-            catch (PostgresException ex) when (ex.SqlState is "23505")
+
+            // No progress → remaining failures are genuine errors, not ordering.
+            if (stillFailing.Count == pending.Count)
             {
-                // type already exists from prior run — silent skip
+                pending = stillFailing;
+                break;
             }
-            catch (Exception ex)
-            {
-                logger.LogWarning("ViewDeployer: ✗ {File} — {Msg}", rel, ex.Message);
-                failed++;
-            }
+            pending = stillFailing;
         }
 
-        logger.LogInformation("ViewDeployer: เสร็จ — deployed={D} failed={F}", deployed, failed);
+        foreach (var (rel, msg) in lastErrors)
+            logger.LogWarning("ViewDeployer: ✗ {File} — {Msg}", rel, msg);
+
+        logger.LogInformation("ViewDeployer: เสร็จ — deployed={D} failed={F}", deployed, pending.Count);
     }
 
     private static string FindProjectRoot(string startDir)

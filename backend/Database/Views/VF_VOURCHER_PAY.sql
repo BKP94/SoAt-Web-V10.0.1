@@ -29,8 +29,8 @@ FROM
 ,sc_fin_vourcher_head.operate_date
 ,sc_fin_vourcher_head.entry_id
 
-,CASE WHEN  sc_fin_vourcher_head.money_accept='0' THEN ''  ELSE sc_fin_vourcher_head.journal_date END as journal_date 
-,CASE WHEN  sc_fin_vourcher_head.money_accept='0' THEN ''  ELSE sc_fin_vourcher_head.entry_fin END  as entry_fin
+,CASE WHEN  sc_fin_vourcher_head.money_accept='0' THEN NULL  ELSE sc_fin_vourcher_head.journal_date END as journal_date 
+,CASE WHEN  sc_fin_vourcher_head.money_accept='0' THEN NULL  ELSE sc_fin_vourcher_head.entry_fin END  as entry_fin
 
 
 ,sc_fin_vourcher_head.vourcher_desc
@@ -62,8 +62,8 @@ group by sc_fin_vourcher_head.vourcher_no
 ,sc_fin_vourcher_head.operate_date
 ,sc_fin_vourcher_head.entry_id
 
-,CASE WHEN  sc_fin_vourcher_head.money_accept='0' THEN ''  ELSE sc_fin_vourcher_head.journal_date END 
-,CASE WHEN  sc_fin_vourcher_head.money_accept='0' THEN ''  ELSE sc_fin_vourcher_head.entry_fin END  
+,CASE WHEN  sc_fin_vourcher_head.money_accept='0' THEN NULL  ELSE sc_fin_vourcher_head.journal_date END 
+,CASE WHEN  sc_fin_vourcher_head.money_accept='0' THEN NULL  ELSE sc_fin_vourcher_head.entry_fin END  
 
 
 ,sc_fin_vourcher_head.vourcher_desc
@@ -83,8 +83,8 @@ union all
 ,sc_fin_vourcher_head.operate_date
 ,sc_fin_vourcher_head.entry_id
 
-,CASE WHEN  sc_fin_vourcher_head.money_accept='0' THEN ''  ELSE sc_fin_vourcher_head.journal_date END as journal_date 
-,CASE WHEN  sc_fin_vourcher_head.money_accept='0' THEN ''  ELSE sc_fin_vourcher_head.entry_fin END  as entry_fin
+,CASE WHEN  sc_fin_vourcher_head.money_accept='0' THEN NULL  ELSE sc_fin_vourcher_head.journal_date END as journal_date 
+,CASE WHEN  sc_fin_vourcher_head.money_accept='0' THEN NULL  ELSE sc_fin_vourcher_head.entry_fin END  as entry_fin
 
 
 ,sc_fin_vourcher_head.vourcher_desc
@@ -119,8 +119,8 @@ group by sc_fin_vourcher_head.vourcher_no
 ,sc_fin_vourcher_head.operate_date
 ,sc_fin_vourcher_head.entry_id
 
-,CASE WHEN  sc_fin_vourcher_head.money_accept='0' THEN ''  ELSE sc_fin_vourcher_head.journal_date END 
-,CASE WHEN  sc_fin_vourcher_head.money_accept='0' THEN ''  ELSE sc_fin_vourcher_head.entry_fin END  
+,CASE WHEN  sc_fin_vourcher_head.money_accept='0' THEN NULL  ELSE sc_fin_vourcher_head.journal_date END 
+,CASE WHEN  sc_fin_vourcher_head.money_accept='0' THEN NULL  ELSE sc_fin_vourcher_head.entry_fin END  
 
 
 ,sc_fin_vourcher_head.vourcher_desc

@@ -31,11 +31,10 @@ select 2 as seq_no
 ,sc_mem_m_membership_registered.crem_memno AS membership_no
 ,sc_dep_m_creditor.deposit_account_no
 ,sc_dep_m_creditor.deposit_balance
-, (select sc_dep_m_rule.deposit_type_code||' - '||sc_dep_m_rule.deposit_name from sc_dep_m_rule@db_crem where sc_dep_m_rule.deposit_type_code = sc_dep_m_creditor.deposit_type_code ) as deposit_type_code
+, (select sc_dep_m_rule.deposit_type_code||' - '||sc_dep_m_rule.deposit_name from sc_dep_m_rule where sc_dep_m_rule.deposit_type_code = sc_dep_m_creditor.deposit_type_code ) as deposit_type_code
 ,'เงินกู้พัฒนา' as loan_type_coll
 , 'รอเรียกเก็บ '||to_char(4000 - sc_dep_m_creditor.deposit_balance ,'999,999.99') || ' บาท' as remark
-from sc_mem_m_membership_registered@db_crem
-,sc_dep_m_creditor@db_crem    
+from sc_mem_m_membership_registered,sc_dep_m_creditor
 where 1=1
 and sc_dep_m_creditor.close_status = '0'
 and sc_mem_m_membership_registered.member_status_code = '0' 

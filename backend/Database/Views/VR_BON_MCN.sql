@@ -9,28 +9,28 @@ SET check_function_bodies = false;
 CREATE OR REPLACE VIEW vr_bon_mcn (account_year, membership_no, mcn_01, mcn_02, mcn_03, mcn_04, mcn_amt) AS SELECT DISTINCT sc_kep_cut_bonus_item.account_year
 , sc_kep_cut_bonus_item.membership_no
 
-,( 	SELECT coalesce( sum( sc_kep_cut_bonus_item.item_amount  ) , 0 ) 
+,( 	SELECT coalesce( sum( sub.item_amount  ) , 0 ) 
 	 FROM sc_kep_cut_bonus_item  sub
 	WHERE sub.account_year =  sc_kep_cut_bonus_item.account_year   
 	AND		sub.membership_no =   sc_kep_cut_bonus_item.membership_no   
 	AND		sub.keeping_type_group =  'MCN'    
 	AND		sub.loan_type = '01'    ) as mcn_01
 
-,( 	 SELECT coalesce( sum( sc_kep_cut_bonus_item.item_amount  ) , 0 ) 
+,( 	 SELECT coalesce( sum( sub.item_amount  ) , 0 ) 
 	 FROM sc_kep_cut_bonus_item  sub
 	WHERE sub.account_year =  sc_kep_cut_bonus_item.account_year   
 	AND		sub.membership_no =   sc_kep_cut_bonus_item.membership_no   
 	AND		sub.keeping_type_group =  'MCN'    
 	AND		sub.loan_type = '02'    ) as mcn_02
 
-,( 	SELECT coalesce( sum( sc_kep_cut_bonus_item.item_amount  ) , 0 ) 
+,( 	SELECT coalesce( sum( sub.item_amount  ) , 0 ) 
 	 FROM sc_kep_cut_bonus_item  sub
 	WHERE sub.account_year =  sc_kep_cut_bonus_item.account_year   
 	AND		sub.membership_no =   sc_kep_cut_bonus_item.membership_no   
 	AND		sub.keeping_type_group =  'MCN'    
 	AND		sub.loan_type = '03'    ) as mcn_03
 
-,( 	SELECT coalesce( sum( sc_kep_cut_bonus_item.item_amount  ) , 0 ) 
+,( 	SELECT coalesce( sum( sub.item_amount  ) , 0 ) 
 	 FROM sc_kep_cut_bonus_item  sub
 	WHERE sub.account_year =  sc_kep_cut_bonus_item.account_year   
 	AND		sub.membership_no =   sc_kep_cut_bonus_item.membership_no   
@@ -38,7 +38,7 @@ CREATE OR REPLACE VIEW vr_bon_mcn (account_year, membership_no, mcn_01, mcn_02, 
 	AND		sub.loan_type = '04'    ) as mcn_04
 
 
-,( 	SELECT coalesce( sum( sc_kep_cut_bonus_item.item_amount  ) , 0 ) 
+,( 	SELECT coalesce( sum( sub.item_amount  ) , 0 ) 
 	 FROM sc_kep_cut_bonus_item  sub
 	WHERE sub.account_year =  sc_kep_cut_bonus_item.account_year   
 	AND		sub.membership_no =   sc_kep_cut_bonus_item.membership_no   

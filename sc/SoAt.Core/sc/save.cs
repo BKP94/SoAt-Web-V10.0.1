@@ -141,8 +141,7 @@ namespace sc
 
             // resolve key (insert ถ้าว่าง)
             var key = node.Key!.Prop.GetValue(root)?.ToString();
-            //var isInsert = string.IsNullOrWhiteSpace(key);
-            var isInsert = true;
+            var isInsert = string.IsNullOrWhiteSpace(key);
             if (isInsert && node.Key.Generator is { } genName)
             {
                 if (!ctx.Generators.TryGetValue(genName, out var gen))

@@ -176,6 +176,8 @@ public class SctelnewbmaService(sc.dbFactory dbFactory, sc.save save) : ISctelne
         var scDb = dbFactory.create(userId, branchId);
         try
         {
+            NormalizeMaskedFields(dto);   // เลขบัตร → ตัวเลขล้วน (ตัด literal mask กัน varchar ล้น)
+
             // sc.save: header + ทุก sub-table (annotate ที่ DTO) ในทรานแซกชันเดียว
             var ctx = new sc.SaveContext(userId, branchId)
             {
@@ -211,6 +213,8 @@ public class SctelnewbmaService(sc.dbFactory dbFactory, sc.save save) : ISctelne
             if (approveStatus == "1")
                 throw new InvalidOperationException("ไม่สามารถแก้ไขใบสมัครที่อนุมัติแล้ว");
 
+            NormalizeMaskedFields(dto);   // เลขบัตร → ตัวเลขล้วน (ตัด literal mask กัน varchar ล้น)
+
             // key มีค่า → sc.save ทำ UPDATE header + ล้าง+เขียน child ใหม่ทั้งหมด (Replace)
             dto.ApplicationFormNo = applicationFormNo;
             await save.ofSaveAsync(dto, scDb, new sc.SaveContext(userId));
@@ -227,6 +231,15 @@ public class SctelnewbmaService(sc.dbFactory dbFactory, sc.save save) : ISctelne
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────
+
+    // ตัด mask literal (ขีด/ช่องว่าง) ของช่องที่ใช้ text mask ก่อนเก็บลง DB
+    // DxMaskedInput เก็บค่ารวมตัวคั่น → เลขบัตร 13 หลักกลายเป็น 17 ตัว ล้น varchar(15)
+    static void NormalizeMaskedFields(ApplicationFormDto dto)
+    {
+        dto.HumId = sc.mask.ofDigits(dto.HumId);                       // hum_id varchar(15)
+        if (dto.SpouseInfo is not null)
+            dto.SpouseInfo.IdCard = sc.mask.ofDigits(dto.SpouseInfo.IdCard);  // id_card varchar(15)
+    }
 
     static async Task<string> GenApplicationFormNoAsync(sc.db scDb)
     {

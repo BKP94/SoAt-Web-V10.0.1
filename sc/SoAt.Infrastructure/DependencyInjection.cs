@@ -28,6 +28,9 @@ public static class DependencyInjection
         // sc.dbFactory — singleton, ทุก service ใช้ create() เพื่อสร้าง sc.db ต่อ request
         services.AddSingleton<sc.dbFactory>(_ => new sc.dbFactory(connectionString));
 
+        // sc.save — central save engine (annotate DTO ด้วย [SaveTable]/[SaveKey]/... แล้วเรียก ofSaveAsync)
+        services.AddSingleton<sc.save>();
+
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IScAppService, ScAppService>();
         services.AddScoped<IFinDailyService, FinDailyService>();

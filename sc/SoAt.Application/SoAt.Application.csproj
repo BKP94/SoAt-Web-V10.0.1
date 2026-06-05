@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SoAt.Domain\SoAt.Domain.csproj" />
+    <ProjectReference Include="..\SoAt.Core\SoAt.Core.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

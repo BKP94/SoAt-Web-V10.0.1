@@ -1,3 +1,5 @@
+using sc;
+
 namespace SoAt.Application.ScTeller;
 
 // ── Generic combo DTO (code+name pair) ────────────────────────────────────────
@@ -66,7 +68,7 @@ public class AppAddressDto
     public string? Telephone     { get; set; }
 }
 
-public class AppWorkInfoDto
+public class AppWorkInfoDto : ISaveRowFilter
 {
     public DateTime? WorkingDate         { get; set; }
     public string?   SalaryId            { get; set; }
@@ -80,6 +82,12 @@ public class AppWorkInfoDto
     public decimal?  RemunerationAmount  { get; set; }
     public decimal?  SalaryReal          { get; set; }
     public DateTime? EndingcontractDate  { get; set; }
+
+    // เซฟเฉพาะเมื่อมีข้อมูลงานอย่างน้อย 1 ช่อง (เดิม HasWorkInfo ใน Page)
+    public bool ShouldSave() =>
+        WorkingDate is not null || !string.IsNullOrWhiteSpace(SalaryId)
+        || !string.IsNullOrWhiteSpace(PositionLong) || SalaryAmount is not null
+        || !string.IsNullOrWhiteSpace(GroupPosition) || SalaryReal is not null;
 }
 
 public class AppMemberReferDto
@@ -108,7 +116,7 @@ public class AppRecrieveGainDto
 }
 
 // ── tab: บัญชีธนาคาร (sc_mem_m_app_bank_accno — grid หลายแถว) ──────────────────
-public class AppBankAccountDto
+public class AppBankAccountDto : ISaveRowFilter
 {
     public int      SeqNo         { get; set; }
     public string?  BankId        { get; set; }   // sc_acc_m_ucf_bank
@@ -122,11 +130,15 @@ public class AppBankAccountDto
     public bool     KeepMonthly   { get; set; }   // ส่งหักรายเดือน
     public bool     PaidAgent     { get; set; }   // หักชำระตัวแทน
     public bool     PaidSalary    { get; set; }   // เงินเดือน
+
+    // ข้ามแถวว่าง (grid อาจมีแถวเปล่า) — ต้องมีธนาคารหรือเลขบัญชี
+    public bool ShouldSave() =>
+        !string.IsNullOrWhiteSpace(BankId) || !string.IsNullOrWhiteSpace(BankAccNo);
 }
 
 // ── tab: ข้อมูลครอบครัว → คู่สมรส (sc_mem_m_app_spouse_info) ─────────────────────
 // (บิดา/มารดา เก็บที่ header sc_mem_m_application_form: Father/Mother)
-public class AppSpouseInfoDto
+public class AppSpouseInfoDto : ISaveRowFilter
 {
     public string?   SpouseMemberNo   { get; set; }  // ทะเบียน (ถ้าคู่สมรสเป็นสมาชิก)
     public string?   PrenameCode      { get; set; }
@@ -139,7 +151,8 @@ public class AppSpouseInfoDto
     public string?   PositionCode     { get; set; }
     public string?   IdCard           { get; set; }
     public string?   TaxId            { get; set; }
-    // สถานที่ทำงาน(คู่สมรส)
+    // สถานที่ทำงาน(คู่สมรส) — column ชื่อ workname (ไม่มี underscore)
+    [SaveColumn("workname")]
     public string?   WorkName         { get; set; }
     public string?   WorkAddress      { get; set; }
     public string?   WorkMoo          { get; set; }
@@ -150,27 +163,44 @@ public class AppSpouseInfoDto
     public string?   WorkTambol       { get; set; }
     public string?   WorkPostcode     { get; set; }
     public string?   WorkTelephone    { get; set; }
+
+    // เซฟเฉพาะเมื่อมีข้อมูลคู่สมรสจริง (เดิม HasSpouseInfo ใน service)
+    public bool ShouldSave() =>
+        !string.IsNullOrWhiteSpace(SpouseName)     || !string.IsNullOrWhiteSpace(SpouseSurname)
+        || !string.IsNullOrWhiteSpace(SpouseMemberNo) || !string.IsNullOrWhiteSpace(IdCard)
+        || DateOfBirth is not null || SalaryAmount is not null || SalaryCalloan is not null;
 }
 
 // ── tab: ข้อมูลการส่งหุ้น/โอน → ข้อมูลการรับโอน (sc_mem_m_app_own_info) ───────────
-public class AppOwnInfoDto
+public class AppOwnInfoDto : ISaveRowFilter
 {
     public string?   OtherSaving  { get; set; }  // โอนมาจาก(ที่เดิม) — sc_mem_m_ucf_othersaving
     public DateTime? FirstDate    { get; set; }  // วันที่เป็นสมาชิก(ที่เดิม)
     public decimal?  OwnTotalLoan { get; set; }  // หนี้สิน(ที่เดิม)
     public string?   MatiDetail   { get; set; }  // มติที่ประชุม
+
+    // เซฟเฉพาะเมื่อมีข้อมูลรับโอนจริง (เดิม HasOwnInfo ใน service)
+    public bool ShouldSave() =>
+        !string.IsNullOrWhiteSpace(OtherSaving) || FirstDate is not null
+        || OwnTotalLoan is not null || !string.IsNullOrWhiteSpace(MatiDetail);
 }
 
-/// <summary>DTO ครอบคลุม header + ทุก sub-table ของ sctelnewbma</summary>
+/// <summary>DTO ครอบคลุม header + ทุก sub-table ของ sctelnewbma
+/// — annotate ด้วย sc.save attribute แล้ว save ผ่าน sc.save engine (ไม่เขียน SQL save เอง)</summary>
+[SaveTable("sc_mem_m_application_form")]
 public class ApplicationFormDto
 {
     // ── header (sc_mem_m_application_form) ────────────────────────────────────
+    [SaveKey(Generator = "GenApplicationFormNo")]
     public string?   ApplicationFormNo { get; set; }
     public DateTime? ApplyDate         { get; set; }
     public string?   PrenameCode       { get; set; }
+    [SaveRequired("กรุณากรอกชื่อ")]
     public string?   MemberName        { get; set; }
+    [SaveRequired("กรุณากรอกนามสกุล")]
     public string?   MemberSurname     { get; set; }
     public string?   MemberGroupNo     { get; set; }
+    [SaveRequired("กรุณาเลือกประเภทสมาชิก")]
     public string?   MemType           { get; set; }
     public DateTime? DateOfBirth       { get; set; }
     public string?   Sex               { get; set; }
@@ -182,8 +212,10 @@ public class ApplicationFormDto
     public string?   MobileNumber      { get; set; }
     public string?   Email             { get; set; }
     public string?   Remark            { get; set; }
-    public string?   ApproveStatus     { get; set; }
-    public string?   CancelStatus      { get; set; }
+    [SaveDefault("2")]
+    public string?   ApproveStatus     { get; set; }   // insert: รอตรวจ
+    [SaveDefault("0")]
+    public string?   CancelStatus      { get; set; }   // insert: ยังไม่ยกเลิก
     // English name
     public string?   PrenameEng        { get; set; }
     public string?   NameEng           { get; set; }
@@ -199,20 +231,38 @@ public class ApplicationFormDto
     public string?   Father            { get; set; }
     public string?   Mother            { get; set; }
 
-    // ── sub-tables ─────────────────────────────────────────────────────────────
+    // ── sub-tables (child ของ sc.save — ParentKey=application_form_no) ───────────
+    // 3 address → table เดียว (address_type อยู่บน model) → engine ลบทีเดียวตอน update
+    [SaveTable("sc_mem_m_app_address", ParentKey = "application_form_no")]
     public AppAddressDto?            AddressCurrent   { get; set; }  // address_type='0'
+    [SaveTable("sc_mem_m_app_address", ParentKey = "application_form_no")]
     public AppAddressDto?            AddressHome      { get; set; }  // address_type='1'
+    [SaveTable("sc_mem_m_app_address", ParentKey = "application_form_no")]
     public AppAddressDto?            AddressWork      { get; set; }  // address_type='2'
+
+    [SaveTable("sc_mem_m_app_work_info", ParentKey = "application_form_no")]
     public AppWorkInfoDto?           WorkInfo         { get; set; }
+
+    // scalar → table แยก sc_mem_m_app_share (column share_monthly)
+    [SaveTable("sc_mem_m_app_share", ParentKey = "application_form_no")]
     public decimal?                  ShareMonthly     { get; set; }
+
+    [SaveTable("sc_mem_m_app_member_refer", ParentKey = "application_form_no", SeqColumn = "seq_no")]
     public List<AppMemberReferDto>   MemberRefers     { get; set; } = [];
+    [SaveTable("sc_mem_m_app_recrieve_gain", ParentKey = "application_form_no", SeqColumn = "seq_no")]
     public List<AppRecrieveGainDto>  RecrieveGains    { get; set; } = [];
-    public string?                   PictureBase64    { get; set; }   // base64 ของรูป
-    public string?                   SignatureBase64  { get; set; }   // base64 ของลายเซ็น
+
+    [SaveIgnore] public string?      PictureBase64    { get; set; }   // base64 → byte[] ด้วย hook (service)
+    [SaveIgnore] public string?      SignatureBase64  { get; set; }   // base64 → byte[] ด้วย hook (service)
+
     // ── tabs (PanTabs): บัญชีธนาคาร / คู่สมรส / รับโอน ───────────────────────────
-    public List<AppBankAccountDto>   BankAccounts     { get; set; } = [];  // sc_mem_m_app_bank_accno
-    public AppSpouseInfoDto?         SpouseInfo       { get; set; }        // sc_mem_m_app_spouse_info
-    public AppOwnInfoDto?            OwnInfo          { get; set; }        // sc_mem_m_app_own_info
+    // flag เก็บ char(1) '0'/'1' → BoolAs01
+    [SaveTable("sc_mem_m_app_bank_accno", ParentKey = "application_form_no", SeqColumn = "seq_no", BoolAs01 = true)]
+    public List<AppBankAccountDto>   BankAccounts     { get; set; } = [];
+    [SaveTable("sc_mem_m_app_spouse_info", ParentKey = "application_form_no")]
+    public AppSpouseInfoDto?         SpouseInfo       { get; set; }
+    [SaveTable("sc_mem_m_app_own_info", ParentKey = "application_form_no")]
+    public AppOwnInfoDto?            OwnInfo          { get; set; }
 }
 
 /// <summary>Response หลังสร้าง/บันทึกใบสมัคร</summary>

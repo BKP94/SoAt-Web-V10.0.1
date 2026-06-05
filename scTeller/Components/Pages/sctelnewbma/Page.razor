@@ -101,7 +101,7 @@ else
         _saving = true;
         try
         {
-            _form.WorkInfo = HasWorkInfo(_form.WorkInfo!) ? _form.WorkInfo : null;
+            // WorkInfo/Spouse/Own skip-empty + bank row-skip จัดที่ DTO (ISaveRowFilter) — ไม่ต้อง massage ที่นี่
             var result = IsEdit
                 ? await Svc.UpdateApplicationAsync(ApplicationFormNo!, _form, _userId)
                 : await Svc.CreateApplicationAsync(_form, _userId, _branchId);
@@ -172,9 +172,4 @@ else
         f.SpouseInfo     ??= new AppSpouseInfoDto();   // tab ข้อมูลครอบครัว (คู่สมรส)
         f.OwnInfo        ??= new AppOwnInfoDto();       // tab ข้อมูลการส่งหุ้น/โอน (รับโอน)
     }
-
-    private static bool HasWorkInfo(AppWorkInfoDto w) =>
-        w.WorkingDate is not null || !string.IsNullOrWhiteSpace(w.SalaryId)
-        || !string.IsNullOrWhiteSpace(w.PositionLong) || w.SalaryAmount is not null
-        || !string.IsNullOrWhiteSpace(w.GroupPosition) || w.SalaryReal is not null;
 }

@@ -2,7 +2,7 @@ using SoAt.Application.ScTeller;
 
 namespace SoAt.Infrastructure.ScTeller;
 
-public class SctelnewbmaService(sc.dbFactory dbFactory) : ISctelnewbmaService
+public class SctelnewbmaService(sc.dbFactory dbFactory, sc.save save) : ISctelnewbmaService
 {
     // ── Lookups ───────────────────────────────────────────────────────────────
 
@@ -123,6 +123,38 @@ public class SctelnewbmaService(sc.dbFactory dbFactory) : ISctelnewbmaService
             "SELECT * FROM sc_mem_m_app_recrieve_gain WHERE application_form_no = {0} ORDER BY seq_no",
             applicationFormNo);
 
+        // ── tabs (PanTabs): บัญชีธนาคาร / คู่สมรส / รับโอน ──────────────────────────
+        // flag เก็บเป็น char(1) '0'/'1' → map กลับเป็น bool ด้วย sc.value.toBoolean
+        // seq_no เป็น double precision → cast ::int ให้ตรงกับ DTO
+        var bankRows = await scDb.getListAsync<BankAccnoRow>(
+            "SELECT seq_no::int AS seq_no, bank_id, bank_branch_id, bank_acc_no, " +
+            "paid_loan, atm_lon, atm_dep, paid_dividen, share_withdraw, keep_monthly, paid_agent, paid_salary " +
+            "FROM sc_mem_m_app_bank_accno WHERE application_form_no = {0} ORDER BY seq_no",
+            applicationFormNo);
+        form.BankAccounts = bankRows.Select(r => new AppBankAccountDto {
+            SeqNo         = r.SeqNo,
+            BankId        = r.BankId,
+            BankBranchId  = r.BankBranchId,
+            BankAccNo     = r.BankAccNo,
+            PaidLoan      = sc.value.toBoolean(r.PaidLoan),
+            AtmLon        = sc.value.toBoolean(r.AtmLon),
+            AtmDep        = sc.value.toBoolean(r.AtmDep),
+            PaidDividen   = sc.value.toBoolean(r.PaidDividen),
+            ShareWithdraw = sc.value.toBoolean(r.ShareWithdraw),
+            KeepMonthly   = sc.value.toBoolean(r.KeepMonthly),
+            PaidAgent     = sc.value.toBoolean(r.PaidAgent),
+            PaidSalary    = sc.value.toBoolean(r.PaidSalary),
+        }).ToList();
+
+        // workname (ไม่มี underscore) อ่านได้เพราะ Dapper MatchNamesWithUnderscores → WorkName
+        form.SpouseInfo = await scDb.getOneAsync<AppSpouseInfoDto>(
+            "SELECT * FROM sc_mem_m_app_spouse_info WHERE application_form_no = {0}",
+            applicationFormNo);
+
+        form.OwnInfo = await scDb.getOneAsync<AppOwnInfoDto>(
+            "SELECT * FROM sc_mem_m_app_own_info WHERE application_form_no = {0}",
+            applicationFormNo);
+
         var picRow = await scDb.getOneAsync<PictureRow>(
             "SELECT app_picture FROM sc_mem_m_app_picture WHERE application_form_no = {0}",
             applicationFormNo);
@@ -144,74 +176,16 @@ public class SctelnewbmaService(sc.dbFactory dbFactory) : ISctelnewbmaService
         var scDb = dbFactory.create(userId, branchId);
         try
         {
-            var appNo = await GenApplicationFormNoAsync(scDb);
-            var now   = DateTime.UtcNow;
-
-            await scDb.dbInsertAsync("sc_mem_m_application_form", new {
-                ApplicationFormNo = appNo,
-                ApplyDate         = dto.ApplyDate ?? DateTime.Today,
-                PrenameCode       = dto.PrenameCode,
-                MemberName        = dto.MemberName,
-                MemberSurname     = dto.MemberSurname,
-                MemberGroupNo     = dto.MemberGroupNo,
-                MemType           = dto.MemType,
-                DateOfBirth       = dto.DateOfBirth,
-                Sex               = dto.Sex,
-                ApplTypeCode      = dto.ApplTypeCode,
-                HumId             = dto.HumId,
-                MarriageStatus    = dto.MarriageStatus,
-                NationalityCode   = dto.NationalityCode,
-                BloodCode         = dto.BloodCode,
-                MobileNumber      = dto.MobileNumber,
-                Email             = dto.Email,
-                Remark            = dto.Remark,
-                ApproveStatus     = "2",
-                CancelStatus      = "0",
-                PrenameEng        = dto.PrenameEng,
-                NameEng           = dto.NameEng,
-                SurnameEng        = dto.SurnameEng,
-                IdCardDate        = dto.IdCardDate,
-                IdCardEnddate     = dto.IdCardEnddate,
-                IdCardNumber      = dto.IdCardNumber,
-                IdCardOrganize    = dto.IdCardOrganize,
-                ElectionGroup     = dto.ElectionGroup,
-                CreatedAt         = now,
-                UpdatedAt         = now,
-                CreatedBy         = userId,
-                UpdatedBy         = userId,
-            });
-
-            await InsertAddressesAsync(scDb, appNo, dto);
-
-            if (dto.WorkInfo is not null)
-                await InsertWorkInfoAsync(scDb, appNo, dto.WorkInfo);
-
-            if (dto.ShareMonthly.HasValue)
-                await scDb.dbInsertAsync("sc_mem_m_app_share", new {
-                    ApplicationFormNo = appNo,
-                    ShareMonthly      = dto.ShareMonthly,
-                });
-
-            for (int i = 0; i < dto.MemberRefers.Count; i++)
-                await InsertMemberReferAsync(scDb, appNo, dto.MemberRefers[i], i + 1);
-
-            for (int i = 0; i < dto.RecrieveGains.Count; i++)
-                await InsertRecrieveGainAsync(scDb, appNo, dto.RecrieveGains[i], i + 1);
-
-            if (dto.PictureBase64 is not null)
-                await scDb.dbInsertAsync("sc_mem_m_app_picture", new {
-                    ApplicationFormNo = appNo,
-                    AppPicture        = Convert.FromBase64String(dto.PictureBase64),
-                });
-
-            if (dto.SignatureBase64 is not null)
-                await scDb.dbInsertAsync("sc_mem_m_app_signature", new {
-                    ApplicationFormNo = appNo,
-                    AppSignature      = Convert.FromBase64String(dto.SignatureBase64),
-                });
+            // sc.save: header + ทุก sub-table (annotate ที่ DTO) ในทรานแซกชันเดียว
+            var ctx = new sc.SaveContext(userId, branchId)
+            {
+                Generators = { ["GenApplicationFormNo"] = GenApplicationFormNoAsync },
+            };
+            var result = await save.ofSaveAsync(dto, scDb, ctx);
+            await SavePictureSignatureAsync(scDb, result.Key, dto, isUpdate: false);  // hook: รูป/ลายเซ็น
 
             await scDb.ofConnectionCloseAsync("CreateApplication");
-            return new ApplicationFormSaveResult(appNo, "บันทึกใบสมัครสำเร็จ");
+            return new ApplicationFormSaveResult(result.Key, "บันทึกใบสมัครสำเร็จ");
         }
         catch
         {
@@ -237,74 +211,10 @@ public class SctelnewbmaService(sc.dbFactory dbFactory) : ISctelnewbmaService
             if (approveStatus == "1")
                 throw new InvalidOperationException("ไม่สามารถแก้ไขใบสมัครที่อนุมัติแล้ว");
 
-            var now = DateTime.UtcNow;
-
-            await scDb.dbUpdateAsync("sc_mem_m_application_form", new {
-                ApplicationFormNo = applicationFormNo,
-                ApplyDate         = dto.ApplyDate ?? DateTime.Today,
-                PrenameCode       = dto.PrenameCode,
-                MemberName        = dto.MemberName,
-                MemberSurname     = dto.MemberSurname,
-                MemberGroupNo     = dto.MemberGroupNo,
-                MemType           = dto.MemType,
-                DateOfBirth       = dto.DateOfBirth,
-                Sex               = dto.Sex,
-                ApplTypeCode      = dto.ApplTypeCode,
-                HumId             = dto.HumId,
-                MarriageStatus    = dto.MarriageStatus,
-                NationalityCode   = dto.NationalityCode,
-                BloodCode         = dto.BloodCode,
-                MobileNumber      = dto.MobileNumber,
-                Email             = dto.Email,
-                Remark            = dto.Remark,
-                PrenameEng        = dto.PrenameEng,
-                NameEng           = dto.NameEng,
-                SurnameEng        = dto.SurnameEng,
-                IdCardDate        = dto.IdCardDate,
-                IdCardEnddate     = dto.IdCardEnddate,
-                IdCardNumber      = dto.IdCardNumber,
-                IdCardOrganize    = dto.IdCardOrganize,
-                ElectionGroup     = dto.ElectionGroup,
-                UpdatedAt         = now,
-                UpdatedBy         = userId,
-            }, "application_form_no");
-
-            await scDb.dbDeleteAsync("DELETE FROM sc_mem_m_app_address       WHERE application_form_no = {0}", applicationFormNo);
-            await scDb.dbDeleteAsync("DELETE FROM sc_mem_m_app_work_info      WHERE application_form_no = {0}", applicationFormNo);
-            await scDb.dbDeleteAsync("DELETE FROM sc_mem_m_app_share          WHERE application_form_no = {0}", applicationFormNo);
-            await scDb.dbDeleteAsync("DELETE FROM sc_mem_m_app_member_refer   WHERE application_form_no = {0}", applicationFormNo);
-            await scDb.dbDeleteAsync("DELETE FROM sc_mem_m_app_recrieve_gain  WHERE application_form_no = {0}", applicationFormNo);
-            await scDb.dbDeleteAsync("DELETE FROM sc_mem_m_app_picture        WHERE application_form_no = {0}", applicationFormNo);
-            await scDb.dbDeleteAsync("DELETE FROM sc_mem_m_app_signature      WHERE application_form_no = {0}", applicationFormNo);
-
-            await InsertAddressesAsync(scDb, applicationFormNo, dto);
-
-            if (dto.WorkInfo is not null)
-                await InsertWorkInfoAsync(scDb, applicationFormNo, dto.WorkInfo);
-
-            if (dto.ShareMonthly.HasValue)
-                await scDb.dbInsertAsync("sc_mem_m_app_share", new {
-                    ApplicationFormNo = applicationFormNo,
-                    ShareMonthly      = dto.ShareMonthly,
-                });
-
-            for (int i = 0; i < dto.MemberRefers.Count; i++)
-                await InsertMemberReferAsync(scDb, applicationFormNo, dto.MemberRefers[i], i + 1);
-
-            for (int i = 0; i < dto.RecrieveGains.Count; i++)
-                await InsertRecrieveGainAsync(scDb, applicationFormNo, dto.RecrieveGains[i], i + 1);
-
-            if (dto.PictureBase64 is not null)
-                await scDb.dbInsertAsync("sc_mem_m_app_picture", new {
-                    ApplicationFormNo = applicationFormNo,
-                    AppPicture        = Convert.FromBase64String(dto.PictureBase64),
-                });
-
-            if (dto.SignatureBase64 is not null)
-                await scDb.dbInsertAsync("sc_mem_m_app_signature", new {
-                    ApplicationFormNo = applicationFormNo,
-                    AppSignature      = Convert.FromBase64String(dto.SignatureBase64),
-                });
+            // key มีค่า → sc.save ทำ UPDATE header + ล้าง+เขียน child ใหม่ทั้งหมด (Replace)
+            dto.ApplicationFormNo = applicationFormNo;
+            await save.ofSaveAsync(dto, scDb, new sc.SaveContext(userId));
+            await SavePictureSignatureAsync(scDb, applicationFormNo, dto, isUpdate: true);  // hook: รูป/ลายเซ็น
 
             await scDb.ofConnectionCloseAsync("UpdateApplication");
             return new ApplicationFormSaveResult(applicationFormNo, "อัปเดตใบสมัครสำเร็จ");
@@ -330,82 +240,46 @@ public class SctelnewbmaService(sc.dbFactory dbFactory) : ISctelnewbmaService
         return yearPrefix + nextSeq.ToString("D5");
     }
 
-    static async Task InsertAddressesAsync(sc.db scDb, string appNo, ApplicationFormDto dto)
+    // hook: รูป/ลายเซ็น — decode base64 → byte[] (logic เฉพาะที่ engine ไม่ครอบ → [SaveIgnore] บน DTO)
+    static async Task SavePictureSignatureAsync(sc.db scDb, string appNo, ApplicationFormDto dto, bool isUpdate)
     {
-        if (dto.AddressCurrent is not null)
-            await InsertAddressAsync(scDb, appNo, "0", dto.AddressCurrent);
-        if (dto.AddressHome is not null)
-            await InsertAddressAsync(scDb, appNo, "1", dto.AddressHome);
-        if (dto.AddressWork is not null)
-            await InsertAddressAsync(scDb, appNo, "2", dto.AddressWork);
+        if (isUpdate)
+        {
+            await scDb.dbDeleteAsync("DELETE FROM sc_mem_m_app_picture   WHERE application_form_no = {0}", appNo);
+            await scDb.dbDeleteAsync("DELETE FROM sc_mem_m_app_signature WHERE application_form_no = {0}", appNo);
+        }
+
+        if (dto.PictureBase64 is not null)
+            await scDb.dbInsertAsync("sc_mem_m_app_picture", new {
+                ApplicationFormNo = appNo,
+                AppPicture        = Convert.FromBase64String(dto.PictureBase64),
+            });
+
+        if (dto.SignatureBase64 is not null)
+            await scDb.dbInsertAsync("sc_mem_m_app_signature", new {
+                ApplicationFormNo = appNo,
+                AppSignature      = Convert.FromBase64String(dto.SignatureBase64),
+            });
     }
-
-    static Task InsertAddressAsync(sc.db scDb, string appNo, string addressType, AppAddressDto a) =>
-        scDb.dbInsertAsync("sc_mem_m_app_address", new {
-            ApplicationFormNo = appNo,
-            AddressType       = addressType,
-            a.AddressNo,
-            a.Moo,
-            a.Mooban,
-            a.Soi,
-            a.Road,
-            a.Tambol,
-            a.DistrictCode,
-            a.ProvinceCode,
-            a.Postcode,
-            a.Telephone,
-        });
-
-    static Task InsertWorkInfoAsync(sc.db scDb, string appNo, AppWorkInfoDto w) =>
-        scDb.dbInsertAsync("sc_mem_m_app_work_info", new {
-            ApplicationFormNo  = appNo,
-            w.WorkingDate,
-            w.SalaryId,
-            w.GroupOther,
-            w.GroupPosition,
-            w.PositionLong,
-            w.LevelCode,
-            w.SalaryRateCode,
-            w.SalaryAmount,
-            w.AcademicSalary,
-            w.RemunerationAmount,
-            w.SalaryReal,
-            w.EndingcontractDate,
-        });
-
-    static Task InsertMemberReferAsync(sc.db scDb, string appNo, AppMemberReferDto m, int seq) =>
-        scDb.dbInsertAsync("sc_mem_m_app_member_refer", new {
-            ApplicationFormNo = appNo,
-            SeqNo             = seq,
-            m.MembershipNo,
-            m.MemberName,
-            m.ConcernCode,
-        });
-
-    static Task InsertRecrieveGainAsync(sc.db scDb, string appNo, AppRecrieveGainDto g, int seq) =>
-        scDb.dbInsertAsync("sc_mem_m_app_recrieve_gain", new {
-            ApplicationFormNo = appNo,
-            SeqNo             = seq,
-            g.PrenameCode,
-            g.GainName,
-            g.GainSurname,
-            g.ConcernCode,
-            g.WefType,
-            g.GainPercent,
-            g.GainIdCard,
-            g.BookDate,
-            g.OrderNumber,
-            g.GainAddress,
-            g.GainTelephone,
-            g.GainDesc,
-        });
-
-    // TODO(tabs persistence): ยังไม่ load/save 3 sub-table ของ PanTabs —
-    //   bankinfo (sc_mem_m_app_bank_accno, หลายแถว), spouse (sc_mem_m_app_spouse_info),
-    //   own-info (sc_mem_m_app_own_info) + header Father/Mother. UI bind ครบแล้วใน Components/Pages/sctelnewbma/tabs/
-    //   เหลือต่อ Get/Create/Update + delete-reinsert pattern เหมือน sub-table อื่น (รอบหน้า)
 
     private record ShareRow(decimal? ShareMonthly);
     private class PictureRow   { public byte[]? AppPicture   { get; init; } }
     private class SignatureRow { public byte[]? AppSignature { get; init; } }
+
+    // บัญชีธนาคาร — flag เก็บ char(1) อ่านเป็น string แล้ว map → bool ที่ caller
+    private class BankAccnoRow
+    {
+        public int     SeqNo         { get; init; }
+        public string? BankId        { get; init; }
+        public string? BankBranchId  { get; init; }
+        public string? BankAccNo     { get; init; }
+        public string? PaidLoan      { get; init; }
+        public string? AtmLon        { get; init; }
+        public string? AtmDep        { get; init; }
+        public string? PaidDividen   { get; init; }
+        public string? ShareWithdraw { get; init; }
+        public string? KeepMonthly   { get; init; }
+        public string? PaidAgent     { get; init; }
+        public string? PaidSalary    { get; init; }
+    }
 }

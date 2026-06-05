@@ -1,0 +1,138 @@
+@using SoAt.Application.ScTeller
+
+@* ── tab: ข้อมูลครอบครัว (legacy u_tabpg_newmem_spouse_info) ──────────────────────
+   • บิดา-มารดา → เก็บที่ header (Form.Father / Form.Mother)
+   • คู่สมรส     → sc_mem_m_app_spouse_info (Form.SpouseInfo) + สถานที่ทำงานคู่สมรส
+   ที่อยู่ที่ทำงานคู่สมรส cascade จังหวัด→อำเภอ→ตำบล (ใช้ lookups ชุดเดียวกับ PanHead)
+   dumb component — แก้ field ลงบน Form/SpouseInfo (reference ร่วม) ตรง *@
+
+<DxFormLayout>
+    <DxFormLayoutGroup Caption="ข้อมูลบิดา-มารดา (สมาชิก)" ColSpanMd="12">
+        <DxFormLayoutItem Caption="บิดา" ColSpanMd="6">
+            <DxTextBox @bind-Text="Form.Father" NullText="ชื่อ-สกุลบิดา" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="มารดา" ColSpanMd="6">
+            <DxTextBox @bind-Text="Form.Mother" NullText="ชื่อ-สกุลมารดา" />
+        </DxFormLayoutItem>
+    </DxFormLayoutGroup>
+
+    <DxFormLayoutGroup Caption="ข้อมูลคู่สมรส" ColSpanMd="12">
+        <DxFormLayoutItem Caption="ทะเบียน" ColSpanMd="3">
+            <DxTextBox @bind-Text="Spouse.SpouseMemberNo" NullText="เลขทะเบียน (ถ้าเป็นสมาชิก)" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="คำนำหน้า" ColSpanMd="3">
+            <DxComboBox Data="Lookups.Prenames" TData="ComboItemDto" TValue="string"
+                        ValueFieldName="@nameof(ComboItemDto.Code)" TextFieldName="@nameof(ComboItemDto.Name)"
+                        @bind-Value="Spouse.PrenameCode" NullText="— เลือก —" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ชื่อ" ColSpanMd="3">
+            <DxTextBox @bind-Text="Spouse.SpouseName" NullText="ชื่อ" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="สกุล" ColSpanMd="3">
+            <DxTextBox @bind-Text="Spouse.SpouseSurname" NullText="สกุล" />
+        </DxFormLayoutItem>
+
+        <DxFormLayoutItem Caption="บัตรประชาชน" ColSpanMd="4">
+            <DxMaskedInput @bind-Value="Spouse.IdCard" Mask="@sc.mask.maskIdCard" NullText="x-xxxx-xxxxx-xx-x" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="เลขภาษี" ColSpanMd="4">
+            <DxTextBox @bind-Text="Spouse.TaxId" NullText="เลขประจำตัวผู้เสียภาษี" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="วันเกิด" ColSpanMd="4">
+            <DxDateEdit @bind-Date="Spouse.DateOfBirth" NullText="เลือกวันเกิด" />
+        </DxFormLayoutItem>
+
+        <DxFormLayoutItem Caption="อาชีพ" ColSpanMd="4">
+            <DxComboBox Data="Lookups.Occupations" TData="ComboItemDto" TValue="string"
+                        ValueFieldName="@nameof(ComboItemDto.Code)" TextFieldName="@nameof(ComboItemDto.Name)"
+                        @bind-Value="Spouse.OccupationCode" NullText="— เลือก —" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ตำแหน่ง" ColSpanMd="4">
+            <DxComboBox Data="Lookups.Positions" TData="PositionDto" TValue="string"
+                        ValueFieldName="@nameof(PositionDto.Code)" TextFieldName="@nameof(PositionDto.Name)"
+                        @bind-Value="Spouse.PositionCode" NullText="— เลือก —" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="เงินเดือน" ColSpanMd="2">
+            <DxMaskedInput @bind-Value="Spouse.SalaryAmount" Mask="@sc.mask.maskDecimal" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="เงินเดือนร่วมกู้" ColSpanMd="2">
+            <DxMaskedInput @bind-Value="Spouse.SalaryCalloan" Mask="@sc.mask.maskDecimal" />
+        </DxFormLayoutItem>
+    </DxFormLayoutGroup>
+
+    <DxFormLayoutGroup Caption="สถานที่ทำงาน (คู่สมรส)" ColSpanMd="12">
+        <DxFormLayoutItem Caption="ชื่อสถานที่ทำงาน" ColSpanMd="6">
+            <DxTextBox @bind-Text="Spouse.WorkName" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="บ้านเลขที่" ColSpanMd="3">
+            <DxTextBox @bind-Text="Spouse.WorkAddress" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="หมู่ที่" ColSpanMd="3">
+            <DxTextBox @bind-Text="Spouse.WorkMoo" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ซอย" ColSpanMd="6">
+            <DxTextBox @bind-Text="Spouse.WorkSoi" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ถนน" ColSpanMd="6">
+            <DxTextBox @bind-Text="Spouse.WorkRoad" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="จังหวัด" ColSpanMd="4">
+            <DxComboBox Data="Lookups.Provinces" TData="ProvinceDto" TValue="string"
+                        ValueFieldName="@nameof(ProvinceDto.Code)" TextFieldName="@nameof(ProvinceDto.Name)"
+                        Value="Spouse.WorkProvinceCode" ValueChanged="@((string v) => OnProvinceChanged(v))"
+                        NullText="— เลือกจังหวัด —" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="อำเภอ/เขต" ColSpanMd="4">
+            <DxComboBox Data="DistrictsOf(Spouse.WorkProvinceCode)" TData="DistrictDto" TValue="string"
+                        ValueFieldName="@nameof(DistrictDto.Code)" TextFieldName="@nameof(DistrictDto.Name)"
+                        Value="Spouse.WorkDistrictCode" ValueChanged="@((string v) => OnDistrictChanged(v))"
+                        NullText="— เลือกอำเภอ —" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ตำบล/แขวง" ColSpanMd="4">
+            <DxComboBox Data="SubdistrictsOf(Spouse.WorkDistrictCode)" TData="SubdistrictDto" TValue="string"
+                        ValueFieldName="@nameof(SubdistrictDto.Code)" TextFieldName="@nameof(SubdistrictDto.Name)"
+                        @bind-Value="Spouse.WorkTambol" NullText="— เลือกตำบล —" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="รหัสไปรษณีย์" ColSpanMd="4">
+            <DxTextBox @bind-Text="Spouse.WorkPostcode" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="เบอร์โทรศัพท์" ColSpanMd="8">
+            <DxTextBox @bind-Text="Spouse.WorkTelephone" />
+        </DxFormLayoutItem>
+    </DxFormLayoutGroup>
+</DxFormLayout>
+
+@code {
+    [Parameter, EditorRequired] public ApplicationFormDto Form { get; set; } = default!;
+    [Parameter, EditorRequired] public SctelnewbmaLookupsDto Lookups { get; set; } = default!;
+
+    // alias ของ Form.SpouseInfo (Page รับประกันไม่ null ผ่าน EnsureSubObjects)
+    private AppSpouseInfoDto Spouse => Form.SpouseInfo!;
+
+    // ── address cascade (ที่ทำงานคู่สมรส) ─────────────────────────────────────────
+    private IEnumerable<DistrictDto> DistrictsOf(string? provinceCode) =>
+        string.IsNullOrEmpty(provinceCode)
+            ? Enumerable.Empty<DistrictDto>()
+            : Lookups.Districts.Where(d => d.ProvinceCode == provinceCode);
+
+    private IEnumerable<SubdistrictDto> SubdistrictsOf(string? districtCode) =>
+        string.IsNullOrEmpty(districtCode)
+            ? Enumerable.Empty<SubdistrictDto>()
+            : Lookups.Subdistricts.Where(s => s.DistrictCode == districtCode);
+
+    private void OnProvinceChanged(string value)
+    {
+        Spouse.WorkProvinceCode = value;
+        Spouse.WorkDistrictCode = null;   // reset ลูกหลานเมื่อเปลี่ยนจังหวัด
+        Spouse.WorkTambol       = null;
+    }
+
+    private void OnDistrictChanged(string value)
+    {
+        Spouse.WorkDistrictCode = value;
+        Spouse.WorkTambol       = null;
+        var d = Lookups.Districts.FirstOrDefault(x => x.Code == value);
+        if (d?.PostCode is { Length: > 0 } pc && string.IsNullOrWhiteSpace(Spouse.WorkPostcode))
+            Spouse.WorkPostcode = pc;
+    }
+}

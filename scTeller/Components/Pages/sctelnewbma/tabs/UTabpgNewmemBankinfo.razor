@@ -1,0 +1,139 @@
+@using SoAt.Application.ScTeller
+
+@* ── tab: บัญชีธนาคาร (legacy u_tabpg_newmem_bankinfo) ────────────────────────────
+   grid หลายแถว (sc_mem_m_app_bank_accno) — ธนาคาร / สาขา / เลขที่บัญชี + ช่องติ๊ก 8 ช่อง
+   (เงินกู้ / ATM เงินกู้ / ATM เงินฝาก / ปันผล / เงินรอจ่ายคืน / ส่งหักรายเดือน / ตัวแทน / เงินเดือน)
+   DxGrid แบบ edit-in-table: ทุกเซลล์เป็น editor เลย (เลียน batch-edit ของ legacy)
+   สาขา cascade จากธนาคาร (BankBranches กรองด้วย BankId) — dumb component แก้ลง Form ตรง *@
+
+<div class="nb-grid-head">
+    <h3 class="nb-h3">บัญชีธนาคารสำหรับรับโอน / หักเงิน</h3>
+    <DxButton Text="+ เพิ่มแถว" RenderStyle="ButtonRenderStyle.Primary" Click="AddRow" />
+</div>
+
+@if (Form.BankAccounts.Count == 0)
+{
+    <div class="nb-empty">ยังไม่มีบัญชีธนาคาร — กด “เพิ่มแถว” เพื่อเริ่ม</div>
+}
+else
+{
+    <DxGrid Data="Form.BankAccounts" PageSize="0" CssClass="nb-bankgrid"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn">
+        <Columns>
+            <DxGridDataColumn Caption="#" Width="44px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+            </DxGridDataColumn>
+
+            <DxGridDataColumn Caption="ธนาคาร" Width="170px" AllowSort="false">
+                <CellDisplayTemplate>
+                    @{ var r = (AppBankAccountDto)context.DataItem; }
+                    <DxComboBox Data="Lookups.Banks" TData="ComboItemDto" TValue="string"
+                                ValueFieldName="@nameof(ComboItemDto.Code)" TextFieldName="@nameof(ComboItemDto.Name)"
+                                Value="r.BankId" ValueChanged="@((string v) => OnBankChanged(r, v))"
+                                NullText="— ธนาคาร —" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
+
+            <DxGridDataColumn Caption="สาขา" Width="170px" AllowSort="false">
+                <CellDisplayTemplate>
+                    @{ var r = (AppBankAccountDto)context.DataItem; }
+                    <DxComboBox Data="BranchesOf(r.BankId)" TData="BankBranchDto" TValue="string"
+                                ValueFieldName="@nameof(BankBranchDto.Code)" TextFieldName="@nameof(BankBranchDto.Name)"
+                                @bind-Value="r.BankBranchId" NullText="— สาขา —"
+                                ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
+
+            <DxGridDataColumn Caption="เลขที่บัญชี" Width="140px" AllowSort="false">
+                <CellDisplayTemplate>
+                    @{ var r = (AppBankAccountDto)context.DataItem; }
+                    <DxTextBox @bind-Text="r.BankAccNo" NullText="เลขที่บัญชี" />
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
+
+            <DxGridDataColumn Caption="เงินกู้" Width="62px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>
+                    @{ var r = (AppBankAccountDto)context.DataItem; }
+                    <DxCheckBox @bind-Checked="r.PaidLoan" />
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ATM เงินกู้" Width="72px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>
+                    @{ var r = (AppBankAccountDto)context.DataItem; }
+                    <DxCheckBox @bind-Checked="r.AtmLon" />
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ATM เงินฝาก" Width="80px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>
+                    @{ var r = (AppBankAccountDto)context.DataItem; }
+                    <DxCheckBox @bind-Checked="r.AtmDep" />
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เงินปันผล" Width="70px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>
+                    @{ var r = (AppBankAccountDto)context.DataItem; }
+                    <DxCheckBox @bind-Checked="r.PaidDividen" />
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เงินรอจ่ายคืน" Width="78px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>
+                    @{ var r = (AppBankAccountDto)context.DataItem; }
+                    <DxCheckBox @bind-Checked="r.ShareWithdraw" />
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ส่งหักรายเดือน" Width="84px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>
+                    @{ var r = (AppBankAccountDto)context.DataItem; }
+                    <DxCheckBox @bind-Checked="r.KeepMonthly" />
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="หักชำระตัวแทน" Width="84px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>
+                    @{ var r = (AppBankAccountDto)context.DataItem; }
+                    <DxCheckBox @bind-Checked="r.PaidAgent" />
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เงินเดือน" Width="70px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>
+                    @{ var r = (AppBankAccountDto)context.DataItem; }
+                    <DxCheckBox @bind-Checked="r.PaidSalary" />
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
+
+            <DxGridDataColumn Caption="" Width="56px" AllowSort="false">
+                <CellDisplayTemplate>
+                    @{ var r = (AppBankAccountDto)context.DataItem; }
+                    <DxButton Text="ลบ" RenderStyle="ButtonRenderStyle.Danger" Click="() => RemoveRow(r)" />
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
+        </Columns>
+    </DxGrid>
+}
+
+@code {
+    [Parameter, EditorRequired] public ApplicationFormDto Form { get; set; } = default!;
+    [Parameter, EditorRequired] public SctelnewbmaLookupsDto Lookups { get; set; } = default!;
+
+    // ── สาขา cascade ← ธนาคาร ────────────────────────────────────────────────────
+    private IEnumerable<BankBranchDto> BranchesOf(string? bankId) =>
+        string.IsNullOrEmpty(bankId)
+            ? Enumerable.Empty<BankBranchDto>()
+            : Lookups.BankBranches.Where(b => b.BankId == bankId);
+
+    private void OnBankChanged(AppBankAccountDto r, string value)
+    {
+        r.BankId       = value;
+        r.BankBranchId = null;   // reset สาขาเมื่อเปลี่ยนธนาคาร
+    }
+
+    // ── add / delete row ─────────────────────────────────────────────────────────
+    private void AddRow() =>
+        Form.BankAccounts.Add(new AppBankAccountDto { SeqNo = Form.BankAccounts.Count + 1 });
+
+    private void RemoveRow(AppBankAccountDto r)
+    {
+        Form.BankAccounts.Remove(r);
+        for (int i = 0; i < Form.BankAccounts.Count; i++)
+            Form.BankAccounts[i].SeqNo = i + 1;
+    }
+}

@@ -1,0 +1,34 @@
+@using SoAt.Application.ScTeller
+
+@* ── tab: ข้อมูลการส่งหุ้น/โอน (legacy u_tabpg_newmem_share_receive) ──────────────
+   ข้อมูลการรับโอน (sc_mem_m_app_own_info / Form.OwnInfo):
+     โอนมาจาก(ที่เดิม) / วันที่เป็นสมาชิก(ที่เดิม) / หนี้สิน(ที่เดิม) / มติที่ประชุม
+   dumb component — แก้ field ลงบน Form.OwnInfo (reference ร่วม) ตรง *@
+
+<DxFormLayout>
+    <DxFormLayoutGroup Caption="ข้อมูลการรับโอน" ColSpanMd="12">
+        <DxFormLayoutItem Caption="โอนมาจาก (ที่เดิม)" ColSpanMd="12">
+            <DxComboBox Data="Lookups.OtherSavings" TData="ComboItemDto" TValue="string"
+                        ValueFieldName="@nameof(ComboItemDto.Code)" TextFieldName="@nameof(ComboItemDto.Name)"
+                        @bind-Value="Own.OtherSaving" NullText="— เลือกสหกรณ์/หน่วยงานเดิม —"
+                        ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="วันที่เป็นสมาชิก (ที่เดิม)" ColSpanMd="6">
+            <DxDateEdit @bind-Date="Own.FirstDate" NullText="วัน/เดือน/ปี" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="หนี้สิน (ที่เดิม)" ColSpanMd="6">
+            <DxMaskedInput @bind-Value="Own.OwnTotalLoan" Mask="@sc.mask.maskDecimal" NullText="0.00" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="มติที่ประชุม" ColSpanMd="12">
+            <DxTextBox @bind-Text="Own.MatiDetail" NullText="รายละเอียดมติที่ประชุม" />
+        </DxFormLayoutItem>
+    </DxFormLayoutGroup>
+</DxFormLayout>
+
+@code {
+    [Parameter, EditorRequired] public ApplicationFormDto Form { get; set; } = default!;
+    [Parameter, EditorRequired] public SctelnewbmaLookupsDto Lookups { get; set; } = default!;
+
+    // alias ของ Form.OwnInfo (Page รับประกันไม่ null ผ่าน EnsureSubObjects)
+    private AppOwnInfoDto Own => Form.OwnInfo!;
+}

@@ -13,6 +13,10 @@ public class SctelnewbmaService(sc.dbFactory dbFactory) : ISctelnewbmaService
         var prenameItems        = await scDb.getComboAsync(sc.combo.sc_mem_m_ucf_prename);
         var sexItems            = await scDb.getComboAsync(sc.combo.sex);
         var marriageStatusItems = await scDb.getComboAsync(sc.combo.sc_mem_m_ucf_marriage_status);
+        // tabs (PanTabs): บัญชีธนาคาร / คู่สมรส / รับโอน
+        var bankItems           = await scDb.getComboAsync(sc.combo.sc_acc_m_ucf_bank);
+        var occupationItems     = await scDb.getComboAsync(sc.combo.sc_mem_m_ucf_ocupation);
+        var otherSavingItems    = await scDb.getComboAsync(sc.combo.sc_mem_m_ucf_othersaving);
 
         var memberTypes = await scDb.getListAsync<MemberTypeDto>(
             "SELECT mem_type_code AS code, mem_type_desc AS desc, maximun_share, not_salary, mproc_apart FROM sc_mem_m_ucf_member_type ORDER BY mem_type_code");
@@ -50,6 +54,10 @@ public class SctelnewbmaService(sc.dbFactory dbFactory) : ISctelnewbmaService
         var positions = await scDb.getListAsync<PositionDto>(
             "SELECT position_code AS code, position_name AS name, sort_order FROM sc_mem_m_ucf_position ORDER BY sort_order");
 
+        // สาขาธนาคาร — โหลดทั้งหมดพร้อม bank_id เพื่อ cascade ฝั่ง client (เหมือน Districts ← Province)
+        var bankBranches = await scDb.getListAsync<BankBranchDto>(
+            "SELECT bank_branch_id AS code, bank_name AS name, bank_id FROM sc_acc_m_ucf_bank_branch ORDER BY bank_id, bank_branch_id");
+
         var coop = await scDb.getOneAsync<CoopConfigDto>(
             "SELECT coop_registered_no AS coop_no, count_resign, auto_approve_newmem, mem_type_ongroup FROM sc_cnt_m_coop LIMIT 1");
 
@@ -71,6 +79,10 @@ public class SctelnewbmaService(sc.dbFactory dbFactory) : ISctelnewbmaService
             GroupPositions   = groupPositions,
             Positions        = positions,
             CoopConfig       = coop,
+            Banks            = bankItems.Select(x => new ComboItemDto(x.Code, x.Name)).ToList(),
+            BankBranches     = bankBranches,
+            Occupations      = occupationItems.Select(x => new ComboItemDto(x.Code, x.Name)).ToList(),
+            OtherSavings     = otherSavingItems.Select(x => new ComboItemDto(x.Code, x.Name)).ToList(),
         };
     }
 
@@ -387,6 +399,11 @@ public class SctelnewbmaService(sc.dbFactory dbFactory) : ISctelnewbmaService
             g.GainTelephone,
             g.GainDesc,
         });
+
+    // TODO(tabs persistence): ยังไม่ load/save 3 sub-table ของ PanTabs —
+    //   bankinfo (sc_mem_m_app_bank_accno, หลายแถว), spouse (sc_mem_m_app_spouse_info),
+    //   own-info (sc_mem_m_app_own_info) + header Father/Mother. UI bind ครบแล้วใน Components/Pages/sctelnewbma/tabs/
+    //   เหลือต่อ Get/Create/Update + delete-reinsert pattern เหมือน sub-table อื่น (รอบหน้า)
 
     private record ShareRow(decimal? ShareMonthly);
     private class PictureRow   { public byte[]? AppPicture   { get; init; } }

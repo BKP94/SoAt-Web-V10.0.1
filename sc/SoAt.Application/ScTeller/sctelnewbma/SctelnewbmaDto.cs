@@ -22,6 +22,7 @@ public record ConcernDto(string Code, string? RelatedNa);
 public record GroupPositionDto(string Code, string? Description, int? SortOrder);
 public record PositionDto(string Code, string? Name, int? SortOrder);
 public record CoopConfigDto(string CoopNo, int? CountResign, string? AutoApproveNewmem, string? MemTypeOngroup);
+public record BankBranchDto(string Code, string? Name, string? BankId);   // cascade by BankId (เหมือน Districts ← Province)
 
 public class SctelnewbmaLookupsDto
 {
@@ -41,6 +42,11 @@ public class SctelnewbmaLookupsDto
     public List<GroupPositionDto>   GroupPositions   { get; set; } = [];
     public List<PositionDto>        Positions        { get; set; } = [];
     public CoopConfigDto?           CoopConfig       { get; set; }
+    // ── tabs: bankinfo / spouse / share-receive ──────────────────────────────
+    public List<ComboItemDto>       Banks            { get; set; } = [];   // sc.combo.sc_acc_m_ucf_bank
+    public List<BankBranchDto>      BankBranches     { get; set; } = [];   // sc_acc_m_ucf_bank_branch (cascade ← Banks)
+    public List<ComboItemDto>       Occupations      { get; set; } = [];   // sc.combo.sc_mem_m_ucf_ocupation
+    public List<ComboItemDto>       OtherSavings     { get; set; } = [];   // sc.combo.sc_mem_m_ucf_othersaving
 }
 
 // ── Application Form DTOs ─────────────────────────────────────────────────────
@@ -101,6 +107,60 @@ public class AppRecrieveGainDto
     public string?   GainDesc     { get; set; }
 }
 
+// ── tab: บัญชีธนาคาร (sc_mem_m_app_bank_accno — grid หลายแถว) ──────────────────
+public class AppBankAccountDto
+{
+    public int      SeqNo         { get; set; }
+    public string?  BankId        { get; set; }   // sc_acc_m_ucf_bank
+    public string?  BankBranchId  { get; set; }   // sc_acc_m_ucf_bank_branch (cascade ← BankId)
+    public string?  BankAccNo     { get; set; }
+    public bool     PaidLoan      { get; set; }   // เงินกู้
+    public bool     AtmLon        { get; set; }   // ATM เงินกู้
+    public bool     AtmDep        { get; set; }   // ATM เงินฝาก
+    public bool     PaidDividen   { get; set; }   // เงินปันผล
+    public bool     ShareWithdraw { get; set; }   // เงินรอจ่ายคืน
+    public bool     KeepMonthly   { get; set; }   // ส่งหักรายเดือน
+    public bool     PaidAgent     { get; set; }   // หักชำระตัวแทน
+    public bool     PaidSalary    { get; set; }   // เงินเดือน
+}
+
+// ── tab: ข้อมูลครอบครัว → คู่สมรส (sc_mem_m_app_spouse_info) ─────────────────────
+// (บิดา/มารดา เก็บที่ header sc_mem_m_application_form: Father/Mother)
+public class AppSpouseInfoDto
+{
+    public string?   SpouseMemberNo   { get; set; }  // ทะเบียน (ถ้าคู่สมรสเป็นสมาชิก)
+    public string?   PrenameCode      { get; set; }
+    public string?   SpouseName       { get; set; }
+    public string?   SpouseSurname    { get; set; }
+    public string?   OccupationCode   { get; set; }
+    public decimal?  SalaryAmount     { get; set; }
+    public decimal?  SalaryCalloan    { get; set; }  // เงินเดือนร่วมกู้
+    public DateTime? DateOfBirth      { get; set; }
+    public string?   PositionCode     { get; set; }
+    public string?   IdCard           { get; set; }
+    public string?   TaxId            { get; set; }
+    // สถานที่ทำงาน(คู่สมรส)
+    public string?   WorkName         { get; set; }
+    public string?   WorkAddress      { get; set; }
+    public string?   WorkMoo          { get; set; }
+    public string?   WorkSoi          { get; set; }
+    public string?   WorkRoad         { get; set; }
+    public string?   WorkProvinceCode { get; set; }
+    public string?   WorkDistrictCode { get; set; }
+    public string?   WorkTambol       { get; set; }
+    public string?   WorkPostcode     { get; set; }
+    public string?   WorkTelephone    { get; set; }
+}
+
+// ── tab: ข้อมูลการส่งหุ้น/โอน → ข้อมูลการรับโอน (sc_mem_m_app_own_info) ───────────
+public class AppOwnInfoDto
+{
+    public string?   OtherSaving  { get; set; }  // โอนมาจาก(ที่เดิม) — sc_mem_m_ucf_othersaving
+    public DateTime? FirstDate    { get; set; }  // วันที่เป็นสมาชิก(ที่เดิม)
+    public decimal?  OwnTotalLoan { get; set; }  // หนี้สิน(ที่เดิม)
+    public string?   MatiDetail   { get; set; }  // มติที่ประชุม
+}
+
 /// <summary>DTO ครอบคลุม header + ทุก sub-table ของ sctelnewbma</summary>
 public class ApplicationFormDto
 {
@@ -135,6 +195,9 @@ public class ApplicationFormDto
     public string?   IdCardOrganize    { get; set; }
     // election
     public string?   ElectionGroup     { get; set; }
+    // ครอบครัว: บิดา/มารดา (อยู่ที่ header — tab ข้อมูลครอบครัว)
+    public string?   Father            { get; set; }
+    public string?   Mother            { get; set; }
 
     // ── sub-tables ─────────────────────────────────────────────────────────────
     public AppAddressDto?            AddressCurrent   { get; set; }  // address_type='0'
@@ -146,6 +209,10 @@ public class ApplicationFormDto
     public List<AppRecrieveGainDto>  RecrieveGains    { get; set; } = [];
     public string?                   PictureBase64    { get; set; }   // base64 ของรูป
     public string?                   SignatureBase64  { get; set; }   // base64 ของลายเซ็น
+    // ── tabs (PanTabs): บัญชีธนาคาร / คู่สมรส / รับโอน ───────────────────────────
+    public List<AppBankAccountDto>   BankAccounts     { get; set; } = [];  // sc_mem_m_app_bank_accno
+    public AppSpouseInfoDto?         SpouseInfo       { get; set; }        // sc_mem_m_app_spouse_info
+    public AppOwnInfoDto?            OwnInfo          { get; set; }        // sc_mem_m_app_own_info
 }
 
 /// <summary>Response หลังสร้าง/บันทึกใบสมัคร</summary>

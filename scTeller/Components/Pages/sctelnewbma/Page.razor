@@ -169,6 +169,8 @@ else
         f.AddressHome    ??= new AppAddressDto { AddressType = "1" };
         f.AddressWork    ??= new AppAddressDto { AddressType = "2" };
         f.WorkInfo       ??= new AppWorkInfoDto();
+        f.SpouseInfo     ??= new AppSpouseInfoDto();   // tab ข้อมูลครอบครัว (คู่สมรส)
+        f.OwnInfo        ??= new AppOwnInfoDto();       // tab ข้อมูลการส่งหุ้น/โอน (รับโอน)
     }
 
     private static bool HasWorkInfo(AppWorkInfoDto w) =>

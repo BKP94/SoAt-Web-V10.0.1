@@ -96,8 +96,9 @@ await conn.ExecuteAsync("SET LOCAL app.login_br = @br", new { br = branchId });
 - **Shared layout กลาง:** `scTeller/Components/Layout/PageRegions.razor` — รับ RenderFragment `HeaderContent`/`DetailContent`/`TabsContent`/`OperateContent`, จัด grid (ซ้าย region เรียงลง + PanOperate ขวา sticky). **region ไหนไม่ส่ง = ไม่ render** (เช่น sctelnewbma ไม่มี Detail)
 - **State flow:** `Page.razor` เป็นเจ้าของ model + lookups ตัวเดียว → ส่งลง child ผ่าน `[Parameter]` (child เป็น dumb component, แก้ field ลงบน model ที่เป็น reference ร่วม). **`PanOperate` ยิง `EventCallback` กลับ** (`OnNew`/`OnOpen`/`OnSave`/`OnCancel`) ให้ Page จัดการ — child ไม่ persist เอง
 - **PanOperate bar:** ปุ่มกลม class กลาง `.op-btn` (`.op-btn--danger` = แดง), ปัจจุบัน 4 ปุ่ม **New / Open / Save / Cancel**. icon ใช้ emoji ชั่วคราว
+- **PanTabs = main composer เท่านั้น — แต่ละแท็บแยกเป็นไฟล์ใน `tabs/` sub-folder (บังคับทุกเมนูที่มี tabs):** เลียนโครง legacy (`panTabs.ascx` โหลด user control `u_tabpg_*.ascx` แต่ละตัว). `PanTabs.razor` มีแค่ `<DxTabs>` + `<DxTabPage>` ที่เรียก component ของแต่ละแท็บ — **ไม่ใส่ field/logic เองใน PanTabs**. แต่ละแท็บ = ไฟล์ `.razor` ใน `<module>/tabs/` ตั้งชื่อ **PascalCase ของชื่อ legacy** (เช่น `u_tabpg_newmem_bankinfo` → `UTabpgNewmemBankinfo.razor`). PanTabs ต้อง `@using <RootNs>.Components.Pages.<module>.tabs` เพื่อเรียกข้ามโฟลเดอร์. แท็บเป็น dumb component — รับ `Form`/`Lookups` ([Parameter]) แล้วแก้ลง model (reference ร่วม) ตรง เหมือน PanHead. ตัวอย่างจริง: `scTeller/Components/Pages/sctelnewbma/tabs/` (บัญชีธนาคาร = `DxGrid` edit-in-table, ครอบครัว/ส่งหุ้น-โอน = `DxFormLayout`)
 - **CSS:** form helper (`.nb-*`) + `.op-*` ต้องอยู่ **global ที่ `wwwroot/app.css`** เพราะ scoped `.razor.css` ส่งไปถึง child component ไม่ได้. card/region chrome จัดโดย `PageRegions.razor.css`. ยังคงกฎ: ห้าม override DevExpress, แตะได้แค่ layout
-- โมดูลใหม่: copy โครงไฟล์เหล่านี้จาก `sctelnewbma` แล้วปรับเนื้อหา region ตามงานจริง (`PanTabs` ของ sctelnewbma = บัญชีธนาคาร/ครอบครัว/ส่งหุ้น-โอน — ยัง stub รอ field spec)
+- โมดูลใหม่: copy โครงไฟล์เหล่านี้จาก `sctelnewbma` (รวม `tabs/`) แล้วปรับเนื้อหา region ตามงานจริง
 
 ---
 

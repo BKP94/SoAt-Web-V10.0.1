@@ -1,0 +1,407 @@
+@using SoAt.Application.ScTeller
+
+@* ── PanHead (Header region) ของ sctelnewbma ─────────────────────────────────────
+   ข้อมูลหลักของผู้สมัครทั้งหมด (ส่วนตัว / ที่อยู่ / งาน / หุ้น / ผู้รับผล / รูป)
+   เป็น dumb component — Page ถือ model แล้วส่ง Form + Lookups ลงมา ([Parameter])
+   field logic (cascading จังหวัด, เพิ่ม/ลบแถว, อัปโหลดรูป) แก้ลงบน Form ตรง (reference)
+   format/value ทุกตัวมาจาก sc.* (mask/value) ตาม Coding Guideline *@
+
+<DxFormLayout>
+    <DxFormLayoutGroup Caption="ข้อมูลใบสมัคร" ColSpanMd="12">
+        <DxFormLayoutItem Caption="วันที่สมัคร" ColSpanMd="4">
+            <DxDateEdit @bind-Date="Form.ApplyDate" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ประเภทการสมัคร" ColSpanMd="4">
+            <DxComboBox Data="Lookups.ApplicationTypes" TData="ApplicationTypeDto" TValue="string"
+                        ValueFieldName="@nameof(ApplicationTypeDto.Code)" TextFieldName="@nameof(ApplicationTypeDto.Name)"
+                        @bind-Value="Form.ApplTypeCode" NullText="— เลือก —" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ประเภทสมาชิก" ColSpanMd="4">
+            <DxComboBox Data="Lookups.MemberTypes" TData="MemberTypeDto" TValue="string"
+                        ValueFieldName="@nameof(MemberTypeDto.Code)" TextFieldName="@nameof(MemberTypeDto.Desc)"
+                        @bind-Value="Form.MemType" NullText="— เลือก —" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="กลุ่มสมาชิก" ColSpanMd="4">
+            <DxComboBox Data="Lookups.MemberGroups" TData="MemberGroupDto" TValue="string"
+                        ValueFieldName="@nameof(MemberGroupDto.No)" TextFieldName="@nameof(MemberGroupDto.Name)"
+                        @bind-Value="Form.MemberGroupNo" NullText="— เลือก —" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="กลุ่มเลือกตั้ง" ColSpanMd="4">
+            <DxComboBox Data="Lookups.ElectionGroups" TData="ElectionGroupDto" TValue="string"
+                        ValueFieldName="@nameof(ElectionGroupDto.Code)" TextFieldName="@nameof(ElectionGroupDto.Name)"
+                        @bind-Value="Form.ElectionGroup" NullText="— เลือก —" />
+        </DxFormLayoutItem>
+    </DxFormLayoutGroup>
+
+    <DxFormLayoutGroup Caption="ชื่อ-สกุล (ไทย)" ColSpanMd="12">
+        <DxFormLayoutItem Caption="คำนำหน้า" ColSpanMd="4">
+            <DxComboBox Data="Lookups.Prenames" TData="ComboItemDto" TValue="string"
+                        ValueFieldName="@nameof(ComboItemDto.Code)" TextFieldName="@nameof(ComboItemDto.Name)"
+                        @bind-Value="Form.PrenameCode" NullText="— เลือก —" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ชื่อ" ColSpanMd="4">
+            <DxTextBox @bind-Text="Form.MemberName" NullText="ชื่อ" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="นามสกุล" ColSpanMd="4">
+            <DxTextBox @bind-Text="Form.MemberSurname" NullText="นามสกุล" />
+        </DxFormLayoutItem>
+    </DxFormLayoutGroup>
+
+    <DxFormLayoutGroup Caption="ชื่อ-สกุล (อังกฤษ)" ColSpanMd="12">
+        <DxFormLayoutItem Caption="Prename" ColSpanMd="4">
+            <DxTextBox @bind-Text="Form.PrenameEng" NullText="Mr./Mrs./Ms." />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="Name" ColSpanMd="4">
+            <DxTextBox @bind-Text="Form.NameEng" NullText="Name" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="Surname" ColSpanMd="4">
+            <DxTextBox @bind-Text="Form.SurnameEng" NullText="Surname" />
+        </DxFormLayoutItem>
+    </DxFormLayoutGroup>
+
+    <DxFormLayoutGroup Caption="ข้อมูลส่วนบุคคล" ColSpanMd="12">
+        <DxFormLayoutItem Caption="เลขบัตรประชาชน" ColSpanMd="4">
+            <DxMaskedInput @bind-Value="Form.HumId" Mask="@sc.mask.maskIdCard" NullText="x-xxxx-xxxxx-xx-x" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="วันเกิด" ColSpanMd="4">
+            <DxDateEdit @bind-Date="Form.DateOfBirth" NullText="เลือกวันเกิด" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="เพศ" ColSpanMd="4">
+            <DxComboBox Data="Lookups.Sexes" TData="ComboItemDto" TValue="string"
+                        ValueFieldName="@nameof(ComboItemDto.Code)" TextFieldName="@nameof(ComboItemDto.Name)"
+                        @bind-Value="Form.Sex" NullText="— เลือก —" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="สถานภาพสมรส" ColSpanMd="4">
+            <DxComboBox Data="Lookups.MarriageStatuses" TData="ComboItemDto" TValue="string"
+                        ValueFieldName="@nameof(ComboItemDto.Code)" TextFieldName="@nameof(ComboItemDto.Name)"
+                        @bind-Value="Form.MarriageStatus" NullText="— เลือก —" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="สัญชาติ" ColSpanMd="4">
+            <DxComboBox Data="Lookups.Nationalities" TData="NationalityDto" TValue="string"
+                        ValueFieldName="@nameof(NationalityDto.Code)" TextFieldName="@nameof(NationalityDto.Description)"
+                        @bind-Value="Form.NationalityCode" NullText="— เลือก —" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="กรุ๊ปเลือด" ColSpanMd="4">
+            <DxComboBox Data="Lookups.Bloods" TData="BloodDto" TValue="string"
+                        ValueFieldName="@nameof(BloodDto.Code)" TextFieldName="@nameof(BloodDto.Desc)"
+                        @bind-Value="Form.BloodCode" NullText="— เลือก —" />
+        </DxFormLayoutItem>
+    </DxFormLayoutGroup>
+
+    <DxFormLayoutGroup Caption="ข้อมูลบัตรประชาชน" ColSpanMd="12">
+        <DxFormLayoutItem Caption="เลขหลังบัตร (Laser)" ColSpanMd="4">
+            <DxTextBox @bind-Text="Form.IdCardNumber" NullText="JTxxxxxxxxx" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="วันออกบัตร" ColSpanMd="4">
+            <DxDateEdit @bind-Date="Form.IdCardDate" NullText="วันออกบัตร" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="วันหมดอายุ" ColSpanMd="4">
+            <DxDateEdit @bind-Date="Form.IdCardEnddate" NullText="วันหมดอายุ" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="สถานที่ออกบัตร" ColSpanMd="12">
+            <DxTextBox @bind-Text="Form.IdCardOrganize" NullText="อำเภอ/เขต ที่ออกบัตร" />
+        </DxFormLayoutItem>
+    </DxFormLayoutGroup>
+
+    <DxFormLayoutGroup Caption="การติดต่อ" ColSpanMd="12">
+        <DxFormLayoutItem Caption="โทรศัพท์มือถือ" ColSpanMd="4">
+            <DxTextBox @bind-Text="Form.MobileNumber" NullText="08x-xxx-xxxx" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="อีเมล" ColSpanMd="4">
+            <DxTextBox @bind-Text="Form.Email" NullText="name@example.com" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="หมายเหตุ" ColSpanMd="12">
+            <DxMemo @bind-Text="Form.Remark" Rows="2" NullText="หมายเหตุเพิ่มเติม" />
+        </DxFormLayoutItem>
+    </DxFormLayoutGroup>
+
+    @* ── ที่อยู่ (3 ชุด) ───────────────────────────────────────────── *@
+    @AddressBlock("ที่อยู่ปัจจุบัน", Form.AddressCurrent!)
+    @AddressBlock("ที่อยู่ตามทะเบียนบ้าน", Form.AddressHome!)
+    @AddressBlock("ที่อยู่ที่ทำงาน", Form.AddressWork!)
+
+    @* ── การทำงาน / หุ้น ───────────────────────────────────────────── *@
+    <DxFormLayoutGroup Caption="ข้อมูลการทำงาน" ColSpanMd="12">
+        <DxFormLayoutItem Caption="วันที่เริ่มงาน" ColSpanMd="4">
+            <DxDateEdit @bind-Date="Work.WorkingDate" NullText="วันที่เริ่มงาน" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="รหัสหน่วยจ่ายเงินเดือน" ColSpanMd="4">
+            <DxTextBox @bind-Text="Work.SalaryId" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="กลุ่มตำแหน่ง" ColSpanMd="4">
+            <DxComboBox Data="Lookups.GroupPositions" TData="GroupPositionDto" TValue="string"
+                        ValueFieldName="@nameof(GroupPositionDto.Code)" TextFieldName="@nameof(GroupPositionDto.Description)"
+                        @bind-Value="Work.GroupPosition" NullText="— เลือก —" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ตำแหน่ง" ColSpanMd="8">
+            <DxTextBox @bind-Text="Work.PositionLong" NullText="ชื่อตำแหน่งเต็ม" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ระดับ" ColSpanMd="4">
+            <DxTextBox @bind-Text="Work.LevelCode" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="เงินเดือน" ColSpanMd="4">
+            <DxMaskedInput @bind-Value="Work.SalaryAmount" Mask="@sc.mask.maskDecimal" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="เงินวิทยฐานะ" ColSpanMd="4">
+            <DxMaskedInput @bind-Value="Work.AcademicSalary" Mask="@sc.mask.maskDecimal" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="เงินประจำตำแหน่ง" ColSpanMd="4">
+            <DxMaskedInput @bind-Value="Work.RemunerationAmount" Mask="@sc.mask.maskDecimal" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="เงินได้จริง" ColSpanMd="4">
+            <DxMaskedInput @bind-Value="Work.SalaryReal" Mask="@sc.mask.maskDecimal" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="วันสิ้นสุดสัญญา" ColSpanMd="4">
+            <DxDateEdit @bind-Date="Work.EndingcontractDate" NullText="วันสิ้นสุดสัญญา" />
+        </DxFormLayoutItem>
+    </DxFormLayoutGroup>
+
+    <DxFormLayoutGroup Caption="การส่งหุ้น" ColSpanMd="12">
+        <DxFormLayoutItem Caption="ส่งหุ้นรายเดือน" ColSpanMd="4">
+            <DxMaskedInput @bind-Value="Form.ShareMonthly" Mask="@sc.mask.maskDecimal" />
+        </DxFormLayoutItem>
+    </DxFormLayoutGroup>
+</DxFormLayout>
+
+@* ── ผู้รับผลประโยชน์ ─────────────────────────────────────────────────────────── *@
+<div class="nb-grid-head" style="margin-top:24px">
+    <h3 class="nb-h3">รายชื่อผู้รับผลประโยชน์</h3>
+    <DxButton Text="+ เพิ่มรายชื่อ" RenderStyle="ButtonRenderStyle.Primary" Click="AddGain" />
+</div>
+@if (Form.RecrieveGains.Count == 0)
+{
+    <div class="nb-empty">ยังไม่มีรายชื่อผู้รับผลประโยชน์</div>
+}
+else
+{
+    <table class="nb-table">
+        <thead>
+            <tr>
+                <th style="width:48px">#</th>
+                <th>คำนำหน้า</th>
+                <th>ชื่อ</th>
+                <th>นามสกุล</th>
+                <th>ความเกี่ยวข้อง</th>
+                <th style="width:120px">สัดส่วน (%)</th>
+                <th style="width:56px"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var g in Form.RecrieveGains)
+            {
+                var row = g;
+                <tr>
+                    <td class="nb-seq">@row.SeqNo</td>
+                    <td>
+                        <DxComboBox Data="Lookups.Prenames" TData="ComboItemDto" TValue="string"
+                                    ValueFieldName="@nameof(ComboItemDto.Code)" TextFieldName="@nameof(ComboItemDto.Name)"
+                                    @bind-Value="row.PrenameCode" NullText="—" />
+                    </td>
+                    <td><DxTextBox @bind-Text="row.GainName" /></td>
+                    <td><DxTextBox @bind-Text="row.GainSurname" /></td>
+                    <td>
+                        <DxComboBox Data="Lookups.Concerns" TData="ConcernDto" TValue="string"
+                                    ValueFieldName="@nameof(ConcernDto.Code)" TextFieldName="@nameof(ConcernDto.RelatedNa)"
+                                    @bind-Value="row.ConcernCode" NullText="—" />
+                    </td>
+                    <td><DxMaskedInput @bind-Value="row.GainPercent" Mask="@sc.mask.maskPercent2" /></td>
+                    <td><DxButton Text="ลบ" RenderStyle="ButtonRenderStyle.Danger" Click="() => RemoveGain(row)" /></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <div class="nb-sum @(GainPercentTotal == 100 ? "nb-sum--ok" : "nb-sum--warn")">
+        รวมสัดส่วน: @sc.value.toString(GainPercentTotal)% @(GainPercentTotal == 100 ? "✓" : "(ต้องรวมเป็น 100%)")
+    </div>
+}
+
+@* ── สมาชิกอ้างอิง ────────────────────────────────────────────────────────────── *@
+<div class="nb-grid-head" style="margin-top:24px">
+    <h3 class="nb-h3">สมาชิกผู้อ้างอิง</h3>
+    <DxButton Text="+ เพิ่มรายชื่อ" RenderStyle="ButtonRenderStyle.Primary" Click="AddRefer" />
+</div>
+@if (Form.MemberRefers.Count == 0)
+{
+    <div class="nb-empty">ยังไม่มีสมาชิกอ้างอิง</div>
+}
+else
+{
+    <table class="nb-table">
+        <thead>
+            <tr>
+                <th style="width:48px">#</th>
+                <th style="width:180px">เลขสมาชิก</th>
+                <th>ชื่อ-สกุล</th>
+                <th>ความเกี่ยวข้อง</th>
+                <th style="width:56px"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var m in Form.MemberRefers)
+            {
+                var row = m;
+                <tr>
+                    <td class="nb-seq">@row.SeqNo</td>
+                    <td><DxTextBox @bind-Text="row.MembershipNo" NullText="เลขสมาชิก" /></td>
+                    <td><DxTextBox @bind-Text="row.MemberName" NullText="ชื่อ-สกุล" /></td>
+                    <td>
+                        <DxComboBox Data="Lookups.Concerns" TData="ConcernDto" TValue="string"
+                                    ValueFieldName="@nameof(ConcernDto.Code)" TextFieldName="@nameof(ConcernDto.RelatedNa)"
+                                    @bind-Value="row.ConcernCode" NullText="—" />
+                    </td>
+                    <td><DxButton Text="ลบ" RenderStyle="ButtonRenderStyle.Danger" Click="() => RemoveRefer(row)" /></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@* ── รูปถ่าย / ลายเซ็น ────────────────────────────────────────────────────────── *@
+<h3 class="nb-h3" style="margin-top:24px">รูปถ่าย / ลายเซ็น</h3>
+<div class="nb-imgrow" style="margin-top:12px">
+    <div class="nb-imgcell">
+        <span class="nb-sub">รูปถ่าย</span>
+        @if (Form.PictureBase64 is not null)
+        {
+            <img class="nb-img" src="data:image/*;base64,@Form.PictureBase64" alt="รูปถ่าย" />
+        }
+        else
+        {
+            <div class="nb-img nb-img--empty">ยังไม่มีรูป</div>
+        }
+        <InputFile OnChange="@(e => OnImage(e, isSignature: false))" accept="image/*" />
+    </div>
+    <div class="nb-imgcell">
+        <span class="nb-sub">ลายเซ็น</span>
+        @if (Form.SignatureBase64 is not null)
+        {
+            <img class="nb-img" src="data:image/*;base64,@Form.SignatureBase64" alt="ลายเซ็น" />
+        }
+        else
+        {
+            <div class="nb-img nb-img--empty">ยังไม่มีลายเซ็น</div>
+        }
+        <InputFile OnChange="@(e => OnImage(e, isSignature: true))" accept="image/*" />
+    </div>
+</div>
+
+@* ── address sub-form (ใช้ซ้ำ 3 ที่อยู่) ─────────────────────────────────────────── *@
+@{
+    RenderFragment AddressBlock(string title, AppAddressDto a) =>
+    @<DxFormLayoutGroup Caption="@title" ColSpanMd="12">
+        <DxFormLayoutItem Caption="บ้านเลขที่" ColSpanMd="3">
+            <DxTextBox @bind-Text="a.AddressNo" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="หมู่" ColSpanMd="3">
+            <DxTextBox @bind-Text="a.Moo" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="หมู่บ้าน/อาคาร" ColSpanMd="6">
+            <DxTextBox @bind-Text="a.Mooban" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ซอย" ColSpanMd="6">
+            <DxTextBox @bind-Text="a.Soi" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ถนน" ColSpanMd="6">
+            <DxTextBox @bind-Text="a.Road" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="จังหวัด" ColSpanMd="4">
+            <DxComboBox Data="Lookups.Provinces" TData="ProvinceDto" TValue="string"
+                        ValueFieldName="@nameof(ProvinceDto.Code)" TextFieldName="@nameof(ProvinceDto.Name)"
+                        Value="a.ProvinceCode" ValueChanged="@((string v) => OnProvinceChanged(a, v))"
+                        NullText="— เลือกจังหวัด —" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="อำเภอ/เขต" ColSpanMd="4">
+            <DxComboBox Data="DistrictsOf(a.ProvinceCode)" TData="DistrictDto" TValue="string"
+                        ValueFieldName="@nameof(DistrictDto.Code)" TextFieldName="@nameof(DistrictDto.Name)"
+                        Value="a.DistrictCode" ValueChanged="@((string v) => OnDistrictChanged(a, v))"
+                        NullText="— เลือกอำเภอ —" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ตำบล/แขวง" ColSpanMd="4">
+            <DxComboBox Data="SubdistrictsOf(a.DistrictCode)" TData="SubdistrictDto" TValue="string"
+                        ValueFieldName="@nameof(SubdistrictDto.Code)" TextFieldName="@nameof(SubdistrictDto.Name)"
+                        @bind-Value="a.Tambol" NullText="— เลือกตำบล —" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="รหัสไปรษณีย์" ColSpanMd="4">
+            <DxTextBox @bind-Text="a.Postcode" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="โทรศัพท์" ColSpanMd="4">
+            <DxTextBox @bind-Text="a.Telephone" />
+        </DxFormLayoutItem>
+    </DxFormLayoutGroup>;
+}
+
+@code {
+    [Parameter, EditorRequired] public ApplicationFormDto Form { get; set; } = default!;
+    [Parameter, EditorRequired] public SctelnewbmaLookupsDto Lookups { get; set; } = default!;
+
+    // alias ของ Form.WorkInfo (Index รับประกันว่าไม่ null ผ่าน EnsureSubObjects)
+    private AppWorkInfoDto Work => Form.WorkInfo!;
+
+    private decimal GainPercentTotal => Form.RecrieveGains.Sum(g => g.GainPercent ?? 0m);
+
+    // ── address cascading ───────────────────────────────────────────────────────
+    private IEnumerable<DistrictDto> DistrictsOf(string? provinceCode) =>
+        string.IsNullOrEmpty(provinceCode)
+            ? Enumerable.Empty<DistrictDto>()
+            : Lookups.Districts.Where(d => d.ProvinceCode == provinceCode);
+
+    private IEnumerable<SubdistrictDto> SubdistrictsOf(string? districtCode) =>
+        string.IsNullOrEmpty(districtCode)
+            ? Enumerable.Empty<SubdistrictDto>()
+            : Lookups.Subdistricts.Where(s => s.DistrictCode == districtCode);
+
+    private void OnProvinceChanged(AppAddressDto a, string value)
+    {
+        a.ProvinceCode = value;
+        a.DistrictCode = null;   // reset ลูกหลานเมื่อเปลี่ยนจังหวัด
+        a.Tambol       = null;
+    }
+
+    private void OnDistrictChanged(AppAddressDto a, string value)
+    {
+        a.DistrictCode = value;
+        a.Tambol       = null;
+        // auto-fill รหัสไปรษณีย์จากอำเภอ (ถ้ายังว่าง)
+        var d = Lookups.Districts.FirstOrDefault(x => x.Code == value);
+        if (d?.PostCode is { Length: > 0 } pc && string.IsNullOrWhiteSpace(a.Postcode))
+            a.Postcode = pc;
+    }
+
+    // ── beneficiaries (gain) ────────────────────────────────────────────────────
+    private void AddGain() =>
+        Form.RecrieveGains.Add(new AppRecrieveGainDto { SeqNo = Form.RecrieveGains.Count + 1 });
+
+    private void RemoveGain(AppRecrieveGainDto g)
+    {
+        Form.RecrieveGains.Remove(g);
+        Resequence(Form.RecrieveGains, (x, i) => x.SeqNo = i);
+    }
+
+    // ── member refers ───────────────────────────────────────────────────────────
+    private void AddRefer() =>
+        Form.MemberRefers.Add(new AppMemberReferDto { SeqNo = Form.MemberRefers.Count + 1 });
+
+    private void RemoveRefer(AppMemberReferDto m)
+    {
+        Form.MemberRefers.Remove(m);
+        Resequence(Form.MemberRefers, (x, i) => x.SeqNo = i);
+    }
+
+    // ── image upload → base64 ───────────────────────────────────────────────────
+    private async Task OnImage(InputFileChangeEventArgs e, bool isSignature)
+    {
+        const long maxBytes = 4 * 1024 * 1024;   // 4 MB
+        if (e.File.Size > maxBytes) return;
+
+        using var ms = new MemoryStream();
+        await e.File.OpenReadStream(maxBytes).CopyToAsync(ms);
+        var b64 = Convert.ToBase64String(ms.ToArray());
+        if (isSignature) Form.SignatureBase64 = b64;
+        else             Form.PictureBase64   = b64;
+    }
+
+    private static void Resequence<T>(List<T> list, Action<T, int> setSeq)
+    {
+        for (int i = 0; i < list.Count; i++) setSeq(list[i], i + 1);
+    }
+}

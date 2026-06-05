@@ -1,0 +1,178 @@
+@page "/sctelnewbma"
+@page "/sctelnewbma/{ApplicationFormNo}"
+@rendermode InteractiveServer
+@using SoAt.Application.ScTeller
+@inject ISctelnewbmaService Svc
+@inject NavigationManager Nav
+
+@* ── sctelnewbma — หน้าสมัครสมาชิก ────────────────────────────────────────────────
+   โครงมาตรฐาน (PageRegions): Header + Tabs + Operate (ไม่มี Detail)
+   Index ถือ model (_form/_lookups) แล้วส่งลง child component ผ่าน [Parameter]
+   Operate raise EventCallback กลับมาให้ Index จัดการ (New/Open/Save/Cancel) *@
+
+<PageTitle>สมัครสมาชิก — scTeller</PageTitle>
+
+<div class="nb-titlebar">
+    <div>
+        <h1 class="nb-title">สมัครสมาชิก</h1>
+        <span class="nb-sub">@(IsEdit ? $"แก้ไขใบสมัครเลขที่ {ApplicationFormNo}" : "บันทึกใบสมัครสมาชิกใหม่")</span>
+    </div>
+    <a class="nb-back" href="/">← กลับหน้าหลัก</a>
+</div>
+
+@if (_status is not null)
+{
+    <div class="nb-alert @(_ok ? "nb-alert--ok" : "nb-alert--err")">@_status</div>
+}
+
+@if (_lookups is null)
+{
+    <div class="nb-loading">กำลังโหลดข้อมูล…</div>
+}
+else
+{
+    <PageRegions>
+        <HeaderContent>
+            <PanHead Form="_form" Lookups="_lookups" />
+        </HeaderContent>
+        <TabsContent>
+            <PanTabs Form="_form" Lookups="_lookups" />
+        </TabsContent>
+        <OperateContent>
+            <PanOperate Busy="_saving" OnNew="NewForm_Click" OnOpen="Open" OnSave="Save" OnCancel="Cancel" />
+        </OperateContent>
+    </PageRegions>
+}
+
+@code {
+    [Parameter] public string? ApplicationFormNo { get; set; }
+    [CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
+
+    private bool IsEdit => !string.IsNullOrWhiteSpace(ApplicationFormNo);
+
+    private SctelnewbmaLookupsDto? _lookups;
+    private ApplicationFormDto _form = NewForm();
+
+    private bool   _saving;
+    private bool   _ok;
+    private string? _status;
+
+    private string _userId   = "";
+    private string _branchId = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        _lookups = await Svc.GetLookupsAsync();
+
+        if (AuthState is not null)
+        {
+            var user = (await AuthState).User;
+            _userId   = user.Identity?.Name ?? "";
+            _branchId = user.FindFirst("branch_id")?.Value ?? "";
+        }
+
+        if (IsEdit)
+        {
+            var existing = await Svc.GetApplicationAsync(ApplicationFormNo!);
+            if (existing is null)
+            {
+                _ok = false;
+                _status = $"ไม่พบใบสมัครเลขที่ {ApplicationFormNo}";
+            }
+            else
+            {
+                _form = existing;
+                EnsureSubObjects(_form);
+            }
+        }
+    }
+
+    // ── Operate: บันทึก ───────────────────────────────────────────────────────────
+    private async Task Save()
+    {
+        _status = null;
+        if (!Validate(out var error))
+        {
+            _ok = false;
+            _status = error;
+            return;
+        }
+
+        _saving = true;
+        try
+        {
+            _form.WorkInfo = HasWorkInfo(_form.WorkInfo!) ? _form.WorkInfo : null;
+            var result = IsEdit
+                ? await Svc.UpdateApplicationAsync(ApplicationFormNo!, _form, _userId)
+                : await Svc.CreateApplicationAsync(_form, _userId, _branchId);
+
+            _ok = true;
+            _status = $"{result.Message} (เลขที่ {result.ApplicationFormNo})";
+
+            if (!IsEdit)
+                Nav.NavigateTo($"/sctelnewbma/{result.ApplicationFormNo}");
+        }
+        catch (Exception ex)
+        {
+            _ok = false;
+            _status = $"เกิดข้อผิดพลาด: {ex.Message}";
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    // ── Operate: เพิ่มใหม่ (ล้างฟอร์ม) ─────────────────────────────────────────────
+    private void NewForm_Click()
+    {
+        if (IsEdit) { Nav.NavigateTo("/sctelnewbma"); return; }
+        _form = NewForm();
+        _status = null;
+    }
+
+    // ── Operate: เปิด / ค้นหา (รอหน้าค้นหา) ────────────────────────────────────────
+    private void Open()
+    {
+        _ok = false;
+        _status = "ฟังก์ชันเปิด/ค้นหาใบสมัคร อยู่ระหว่างพัฒนา";
+    }
+
+    // ── Operate: ยกเลิก → กลับหน้าหลัก ─────────────────────────────────────────────
+    private void Cancel() => Nav.NavigateTo("/");
+
+    // ── validation ────────────────────────────────────────────────────────────────
+    private bool Validate(out string error)
+    {
+        if (string.IsNullOrWhiteSpace(_form.MemberName))    { error = "กรุณากรอกชื่อ"; return false; }
+        if (string.IsNullOrWhiteSpace(_form.MemberSurname)) { error = "กรุณากรอกนามสกุล"; return false; }
+        if (string.IsNullOrWhiteSpace(_form.MemType))       { error = "กรุณาเลือกประเภทสมาชิก"; return false; }
+        if (_form.RecrieveGains.Count > 0 && _form.RecrieveGains.Sum(g => g.GainPercent ?? 0m) != 100m)
+        {
+            error = "สัดส่วนผู้รับผลประโยชน์ต้องรวมเป็น 100%"; return false;
+        }
+        error = "";
+        return true;
+    }
+
+    // ── model lifecycle ─────────────────────────────────────────────────────────────
+    private static ApplicationFormDto NewForm()
+    {
+        var f = new ApplicationFormDto { ApplyDate = DateTime.Today };
+        EnsureSubObjects(f);
+        return f;
+    }
+
+    private static void EnsureSubObjects(ApplicationFormDto f)
+    {
+        f.AddressCurrent ??= new AppAddressDto { AddressType = "0" };
+        f.AddressHome    ??= new AppAddressDto { AddressType = "1" };
+        f.AddressWork    ??= new AppAddressDto { AddressType = "2" };
+        f.WorkInfo       ??= new AppWorkInfoDto();
+    }
+
+    private static bool HasWorkInfo(AppWorkInfoDto w) =>
+        w.WorkingDate is not null || !string.IsNullOrWhiteSpace(w.SalaryId)
+        || !string.IsNullOrWhiteSpace(w.PositionLong) || w.SalaryAmount is not null
+        || !string.IsNullOrWhiteSpace(w.GroupPosition) || w.SalaryReal is not null;
+}

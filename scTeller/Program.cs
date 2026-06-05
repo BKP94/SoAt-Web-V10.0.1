@@ -11,7 +11,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // โ”€โ”€ Blazor Server โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
 builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+    .AddInteractiveServerComponents(options =>
+        options.DetailedErrors = builder.Environment.IsDevelopment());
 
 // โ”€โ”€ DevExpress Blazor (theme link เธญเธขเธนเนเธ—เธตเน App.razor, เธเนเธฒเธเธฒเธ appsettings "DevExpress:Theme") โ”€โ”€
 //   25.2 เนเธเน Bootstrap 5 เน€เธเนเธ default เธ•เธฑเธงเน€เธ”เธตเธขเธง (BootstrapVersion option เธ–เธนเธ deprecated เนเธฅเนเธง)

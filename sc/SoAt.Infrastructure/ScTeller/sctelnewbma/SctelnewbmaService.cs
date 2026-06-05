@@ -39,10 +39,10 @@ public class SctelnewbmaService(sc.dbFactory dbFactory) : ISctelnewbmaService
             "SELECT subdistrict_code AS code, subdistrict_name AS name, district_code FROM sc_mem_m_ucf_subdistrict ORDER BY subdistrict_code");
 
         var applicationTypes = await scDb.getListAsync<ApplicationTypeDto>(
-            "SELECT appl_type_code AS code, appl_type_name AS name, application_fee AS fee, mem_type_code FROM sc_mem_m_ucf_application_type WHERE appl_type_code <> '0' ORDER BY appl_type_code");
+            "SELECT appl_type_code AS code, appl_type_name AS name, application_fee AS fee, NULL::varchar AS mem_type_code FROM sc_mem_m_ucf_application_type WHERE appl_type_code <> '0' ORDER BY appl_type_code");
 
         var concerns = await scDb.getListAsync<ConcernDto>(
-            "SELECT concern_code AS code, related_na FROM sc_mem_m_ucf_concern");
+            "SELECT conceern_code AS code, related_na FROM sc_mem_m_ucf_concern ORDER BY sort_order");
 
         var groupPositions = await scDb.getListAsync<GroupPositionDto>(
             "SELECT group_position AS code, description, sort_order FROM sc_mem_m_ucf_group_position ORDER BY sort_order");
@@ -51,7 +51,7 @@ public class SctelnewbmaService(sc.dbFactory dbFactory) : ISctelnewbmaService
             "SELECT position_code AS code, position_name AS name, sort_order FROM sc_mem_m_ucf_position ORDER BY sort_order");
 
         var coop = await scDb.getOneAsync<CoopConfigDto>(
-            "SELECT coop_no, count_resign, auto_approve_newmem, mem_type_ongroup FROM sc_cnt_m_coop LIMIT 1");
+            "SELECT coop_registered_no AS coop_no, count_resign, auto_approve_newmem, mem_type_ongroup FROM sc_cnt_m_coop LIMIT 1");
 
         return new SctelnewbmaLookupsDto
         {

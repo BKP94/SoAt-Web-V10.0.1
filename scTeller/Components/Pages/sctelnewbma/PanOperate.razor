@@ -1,0 +1,32 @@
+@* PanOperate — แถบปุ่ม Operate (แนวตั้ง, ขวาของหน้า) — New / Open / Save / Cancel
+   ปุ่ม raise EventCallback กลับให้ Page จัดการ logic (Page ถือ model) *@
+
+<div class="op-item">
+    <button type="button" class="op-btn" title="เพิ่มใหม่" disabled="@Busy" @onclick="OnNew">📄</button>
+    <span class="op-btn-label">เพิ่มใหม่</span>
+</div>
+
+<div class="op-item">
+    <button type="button" class="op-btn" title="เปิด / ค้นหา" disabled="@Busy" @onclick="OnOpen">📂</button>
+    <span class="op-btn-label">เปิด</span>
+</div>
+
+<div class="op-item">
+    <button type="button" class="op-btn" title="บันทึก" disabled="@Busy" @onclick="OnSave">💾</button>
+    <span class="op-btn-label">บันทึก</span>
+</div>
+
+<div class="op-item">
+    <button type="button" class="op-btn op-btn--danger" title="ยกเลิก" disabled="@Busy" @onclick="OnCancel">✖</button>
+    <span class="op-btn-label">ยกเลิก</span>
+</div>
+
+@code {
+    /// ปิดปุ่มทั้งหมดระหว่างกำลังบันทึก
+    [Parameter] public bool Busy { get; set; }
+
+    [Parameter] public EventCallback OnNew    { get; set; }
+    [Parameter] public EventCallback OnOpen   { get; set; }
+    [Parameter] public EventCallback OnSave   { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+}

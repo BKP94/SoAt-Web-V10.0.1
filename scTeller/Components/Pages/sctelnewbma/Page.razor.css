@@ -1,0 +1,4 @@
+/* sctelnewbma — สไตล์ฟอร์มย้ายไป global (app.css ส่วน "Form helpers")
+   เพราะ scoped CSS ส่งไปถึง child component (Header/Tabs/Operate) ไม่ได้
+   region/card chrome จัดโดย PageRegions (Components/Layout/PageRegions.razor.css)
+   ไฟล์นี้เว้นไว้สำหรับ override เฉพาะหน้านี้ในอนาคต */

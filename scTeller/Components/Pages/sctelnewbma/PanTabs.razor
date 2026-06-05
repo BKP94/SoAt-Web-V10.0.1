@@ -1,0 +1,40 @@
+@using SoAt.Application.ScTeller
+
+@* ── PanTabs (Tabs region) ของ sctelnewbma ───────────────────────────────────────
+   3 แท็บใหม่: บัญชีธนาคาร / ข้อมูลครอบครัว / ข้อมูลการส่งหุ้น-โอน
+   ⚠️ ยังเป็นโครง (stub) — รอกำหนด field + DTO + service/DB ของแต่ละแท็บ
+   รับ Form/Lookups ไว้แล้ว (Page ถือ model) พร้อม bind เมื่อมี field spec *@
+
+<DxTabs CssClass="nb-tabs">
+    <DxTabPage Text="บัญชีธนาคาร">
+        <div class="nb-tabbody">
+            @TabStub("บัญชีธนาคาร", "เลขที่บัญชี / ธนาคาร / สาขา / ชื่อบัญชี สำหรับโอนเงินปันผล-เฉลี่ยคืน")
+        </div>
+    </DxTabPage>
+
+    <DxTabPage Text="ข้อมูลครอบครัว">
+        <div class="nb-tabbody">
+            @TabStub("ข้อมูลครอบครัว", "บิดา / มารดา / คู่สมรส / บุตร — ชื่อ-สกุล, ความเกี่ยวข้อง, อาชีพ")
+        </div>
+    </DxTabPage>
+
+    <DxTabPage Text="ข้อมูลการส่งหุ้น/โอน">
+        <div class="nb-tabbody">
+            @TabStub("ข้อมูลการส่งหุ้น / โอน", "ยอดหุ้นยกมา / วิธีส่งหุ้น / รายการโอนหุ้นเข้า-ออก")
+        </div>
+    </DxTabPage>
+</DxTabs>
+
+@{
+    RenderFragment TabStub(string title, string detail) =>
+    @<div class="nb-empty">
+        <strong>@title</strong><br />
+        <span style="font-size:.86rem">@detail</span><br />
+        <span style="font-size:.8rem;color:#9ca3af">อยู่ระหว่างพัฒนา — รอกำหนด field / DTO</span>
+    </div>;
+}
+
+@code {
+    [Parameter, EditorRequired] public ApplicationFormDto Form { get; set; } = default!;
+    [Parameter, EditorRequired] public SctelnewbmaLookupsDto Lookups { get; set; } = default!;
+}

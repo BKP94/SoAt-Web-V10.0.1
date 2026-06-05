@@ -1,18 +1,46 @@
 @page "/"
 
-<PageTitle>scTeller — ระบบเทลเลอร์</PageTitle>
+<PageTitle>scTeller — ระบบเจ้าหน้าที่ประจำหน่วย</PageTitle>
 
 <AuthorizeView>
     <Authorized>
-        <h1>ระบบเทลเลอร์ (scTeller)</h1>
-        <p>เข้าสู่ระบบในชื่อ <strong>@context.User.Identity?.Name</strong>
-           — สาขา <strong>@context.User.FindFirst("branch_id")?.Value</strong></p>
+        <div class="home">
+            <header class="home-hero">
+                <div class="home-hero-text">
+                    <h1 class="home-title">สวัสดี คุณ@(context.User.Identity?.Name)</h1>
+                    <p class="home-sub">
+                        ระบบเจ้าหน้าที่ประจำหน่วย (Teller) — เลือกงานจากการ์ดด้านล่าง
+                        หรือเมนูด้านซ้ายได้เลย
+                    </p>
+                </div>
+                <span class="home-hero-badge">scTeller</span>
+            </header>
 
-        <div class="center-modules">
-            <a class="module-card" href="/sctelnewbma">สมัครสมาชิก (sctelnewbma)</a>
-            <div class="module-card placeholder">รับฝาก-ถอน</div>
-            <div class="module-card placeholder">ชำระหนี้</div>
-            <div class="module-card placeholder">…</div>
+            <section class="home-section">
+                <h2 class="home-section-title">เริ่มงานด่วน</h2>
+                <div class="home-cards">
+                    <a class="home-card" href="/sctelnewbma">
+                        <span class="home-card-icon">📝</span>
+                        <span class="home-card-name">สมัครสมาชิก</span>
+                        <span class="home-card-desc">บันทึกใบสมัครสมาชิกใหม่</span>
+                    </a>
+                    <div class="home-card home-card--soon">
+                        <span class="home-card-icon">📋</span>
+                        <span class="home-card-name">ทะเบียนสมาชิก</span>
+                        <span class="home-card-desc">เร็วๆ นี้</span>
+                    </div>
+                    <div class="home-card home-card--soon">
+                        <span class="home-card-icon">💳</span>
+                        <span class="home-card-name">รับ-จ่ายเงิน</span>
+                        <span class="home-card-desc">เร็วๆ นี้</span>
+                    </div>
+                    <div class="home-card home-card--soon">
+                        <span class="home-card-icon">📊</span>
+                        <span class="home-card-name">ระบบรายงาน</span>
+                        <span class="home-card-desc">เร็วๆ นี้</span>
+                    </div>
+                </div>
+            </section>
         </div>
     </Authorized>
 </AuthorizeView>

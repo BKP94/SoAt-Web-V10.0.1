@@ -90,6 +90,15 @@ await conn.ExecuteAsync("SET LOCAL app.login_br = @br", new { br = branchId });
   - **Dropdown** → bind `sc.ComboItem` (Value=`code`, Text=`name`) จาก `sc.db.getComboAsync(sc.combo.*)`
 - **DevExpress theme** — เปลี่ยน theme ที่จุดเดียว (config), ห้าม override สี/focus/shadow, แตะได้แค่ layout
 
+### มาตรฐานโครงหน้าจอทุกเมนู (Page Architecture — บังคับใช้ทุก module/menu)
+**ทุกหน้าเมนูแบ่งเป็น region:** `PanHead` (บน) / `PanDetail` (กลาง, optional) / `PanTabs` (ล่าง, optional) + **`PanOperate` bar (แนวตั้ง ขวา)** — แต่ละ region = **ไฟล์ `.razor` ของตัวเอง** ในโฟลเดอร์ module, ประกอบที่ `Page.razor`
+- **ชื่อไฟล์ในแต่ละ module folder (บังคับเป๊ะ):** `Page.razor` (entry + `@page` route + `@rendermode InteractiveServer`), `PanHead.razor`, `PanDetail.razor`, `PanTabs.razor`, `PanOperate.razor` — ตัวอย่างจริง: `scTeller/Components/Pages/sctelnewbma/`. tag เรียกใช้ตรงชื่อไฟล์ เช่น `<PanHead ... />` `<PanTabs ... />`. ⚠️ **ชื่อ component ต้องขึ้นต้นตัวพิมพ์ใหญ่** (Razor RZ10011 — `pan*` ตัวเล็กไม่ผ่าน) จึงใช้ `Pan*`
+- **Shared layout กลาง:** `scTeller/Components/Layout/PageRegions.razor` — รับ RenderFragment `HeaderContent`/`DetailContent`/`TabsContent`/`OperateContent`, จัด grid (ซ้าย region เรียงลง + PanOperate ขวา sticky). **region ไหนไม่ส่ง = ไม่ render** (เช่น sctelnewbma ไม่มี Detail)
+- **State flow:** `Page.razor` เป็นเจ้าของ model + lookups ตัวเดียว → ส่งลง child ผ่าน `[Parameter]` (child เป็น dumb component, แก้ field ลงบน model ที่เป็น reference ร่วม). **`PanOperate` ยิง `EventCallback` กลับ** (`OnNew`/`OnOpen`/`OnSave`/`OnCancel`) ให้ Page จัดการ — child ไม่ persist เอง
+- **PanOperate bar:** ปุ่มกลม class กลาง `.op-btn` (`.op-btn--danger` = แดง), ปัจจุบัน 4 ปุ่ม **New / Open / Save / Cancel**. icon ใช้ emoji ชั่วคราว
+- **CSS:** form helper (`.nb-*`) + `.op-*` ต้องอยู่ **global ที่ `wwwroot/app.css`** เพราะ scoped `.razor.css` ส่งไปถึง child component ไม่ได้. card/region chrome จัดโดย `PageRegions.razor.css`. ยังคงกฎ: ห้าม override DevExpress, แตะได้แค่ layout
+- โมดูลใหม่: copy โครงไฟล์เหล่านี้จาก `sctelnewbma` แล้วปรับเนื้อหา region ตามงานจริง (`PanTabs` ของ sctelnewbma = บัญชีธนาคาร/ครอบครัว/ส่งหุ้น-โอน — ยัง stub รอ field spec)
+
 ---
 
 ## Claude Working Rules (สำคัญมาก — ทำทุกครั้ง)

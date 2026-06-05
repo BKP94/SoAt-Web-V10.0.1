@@ -4,9 +4,16 @@
     {
       "name": "scCenter",
       "runtimeExecutable": "dotnet",
-      "runtimeArgs": ["run", "--project", "scCenter", "--no-launch-profile", "--urls", "http://localhost:5199"],
+      "runtimeArgs": ["run", "--project", "scCenter", "--no-launch-profile", "--urls", "http://localhost:5100"],
       "env": { "ASPNETCORE_ENVIRONMENT": "Development" },
-      "port": 5199
+      "port": 5100
+    },
+    {
+      "name": "scTeller",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "scTeller", "--no-launch-profile", "--urls", "http://localhost:5110"],
+      "env": { "ASPNETCORE_ENVIRONMENT": "Development" },
+      "port": 5110
     }
   ]
 }

@@ -18,6 +18,25 @@ namespace sc
             return null;
         }
 
+        /// <summary>
+        /// map CSS col-marker → mask string (sc.mask.*) สำหรับ Blazor DxMaskedInput
+        /// (เทียบ legacy ที่ใส่ class col-* บน field แล้ว format ตาม class).
+        /// คืน null ถ้าไม่ใช่ชนิดที่ต้อง mask. Date/DateTime คืน mask แบบ text (กรณีใช้ masked input)
+        /// </summary>
+        public static string? maskOf(string? cssColType) => cssColType switch
+        {
+            col.Integer  => mask.maskInteger,
+            col.Integer2 => mask.maskIntegerNegative,   // col-integer2 = ติดลบได้
+            col.Decimal  => mask.maskDecimal,
+            col.Decimal2 => mask.maskDecimalNegative,    // col-decimal2 = ติดลบได้
+            col.Decimal3 => mask.maskDecimal3,
+            col.Year     => mask.maskYear,
+            col.Month    => mask.maskInteger,
+            col.Date     => mask.maskDate,
+            col.DateTime => mask.maskDateTime,
+            _            => null,
+        };
+
         public struct col
         {
             public const string col_   = "col-";

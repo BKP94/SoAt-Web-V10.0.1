@@ -33,7 +33,7 @@
         </DxFormLayoutItem>
 
         <DxFormLayoutItem Caption="บัตรประชาชน" ColSpanMd="4">
-            <DxMaskedInput @bind-Value="Spouse.IdCard" Mask="@sc.mask.maskIdCard" NullText="x-xxxx-xxxxx-xx-x" />
+            <ScInput @bind-Value="Spouse.IdCard" Mask="@sc.mask.maskIdCard" NullText="x-xxxx-xxxxx-xx-x" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="เลขภาษี" ColSpanMd="4">
             <DxTextBox @bind-Text="Spouse.TaxId" NullText="เลขประจำตัวผู้เสียภาษี" />
@@ -53,10 +53,10 @@
                         @bind-Value="Spouse.PositionCode" NullText="— เลือก —" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="เงินเดือน" ColSpanMd="2">
-            <DxMaskedInput @bind-Value="Spouse.SalaryAmount" Mask="@sc.mask.maskDecimal" />
+            <ScInput Col="@sc.css.col.Decimal" @bind-Value="Spouse.SalaryAmount" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="เงินเดือนร่วมกู้" ColSpanMd="2">
-            <DxMaskedInput @bind-Value="Spouse.SalaryCalloan" Mask="@sc.mask.maskDecimal" />
+            <ScInput Col="@sc.css.col.Decimal" @bind-Value="Spouse.SalaryCalloan" />
         </DxFormLayoutItem>
     </DxFormLayoutGroup>
 

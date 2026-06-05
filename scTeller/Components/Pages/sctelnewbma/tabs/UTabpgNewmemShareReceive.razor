@@ -17,7 +17,7 @@
             <DxDateEdit @bind-Date="Own.FirstDate" NullText="วัน/เดือน/ปี" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="หนี้สิน (ที่เดิม)" ColSpanMd="6">
-            <DxMaskedInput @bind-Value="Own.OwnTotalLoan" Mask="@sc.mask.maskDecimal" NullText="0.00" />
+            <ScInput Col="@sc.css.col.Decimal" @bind-Value="Own.OwnTotalLoan" NullText="0.00" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="มติที่ประชุม" ColSpanMd="12">
             <DxTextBox @bind-Text="Own.MatiDetail" NullText="รายละเอียดมติที่ประชุม" />

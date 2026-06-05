@@ -61,7 +61,7 @@
 
     <DxFormLayoutGroup Caption="ข้อมูลส่วนบุคคล" ColSpanMd="12">
         <DxFormLayoutItem Caption="เลขบัตรประชาชน" ColSpanMd="4">
-            <DxMaskedInput @bind-Value="Form.HumId" Mask="@sc.mask.maskIdCard" NullText="x-xxxx-xxxxx-xx-x" />
+            <ScInput @bind-Value="Form.HumId" Mask="@sc.mask.maskIdCard" NullText="x-xxxx-xxxxx-xx-x" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="วันเกิด" ColSpanMd="4">
             <DxDateEdit @bind-Date="Form.DateOfBirth" NullText="เลือกวันเกิด" />
@@ -115,9 +115,11 @@
         </DxFormLayoutItem>
     </DxFormLayoutGroup>
 
-    @* ── ที่อยู่ (3 ชุด) ───────────────────────────────────────────── *@
-    @AddressBlock("ที่อยู่ปัจจุบัน", Form.AddressCurrent!)
-    @AddressBlock("ที่อยู่ตามทะเบียนบ้าน", Form.AddressHome!)
+    @* ── ที่อยู่ (3 ชุด) — คัดลอกระหว่างปัจจุบัน ↔ ทะเบียนบ้าน เท่านั้น (ที่ทำงานไม่มีปุ่ม) ── *@
+    @AddressBlock("ที่อยู่ปัจจุบัน", Form.AddressCurrent!,
+        ("ทะเบียนบ้าน", Form.AddressHome!))
+    @AddressBlock("ที่อยู่ตามทะเบียนบ้าน", Form.AddressHome!,
+        ("ปัจจุบัน", Form.AddressCurrent!))
     @AddressBlock("ที่อยู่ที่ทำงาน", Form.AddressWork!)
 
     @* ── การทำงาน / หุ้น ───────────────────────────────────────────── *@
@@ -140,16 +142,16 @@
             <DxTextBox @bind-Text="Work.LevelCode" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="เงินเดือน" ColSpanMd="4">
-            <DxMaskedInput @bind-Value="Work.SalaryAmount" Mask="@sc.mask.maskDecimal" />
+            <ScInput Col="@sc.css.col.Decimal" @bind-Value="Work.SalaryAmount" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="เงินวิทยฐานะ" ColSpanMd="4">
-            <DxMaskedInput @bind-Value="Work.AcademicSalary" Mask="@sc.mask.maskDecimal" />
+            <ScInput Col="@sc.css.col.Decimal" @bind-Value="Work.AcademicSalary" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="เงินประจำตำแหน่ง" ColSpanMd="4">
-            <DxMaskedInput @bind-Value="Work.RemunerationAmount" Mask="@sc.mask.maskDecimal" />
+            <ScInput Col="@sc.css.col.Decimal" @bind-Value="Work.RemunerationAmount" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="เงินได้จริง" ColSpanMd="4">
-            <DxMaskedInput @bind-Value="Work.SalaryReal" Mask="@sc.mask.maskDecimal" />
+            <ScInput Col="@sc.css.col.Decimal" @bind-Value="Work.SalaryReal" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="วันสิ้นสุดสัญญา" ColSpanMd="4">
             <DxDateEdit @bind-Date="Work.EndingcontractDate" NullText="วันสิ้นสุดสัญญา" />
@@ -158,7 +160,7 @@
 
     <DxFormLayoutGroup Caption="การส่งหุ้น" ColSpanMd="12">
         <DxFormLayoutItem Caption="ส่งหุ้นรายเดือน" ColSpanMd="4">
-            <DxMaskedInput @bind-Value="Form.ShareMonthly" Mask="@sc.mask.maskDecimal" />
+            <ScInput Col="@sc.css.col.Decimal" @bind-Value="Form.ShareMonthly" />
         </DxFormLayoutItem>
     </DxFormLayoutGroup>
 </DxFormLayout>
@@ -204,7 +206,7 @@ else
                                     ValueFieldName="@nameof(ConcernDto.Code)" TextFieldName="@nameof(ConcernDto.RelatedNa)"
                                     @bind-Value="row.ConcernCode" NullText="—" />
                     </td>
-                    <td><DxMaskedInput @bind-Value="row.GainPercent" Mask="@sc.mask.maskPercent2" /></td>
+                    <td><ScInput @bind-Value="row.GainPercent" Mask="@sc.mask.maskPercent2" /></td>
                     <td><DxButton Text="ลบ" RenderStyle="ButtonRenderStyle.Danger" Click="() => RemoveGain(row)" /></td>
                 </tr>
             }
@@ -287,8 +289,22 @@ else
 
 @* ── address sub-form (ใช้ซ้ำ 3 ที่อยู่) ─────────────────────────────────────────── *@
 @{
-    RenderFragment AddressBlock(string title, AppAddressDto a) =>
+    RenderFragment AddressBlock(string title, AppAddressDto a, params (string label, AppAddressDto src)[] sources) =>
     @<DxFormLayoutGroup Caption="@title" ColSpanMd="12">
+        @if (sources.Length > 0)
+        {
+            <DxFormLayoutItem Caption="คัดลอกจาก" ColSpanMd="12">
+                <div class="nb-addr-copy">
+                    @foreach (var s in sources)
+                    {
+                        var from = s.src;
+                        <DxButton Text="@($"คัดลอก {s.label}")" RenderStyle="ButtonRenderStyle.Secondary"
+                                  RenderStyleMode="ButtonRenderStyleMode.Outline" SizeMode="SizeMode.Small"
+                                  Click="@(() => CopyAddress(from, a))" />
+                    }
+                </div>
+            </DxFormLayoutItem>
+        }
         <DxFormLayoutItem Caption="บ้านเลขที่" ColSpanMd="3">
             <DxTextBox @bind-Text="a.AddressNo" />
         </DxFormLayoutItem>
@@ -349,6 +365,22 @@ else
         string.IsNullOrEmpty(districtCode)
             ? Enumerable.Empty<SubdistrictDto>()
             : Lookups.Subdistricts.Where(s => s.DistrictCode == districtCode);
+
+    // ── คัดลอกที่อยู่ข้ามชุด (ปัจจุบัน ↔ ทะเบียนบ้าน ↔ ที่ทำงาน) ───────────────────
+    // copy ทุก field ยกเว้น AddressType (คงประเภทของช่องปลายทาง)
+    private void CopyAddress(AppAddressDto from, AppAddressDto to)
+    {
+        to.AddressNo    = from.AddressNo;
+        to.Moo          = from.Moo;
+        to.Mooban       = from.Mooban;
+        to.Soi          = from.Soi;
+        to.Road         = from.Road;
+        to.ProvinceCode = from.ProvinceCode;
+        to.DistrictCode = from.DistrictCode;
+        to.Tambol       = from.Tambol;
+        to.Postcode     = from.Postcode;
+        to.Telephone    = from.Telephone;
+    }
 
     private void OnProvinceChanged(AppAddressDto a, string value)
     {

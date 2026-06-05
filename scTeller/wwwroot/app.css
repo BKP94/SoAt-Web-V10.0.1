@@ -304,6 +304,14 @@ a.home-card:hover {
 .nb-img { width: 180px; height: 220px; object-fit: cover; border-radius: 10px; border: 1px solid var(--line, #e6e9ef); }
 .nb-img--empty { display: flex; align-items: center; justify-content: center; color: #9ca3af; background: var(--page-bg, #f3f5f9); }
 
+/* ── ปุ่มคัดลอกที่อยู่ (PanHead address copy) ───────────────────── */
+.nb-addr-copy { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* ── numeric (ScInput col-*) ชิดขวาเหมือน legacy ───────────────── */
+.col-integer input, .col-integer2 input,
+.col-decimal input, .col-decimal2 input, .col-decimal3 input,
+.col-year input, .col-month input { text-align: right; }
+
 /* ── Blazor scaffold boilerplate (เดิม) ───────────────────────── */
 h1:focus { outline: none; }
 

@@ -1,0 +1,36 @@
+@typeparam TValue
+@using System.Linq.Expressions
+@using sc
+
+@* ── ScInput — masked input กลาง อ่าน col-* เป็น marker (เลียน legacy) ───────────────
+   ใส่ Col="@sc.css.col.Decimal" แล้ว component เลือก mask ให้เอง (ผ่าน sc.css.maskOf)
+   หน้าจอไม่ต้องรู้ mask string — แค่บอกว่าช่องนี้เป็น integer/decimal/year/...
+   ถ้าเป็น format พิเศษ (เช่น %, บัตร ปชช.) ที่ไม่มี col-marker → ส่ง Mask="@sc.mask.*" ตรงได้
+   format/value ทั้งหมดยังคงมาจาก sc.* ตาม Coding Guideline *@
+
+<DxMaskedInput TValue="TValue"
+               Value="Value"
+               ValueChanged="ValueChanged"
+               ValueExpression="ValueExpression"
+               Mask="@ResolvedMask"
+               NullText="@NullText"
+               CssClass="@CssClass" />
+
+@code {
+    [Parameter] public TValue? Value { get; set; }
+    [Parameter] public EventCallback<TValue?> ValueChanged { get; set; }
+    [Parameter] public Expression<Func<TValue?>>? ValueExpression { get; set; }
+
+    /// <summary>CSS col-marker (sc.css.col.*) — บอกชนิดช่อง แล้ว resolve mask อัตโนมัติ</summary>
+    [Parameter] public string? Col { get; set; }
+
+    /// <summary>override mask ตรง (สำหรับ format ที่ไม่มี col-marker เช่น %, บัตร ปชช.)</summary>
+    [Parameter] public string? Mask { get; set; }
+
+    [Parameter] public string? NullText { get; set; }
+
+    private string? ResolvedMask => Mask ?? css.maskOf(Col);
+
+    // ติด col-* class ไว้บน input ด้วย (เลียน legacy) — ใช้จัด text-align ฯลฯ ใน app.css
+    private string? CssClass => Col;
+}

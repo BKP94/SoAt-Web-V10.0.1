@@ -31,7 +31,7 @@
 
 html, body {
     margin: 0;
-    font-family: "Sarabun", "Segoe UI", Tahoma, sans-serif;
+    font-family: "Prompt", "Segoe UI", Tahoma, sans-serif;
     background: var(--page-bg);
     color: var(--ink);
 }
@@ -333,3 +333,6 @@ h1:focus { outline: none; }
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+
+/* Prompt font for whole app; also drives DevExpress (Bootstrap 5) via --bs-body-font-family (font/layout only - see CLAUDE.md) */
+:root { --bs-body-font-family: "Prompt", "Segoe UI", Tahoma, sans-serif; }

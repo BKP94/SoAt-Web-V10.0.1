@@ -1,4 +1,4 @@
-﻿@inject IConfiguration Config
+@inject IConfiguration Config
 
 <!DOCTYPE html>
 <html lang="en">
@@ -8,6 +8,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="/" />
     @* DevExpress theme (Bootstrap 5) — เปลี่ยน theme ที่ appsettings "DevExpress:Theme" จุดเดียว *@
+    <!-- Prompt font (self-host, intranet-friendly) -->
+    <link rel="stylesheet" href="fonts/prompt.css" />
     <link rel="stylesheet" href="_content/DevExpress.Blazor.Themes/@(Config["DevExpress:Theme"] ?? "office-white").bs5.min.css" />
     <ResourcePreloader />
     <link rel="stylesheet" href="@Assets["app.css"]" />

@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -22,7 +22,9 @@ builder.Services.AddDevExpressBlazor();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 // โ”€โ”€ Shared cookie auth โ€” เธญเนเธฒเธ cookie เธ—เธตเน scCenter เน€เธเนเธ (key ring เน€เธ”เธตเธขเธงเธเธฑเธ) โ”€โ”€
-var keysDir = Path.Combine(
+var keysDir = builder.Configuration["DataProtection:KeyRingPath"];
+if (string.IsNullOrEmpty(keysDir))
+    keysDir = Path.Combine(
     Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SoAt", "keys");
 Directory.CreateDirectory(keysDir);
 builder.Services.AddDataProtection()
@@ -64,6 +66,12 @@ sc.log.init(app.Services.GetRequiredService<ILoggerFactory>());
 sc.app.init(builder.Configuration);
 
 // โ”€โ”€ HTTP pipeline โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
+// Sub-path hosting: IIS sub-application sets PathBase automatically.
+// "PathBase" config is for testing sub-path outside IIS (dev/YARP); empty = root.
+var pathBase = builder.Configuration["PathBase"];
+if (!string.IsNullOrEmpty(pathBase))
+    app.UsePathBase(pathBase);
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);

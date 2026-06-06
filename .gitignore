@@ -16,6 +16,10 @@ legacy_ora_src/
 # Claude Code — local-only (permissions ฯลฯ); launch.json แชร์ได้
 .claude/settings.local.json
 
+# Publish output (build artifact — regenerate ด้วย dotnet publish)
+publish/
+**/publish/
+
 # OS
 .DS_Store
 Thumbs.db

@@ -24,8 +24,12 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 // ── Shared cookie auth (ข้าม app ได้: scCenter + module — ดู CLAUDE.md) ──
 //   key ring ใช้ร่วมกันทุก app + cookie ชื่อเดียว → module อ่าน cookie ที่ scCenter เซ็นได้
-var keysDir = Path.Combine(
-    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SoAt", "keys");
+//   IIS: แต่ละ app pool = คนละ identity → %LOCALAPPDATA% คนละ path → key ring แตก
+//   ตั้ง "DataProtection:KeyRingPath" (appsettings.Production.json) ให้ทุก app ชี้ path กลางเดียวกัน
+var keysDir = builder.Configuration["DataProtection:KeyRingPath"];
+if (string.IsNullOrEmpty(keysDir))
+    keysDir = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SoAt", "keys");
 Directory.CreateDirectory(keysDir);
 builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(keysDir))

@@ -1,0 +1,185 @@
+================================================================================
+  วิธีติดตั้ง SoAt WebApp ขึ้น IIS  (1 port เดียว, หลายระบบเป็น sub-application)
+================================================================================
+
+แนวคิด:
+  - ทุกระบบอยู่ใต้ "site เดียว / port เดียว" (เช่น 8080)
+        http://localhost:8080/           -> scCenter  (login กลาง)
+        http://localhost:8080/scTeller   -> scTeller
+        http://localhost:8080/scFinance  -> scFinance
+  - แต่ละระบบ = Application แยก + App Pool แยก = คนละ process
+        -> อัพระบบเดียวไม่กระทบระบบอื่น (fault isolation + deploy แยก)
+
+กฎเหล็ก 3 ข้อ (ลืมแล้วพังทันที):
+  [1] App Pool ของทุกระบบต้องเป็น "No Managed Code"
+        (.NET Core รันเป็น process dotnet แยก IIS แค่ proxy เข้าไป ไม่ใช้ CLR ของ IIS)
+  [2] 1 App Pool = 1 ระบบ เท่านั้น (in-process ห้ามมี 2 แอปใน pool เดียว)
+        -> ก่อน add ระบบใหม่ ต้องสร้าง App Pool ของระบบนั้นก่อนเสมอ
+  [3] ทุกระบบต้องชี้ key ring เดียวกัน (C:\inetpub\soat\keys) + ให้สิทธิ์ IIS_IUSRS
+        -> ไม่งั้น login ข้ามระบบไม่ได้ (cookie ถอดข้ามกันไม่ออก)
+
+
+--------------------------------------------------------------------------------
+  สิ่งที่ต้องมีก่อน (ติดตั้งครั้งเดียวต่อเครื่อง)
+--------------------------------------------------------------------------------
+  - IIS เปิดใช้งานแล้ว
+  - ASP.NET Core Hosting Bundle (เวอร์ชันตรงกับ .NET ของ project = net10.0)
+        เช็ค: มีไฟล์ C:\Program Files\IIS\Asp.Net Core Module\V2\aspnetcorev2.dll
+        เช็ค runtime: เปิด cmd พิมพ์  dotnet --list-runtimes  ต้องเห็น Microsoft.AspNetCore.App 10.x
+  - PostgreSQL เปิดอยู่ (scCenter ตอน start จะต่อ DB รัน migration + seeder)
+
+
+--------------------------------------------------------------------------------
+  โครงโฟลเดอร์ปลายทาง
+--------------------------------------------------------------------------------
+  C:\inetpub\soat\
+    +-- keys\          <- เก็บกุญแจเข้ารหัส cookie (ใช้ร่วมทุกระบบ)
+    +-- scCenter\      <- ไฟล์ publish ของ scCenter
+    +-- scTeller\      <- ไฟล์ publish ของ scTeller
+    +-- scFinance\     <- ไฟล์ publish ของระบบถัดไป ...
+
+
+================================================================================
+  ขั้นตอนติดตั้ง
+================================================================================
+
+[ ขั้น 1 ] สร้างโฟลเดอร์ soat + keys และให้สิทธิ์
+--------------------------------------------------------------------------------
+  เปิด PowerShell แบบ "Run as Administrator" รัน:
+
+      New-Item -ItemType Directory -Force -Path "C:\inetpub\soat\keys"
+      icacls "C:\inetpub\soat" /grant "IIS_IUSRS:(OI)(CI)(M)"
+
+  - บรรทัด 1: สร้าง C:\inetpub\soat และ C:\inetpub\soat\keys
+  - บรรทัด 2: ให้ IIS_IUSRS (ครอบทุก App Pool identity) สิทธิ์ Modify
+              ทำครั้งเดียวพอ ครอบทุกระบบที่จะ add ในอนาคต
+
+
+[ ขั้น 2 ] Publish แต่ละระบบ แล้วเอาไฟล์มาวางใน soat
+--------------------------------------------------------------------------------
+  publish (ทำที่เครื่อง dev / โฟลเดอร์ project):
+
+      dotnet publish scCenter\scCenter.csproj -c Release -o publish\scCenter
+      dotnet publish scTeller\scTeller.csproj -c Release -o publish\scTeller
+
+  แล้ว copy เนื้อในโฟลเดอร์ publish ไปวางที่ปลายทาง:
+
+      publish\scCenter\*   ->  C:\inetpub\soat\scCenter\
+      publish\scTeller\*   ->  C:\inetpub\soat\scTeller\
+
+  (แต่ละระบบมี web.config มาให้อัตโนมัติจาก publish ไม่ต้องสร้างเอง)
+
+
+[ ขั้น 3 ] Add scCenter ใน IIS (site หลัก = root ของ port)
+--------------------------------------------------------------------------------
+  3.1 สร้าง App Pool ของ scCenter ก่อน:
+        IIS Manager -> Application Pools -> Add Application Pool...
+          Name:               scCenter
+          .NET CLR version:   No Managed Code      <- สำคัญ (กฎข้อ 1)
+          -> OK
+
+  3.2 สร้าง Site:
+        IIS Manager -> Sites -> Add Website...
+          Site name:        scCenter
+          Application pool:  scCenter   (กด Select เลือกอันที่เพิ่งสร้าง)
+          Physical path:    C:\inetpub\soat\scCenter
+          Binding -> Port:  8080
+          -> OK
+
+  3.3 ทดสอบ: เปิด http://localhost:8080/
+        ต้องเห็นหน้า login ของ scCenter
+        (ถ้า error ดูหัวข้อ "แก้ปัญหา" ด้านล่าง)
+
+
+[ ขั้น 4 ] Add ระบบอื่น ๆ ไว้ "ใต้" scCenter  (เช่น scTeller)
+--------------------------------------------------------------------------------
+  ** ก่อน add application ต้องสร้าง App Pool ของระบบนั้นก่อนเสมอ (กฎข้อ 2) **
+
+  4.1 สร้าง App Pool ของระบบนั้น:
+        IIS Manager -> Application Pools -> Add Application Pool...
+          Name:               scTeller
+          .NET CLR version:   No Managed Code      <- สำคัญ
+          -> OK
+
+  4.2 Add Application ใต้ site scCenter:
+        IIS Manager -> Sites -> scCenter -> คลิกขวา -> Add Application...
+          Alias:             scTeller          <- ทำให้ URL เป็น /scTeller
+          Application pool:  scTeller           <- กด Select เลือกให้ตรง (อย่าใช้ pool ของ scCenter!)
+          Physical path:     C:\inetpub\soat\scTeller
+          -> OK
+
+  4.3 ทดสอบ: เปิด http://localhost:8080/scTeller
+        ต้องเข้าได้โดยไม่ต้อง login ซ้ำ (cookie ร่วมกันผ่าน key ring)
+
+  ** ระบบถัดไป (scFinance ฯลฯ) ทำซ้ำขั้น 4.1 - 4.3 เปลี่ยนชื่อ **
+     ตรวจหน้า Application Pools: แต่ละ pool ต้องมี Applications = 1 เสมอ
+     (ถ้า pool ไหนมี 2 = แอดผิด pool -> in-process จะพัง 503)
+
+
+================================================================================
+  วิธีอัพเดตระบบเดียว ภายหลัง (ไม่กระทบระบบอื่น)
+================================================================================
+  สมมติแก้ scTeller แล้วอยากเอาขึ้นใหม่:
+
+  1) publish ใหม่:
+        dotnet publish scTeller\scTeller.csproj -c Release -o publish\scTeller
+
+  2) วางไฟล์ app_offline.htm ในโฟลเดอร์ปลายทางก่อน (IIS จะปล่อย process ของ scTeller):
+        สร้างไฟล์ C:\inetpub\soat\scTeller\app_offline.htm (เนื้อในใส่ข้อความอะไรก็ได้)
+
+  3) copy ไฟล์ publish ใหม่ทับ C:\inetpub\soat\scTeller\  (ยกเว้น app_offline.htm)
+
+  4) ลบ app_offline.htm ออก -> scTeller กลับมาด้วย process ใหม่
+
+  ระหว่างทั้งหมดนี้ scCenter / ระบบอื่นทำงานต่อเนื่อง ไม่ restart ไม่หลุด
+  (มีสคริปต์ช่วย: deploy\update-module.ps1 แต่ path ตั้งไว้สำหรับ publish ในโฟลเดอร์ project
+   ถ้าจะใช้กับ C:\inetpub\soat ให้แก้ตัวแปร $dest ในสคริปต์เป็น C:\inetpub\soat\<module>)
+
+
+================================================================================
+  แก้ปัญหาที่เจอบ่อย
+================================================================================
+
+[ HTTP 500.30 - ASP.NET Core app failed to start ]
+  แอป start ไม่ขึ้น มี exception ตอน startup
+  -> ดูสาเหตุจริงที่: Event Viewer -> Windows Logs -> Application
+     (มองหา source "IIS AspNetCore Module V2" หรือ ".NET Runtime")
+  สาเหตุที่เจอบ่อย:
+    - "Access to the path 'C:\inetpub\soat\keys' is denied"
+          = ยังไม่ได้ทำขั้น 1 (สร้าง keys + icacls)
+    - ต่อ PostgreSQL ไม่ได้
+          = PG ไม่เปิด หรือ connection string ผิด (scCenter ต้องต่อ DB ตอน start)
+
+[ HTTP 503 - Service Unavailable ]
+  App Pool ถูกหยุด (มักเพราะแอป crash ตอน start ซ้ำ ๆ จน IIS สั่งหยุด pool)
+  -> เช็ก Event Viewer หา error ล่าสุด
+  สาเหตุที่เจอบ่อย:
+    - "Only one in-process application is allowed per IIS application pool"
+          = แอดระบบเข้า pool เดียวกับระบบอื่น (กฎข้อ 2)
+          แก้: Sites -> scCenter -> คลิก application นั้น -> Basic Settings...
+               -> เปลี่ยน Application pool เป็น pool ของตัวเอง
+          แล้ว Recycle pool ของ scCenter + Start pool ของระบบนั้น
+
+[ เข้า /scTeller แล้วเด้งกลับไป login วนไม่จบ ]
+  key ring ไม่ร่วมกัน
+  -> เช็ก C:\inetpub\soat\keys มีไฟล์ key-*.xml โผล่หรือยัง
+     และ IIS_IUSRS มีสิทธิ์ Modify (ทำขั้น 1 ให้ครบ)
+
+[ CSS / theme ของ module หาย ตอนเข้า /scTeller ]
+  base href ไม่ทำงาน
+  -> ดู Network ในเบราว์เซอร์ request ควรวิ่งไป /scTeller/_content/... (ไม่ใช่ /_content/...)
+     ปกติ IIS sub-application ตั้ง path ให้อัตโนมัติ ไม่ค่อยเจอปัญหานี้
+
+[ warning "Failed to determine the https port for redirect" ใน log ]
+  ไม่เป็นไร เป็นเพราะรันบน http ล้วน (ไม่มี binding https) ระบบข้าม redirect ให้เอง
+
+
+================================================================================
+  เช็กลิสต์สรุป (กันลืม)
+================================================================================
+  [ ] ขั้น 1: C:\inetpub\soat\keys + icacls IIS_IUSRS (ครั้งเดียว)
+  [ ] ขั้น 2: publish + วางไฟล์ใน C:\inetpub\soat\<ระบบ>\
+  [ ] ขั้น 3: App Pool scCenter (No Managed Code) + Site port 8080 -> ทดสอบ /
+  [ ] ขั้น 4: ทุกระบบ -> สร้าง App Pool (No Managed Code) ก่อน -> Add Application ใต้ scCenter
+  [ ] ตรวจ: ทุก App Pool มี Applications = 1
+================================================================================

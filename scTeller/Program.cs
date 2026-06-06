@@ -23,8 +23,12 @@ builder.Services.AddDevExpressBlazor();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 // โ”€โ”€ Shared cookie auth โ€” เธญเนเธฒเธ cookie เธ—เธตเน scCenter เน€เธเนเธ (key ring เน€เธ”เธตเธขเธงเธเธฑเธ) โ”€โ”€
-var keysDir = Path.Combine(
-    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SoAt", "keys");
+//   IIS: แต่ละ app pool = คนละ identity → %LOCALAPPDATA% คนละ path → key ring แตก
+//   ตั้ง "DataProtection:KeyRingPath" (appsettings.Production.json) ให้ทุก app ชี้ path กลางเดียวกัน
+var keysDir = builder.Configuration["DataProtection:KeyRingPath"];
+if (string.IsNullOrEmpty(keysDir))
+    keysDir = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SoAt", "keys");
 Directory.CreateDirectory(keysDir);
 builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(keysDir))
@@ -63,6 +67,13 @@ var app = builder.Build();
 // โ”€โ”€ Init sc core library โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
 sc.log.init(app.Services.GetRequiredService<ILoggerFactory>());
 sc.app.init(builder.Configuration);
+
+// โ”€โ”€ Sub-path hosting โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
+//   ใต้ IIS sub-application AspNetCoreModule เซ็ต PathBase = /scTeller ให้อัตโนมัติ
+//   config "PathBase" นี้ไว้ทดสอบ sub-path นอก IIS (dev/YARP) เท่านั้น — dev ราก = ปล่อยว่าง
+var pathBase = builder.Configuration["PathBase"];
+if (!string.IsNullOrEmpty(pathBase))
+    app.UsePathBase(pathBase);
 
 // โ”€โ”€ HTTP pipeline โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
 if (!app.Environment.IsDevelopment())

@@ -1,4 +1,5 @@
 @inject IConfiguration Config
+@inject NavigationManager Nav
 
 <!DOCTYPE html>
 <html lang="en">
@@ -6,7 +7,8 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <base href="/" />
+    @* base href = path ของ PathBase (dev ราก = "/", IIS sub-app = "/scTeller/") — รวมจาก NavigationManager *@
+    <base href="@(new Uri(Nav.BaseUri).AbsolutePath)" />
     @* DevExpress theme (Bootstrap 5) — เปลี่ยน theme ที่ appsettings "DevExpress:Theme" จุดเดียว *@
     <!-- Prompt font (self-host, intranet-friendly) -->
     <link rel="stylesheet" href="fonts/prompt.css" />

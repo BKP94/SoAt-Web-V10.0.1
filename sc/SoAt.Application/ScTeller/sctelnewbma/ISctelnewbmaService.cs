@@ -13,4 +13,10 @@ public interface ISctelnewbmaService
 
     /// <summary>อัปเดตใบสมัคร (ยังไม่ถูก approve)</summary>
     Task<ApplicationFormSaveResult> UpdateApplicationAsync(string applicationFormNo, ApplicationFormDto dto, string userId);
+
+    /// <summary>ค้นหาใบสมัครที่บันทึกไว้ (popOpen) ตามเงื่อนไข filter</summary>
+    Task<List<ApplicationSummaryDto>> SearchApplicationsAsync(ApplicationSearchFilter filter);
+
+    /// <summary>รายการสถานะใบสมัคร (สำหรับ dropdown filter + แปลง code→ข้อความในตาราง)</summary>
+    Task<List<ComboItemDto>> GetApplicationStatusesAsync();
 }

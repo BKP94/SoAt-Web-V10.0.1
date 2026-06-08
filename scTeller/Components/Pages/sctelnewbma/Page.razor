@@ -1,7 +1,9 @@
 @page "/sctelnewbma"
 @page "/sctelnewbma/{ApplicationFormNo}"
 @rendermode InteractiveServer
+@using System.Security.Claims
 @using SoAt.Application.ScTeller
+@using scTeller.Components.Pages.sctelnewbma.pops
 @inject ISctelnewbmaService Svc
 @inject NavigationManager Nav
 
@@ -17,13 +19,8 @@
         <h1 class="nb-title">สมัครสมาชิก</h1>
         <span class="nb-sub">@(IsEdit ? $"แก้ไขใบสมัครเลขที่ {ApplicationFormNo}" : "บันทึกใบสมัครสมาชิกใหม่")</span>
     </div>
-    <a class="nb-back" href="/">← กลับหน้าหลัก</a>
+    <a class="nb-back" href=".">← กลับหน้าหลัก</a>
 </div>
-
-@if (_status is not null)
-{
-    <div class="nb-alert @(_ok ? "nb-alert--ok" : "nb-alert--err")">@_status</div>
-}
 
 @if (_lookups is null)
 {
@@ -42,7 +39,12 @@ else
             <PanOperate Busy="_saving" OnNew="NewForm_Click" OnOpen="Open" OnSave="Save" OnCancel="Cancel" />
         </OperateContent>
     </PageRegions>
+
+    <PopOpen @bind-Visible="_openVisible" OnSelected="OnOpenSelected" />
 }
+
+@* กล่องข้อความ modal กลางจอ (ผลบันทึก/validation) — เลียน legacy sc.message *@
+<ScMessage @ref="_msg" />
 
 @code {
     [Parameter] public string? ApplicationFormNo { get; set; }
@@ -54,8 +56,9 @@ else
     private ApplicationFormDto _form = NewForm();
 
     private bool   _saving;
-    private bool   _ok;
-    private string? _status;
+    private bool   _openVisible;   // popup ค้นหา/เปิดใบสมัคร (PopOpen)
+    private ScMessage _msg = default!;   // กล่องข้อความ modal กลางจอ
+    private string? _loadError;          // error ตอนโหลด (แสดงหลัง render แรก)
 
     private string _userId   = "";
     private string _branchId = "";
@@ -67,7 +70,9 @@ else
         if (AuthState is not null)
         {
             var user = (await AuthState).User;
-            _userId   = user.Identity?.Name ?? "";
+            // login id (user_id) สำหรับ session var app.login_id → trigger เขียนลง entry_id varchar(16)
+            // ห้ามใช้ Identity.Name (= DisplayName/user_name ชื่อเต็ม ยาวเกิน 16 → 22001 value too long)
+            _userId   = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
             _branchId = user.FindFirst("branch_id")?.Value ?? "";
         }
 
@@ -75,10 +80,7 @@ else
         {
             var existing = await Svc.GetApplicationAsync(ApplicationFormNo!);
             if (existing is null)
-            {
-                _ok = false;
-                _status = $"ไม่พบใบสมัครเลขที่ {ApplicationFormNo}";
-            }
+                _loadError = $"ไม่พบใบสมัครเลขที่ {ApplicationFormNo}";
             else
             {
                 _form = existing;
@@ -87,14 +89,23 @@ else
         }
     }
 
+    // error ตอนโหลด → แสดงเป็น modal หลัง render แรก (modal ต้องมี component พร้อมก่อน)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && _loadError is not null)
+        {
+            var err = _loadError;
+            _loadError = null;
+            await _msg.Error(err);
+        }
+    }
+
     // ── Operate: บันทึก ───────────────────────────────────────────────────────────
     private async Task Save()
     {
-        _status = null;
         if (!Validate(out var error))
         {
-            _ok = false;
-            _status = error;
+            await _msg.Error(error);
             return;
         }
 
@@ -106,16 +117,16 @@ else
                 ? await Svc.UpdateApplicationAsync(ApplicationFormNo!, _form, _userId)
                 : await Svc.CreateApplicationAsync(_form, _userId, _branchId);
 
-            _ok = true;
-            _status = $"{result.Message} (เลขที่ {result.ApplicationFormNo})";
+            _saving = false;
+            await _msg.Success($"{result.Message} (เลขที่ {result.ApplicationFormNo})");
 
+            // สร้างใหม่ → ไปหน้าแก้ไขใบนั้น (หลังผู้ใช้กดตกลงในกล่องข้อความ)
             if (!IsEdit)
                 Nav.NavigateTo($"/sctelnewbma/{result.ApplicationFormNo}");
         }
         catch (Exception ex)
         {
-            _ok = false;
-            _status = $"เกิดข้อผิดพลาด: {ex.Message}";
+            await _msg.Error($"เกิดข้อผิดพลาด: {ex.Message}");
         }
         finally
         {
@@ -126,20 +137,19 @@ else
     // ── Operate: เพิ่มใหม่ (ล้างฟอร์ม) ─────────────────────────────────────────────
     private void NewForm_Click()
     {
-        if (IsEdit) { Nav.NavigateTo("/sctelnewbma"); return; }
+        if (IsEdit) { Nav.NavigateTo("sctelnewbma"); return; }
         _form = NewForm();
-        _status = null;
     }
 
-    // ── Operate: เปิด / ค้นหา (รอหน้าค้นหา) ────────────────────────────────────────
-    private void Open()
-    {
-        _ok = false;
-        _status = "ฟังก์ชันเปิด/ค้นหาใบสมัคร อยู่ระหว่างพัฒนา";
-    }
+    // ── Operate: เปิด / ค้นหา → popup PopOpen ──────────────────────────────────────
+    private void Open() => _openVisible = true;
+
+    // เลือกใบสมัครจาก popup → นำทางไปหน้าแก้ไขใบนั้น
+    private void OnOpenSelected(string applicationFormNo) =>
+        Nav.NavigateTo($"sctelnewbma/{applicationFormNo}");
 
     // ── Operate: ยกเลิก → กลับหน้าหลัก ─────────────────────────────────────────────
-    private void Cancel() => Nav.NavigateTo("/");
+    private void Cancel() => Nav.NavigateTo("");
 
     // ── validation ────────────────────────────────────────────────────────────────
     private bool Validate(out string error)

@@ -7,7 +7,7 @@
    format/value ทุกตัวมาจาก sc.* (mask/value) ตาม Coding Guideline *@
 
 <DxFormLayout>
-    <DxFormLayoutGroup Caption="ข้อมูลใบสมัคร" ColSpanMd="12">
+    <DxFormLayoutGroup Caption="ข้อมูลใบสมัคร ทดสอบ" ColSpanMd="12">
         <DxFormLayoutItem Caption="วันที่สมัคร" ColSpanMd="4">
             <DxDateEdit @bind-Date="Form.ApplyDate" />
         </DxFormLayoutItem>
@@ -139,7 +139,7 @@
             <DxTextBox @bind-Text="Work.PositionLong" NullText="ชื่อตำแหน่งเต็ม" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="ระดับ" ColSpanMd="4">
-            <DxTextBox @bind-Text="Work.LevelCode" />
+            <ScInput Col="@sc.css.col.Integer" @bind-Value="Work.LevelCode" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="เงินเดือน" ColSpanMd="4">
             <ScInput Col="@sc.css.col.Decimal" @bind-Value="Work.SalaryAmount" />
@@ -206,7 +206,11 @@ else
                                     ValueFieldName="@nameof(ConcernDto.Code)" TextFieldName="@nameof(ConcernDto.RelatedNa)"
                                     @bind-Value="row.ConcernCode" NullText="—" />
                     </td>
-                    <td><ScInput @bind-Value="row.GainPercent" Mask="@sc.mask.maskPercent2" /></td>
+                    <td>
+                        @* พิมพ์ 50 = 50% ตรงๆ (DxSpinEdit ไม่ fill-from-right) — โชว์ "50.00 %" ผ่าน sc.mask *@
+                        <DxSpinEdit @bind-Value="row.GainPercent" DisplayFormat="@sc.mask.maskPercent2"
+                                    ShowSpinButtons="false" MinValue="0m" CssClass="col-decimal" />
+                    </td>
                     <td><DxButton Text="ลบ" RenderStyle="ButtonRenderStyle.Danger" Click="() => RemoveGain(row)" /></td>
                 </tr>
             }

@@ -142,7 +142,7 @@
                             <option value="">— เลือกสาขา —</option>
                             @foreach (var b in _branches)
                             {
-                                <option value="@b.Code">@b.Code — @b.Name</option>
+                                <option value="@b.Code" selected="@(b.Code == DefaultBranchId)">@b.Code — @b.Name</option>
                             }
                         </select>
                     </div>
@@ -208,6 +208,7 @@
     private bool   _hasError;         // login ล้มเหลว (จาก query error=1)
     private bool   _showForgot;       // modal "ลืมรหัสผ่าน"
     private List<sc.ComboItem> _branches = [];
+    private const string DefaultBranchId = "01";   // สาขา default ที่เลือกไว้ใน popup login
     private string? _afToken;         // antiforgery token (จาก prerender)
     private PersistingComponentStateSubscription _persistSub;
 

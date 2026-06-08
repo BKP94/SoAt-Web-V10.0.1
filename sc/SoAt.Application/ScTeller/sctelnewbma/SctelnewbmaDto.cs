@@ -75,8 +75,8 @@ public class AppWorkInfoDto : ISaveRowFilter
     public string?   GroupOther          { get; set; }
     public string?   GroupPosition       { get; set; }
     public string?   PositionLong        { get; set; }
-    public string?   LevelCode           { get; set; }
-    public string?   SalaryRateCode      { get; set; }
+    public int?      LevelCode           { get; set; }   // level_code smallint (รหัสระดับเงินเดือน)
+    public decimal?  SalaryRateCode      { get; set; }   // salary_rate_code decimal(3,1)
     public decimal?  SalaryAmount        { get; set; }
     public decimal?  AcademicSalary      { get; set; }
     public decimal?  RemunerationAmount  { get; set; }
@@ -267,3 +267,25 @@ public class ApplicationFormDto
 
 /// <summary>Response หลังสร้าง/บันทึกใบสมัคร</summary>
 public record ApplicationFormSaveResult(string ApplicationFormNo, string Message);
+
+// ── ค้นหา/เปิดใบสมัคร (popOpen) ────────────────────────────────────────────────
+
+/// <summary>เงื่อนไขค้นหาใบสมัคร (popOpen) — null/ว่าง = ไม่กรอง field นั้น</summary>
+public class ApplicationSearchFilter
+{
+    public string? ApplicationFormNo { get; set; }
+    public string? MemberName        { get; set; }
+    public string? MemberSurname     { get; set; }
+    public string? MemberGroup       { get; set; }   // เลขหน่วย/ชื่อหน่วย (LIKE)
+    public string? ApproveStatus     { get; set; }   // 0/1/2 = approve_status, 3 = ยกเลิก (cancel_status='1')
+}
+
+/// <summary>1 แถวในตารางผลค้นหา (popOpen) — สรุปหัวใบสมัคร</summary>
+public class ApplicationSummaryDto
+{
+    public string?   ApplicationFormNo { get; set; }
+    public DateTime? ApplyDate         { get; set; }
+    public string?   MemberName        { get; set; }   // คำนำหน้า + ชื่อ + สกุล
+    public string?   MemberGroup       { get; set; }   // เลขหน่วย - ชื่อหน่วย
+    public string?   ApproveStatus     { get; set; }   // 0/1/2/3 (3 = ยกเลิก)
+}

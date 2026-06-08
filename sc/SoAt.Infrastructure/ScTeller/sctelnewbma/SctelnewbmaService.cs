@@ -230,6 +230,75 @@ public class SctelnewbmaService(sc.dbFactory dbFactory, sc.save save) : ISctelne
         }
     }
 
+    // ── Search (popOpen) ──────────────────────────────────────────────────────
+
+    public async Task<List<ApplicationSummaryDto>> SearchApplicationsAsync(ApplicationSearchFilter filter)
+    {
+        await using var scDb = dbFactory.create();
+
+        // คำนำหน้า + ชื่อ + สกุล / เลขหน่วย - ชื่อหน่วย / สถานะ (cancel='1' → '3')
+        var sql = new System.Text.StringBuilder(@"
+SELECT a.application_form_no AS application_form_no,
+       a.apply_date          AS apply_date,
+       TRIM(COALESCE(p.prename, '') || ' ' || COALESCE(a.member_name, '') || ' ' || COALESCE(a.member_surname, '')) AS member_name,
+       TRIM(COALESCE(a.member_group_no, ''))
+         || CASE WHEN g.member_group_name IS NOT NULL THEN ' - ' || TRIM(g.member_group_name) ELSE '' END AS member_group,
+       CASE WHEN a.cancel_status = '1' THEN '3' ELSE a.approve_status END AS approve_status
+FROM sc_mem_m_application_form a
+LEFT JOIN sc_mem_m_ucf_prename      p ON p.prename_code    = a.prename_code
+LEFT JOIN sc_mem_m_ucf_member_group g ON g.member_group_no = a.member_group_no
+WHERE 1 = 1");
+
+        var args = new List<object?>();
+        int i = 0;
+
+        if (!string.IsNullOrWhiteSpace(filter.ApplicationFormNo))
+        {
+            sql.Append(" AND a.application_form_no LIKE {" + i + "}");
+            args.Add("%" + filter.ApplicationFormNo.Trim() + "%"); i++;
+        }
+        if (!string.IsNullOrWhiteSpace(filter.MemberName))
+        {
+            sql.Append(" AND a.member_name LIKE {" + i + "}");
+            args.Add("%" + filter.MemberName.Trim() + "%"); i++;
+        }
+        if (!string.IsNullOrWhiteSpace(filter.MemberSurname))
+        {
+            sql.Append(" AND a.member_surname LIKE {" + i + "}");
+            args.Add("%" + filter.MemberSurname.Trim() + "%"); i++;
+        }
+        if (!string.IsNullOrWhiteSpace(filter.MemberGroup))
+        {
+            sql.Append(" AND EXISTS (SELECT NULL FROM sc_mem_m_ucf_member_group mg" +
+                       " WHERE mg.member_group_no = a.member_group_no" +
+                       " AND (mg.member_group_no LIKE {" + i + "} OR mg.member_group_name LIKE {" + i + "}))");
+            args.Add("%" + filter.MemberGroup.Trim() + "%"); i++;
+        }
+        if (!string.IsNullOrWhiteSpace(filter.ApproveStatus))
+        {
+            if (filter.ApproveStatus == "3")
+            {
+                sql.Append(" AND a.cancel_status = '1'");
+            }
+            else
+            {
+                sql.Append(" AND a.cancel_status = '0' AND a.approve_status = {" + i + "}");
+                args.Add(filter.ApproveStatus); i++;
+            }
+        }
+
+        sql.Append(" ORDER BY a.application_form_no DESC");
+
+        return await scDb.getListAsync<ApplicationSummaryDto>(sql.ToString(), args.ToArray());
+    }
+
+    public async Task<List<ComboItemDto>> GetApplicationStatusesAsync()
+    {
+        await using var scDb = dbFactory.create();
+        var items = await scDb.getComboAsync(sc.combo.application_form_status);
+        return items.Select(x => new ComboItemDto(x.Code, x.Name)).ToList();
+    }
+
     // ── Private helpers ───────────────────────────────────────────────────────
 
     // ตัด mask literal (ขีด/ช่องว่าง) ของช่องที่ใช้ text mask ก่อนเก็บลง DB
@@ -241,16 +310,14 @@ public class SctelnewbmaService(sc.dbFactory dbFactory, sc.save save) : ISctelne
             dto.SpouseInfo.IdCard = sc.mask.ofDigits(dto.SpouseInfo.IdCard);  // id_card varchar(15)
     }
 
+    // เลขที่ใบสมัคร — เรียกฟังก์ชัน docno ที่ migrate มาจาก Oracle (เลียน legacy ofGetDocno):
+    //   sp_gen_application_form_no เก็บผลใน session GUC → fp_gen_application_form_no อ่านกลับ
+    //   (2 หลักท้ายปี พ.ศ. + เลขรัน 5 หลัก เช่น 6900001) — running-number ที่ sc_cnt_m_document_no_control
+    //   migration: sql/migrations/2026-06-08_pka_docno_mem_appli.sql
     static async Task<string> GenApplicationFormNoAsync(sc.db scDb)
     {
-        var yearPrefix = DateTime.Now.Year.ToString()[2..];
-        var maxNo = sc.value.toString(await scDb.getValueAsync(
-            "SELECT MAX(application_form_no) FROM sc_mem_m_application_form WHERE application_form_no LIKE {0}",
-            yearPrefix + "%"));
-        int nextSeq = 1;
-        if (maxNo.Length >= 7 && int.TryParse(maxNo[2..], out var prev))
-            nextSeq = prev + 1;
-        return yearPrefix + nextSeq.ToString("D5");
+        await scDb.pkProcedureAsync("pka_mem_newmem.sp_gen_application_form_no()");
+        return sc.value.toString(await scDb.pkFunctionAsync("pka_mem_newmem.fp_gen_application_form_no()"));
     }
 
     // hook: รูป/ลายเซ็น — decode base64 → byte[] (logic เฉพาะที่ engine ไม่ครอบ → [SaveIgnore] บน DTO)

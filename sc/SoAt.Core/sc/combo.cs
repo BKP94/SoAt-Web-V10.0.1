@@ -30,6 +30,8 @@ namespace sc
 
         public const string sex = "M=ชาย/F=หญิง";
         public const string approve_status = "2=รออนุมัติ/1=อนุมัติแล้ว/0=ไม่อนุมัติ";
+        // approve_status + ยกเลิก (cancel_status='1' map เป็น 3) — ใช้กับ filter ค้นหาใบสมัคร (popOpen)
+        public const string application_form_status = "2=รออนุมัติ/1=อนุมัติแล้ว/0=ไม่อนุมัติ/3=ยกเลิก";
         public const string atm_edit_type = "0=ไม่แก้ไข/1=แก้ไขเลขที่บัญชี/2=แก้ไขวงเงินกู้";
         public const string cancel_status = "0=ปกติ/1=ยกเลิก";
         public const string fund_close_status = "0=ปกติ/C=ปิดแล้ว/1=ปิดสัญญา";

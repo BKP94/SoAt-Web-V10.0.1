@@ -1,0 +1,112 @@
+@using SoAt.Application.ScTeller
+@inject ISctelnewbmaService Svc
+
+@* ── PopOpen — ค้นหา/เปิดใบสมัครที่บันทึกไว้ (เลียน legacy sctelnewbma/pops/popOpen.ascx) ──
+   DxPopup: แถบ filter (เลขใบสมัคร/ชื่อ/สกุล/หน่วย/สถานะ) + ตารางผลค้นหา
+   เลือกแถว → ยิง EventCallback OnSelected(application_form_no) กลับให้ Page เปิดใบสมัคร
+   เป็น dumb-ish component: ถือ filter + ผลลัพธ์ของตัวเอง, ไม่ persist อะไร *@
+
+<DxPopup @bind-Visible="Visible" HeaderText="ค้นหาใบสมัครสมาชิก"
+         Width="920px" Height="600px" ShowFooter="true"
+         CloseOnEscape="true" Shown="OnShownAsync">
+    <BodyContentTemplate Context="popup">
+        <div class="po-filter">
+            @* DevExpress: อัปเดตทุกคีย์ใช้ BindValueMode.OnInput (ไม่ใช่ @bind-Text:event="oninput"
+               ซึ่งเป็นของ HTML element → ส่ง ChangeEventArgs เข้า setter string แล้ว circuit crash) *@
+            <DxTextBox @bind-Text="_filter.ApplicationFormNo" NullText="เลขใบสมัคร"
+                       BindValueMode="BindValueMode.OnInput" />
+            <DxTextBox @bind-Text="_filter.MemberName" NullText="ชื่อ"
+                       BindValueMode="BindValueMode.OnInput" />
+            <DxTextBox @bind-Text="_filter.MemberSurname" NullText="สกุล"
+                       BindValueMode="BindValueMode.OnInput" />
+            <DxTextBox @bind-Text="_filter.MemberGroup" NullText="เลขหน่วย/ชื่อหน่วย"
+                       BindValueMode="BindValueMode.OnInput" />
+            <DxComboBox Data="_statuses" TData="ComboItemDto" TValue="string"
+                        ValueFieldName="@nameof(ComboItemDto.Code)" TextFieldName="@nameof(ComboItemDto.Name)"
+                        @bind-Value="_filter.ApproveStatus" NullText="สถานะใบสมัคร"
+                        ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
+            <DxButton Text="ค้นหา" RenderStyle="ButtonRenderStyle.Primary" Click="SearchAsync" />
+        </div>
+
+        <DxGrid Data="_rows" CssClass="po-grid" PageSize="12"
+                ColumnResizeMode="GridColumnResizeMode.NextColumn">
+            <Columns>
+                <DxGridDataColumn Caption="เลขที่ใบสมัคร" FieldName="@nameof(ApplicationSummaryDto.ApplicationFormNo)"
+                                  Width="120px" TextAlignment="GridTextAlignment.Center" />
+                <DxGridDataColumn Caption="วันที่สมัคร" Width="110px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                    <CellDisplayTemplate>
+                        @{ var r = (ApplicationSummaryDto)context.DataItem; }
+                        @sc.value.toStringTH(r.ApplyDate)
+                    </CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn Caption="ชื่อ - สกุล" FieldName="@nameof(ApplicationSummaryDto.MemberName)" />
+                <DxGridDataColumn Caption="หน่วย" FieldName="@nameof(ApplicationSummaryDto.MemberGroup)" />
+                <DxGridDataColumn Caption="สถานะ" Width="110px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                    <CellDisplayTemplate>
+                        @{ var r = (ApplicationSummaryDto)context.DataItem; }
+                        @StatusText(r.ApproveStatus)
+                    </CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn Caption="" Width="70px" AllowSort="false">
+                    <CellDisplayTemplate>
+                        @{ var r = (ApplicationSummaryDto)context.DataItem; }
+                        <DxButton Text="เปิด" RenderStyle="ButtonRenderStyle.Primary"
+                                  Click="() => SelectAsync(r.ApplicationFormNo)" />
+                    </CellDisplayTemplate>
+                </DxGridDataColumn>
+            </Columns>
+        </DxGrid>
+
+        @if (_rows.Count == 0 && _searched)
+        {
+            <div class="po-empty">ไม่พบใบสมัครที่ตรงกับเงื่อนไข</div>
+        }
+    </BodyContentTemplate>
+    <FooterContentTemplate>
+        <DxButton Text="ปิดหน้าจอ" RenderStyle="ButtonRenderStyle.Secondary" Click="Close" />
+    </FooterContentTemplate>
+</DxPopup>
+
+@code {
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public EventCallback<bool> VisibleChanged { get; set; }
+
+    /// เลือกใบสมัครแล้ว — ส่ง application_form_no กลับให้ Page เปิด
+    [Parameter] public EventCallback<string> OnSelected { get; set; }
+
+    private ApplicationSearchFilter        _filter   = new();
+    private List<ApplicationSummaryDto>     _rows     = [];
+    private List<ComboItemDto>              _statuses = [];
+    private bool                            _searched;
+
+    protected override async Task OnInitializedAsync() =>
+        _statuses = await Svc.GetApplicationStatusesAsync();
+
+    // เปิด popup ครั้งใด → โหลดรายการล่าสุด (filter ปัจจุบัน)
+    private Task OnShownAsync() => SearchAsync();
+
+    private async Task SearchAsync()
+    {
+        _rows = await Svc.SearchApplicationsAsync(_filter);
+        _searched = true;
+    }
+
+    private async Task SelectAsync(string? applicationFormNo)
+    {
+        if (string.IsNullOrWhiteSpace(applicationFormNo)) return;
+        await CloseInternal();
+        await OnSelected.InvokeAsync(applicationFormNo);
+    }
+
+    private Task Close() => CloseInternal();
+
+    private async Task CloseInternal()
+    {
+        Visible = false;
+        await VisibleChanged.InvokeAsync(false);
+    }
+
+    // แปลง code สถานะ → ข้อความ (จาก sc.combo.application_form_status ที่โหลดไว้)
+    private string StatusText(string? code) =>
+        _statuses.FirstOrDefault(s => s.Code == code)?.Name ?? code ?? "";
+}

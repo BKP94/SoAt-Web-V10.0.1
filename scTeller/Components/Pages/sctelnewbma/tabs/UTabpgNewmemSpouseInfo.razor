@@ -1,4 +1,5 @@
 @using SoAt.Application.ScTeller
+@inject ISctelnewbmaService Svc
 
 @* ── tab: ข้อมูลครอบครัว (legacy u_tabpg_newmem_spouse_info) ──────────────────────
    • บิดา-มารดา → เก็บที่ header (Form.Father / Form.Mother)
@@ -18,7 +19,8 @@
 
     <DxFormLayoutGroup Caption="ข้อมูลคู่สมรส" ColSpanMd="12">
         <DxFormLayoutItem Caption="ทะเบียน" ColSpanMd="3">
-            <DxTextBox @bind-Text="Spouse.SpouseMemberNo" NullText="เลขทะเบียน (ถ้าเป็นสมาชิก)" />
+            <DxTextBox Text="Spouse.SpouseMemberNo" NullText="เลขทะเบียน (ถ้าเป็นสมาชิก)"
+                       TextChanged="OnSpouseMemberNoChanged" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="คำนำหน้า" ColSpanMd="3">
             <DxComboBox Data="Lookups.Prenames" TData="ComboItemDto" TValue="string"
@@ -33,7 +35,8 @@
         </DxFormLayoutItem>
 
         <DxFormLayoutItem Caption="บัตรประชาชน" ColSpanMd="4">
-            <ScInput @bind-Value="Spouse.IdCard" Mask="@sc.mask.maskIdCard" NullText="x-xxxx-xxxxx-xx-x" />
+            <ScInput Value="Spouse.IdCard" ValueChanged="OnIdCardChanged" TValue="string"
+                     Mask="@sc.mask.maskIdCard" NullText="x-xxxx-xxxxx-xx-x" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="เลขภาษี" ColSpanMd="4">
             <DxTextBox @bind-Text="Spouse.TaxId" NullText="เลขประจำตัวผู้เสียภาษี" />
@@ -106,8 +109,48 @@
     [Parameter, EditorRequired] public ApplicationFormDto Form { get; set; } = default!;
     [Parameter, EditorRequired] public SctelnewbmaLookupsDto Lookups { get; set; } = default!;
 
+    // กล่องข้อความกลาง (cascade จาก Page) — เลียน sc.notify/sc.message ของ legacy
+    [CascadingParameter] public ScMessage? Msg { get; set; }
+
     // alias ของ Form.SpouseInfo (Page รับประกันไม่ null ผ่าน EnsureSubObjects)
     private AppSpouseInfoDto Spouse => Form.SpouseInfo!;
+
+    private string? _idCardOld;   // ค่าเดิมไว้ revert เมื่อกรอกเลขบัตรไม่ถูกต้อง
+
+    // ── value-change: เลขทะเบียนคู่สมรส → ดึงข้อมูล (legacy change_spouse_member_no) ──
+    private async Task OnSpouseMemberNoChanged(string? v)
+    {
+        Spouse.SpouseMemberNo = v;
+        if (string.IsNullOrWhiteSpace(v)) return;
+
+        var r = await Svc.LookupSpouseAsync(v);
+        if (r is null)   // ไม่พบ → legacy onFail (เคลียร์ช่อง)
+        {
+            Spouse.SpouseMemberNo = "";
+            Spouse.PrenameCode    = "";
+            Spouse.SpouseName     = "";
+            Spouse.SpouseSurname  = "";
+            return;
+        }
+        Spouse.SpouseMemberNo = r.SpouseMemberNo;
+        Spouse.PrenameCode    = r.PrenameCode;
+        Spouse.SpouseName     = r.SpouseName;
+        Spouse.SpouseSurname  = r.SpouseSurname;
+    }
+
+    // ── validate เลขบัตรคู่สมรส (legacy change_spouse_id_card) ─────────────────────
+    // ไม่ถูกต้อง → คืนค่าเดิม + เตือน (ตาม legacy ที่ ofSetOldValue(true))
+    private async Task OnIdCardChanged(string? v)
+    {
+        if (!string.IsNullOrEmpty(v) && !sc.value.isValidIdCard(v))
+        {
+            Spouse.IdCard = _idCardOld;
+            if (Msg is not null) await Msg.Error($"เลขบัตรประชาชน: [{v}] ,ไม่ถูกต้อง");
+            return;
+        }
+        Spouse.IdCard = v;
+        _idCardOld    = v;
+    }
 
     // ── address cascade (ที่ทำงานคู่สมรส) ─────────────────────────────────────────
     private IEnumerable<DistrictDto> DistrictsOf(string? provinceCode) =>

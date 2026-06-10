@@ -64,6 +64,15 @@ namespace sc
             return isValidText(text) && decimal.TryParse(text, out _);
         }
         public static bool isValidText(object s) => !string.IsNullOrWhiteSpace(toString(s));
+        /// <summary>ตรวจเลขบัตรประชาชนไทย 13 หลัก (checksum) — port จาก legacy sc.value.isValidIdCard</summary>
+        public static bool isValidIdCard(object? s)
+        {
+            var id = toString(s).Replace("-", "");
+            if (id.Length != 13 || !id.All(char.IsDigit)) return false;
+            int sum = 0;
+            for (int i = 0; i < 12; i++) sum += (id[i] - '0') * (13 - i);
+            return (11 - sum % 11) % 10 == (id[12] - '0');
+        }
         public static bool isValidKey(Dictionary<string, object> s, string keyName)
         {
             if (s == null) throw new Exception("C110:Invalid Dictionary");

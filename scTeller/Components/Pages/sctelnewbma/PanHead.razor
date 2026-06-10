@@ -1,4 +1,6 @@
 @using SoAt.Application.ScTeller
+@using scTeller.Components.Pages.sctelnewbma.pops
+@inject ISctelnewbmaService Svc
 
 @* ── PanHead (Header region) ของ sctelnewbma ─────────────────────────────────────
    ข้อมูลหลักของผู้สมัครทั้งหมด (ส่วนตัว / ที่อยู่ / งาน / หุ้น / ผู้รับผล / รูป)
@@ -24,7 +26,7 @@
         <DxFormLayoutItem Caption="กลุ่มสมาชิก" ColSpanMd="4">
             <DxComboBox Data="Lookups.MemberGroups" TData="MemberGroupDto" TValue="string"
                         ValueFieldName="@nameof(MemberGroupDto.No)" TextFieldName="@nameof(MemberGroupDto.Name)"
-                        @bind-Value="Form.MemberGroupNo" NullText="— เลือก —" />
+                        Value="Form.MemberGroupNo" ValueChanged="@((string v) => OnMemberGroupChanged(v))" NullText="— เลือก —" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="กลุ่มเลือกตั้ง" ColSpanMd="4">
             <DxComboBox Data="Lookups.ElectionGroups" TData="ElectionGroupDto" TValue="string"
@@ -37,13 +39,13 @@
         <DxFormLayoutItem Caption="คำนำหน้า" ColSpanMd="4">
             <DxComboBox Data="Lookups.Prenames" TData="ComboItemDto" TValue="string"
                         ValueFieldName="@nameof(ComboItemDto.Code)" TextFieldName="@nameof(ComboItemDto.Name)"
-                        @bind-Value="Form.PrenameCode" NullText="— เลือก —" />
+                        Value="Form.PrenameCode" ValueChanged="@((string v) => OnPrenameChanged(v))" NullText="— เลือก —" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="ชื่อ" ColSpanMd="4">
-            <DxTextBox @bind-Text="Form.MemberName" NullText="ชื่อ" />
+            <DxTextBox Text="@Form.MemberName" TextChanged="@(async (string v) => { Form.MemberName = v; await OnNameChanged(); })" NullText="ชื่อ" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="นามสกุล" ColSpanMd="4">
-            <DxTextBox @bind-Text="Form.MemberSurname" NullText="นามสกุล" />
+            <DxTextBox Text="@Form.MemberSurname" TextChanged="@(async (string v) => { Form.MemberSurname = v; await OnNameChanged(); })" NullText="นามสกุล" />
         </DxFormLayoutItem>
     </DxFormLayoutGroup>
 
@@ -61,10 +63,14 @@
 
     <DxFormLayoutGroup Caption="ข้อมูลส่วนบุคคล" ColSpanMd="12">
         <DxFormLayoutItem Caption="เลขบัตรประชาชน" ColSpanMd="4">
-            <ScInput @bind-Value="Form.HumId" Mask="@sc.mask.maskIdCard" NullText="x-xxxx-xxxxx-xx-x" />
+            <ScInput Value="Form.HumId" ValueChanged="OnHumIdChanged" TValue="string"
+                     Mask="@sc.mask.maskIdCard" NullText="x-xxxx-xxxxx-xx-x" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="วันเกิด" ColSpanMd="4">
-            <DxDateEdit @bind-Date="Form.DateOfBirth" NullText="เลือกวันเกิด" />
+            <DxDateEdit Date="Form.DateOfBirth" DateChanged="@((DateTime? d) => OnDateOfBirthChanged(d))" NullText="เลือกวันเกิด" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="อายุ" ColSpanMd="4">
+            <DxTextBox Text="@Form.AgeText" ReadOnly="true" NullText="—" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="เพศ" ColSpanMd="4">
             <DxComboBox Data="Lookups.Sexes" TData="ComboItemDto" TValue="string"
@@ -79,7 +85,7 @@
         <DxFormLayoutItem Caption="สัญชาติ" ColSpanMd="4">
             <DxComboBox Data="Lookups.Nationalities" TData="NationalityDto" TValue="string"
                         ValueFieldName="@nameof(NationalityDto.Code)" TextFieldName="@nameof(NationalityDto.Description)"
-                        @bind-Value="Form.NationalityCode" NullText="— เลือก —" />
+                        Value="Form.NationalityCode" ValueChanged="@((string v) => OnNationalityChanged(v))" NullText="— เลือก —" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="กรุ๊ปเลือด" ColSpanMd="4">
             <DxComboBox Data="Lookups.Bloods" TData="BloodDto" TValue="string"
@@ -130,25 +136,42 @@
         <DxFormLayoutItem Caption="รหัสหน่วยจ่ายเงินเดือน" ColSpanMd="4">
             <DxTextBox @bind-Text="Work.SalaryId" />
         </DxFormLayoutItem>
-        <DxFormLayoutItem Caption="กลุ่มตำแหน่ง" ColSpanMd="4">
+        <DxFormLayoutItem Caption="ประเภทงาน" ColSpanMd="4">
             <DxComboBox Data="Lookups.GroupPositions" TData="GroupPositionDto" TValue="string"
                         ValueFieldName="@nameof(GroupPositionDto.Code)" TextFieldName="@nameof(GroupPositionDto.Description)"
-                        @bind-Value="Work.GroupPosition" NullText="— เลือก —" />
+                        Value="Work.GroupPosition" ValueChanged="@((string v) => Work.GroupPosition = v)" NullText="— เลือก —" />
         </DxFormLayoutItem>
-        <DxFormLayoutItem Caption="ตำแหน่ง" ColSpanMd="8">
+        @* ตำแหน่งอื่นๆ — โชว์เฉพาะประเภทงาน = "00" (legacy change_group_position: GROUP_OTHER visibility) *@
+        @if (Work.GroupPosition == "00")
+        {
+            <DxFormLayoutItem Caption="ระบุประเภทงานอื่นๆ" ColSpanMd="4">
+                <DxTextBox @bind-Text="Work.GroupOther" NullText="ระบุประเภทงานอื่นๆ" />
+            </DxFormLayoutItem>
+        }
+        <DxFormLayoutItem Caption="ตำแหน่ง" ColSpanMd="@(Work.GroupPosition == "00" ? 4 : 8)">
             <DxTextBox @bind-Text="Work.PositionLong" NullText="ชื่อตำแหน่งเต็ม" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="ระดับ" ColSpanMd="4">
-            <ScInput Col="@sc.css.col.Integer" @bind-Value="Work.LevelCode" />
+            <DxComboBox Data="Lookups.SalaryLevels" TData="SalaryLevelDto" TValue="int?"
+                        ValueFieldName="@nameof(SalaryLevelDto.Code)" TextFieldName="@nameof(SalaryLevelDto.Name)"
+                        Value="Work.LevelCode" ValueChanged="@((int? v) => OnLevelChanged(v))" NullText="— ระดับ —" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ขั้น" ColSpanMd="4">
+            <DxComboBox Data="SalaryRatesOf(Work.LevelCode)" TData="SalaryRateDto" TValue="decimal?"
+                        ValueFieldName="@nameof(SalaryRateDto.Code)" TextFieldName="@nameof(SalaryRateDto.Name)"
+                        @bind-Value="Work.SalaryRateCode" NullText="— ขั้น —" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="เงินเดือน" ColSpanMd="4">
-            <ScInput Col="@sc.css.col.Decimal" @bind-Value="Work.SalaryAmount" />
+            <ScInput Col="@sc.css.col.Decimal" Value="Work.SalaryAmount" TValue="decimal?"
+                     ValueChanged="@(async (decimal? v) => { Work.SalaryAmount = v; await OnSalaryChanged(); })" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="เงินวิทยฐานะ" ColSpanMd="4">
-            <ScInput Col="@sc.css.col.Decimal" @bind-Value="Work.AcademicSalary" />
+            <ScInput Col="@sc.css.col.Decimal" Value="Work.AcademicSalary" TValue="decimal?"
+                     ValueChanged="@(async (decimal? v) => { Work.AcademicSalary = v; await OnSalaryChanged(); })" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="เงินประจำตำแหน่ง" ColSpanMd="4">
-            <ScInput Col="@sc.css.col.Decimal" @bind-Value="Work.RemunerationAmount" />
+            <ScInput Col="@sc.css.col.Decimal" Value="Work.RemunerationAmount" TValue="decimal?"
+                     ValueChanged="@(async (decimal? v) => { Work.RemunerationAmount = v; await OnSalaryChanged(); })" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="เงินได้จริง" ColSpanMd="4">
             <ScInput Col="@sc.css.col.Decimal" @bind-Value="Work.SalaryReal" />
@@ -159,8 +182,12 @@
     </DxFormLayoutGroup>
 
     <DxFormLayoutGroup Caption="การส่งหุ้น" ColSpanMd="12">
-        <DxFormLayoutItem Caption="ส่งหุ้นรายเดือน" ColSpanMd="4">
-            <ScInput Col="@sc.css.col.Decimal" @bind-Value="Form.ShareMonthly" />
+        <DxFormLayoutItem Caption="หุ้น (หน่วย)" ColSpanMd="4">
+            @* legacy share_monthly_hoon: 1 หน่วย = 10 บาท → set ส่งหุ้นรายเดือน *@
+            <ScInput Col="@sc.css.col.Integer" Value="ShareHoon" ValueChanged="OnShareHoonChanged" TValue="int?" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ส่งหุ้นรายเดือน (บาท)" ColSpanMd="4">
+            <ScInput Col="@sc.css.col.Decimal" Value="Form.ShareMonthly" ValueChanged="OnShareMonthlyChanged" TValue="decimal?" />
         </DxFormLayoutItem>
     </DxFormLayoutGroup>
 </DxFormLayout>
@@ -183,6 +210,7 @@ else
                 <th>คำนำหน้า</th>
                 <th>ชื่อ</th>
                 <th>นามสกุล</th>
+                <th style="width:170px">เลขบัตรประชาชน</th>
                 <th>ความเกี่ยวข้อง</th>
                 <th style="width:120px">สัดส่วน (%)</th>
                 <th style="width:56px"></th>
@@ -201,6 +229,10 @@ else
                     </td>
                     <td><DxTextBox @bind-Text="row.GainName" /></td>
                     <td><DxTextBox @bind-Text="row.GainSurname" /></td>
+                    <td>
+                        <ScInput Value="row.GainIdCard" TValue="string" Mask="@sc.mask.maskIdCard" NullText="x-xxxx-xxxxx-xx-x"
+                                 ValueChanged="@(async (string v) => await OnGainIdCardChanged(row, v))" />
+                    </td>
                     <td>
                         <DxComboBox Data="Lookups.Concerns" TData="ConcernDto" TValue="string"
                                     ValueFieldName="@nameof(ConcernDto.Code)" TextFieldName="@nameof(ConcernDto.RelatedNa)"
@@ -248,7 +280,10 @@ else
                 var row = m;
                 <tr>
                     <td class="nb-seq">@row.SeqNo</td>
-                    <td><DxTextBox @bind-Text="row.MembershipNo" NullText="เลขสมาชิก" /></td>
+                    <td>
+                        <DxTextBox Text="row.MembershipNo" NullText="เลขสมาชิก"
+                                   TextChanged="@(async (string v) => await OnReferMemnoChanged(row, v))" />
+                    </td>
                     <td><DxTextBox @bind-Text="row.MemberName" NullText="ชื่อ-สกุล" /></td>
                     <td>
                         <DxComboBox Data="Lookups.Concerns" TData="ConcernDto" TValue="string"
@@ -354,8 +389,214 @@ else
     [Parameter, EditorRequired] public ApplicationFormDto Form { get; set; } = default!;
     [Parameter, EditorRequired] public SctelnewbmaLookupsDto Lookups { get; set; } = default!;
 
+    // กล่องข้อความกลาง (cascade จาก Page) — เลียน sc.message/sc.notify ของ legacy
+    [CascadingParameter] public ScMessage? Msg { get; set; }
+    // popup รายชื่อ ปปง. (cascade จาก Page) — legacy popValidateAML
+    [CascadingParameter] public PopValidateAML? Aml { get; set; }
+
     // alias ของ Form.WorkInfo (Index รับประกันว่าไม่ null ผ่าน EnsureSubObjects)
     private AppWorkInfoDto Work => Form.WorkInfo!;
+
+    // ── value-change: คำนำหน้า → เพศ + สถานภาพสมรส (legacy change_prename_code) ──────
+    private async Task OnPrenameChanged(string value)
+    {
+        Form.PrenameCode = value;
+        var d = await Svc.GetPrenameDefaultAsync(value ?? "");
+        Form.Sex            = d.Sex;
+        Form.MarriageStatus = d.MarriageStatus;
+    }
+
+    // ── value-change: กลุ่มสมาชิก → กลุ่มช่วยเลือกตั้ง (legacy change_member_group_no) ──
+    private async Task OnMemberGroupChanged(string value)
+    {
+        Form.MemberGroupNo = value;
+        Form.ElectionGroup = await Svc.GetElectionHelpGroupAsync(value ?? "");
+    }
+
+    // ── value-change: วันเกิด → อายุ + เตือนถ้าอายุ < 20 (legacy change_date_of_birth) ──
+    private async Task OnDateOfBirthChanged(DateTime? date)
+    {
+        Form.DateOfBirth = date;
+        if (date is null) { Form.AgeText = null; return; }
+
+        Form.AgeText = await Svc.CalcAgeTextAsync(date.Value);
+
+        // อายุยังไม่ถึง 20 ปีบริบูรณ์ → เตือน (ดึงจำนวนปีจากข้อความหน้า "ปี")
+        var ageText = Form.AgeText ?? "";
+        var yearOld = ageText.Contains("ปี")
+            ? sc.value.toInteger(ageText[..ageText.IndexOf("ปี")]) : 0;
+        if (yearOld < 20 && Msg is not null)
+            await Msg.Info($"ผู้สมัครเกิดวันที่ {sc.value.toStringTH(date)}, อายุ {ageText}<br>อายุยังไม่ถึง 20 ปี บริบูรณ์");
+    }
+
+    // ── value-change: เลขบัตร ปชช. (legacy change_hum_id + ofValidateHumid) ──────────
+    private string? _humIdOld;
+    private async Task OnHumIdChanged(string? v)
+    {
+        Form.HumId = v;
+        var digits = sc.mask.ofDigits(v);
+
+        // 0000000000000 = bypass (ใช้สมัครนิติบุคคล) — ไม่ต้องเช็ค
+        if (digits == "0000000000000") { _humIdOld = v; return; }
+
+        // เช็คเฉพาะสัญชาติไทย (01) ตาม legacy
+        if (Form.NationalityCode == "01")
+        {
+            if (!sc.value.isValidIdCard(digits))
+            {
+                Form.HumId = _humIdOld;
+                if (Msg is not null) await Msg.Error($"เลขบัตรประชาชน: {v} ,ไม่ถูกต้อง");
+                return;
+            }
+
+            var r = await Svc.ValidateHumIdAsync(digits, Form.ApplyDate ?? DateTime.Today);
+            if (r.AmlMatch)
+            {
+                // legacy เปิด popup ปปง. (popValidateAML) แล้วไม่ให้ใช้เลขนี้
+                Form.HumId = "";
+                if (Aml is not null) await Aml.ShowAsync("popHumID", "", "", digits);
+            }
+            else if (!r.AllowRegister)
+            {
+                Form.HumId = "";
+                if (Msg is not null && !string.IsNullOrWhiteSpace(r.Message)) await Msg.Error(r.Message);
+            }
+            else if (!string.IsNullOrWhiteSpace(r.Message))
+            {
+                Form.ApplTypeCode = "M";   // เคยเป็นสมาชิก/ค้ำ → ประเภทการสมัคร = ย้าย (M)
+                if (Msg is not null) await Msg.Info(r.Message);
+            }
+        }
+        _humIdOld = v;
+    }
+
+    // เปลี่ยนสัญชาติ → re-validate เลขบัตร (legacy change_nationality_code)
+    private async Task OnNationalityChanged(string v)
+    {
+        Form.NationalityCode = v;
+        await OnHumIdChanged(Form.HumId);
+    }
+
+    // ── value-change: ชื่อ-สกุล → เช็คซ้ำ/ปปง. (legacy change_name + of_validate_name) ──
+    private async Task OnNameChanged()
+    {
+        var name = Form.MemberName ?? "";
+        var surname = Form.MemberSurname ?? "";
+        if (name == "" || surname == "") return;
+
+        var r = await Svc.ValidateNameAsync(name, surname);
+        if (Msg is not null && !string.IsNullOrWhiteSpace(r.Message))
+            await Msg.Info(r.Message);
+        if (r.AmlMatch && Aml is not null)
+            await Aml.ShowAsync("popName", name, surname, "");
+    }
+
+    // ── value-change: เงินเดือน(รวม) → คำนวณหุ้นใหม่ (legacy change_salary_amount) ─────
+    private async Task OnSalaryChanged()
+    {
+        var total = (Work.SalaryAmount ?? 0) + (Work.AcademicSalary ?? 0) + (Work.RemunerationAmount ?? 0);
+        var r = await Svc.UpdateShareMonthlyAsync(Form.MemType ?? "", Form.MemberGroupNo ?? "", "salary_amount", 0, total);
+        Form.ShareMonthly = r.ShareMonthly;
+        Work.SalaryReal   = total;
+    }
+
+    // ── value-change: กรอกหุ้นเอง → เช็คเศษ + min/max (legacy change_share_monthly) ────
+    private async Task OnShareMonthlyChanged(decimal? v)
+    {
+        var newValue = v ?? 0;
+
+        // ค่าหุ้นต้องไม่มีเศษ (หาร 10 ลงตัว)
+        if (newValue % 10 != 0)
+        {
+            Form.ShareMonthly = 0;
+            if (Msg is not null) await Msg.Error($"ค่าหุ้น({sc.value.toStringF(newValue)}) ต้องไม่มีเศษ ,กรุณาแก้ไข");
+            return;
+        }
+
+        Form.ShareMonthly = newValue;
+        var salaryAmount = Work.SalaryAmount ?? 0;
+        var r = await Svc.UpdateShareMonthlyAsync(Form.MemType ?? "", Form.MemberGroupNo ?? "", "share_monthly", newValue, salaryAmount);
+        Form.ShareMonthly = r.ShareMonthly;
+
+        // MWA: ตรวจขั้นต่ำ/สูงสุด (service คืน Min/MaxShare เฉพาะ MWA)
+        if (r.MinShare is null && r.MaxShare is null) return;
+
+        var share            = Form.ShareMonthly ?? 0;
+        var maxSharePerSalary = salaryAmount / 10;
+        var maximumShare      = r.MaxShare ?? 0;
+
+        if (r.MinShare is decimal min && share < min)
+        {
+            Form.ShareMonthly = min;
+            if (Msg is not null) await Msg.Alert($"ไม่สามารถส่งหุ้นน้อยกว่า [ {min} ] บาท ได้");
+            return;
+        }
+        if (share > maxSharePerSalary)
+        {
+            if (maxSharePerSalary > maximumShare)
+            {
+                Form.ShareMonthly = maximumShare;
+                if (Msg is not null) await Msg.Alert($"ไม่สามารถส่งหุ้นมากกว่า [ {maximumShare} ] บาท ได้");
+            }
+            else
+            {
+                Form.ShareMonthly = maxSharePerSalary;
+                if (Msg is not null) await Msg.Alert($"ไม่สามารถส่งหุ้นมากกว่า 10% ของเงินเดือนได้ [ {maxSharePerSalary} บาท ]");
+            }
+            return;
+        }
+        if (share > maximumShare)
+        {
+            Form.ShareMonthly = maximumShare;
+            if (Msg is not null) await Msg.Alert($"ไม่สามารถส่งหุ้นมากกว่า [ {maximumShare} ] บาท ได้");
+        }
+    }
+
+    // ── value-change: สมาชิกอ้างอิง เลขสมาชิก → ดึงชื่อ (legacy ofCheckMemno) ──────────
+    private async Task OnReferMemnoChanged(AppMemberReferDto row, string? v)
+    {
+        var r = await Svc.LookupMemberAsync(v ?? "");
+        if (r is null)
+        {
+            row.MembershipNo = "";
+            row.MemberName   = "";
+            if (Msg is not null) await Msg.Error($"ไม่พบทะเบียนสมาชิก ,{v}");
+            return;
+        }
+        row.MembershipNo = r.MembershipNo;
+        row.MemberName   = r.MemberName;
+    }
+
+    // ── value-change: ระดับเงินเดือน → reset ขั้น (legacy change_level_code) ──────────
+    private IEnumerable<SalaryRateDto> SalaryRatesOf(int? levelCode) =>
+        levelCode is null
+            ? Enumerable.Empty<SalaryRateDto>()
+            : Lookups.SalaryRates.Where(r => r.LevelCode == levelCode);
+
+    private void OnLevelChanged(int? v)
+    {
+        Work.LevelCode      = v;
+        Work.SalaryRateCode = null;   // เปลี่ยนระดับ → ล้างขั้น
+    }
+
+    // ── value-change: หุ้น(หน่วย) → ส่งหุ้นรายเดือน (legacy change_share_monthly_hoon) ──
+    private int? ShareHoon => Form.ShareMonthly is decimal s ? (int)(s / 10) : null;
+    private async Task OnShareHoonChanged(int? v) => await OnShareMonthlyChanged((v ?? 0) * 10);
+
+    // ── value-change: เลขบัตร ผู้รับผลประโยชน์ (legacy gvGain.change_id_card) ──────────
+    private readonly Dictionary<AppRecrieveGainDto, string?> _gainIdOld = new();
+    private async Task OnGainIdCardChanged(AppRecrieveGainDto row, string? v)
+    {
+        var digits = sc.mask.ofDigits(v);
+        if (!string.IsNullOrEmpty(digits) && !sc.value.isValidIdCard(digits))
+        {
+            row.GainIdCard = _gainIdOld.GetValueOrDefault(row);   // revert ค่าเดิม
+            if (Msg is not null) await Msg.Error($"เลขบัตรประชาชน: [{v}] ,ไม่ถูกต้อง");
+            return;
+        }
+        row.GainIdCard      = v;
+        _gainIdOld[row]     = v;
+    }
 
     private decimal GainPercentTotal => Form.RecrieveGains.Sum(g => g.GainPercent ?? 0m);
 

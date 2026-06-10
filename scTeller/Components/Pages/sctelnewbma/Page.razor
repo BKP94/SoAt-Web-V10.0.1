@@ -28,23 +28,32 @@
 }
 else
 {
-    <PageRegions>
-        <HeaderContent>
-            <PanHead Form="_form" Lookups="_lookups" />
-        </HeaderContent>
-        <TabsContent>
-            <PanTabs Form="_form" Lookups="_lookups" />
-        </TabsContent>
-        <OperateContent>
-            <PanOperate Busy="_saving" OnNew="NewForm_Click" OnOpen="Open" OnSave="Save" OnCancel="Cancel" />
-        </OperateContent>
-    </PageRegions>
+    @* cascade ScMessage ลงทุก child (PanHead/tabs) → child เรียก Msg.Error/Info ได้ตรง
+       เลียน global sc.message/sc.notify ของ legacy. _msg ถูก assign หลัง render แรก
+       (ดู OnAfterRenderAsync ที่ force re-render ครั้งเดียวให้ค่ากระจายถึง child) *@
+    <CascadingValue Value="_msg" IsFixed="false">
+    <CascadingValue Value="_aml" IsFixed="false">
+        <PageRegions>
+            <HeaderContent>
+                <PanHead Form="_form" Lookups="_lookups" />
+            </HeaderContent>
+            <TabsContent>
+                <PanTabs Form="_form" Lookups="_lookups" />
+            </TabsContent>
+            <OperateContent>
+                <PanOperate Busy="_saving" OnNew="NewForm_Click" OnOpen="Open" OnSave="Save" OnCancel="Cancel" />
+            </OperateContent>
+        </PageRegions>
 
-    <PopOpen @bind-Visible="_openVisible" OnSelected="OnOpenSelected" />
+        <PopOpen @bind-Visible="_openVisible" OnSelected="OnOpenSelected" />
+    </CascadingValue>
+    </CascadingValue>
 }
 
 @* กล่องข้อความ modal กลางจอ (ผลบันทึก/validation) — เลียน legacy sc.message *@
 <ScMessage @ref="_msg" />
+@* popup รายชื่อ ปปง. (cascade ลง PanHead เหมือน ScMessage) *@
+<PopValidateAML @ref="_aml" />
 
 @code {
     [Parameter] public string? ApplicationFormNo { get; set; }
@@ -58,6 +67,7 @@ else
     private bool   _saving;
     private bool   _openVisible;   // popup ค้นหา/เปิดใบสมัคร (PopOpen)
     private ScMessage _msg = default!;   // กล่องข้อความ modal กลางจอ
+    private PopValidateAML _aml = default!;   // popup รายชื่อ ปปง.
     private string? _loadError;          // error ตอนโหลด (แสดงหลัง render แรก)
 
     private string _userId   = "";
@@ -92,11 +102,18 @@ else
     // error ตอนโหลด → แสดงเป็น modal หลัง render แรก (modal ต้องมี component พร้อมก่อน)
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender && _loadError is not null)
+        if (firstRender)
         {
-            var err = _loadError;
-            _loadError = null;
-            await _msg.Error(err);
+            // _msg เพิ่งถูก assign ผ่าน @ref หลัง render แรก → re-render ครั้งเดียว
+            // ให้ CascadingValue ส่ง instance (เดิมเป็น null) ลงไปถึง PanHead/tabs
+            StateHasChanged();
+
+            if (_loadError is not null)
+            {
+                var err = _loadError;
+                _loadError = null;
+                await _msg.Error(err);
+            }
         }
     }
 
@@ -169,7 +186,7 @@ else
     // ── model lifecycle ─────────────────────────────────────────────────────────────
     private static ApplicationFormDto NewForm()
     {
-        var f = new ApplicationFormDto { ApplyDate = DateTime.Today };
+        var f = new ApplicationFormDto { ApplyDate = DateTime.Today, NationalityCode = "01" };   // default สัญชาติ = ไทย (legacy) → เลขบัตร validate ทันที
         EnsureSubObjects(f);
         return f;
     }

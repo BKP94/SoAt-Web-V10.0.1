@@ -13,6 +13,11 @@
                         @bind-Value="Own.OtherSaving" NullText="— เลือกสหกรณ์/หน่วยงานเดิม —"
                         ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
         </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="จำนวนเดือน (ย้อนหลัง)" ColSpanMd="6">
+            @* legacy of_cal_first_date: กรอกจำนวนเดือน → คำนวณวันที่เป็นสมาชิก = วันนี้ − n เดือน *@
+            <ScInput Col="@sc.css.col.Integer" Value="_calcMonth" TValue="int?"
+                     ValueChanged="OnCalcMonthChanged" NullText="ระบุจำนวนเดือน" />
+        </DxFormLayoutItem>
         <DxFormLayoutItem Caption="วันที่เป็นสมาชิก (ที่เดิม)" ColSpanMd="6">
             <DxDateEdit @bind-Date="Own.FirstDate" NullText="วัน/เดือน/ปี" />
         </DxFormLayoutItem>
@@ -31,4 +36,13 @@
 
     // alias ของ Form.OwnInfo (Page รับประกันไม่ null ผ่าน EnsureSubObjects)
     private AppOwnInfoDto Own => Form.OwnInfo!;
+
+    private int? _calcMonth;
+
+    // legacy of_cal_first_date: วันที่เป็นสมาชิก(ที่เดิม) = วันนี้ − cal_c_month เดือน
+    private void OnCalcMonthChanged(int? v)
+    {
+        _calcMonth = v;
+        Own.FirstDate = v is int m ? DateTime.Today.AddMonths(-m) : null;
+    }
 }

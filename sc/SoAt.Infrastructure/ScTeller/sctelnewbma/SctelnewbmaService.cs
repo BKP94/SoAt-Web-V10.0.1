@@ -54,6 +54,18 @@ public class SctelnewbmaService(sc.dbFactory dbFactory, sc.save save) : ISctelne
         var positions = await scDb.getListAsync<PositionDto>(
             "SELECT position_code AS code, position_name AS name, sort_order FROM sc_mem_m_ucf_position ORDER BY sort_order");
 
+        // ระดับ/ขั้น เงินเดือน (work_info) — โหลดทั้งหมดพร้อม level_code เพื่อ cascade ฝั่ง client (เหมือน Districts ← Province)
+        var salaryLevels = await scDb.getListAsync<SalaryLevelDto>(
+            "SELECT level_code::int AS code, level_name AS name FROM sc_mem_m_ucf_salary_level ORDER BY level_code");
+
+        var salaryRates = await scDb.getListAsync<SalaryRateDto>(
+            @"SELECT salary_rate_code AS code,
+                     (CASE WHEN salary_rate_code > 0
+                           THEN 'ขั้น '||rpad(salary_rate_code::text,6,' ')||'['||lpad(to_char(salary_amount,'9,999,999.99'),14,' ')||']'
+                      END) AS name,
+                     level_code::int AS levelcode
+              FROM sc_mem_m_ucf_salary_rate ORDER BY level_code, salary_rate_code");
+
         // สาขาธนาคาร — โหลดทั้งหมดพร้อม bank_id เพื่อ cascade ฝั่ง client (เหมือน Districts ← Province)
         var bankBranches = await scDb.getListAsync<BankBranchDto>(
             "SELECT bank_branch_id AS code, bank_name AS name, bank_id FROM sc_acc_m_ucf_bank_branch ORDER BY bank_id, bank_branch_id");
@@ -78,6 +90,8 @@ public class SctelnewbmaService(sc.dbFactory dbFactory, sc.save save) : ISctelne
             Concerns         = concerns,
             GroupPositions   = groupPositions,
             Positions        = positions,
+            SalaryLevels     = salaryLevels,
+            SalaryRates      = salaryRates,
             CoopConfig       = coop,
             Banks            = bankItems.Select(x => new ComboItemDto(x.Code, x.Name)).ToList(),
             BankBranches     = bankBranches,
@@ -297,6 +311,301 @@ WHERE 1 = 1");
         var items = await scDb.getComboAsync(sc.combo.application_form_status);
         return items.Select(x => new ComboItemDto(x.Code, x.Name)).ToList();
     }
+
+    // ── value-change lookups (Group B) ─────────────────────────────────────────
+
+    // คำนำหน้า → เพศ + สถานภาพสมรส (legacy change_prename_code: query sc_mem_m_ucf_prename)
+    public async Task<PrenameDefaultDto> GetPrenameDefaultAsync(string prenameCode)
+    {
+        if (string.IsNullOrWhiteSpace(prenameCode)) return new PrenameDefaultDto(null, null);
+        await using var scDb = dbFactory.create();
+        return await scDb.getOneAsync<PrenameDefaultDto>(
+            "SELECT sex, marriage_status AS marriagestatus FROM sc_mem_m_ucf_prename WHERE prename_code = {0}",
+            prenameCode) ?? new PrenameDefaultDto(null, null);
+    }
+
+    // กลุ่มสมาชิก → กลุ่มช่วยเลือกตั้ง (legacy change_member_group_no: pka_election.fp_help_election)
+    public async Task<string?> GetElectionHelpGroupAsync(string memberGroupNo)
+    {
+        if (string.IsNullOrWhiteSpace(memberGroupNo)) return null;
+        await using var scDb = dbFactory.create();
+        return sc.value.toString(await scDb.pkFunctionAsync("pka_election.fp_help_election", memberGroupNo));
+    }
+
+    // วันเกิด → ข้อความอายุ (legacy change_date_of_birth: fp_calc_agetext ∘ fp_calc_install_m_live)
+    public async Task<string?> CalcAgeTextAsync(DateTime dateOfBirth)
+    {
+        await using var scDb = dbFactory.create();
+        return sc.value.toString(await scDb.getValueAsync(
+            "SELECT pka_lon_reqsrv.fp_calc_agetext(pka_lon_reqsrv.fp_calc_install_m_live({0}))", dateOfBirth));
+    }
+
+    // ── value-change validation (Group C) ──────────────────────────────────────
+
+    // ตรวจเลขบัตร ปชช. (port legacy ofValidateHumid) — humId = 13 หลัก (ตัด mask แล้ว)
+    public async Task<HumIdValidationDto> ValidateHumIdAsync(string humId, DateTime applyDate)
+    {
+        await using var scDb = dbFactory.create();
+
+        // ตรง ปปง. (AML) → ไม่ให้ใช้เลขนี้ (cpCheckPopAML)
+        var amlCount = sc.value.toInteger(await scDb.getValueAsync(
+            "SELECT count(*) FROM sc_mem_m_member_aml WHERE aml_id = {0}", humId));
+        if (amlCount > 0) return new HumIdValidationDto(null, false, true);
+
+        var resignConfig = sc.value.toInteger(await scDb.getValueAsync(
+            "SELECT count_resign FROM sc_cnt_m_coop"));
+
+        // คำขอที่รออนุมัติด้วยเลขบัตรนี้
+        var memReq = await scDb.getListAsync<MemReqRow>(
+            @"SELECT application_form_no AS applicationformno,
+                     (member_name||'  '||member_surname) AS membername
+              FROM sc_mem_m_application_form
+              WHERE approve_status = '2' AND cancel_status = '0' AND hum_id = {0}", humId);
+
+        // ประวัติการเป็นสมาชิก (เคยเป็น/ลาออก)
+        var memReg = await scDb.getListAsync<MemRegRow>(
+            @"SELECT membership_no AS membershipno,
+                     pka_com_function.fp_get_member_name(membership_no) AS membername,
+                     member_status_code AS memberstatuscode,
+                     to_tdate(resignation_approve_date) AS resigndatetext,
+                     resignation_approve_date AS resigndateraw,
+                     to_tdate(approve_date) AS approvedatetext,
+                     resign_code AS resigncode
+              FROM sc_mem_m_membership_registered
+              WHERE id_card = {0}
+              ORDER BY approve_date", humId);
+
+        // ใช้เลขบัตรนี้ค้ำประกันอยู่หรือไม่
+        var lonCount = sc.value.toInteger(await scDb.getValueAsync(
+            @"SELECT count(*) FROM (
+                  SELECT c.loan_requestment_no AS loan_contract_no
+                  FROM sc_lon_m_req_coll c, sc_lon_m_loan_request r
+                  WHERE c.loan_requestment_no = r.loan_requestment_no
+                    AND r.cancel_status <> '1' AND c.collateral_type_code = '12' AND c.ref_own_no = {0}
+                  UNION ALL
+                  SELECT cc.loan_contract_no
+                  FROM sc_lon_m_contract_coll cc, sc_lon_m_loan_card lc
+                  WHERE cc.loan_contract_no = lc.loan_contract_no
+                    AND cc.collateral_type_code = '12' AND cc.status = '0'
+                    AND lc.principal_balance > 0 AND cc.ref_own_no = {0}
+                  GROUP BY cc.loan_contract_no
+              ) tab", humId));
+
+        string msg = "";
+        int liCount = 0;
+        bool checkStatus;
+
+        if (memReg.Count > 0)   // เคยเป็นสมาชิก
+        {
+            int countResign = 0, beyondResign = 0;
+            bool checkResignDate = true;
+            msg += $"ผู้สมัคร เลขที่บัตรประจำตัวประชาชน {humId} เป็นสมาชิกสหกรณ์";
+            foreach (var r in memReg)
+            {
+                liCount++;
+                msg += "</br>" + liCount + ".) เลขทะเบียน " + r.MembershipNo + " ชื่อ " + r.MemberName;
+                if (r.MemberStatusCode == "0")
+                    msg += " สถานะ <a style='color:blue'>เป็นสมาชิก</a> [อนุมัติ : " + r.ApproveDateText + "]";
+                else
+                {
+                    msg += " สถานะ <a style='color:red'>ลาออก</a> [" + r.ResignDateText + "]";
+                    countResign++;
+                    beyondResign = sc.value.toInteger(await scDb.getValueAsync(
+                        "SELECT beyond_resign FROM sc_mem_m_ucf_resign_cause WHERE resign_cause_code = {0}", r.ResignCode));
+                    checkResignDate = beyondResign > 0 && r.ResignDateRaw is DateTime rd
+                        ? applyDate > rd.AddMonths(beyondResign)
+                        : true;
+                }
+            }
+
+            if (countResign >= resignConfig && resignConfig > 0)
+            {
+                checkStatus = false;
+                msg += "</br></br>มีการลาออกแล้วทั้งหมด " + countResign + " ครั้ง มากกว่าที่กำหนดไว้คือ ห้ามเกิน " + resignConfig + " ครั้ง";
+            }
+            else if (memReg.Count > countResign)   // ยังเป็นสมาชิกอยู่
+            {
+                checkStatus = false;
+                msg += "</br></br>เป็นสมาชิกสหกรณ์อยู่เเล้วไม่สามารถสมัครสมาชิกใหม่ได้";
+            }
+            else if (!checkResignDate)
+            {
+                checkStatus = false;
+                msg += "</br></br>ลาออกยังไม่ครบตามเวลาที่กำหนด '" + beyondResign + " เดือน ' ไม่สามารถสมัครสมาชิกใหม่ได้";
+            }
+            else checkStatus = true;   // user ตัดสินใจเอง (แค่เตือน)
+        }
+        else if (memReq.Count > 0)   // อยู่ระหว่างขอสมัครใหม่
+        {
+            msg += $"ผู้สมัคร เลขที่บัตรประจำตัวประชาชน {humId} อยู่ระหว่างขอสมัครใหม่";
+            foreach (var r in memReq)
+            {
+                liCount++;
+                msg += "</br>" + liCount + ".) เลขที่คำขอ " + r.ApplicationFormNo + " ชื่อ " + r.MemberName + " สถานะ <a style='color:blue'>รออนุมัติ</a> ";
+            }
+            msg += "</br></br>ไม่สามารถสมัครอีกได้";
+            checkStatus = false;
+        }
+        else if (lonCount > 0)
+        {
+            msg = "มีการใช้เลขบัตรประชาชนนี้ในการค้ำประกัน ,กรุณาตรวจสอบ";
+            checkStatus = true;
+        }
+        else checkStatus = true;
+
+        return new HumIdValidationDto(msg, checkStatus, false);
+    }
+
+    // ตรวจชื่อ-สกุล ซ้ำ/ตรง ปปง. (port legacy of_validate_name)
+    public async Task<NameValidationDto> ValidateNameAsync(string memName, string memSurname)
+    {
+        await using var scDb = dbFactory.create();
+
+        var amlCount = sc.value.toInteger(await scDb.getValueAsync(
+            "SELECT count(*) FROM sc_mem_m_member_aml WHERE aml_name = {0} AND aml_surname = {1}", memName, memSurname));
+
+        var memReg = await scDb.getListAsync<MemRegRow>(
+            @"SELECT membership_no AS membershipno,
+                     pka_com_function.fp_get_member_name(membership_no) AS membername,
+                     member_status_code AS memberstatuscode,
+                     to_tdate(resignation_approve_date) AS resigndatetext,
+                     resignation_approve_date AS resigndateraw,
+                     to_tdate(approve_date) AS approvedatetext,
+                     resign_code AS resigncode
+              FROM sc_mem_m_membership_registered
+              WHERE member_name = {0} AND member_surname = {1}
+              ORDER BY membership_no", memName, memSurname);
+
+        var app = await scDb.getListAsync<MemReqRow>(
+            @"SELECT application_form_no AS applicationformno,
+                     (member_name||'  '||member_surname) AS membername
+              FROM sc_mem_m_application_form
+              WHERE approve_status = '2' AND cancel_status = '0' AND member_name = {0} AND member_surname = {1}", memName, memSurname);
+
+        string msg = "";
+        int liCount = 0;
+        if (app.Count > 0 || memReg.Count > 0)
+        {
+            msg += $"ผู้สมัคร ชื่อ - สกุล  '{memName} {memSurname}' มีอยู่ในระบบ";
+            foreach (var r in memReg)
+            {
+                liCount++;
+                msg += "</br>" + liCount + ".) เลขทะเบียน " + r.MembershipNo + " ชื่อ " + r.MemberName;
+                if (r.MemberStatusCode == "0")
+                    msg += " สถานะ <a style='color:blue'>เป็นสมาชิก</a> [อนุมัติ : " + r.ApproveDateText + "]";
+                else
+                    msg += " สถานะ <a style='color:red'>ลาออก</a> [" + r.ResignDateText + "]";
+            }
+            foreach (var r in app)
+            {
+                liCount++;
+                msg += "</br>" + liCount + ".) เลขที่คำขอ " + r.ApplicationFormNo + " ชื่อ " + r.MemberName + " สถานะ <a style='color:blue'>รออนุมัติ</a> ";
+            }
+        }
+        return new NameValidationDto(msg, amlCount > 0);
+    }
+
+    // คำนวณหุ้นส่งรายเดือน (port legacy update_share_monthly)
+    public async Task<ShareCalcDto> UpdateShareMonthlyAsync(
+        string memType, string memberGroupNo, string itemChange, decimal shareMonthly, decimal sumSalary)
+    {
+        await using var scDb = dbFactory.create();
+
+        var mt = await scDb.getOneAsync<MemTypeShareRow>(
+            "SELECT maximun_share AS maximunshare, mproc_apart AS mprocapart FROM sc_mem_m_ucf_member_type WHERE mem_type_code = {0}", memType);
+        var mg = await scDb.getOneAsync<MemGroupShareRow>(
+            "SELECT ingore_dropshr_rule AS ingoredropshrrule FROM sc_mem_m_ucf_member_group WHERE member_group_no = {0}", memberGroupNo);
+
+        decimal maximumShare = mt?.MaximunShare ?? 0;
+        // เริ่มต้น: ถ้าแก้เงินเดือน → คำนวณใหม่ (0), ถ้ากรอกหุ้นเอง → คงค่าที่กรอก
+        decimal result = itemChange == "salary_amount" ? 0 : shareMonthly;
+        decimal? minShare = null, maxShare = null;
+
+        // หน่วยงาน/ประเภทสมาชิกที่งดส่งหุ้น → ไม่ต้องคำนวณ
+        bool skipShare = (mg?.IngoreDropshrRule == "1") || (mt?.MprocApart == "1");
+        if (!skipShare)
+        {
+            if (itemChange == "share_monthly")
+            {
+                var sysName = sc.value.toString(await scDb.getValueAsync("SELECT sys_name FROM sc_cnt_m_coop")).ToUpper();
+                if (sysName == "MWA")
+                {
+                    minShare = sc.value.toDecimal(await scDb.getValueAsync("SELECT pka_mem_ctl.fp_get_share_sendpermonth_min({0})", sumSalary));
+                    maxShare = sc.value.toDecimal(await scDb.getValueAsync("SELECT pka_mem_ctl.fp_get_share_sendpermonth_max({0})", sumSalary));
+                }
+            }
+            else if (itemChange == "salary_amount")   // เงินเดือนเปลี่ยน → set ค่าหุ้นตามสูตร
+            {
+                result = sc.value.toDecimal(await scDb.getValueAsync("SELECT pka_mem_ctl.fp_get_share_sendpermonth({0})", sumSalary));
+                if (result > maximumShare && maximumShare > 0) result = maximumShare;
+            }
+        }
+        return new ShareCalcDto(result, minShare, maxShare);
+    }
+
+    private record MemTypeShareRow(decimal? MaximunShare, string? MprocApart);
+    private record MemGroupShareRow(string? IngoreDropshrRule);
+
+    // ── value-change lookups (Group E — tabs) ──────────────────────────────────
+
+    // เลขสมาชิก → pad + ชื่อเต็ม (port legacy of_validate_membership_no, ใช้ sc.scCoop)
+    public async Task<MemberLookupDto?> LookupMemberAsync(string membershipNo)
+    {
+        if (string.IsNullOrWhiteSpace(membershipNo)) return null;
+        await using var scDb = dbFactory.create();
+        var coop = new sc.scCoop(scDb);
+        try
+        {
+            var memNo = coop.ofParse(membershipNo);     // pad zeros + ตรวจว่ามีในระบบ (throw ถ้าไม่พบ)
+            if (string.IsNullOrWhiteSpace(memNo)) return null;
+            return new MemberLookupDto(memNo, coop.getFullName(memNo));
+        }
+        catch { return null; }   // ไม่พบทะเบียน → legacy onFail (เคลียร์ช่อง)
+    }
+
+    // เลขทะเบียนคู่สมรส → ข้อมูลคู่สมรส (port legacy change_spouse_member_no)
+    public async Task<SpouseLookupDto?> LookupSpouseAsync(string membershipNo)
+    {
+        if (string.IsNullOrWhiteSpace(membershipNo)) return null;
+        await using var scDb = dbFactory.create();
+        var coop = new sc.scCoop(scDb);
+        try
+        {
+            var spouseNo = coop.ofParse(membershipNo);
+            if (string.IsNullOrWhiteSpace(spouseNo)) return null;
+            var row = await scDb.getOneAsync<SpouseLookupDto>(
+                @"SELECT membership_no AS spousememberno,
+                         prename_code   AS prenamecode,
+                         member_name    AS spousename,
+                         member_surname AS spousesurname,
+                         id_card        AS idcard
+                  FROM sc_mem_m_membership_registered WHERE membership_no = {0}", spouseNo);
+            if (row is null) return null;
+            // เก็บ id_card เฉพาะที่ครบ 13 หลัก (legacy เช็ค length == 13)
+            return row.IdCard?.Length == 13 ? row : row with { IdCard = "" };
+        }
+        catch { return null; }
+    }
+
+    // รายชื่อ ปปง. ที่ตรง (port legacy popValidateAML.ofLoad)
+    public async Task<List<AmlMatchDto>> GetAmlMatchesAsync(string popType, string name, string surname, string humId)
+    {
+        await using var scDb = dbFactory.create();
+        const string baseSql =
+            @"SELECT seq_no AS seqno, aml_date AS amldate,
+                     aml_prename||' '||aml_name||'  '||aml_surname AS amlfullname,
+                     aml_id AS amlid, aml_birth::text AS amlbirth,
+                     aml_bookno AS amlbookno, aml_remark AS amlremark
+              FROM sc_mem_m_member_aml WHERE 1=1 ";
+        return popType == "popName"
+            ? await scDb.getListAsync<AmlMatchDto>(baseSql + "AND aml_name = {0} AND aml_surname = {1} ORDER BY seq_no", name, surname)
+            : await scDb.getListAsync<AmlMatchDto>(baseSql + "AND aml_id = {0} ORDER BY seq_no", humId);
+    }
+
+    // row types สำหรับ validate (Group C)
+    private record MemReqRow(string? ApplicationFormNo, string? MemberName);
+    private record MemRegRow(string? MembershipNo, string? MemberName, string? MemberStatusCode,
+        string? ResignDateText, DateTime? ResignDateRaw, string? ApproveDateText, string? ResignCode);
 
     // ── Private helpers ───────────────────────────────────────────────────────
 

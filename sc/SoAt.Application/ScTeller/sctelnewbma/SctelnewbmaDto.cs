@@ -25,6 +25,40 @@ public record GroupPositionDto(string Code, string? Description, int? SortOrder)
 public record PositionDto(string Code, string? Name, int? SortOrder);
 public record CoopConfigDto(string CoopNo, int? CountResign, string? AutoApproveNewmem, string? MemTypeOngroup);
 public record BankBranchDto(string Code, string? Name, string? BankId);   // cascade by BankId (เหมือน Districts ← Province)
+public record SalaryLevelDto(int Code, string? Name);                       // sc_mem_m_ucf_salary_level (ระดับ)
+public record SalaryRateDto(decimal Code, string? Name, int? LevelCode);    // sc_mem_m_ucf_salary_rate (ขั้น, cascade ← LevelCode)
+
+// ── value-change results (Group B) ────────────────────────────────────────────
+/// <summary>ผล lookup คำนำหน้า → เพศ + สถานภาพสมรส (legacy change_prename_code)</summary>
+public record PrenameDefaultDto(string? Sex, string? MarriageStatus);
+
+// ── value-change results (Group C — validate hum_id / ชื่อ-สกุล) ──────────────
+/// <summary>
+/// ผลตรวจเลขบัตร ปชช. (legacy ofValidateHumid):
+/// Message=ข้อความแจ้ง (HTML), AllowRegister=สมัครได้หรือไม่ (cpRegisStat),
+/// AmlMatch=ตรงรายชื่อ ปปง. (cpCheckPopAML → ไม่ให้ใช้เลขนี้)
+/// </summary>
+public record HumIdValidationDto(string? Message, bool AllowRegister, bool AmlMatch);
+
+/// <summary>ผลตรวจชื่อ-สกุลซ้ำ (legacy of_validate_name): Message=ข้อความ (HTML), AmlMatch=ตรง ปปง.</summary>
+public record NameValidationDto(string? Message, bool AmlMatch);
+
+// ── value-change results (Group D — คำนวณหุ้น) ────────────────────────────────
+/// <summary>
+/// ผลคำนวณหุ้นส่งรายเดือน (legacy update_share_monthly):
+/// ShareMonthly=ค่าหุ้นที่คำนวณได้, MinShare/MaxShare=ขั้นต่ำ/สูงสุด (เฉพาะ MWA, null = ไม่บังคับ)
+/// </summary>
+public record ShareCalcDto(decimal ShareMonthly, decimal? MinShare, decimal? MaxShare);
+
+// ── value-change results (Group E — tabs) ─────────────────────────────────────
+/// <summary>ผล lookup เลขสมาชิก → เลขที่ pad + ชื่อเต็ม (legacy of_validate_membership_no / ofCheckMemno)</summary>
+public record MemberLookupDto(string MembershipNo, string? MemberName);
+
+/// <summary>ผล lookup คู่สมรสจากเลขทะเบียน (legacy change_spouse_member_no)</summary>
+public record SpouseLookupDto(string? SpouseMemberNo, string? PrenameCode, string? SpouseName, string? SpouseSurname, string? IdCard);
+
+/// <summary>1 แถวรายชื่อ ปปง. (legacy popValidateAML grid: sc_mem_m_member_aml)</summary>
+public record AmlMatchDto(int? SeqNo, DateTime? AmlDate, string? AmlFullname, string? AmlId, string? AmlBirth, string? AmlBookno, string? AmlRemark);
 
 public class SctelnewbmaLookupsDto
 {
@@ -43,6 +77,8 @@ public class SctelnewbmaLookupsDto
     public List<ConcernDto>         Concerns         { get; set; } = [];
     public List<GroupPositionDto>   GroupPositions   { get; set; } = [];
     public List<PositionDto>        Positions        { get; set; } = [];
+    public List<SalaryLevelDto>     SalaryLevels     { get; set; } = [];   // ระดับเงินเดือน (work_info)
+    public List<SalaryRateDto>      SalaryRates      { get; set; } = [];   // ขั้นเงินเดือน (cascade ← LevelCode)
     public CoopConfigDto?           CoopConfig       { get; set; }
     // ── tabs: bankinfo / spouse / share-receive ──────────────────────────────
     public List<ComboItemDto>       Banks            { get; set; } = [];   // sc.combo.sc_acc_m_ucf_bank
@@ -203,6 +239,8 @@ public class ApplicationFormDto
     [SaveRequired("กรุณาเลือกประเภทสมาชิก")]
     public string?   MemType           { get; set; }
     public DateTime? DateOfBirth       { get; set; }
+    [SaveIgnore]                                        // display-only (legacy panHead$age) — ไม่ลง DB
+    public string?   AgeText           { get; set; }
     public string?   Sex               { get; set; }
     public string?   ApplTypeCode      { get; set; }
     public string?   HumId             { get; set; }   // เลขบัตร ปชช.

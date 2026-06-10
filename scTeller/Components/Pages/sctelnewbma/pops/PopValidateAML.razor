@@ -1,0 +1,64 @@
+@using SoAt.Application.ScTeller
+@inject ISctelnewbmaService Svc
+
+@* ── PopValidateAML — รายชื่อตรงตามที่ ปปง. กำหนด (เลียน legacy pops/popValidateAML.ascx) ──
+   grid read-only แสดงรายการที่ match ใน sc_mem_m_member_aml (ตามชื่อ-สกุล หรือ เลขบัตร)
+   host ที่ Page แล้ว cascade ลง child (เหมือน ScMessage) → PanHead เรียก Aml.ShowAsync(...)
+   PopType: "popName" (ชื่อ-สกุล) | "popHumID" (เลขบัตร) *@
+
+<DxPopup @bind-Visible="_visible" HeaderText="@_header"
+         Width="900px" Height="600px" ShowFooter="true" CloseOnEscape="true"
+         CssClass="sc-msg sc-msg--alert">
+    <BodyContentTemplate Context="popup">
+        @if (_rows.Count == 0)
+        {
+            <div class="nb-empty">ไม่พบรายการ</div>
+        }
+        else
+        {
+            <DxGrid Data="_rows" PageSize="0" ColumnResizeMode="GridColumnResizeMode.NextColumn">
+                <Columns>
+                    <DxGridDataColumn Caption="#" Width="44px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                        <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="วันที่ข้อมูล" Width="110px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                        <CellDisplayTemplate>
+                            @{ var r = (AmlMatchDto)context.DataItem; }
+                            @sc.value.toStringTH(r.AmlDate)
+                        </CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="ชื่อ - สกุล" FieldName="@nameof(AmlMatchDto.AmlFullname)" />
+                    <DxGridDataColumn Caption="เลขบัตรประชาชน" Width="160px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                        <CellDisplayTemplate>
+                            @{ var r = (AmlMatchDto)context.DataItem; }
+                            @sc.value.toMaskIDCard(r.AmlId ?? "")
+                        </CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="วันเกิด" FieldName="@nameof(AmlMatchDto.AmlBirth)" Width="130px" TextAlignment="GridTextAlignment.Center" />
+                    <DxGridDataColumn Caption="หมายเลขหนังสือเดินทาง" FieldName="@nameof(AmlMatchDto.AmlBookno)" />
+                    <DxGridDataColumn Caption="หมายเหตุ" FieldName="@nameof(AmlMatchDto.AmlRemark)" />
+                </Columns>
+            </DxGrid>
+        }
+    </BodyContentTemplate>
+    <FooterContentTemplate>
+        <DxButton Text="ปิดหน้าจอ" RenderStyle="ButtonRenderStyle.Secondary" Click="() => _visible = false" />
+    </FooterContentTemplate>
+</DxPopup>
+
+@code {
+    private bool                _visible;
+    private string              _header = "รายชื่อตรงตามที่ ปปง. กำหนด";
+    private List<AmlMatchDto>   _rows = [];
+
+    /// แสดง popup รายชื่อ ปปง. — เรียกแบบ imperative จาก child (เหมือน ScMessage)
+    public async Task ShowAsync(string popType, string name, string surname, string humId)
+    {
+        _header = popType == "popName"
+            ? "ชื่อ - สกุล ตรงตามที่ ปปง. กำหนด , โปรดระวัง"
+            : "เลขบัตรประชาชนตรงกับที่ ปปง. กำหนด , โปรดระวัง";
+        _rows    = await Svc.GetAmlMatchesAsync(popType, name, surname, humId);
+        _visible = true;
+        StateHasChanged();
+    }
+}

@@ -7,59 +7,106 @@
    เป็น dumb-ish component: ถือ filter + ผลลัพธ์ของตัวเอง, ไม่ persist อะไร *@
 
 <DxPopup @bind-Visible="Visible" HeaderText="ค้นหาใบสมัครสมาชิก"
-         Width="920px" Height="600px" ShowFooter="true"
+         Width="980px" Height="640px" ShowFooter="true"
          CloseOnEscape="true" Shown="OnShownAsync">
     <BodyContentTemplate Context="popup">
-        <div class="po-filter">
+        @* ── แผงค้นหา ─────────────────────────────────────────────────────── *@
+        <div class="po-search">
+            <div class="po-search__head">
+                <span class="po-search__icon">🔍</span>
+                <span class="po-search__title">เงื่อนไขการค้นหา</span>
+            </div>
             @* DevExpress: อัปเดตทุกคีย์ใช้ BindValueMode.OnInput (ไม่ใช่ @bind-Text:event="oninput"
                ซึ่งเป็นของ HTML element → ส่ง ChangeEventArgs เข้า setter string แล้ว circuit crash) *@
-            <DxTextBox @bind-Text="_filter.ApplicationFormNo" NullText="เลขใบสมัคร"
-                       BindValueMode="BindValueMode.OnInput" />
-            <DxTextBox @bind-Text="_filter.MemberName" NullText="ชื่อ"
-                       BindValueMode="BindValueMode.OnInput" />
-            <DxTextBox @bind-Text="_filter.MemberSurname" NullText="สกุล"
-                       BindValueMode="BindValueMode.OnInput" />
-            <DxTextBox @bind-Text="_filter.MemberGroup" NullText="เลขหน่วย/ชื่อหน่วย"
-                       BindValueMode="BindValueMode.OnInput" />
-            <DxComboBox Data="_statuses" TData="ComboItemDto" TValue="string"
-                        ValueFieldName="@nameof(ComboItemDto.Code)" TextFieldName="@nameof(ComboItemDto.Name)"
-                        @bind-Value="_filter.ApproveStatus" NullText="สถานะใบสมัคร"
-                        ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
-            <DxButton Text="ค้นหา" RenderStyle="ButtonRenderStyle.Primary" Click="SearchAsync" />
+            <div class="po-fields">
+                <label class="po-field">
+                    <span class="po-field__label">เลขที่ใบสมัคร</span>
+                    <DxTextBox @bind-Text="_filter.ApplicationFormNo" NullText="เช่น 6900001"
+                               BindValueMode="BindValueMode.OnInput" />
+                </label>
+                <label class="po-field">
+                    <span class="po-field__label">ชื่อ</span>
+                    <DxTextBox @bind-Text="_filter.MemberName" NullText="ชื่อผู้สมัคร"
+                               BindValueMode="BindValueMode.OnInput" />
+                </label>
+                <label class="po-field">
+                    <span class="po-field__label">นามสกุล</span>
+                    <DxTextBox @bind-Text="_filter.MemberSurname" NullText="นามสกุล"
+                               BindValueMode="BindValueMode.OnInput" />
+                </label>
+                <label class="po-field">
+                    <span class="po-field__label">หน่วย</span>
+                    <DxTextBox @bind-Text="_filter.MemberGroup" NullText="เลขหน่วย / ชื่อหน่วย"
+                               BindValueMode="BindValueMode.OnInput" />
+                </label>
+                <label class="po-field">
+                    <span class="po-field__label">สถานะใบสมัคร</span>
+                    <DxComboBox Data="_statuses" TData="ComboItemDto" TValue="string"
+                                ValueFieldName="@nameof(ComboItemDto.Code)" TextFieldName="@nameof(ComboItemDto.Name)"
+                                @bind-Value="_filter.ApproveStatus" NullText="ทุกสถานะ"
+                                ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
+                </label>
+            </div>
+            <div class="po-actions">
+                <DxButton Text="ล้างเงื่อนไข" RenderStyle="ButtonRenderStyle.Secondary" Click="ClearAsync" />
+                <DxButton Text="ค้นหา" RenderStyle="ButtonRenderStyle.Primary" Click="SearchAsync" />
+            </div>
         </div>
 
-        <DxGrid Data="_rows" CssClass="po-grid" PageSize="12"
-                ColumnResizeMode="GridColumnResizeMode.NextColumn">
-            <Columns>
-                <DxGridDataColumn Caption="เลขที่ใบสมัคร" FieldName="@nameof(ApplicationSummaryDto.ApplicationFormNo)"
-                                  Width="120px" TextAlignment="GridTextAlignment.Center" />
-                <DxGridDataColumn Caption="วันที่สมัคร" Width="110px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
-                    <CellDisplayTemplate>
-                        @{ var r = (ApplicationSummaryDto)context.DataItem; }
-                        @sc.value.toStringTH(r.ApplyDate)
-                    </CellDisplayTemplate>
-                </DxGridDataColumn>
-                <DxGridDataColumn Caption="ชื่อ - สกุล" FieldName="@nameof(ApplicationSummaryDto.MemberName)" />
-                <DxGridDataColumn Caption="หน่วย" FieldName="@nameof(ApplicationSummaryDto.MemberGroup)" />
-                <DxGridDataColumn Caption="สถานะ" Width="110px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
-                    <CellDisplayTemplate>
-                        @{ var r = (ApplicationSummaryDto)context.DataItem; }
-                        @StatusText(r.ApproveStatus)
-                    </CellDisplayTemplate>
-                </DxGridDataColumn>
-                <DxGridDataColumn Caption="" Width="70px" AllowSort="false">
-                    <CellDisplayTemplate>
-                        @{ var r = (ApplicationSummaryDto)context.DataItem; }
-                        <DxButton Text="เปิด" RenderStyle="ButtonRenderStyle.Primary"
-                                  Click="() => SelectAsync(r.ApplicationFormNo)" />
-                    </CellDisplayTemplate>
-                </DxGridDataColumn>
-            </Columns>
-        </DxGrid>
+        @* ── แถบสรุปผล ────────────────────────────────────────────────────── *@
+        @if (_searched)
+        {
+            <div class="po-resultbar">
+                <span class="po-resultbar__count">พบ <b>@_rows.Count</b> รายการ</span>
+            </div>
+        }
 
+        @* ── ผลการค้นหา ───────────────────────────────────────────────────── *@
         @if (_rows.Count == 0 && _searched)
         {
-            <div class="po-empty">ไม่พบใบสมัครที่ตรงกับเงื่อนไข</div>
+            <div class="po-empty">
+                <div class="po-empty__icon">📭</div>
+                <div class="po-empty__text">ไม่พบใบสมัครที่ตรงกับเงื่อนไข</div>
+                <div class="po-empty__hint">ลองปรับเงื่อนไขแล้วค้นหาอีกครั้ง</div>
+            </div>
+        }
+        else if (_rows.Count > 0)
+        {
+            <DxGrid Data="_rows" CssClass="po-grid" PageSize="12"
+                    ColumnResizeMode="GridColumnResizeMode.NextColumn">
+                <Columns>
+                    <DxGridDataColumn Caption="เลขที่ใบสมัคร" FieldName="@nameof(ApplicationSummaryDto.ApplicationFormNo)"
+                                      Width="120px" TextAlignment="GridTextAlignment.Center" />
+                    <DxGridDataColumn Caption="วันที่สมัคร" Width="110px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                        <CellDisplayTemplate>
+                            @{ var r = (ApplicationSummaryDto)context.DataItem; }
+                            @sc.value.toStringTH(r.ApplyDate)
+                        </CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="ชื่อ - สกุล" FieldName="@nameof(ApplicationSummaryDto.MemberName)" />
+                    <DxGridDataColumn Caption="หน่วย" FieldName="@nameof(ApplicationSummaryDto.MemberGroup)" />
+                    <DxGridDataColumn Caption="สถานะ" Width="130px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                        <CellDisplayTemplate>
+                            @{ var r = (ApplicationSummaryDto)context.DataItem; }
+                            <span class="@StatusBadgeClass(r.ApproveStatus)">@StatusText(r.ApproveStatus)</span>
+                        </CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="" Width="84px" AllowSort="false">
+                        <CellDisplayTemplate>
+                            @{ var r = (ApplicationSummaryDto)context.DataItem; }
+                            <DxButton Text="เปิด" RenderStyle="ButtonRenderStyle.Primary"
+                                      CssClass="po-openbtn" Click="() => SelectAsync(r.ApplicationFormNo)" />
+                        </CellDisplayTemplate>
+                    </DxGridDataColumn>
+                </Columns>
+            </DxGrid>
+        }
+        else
+        {
+            <div class="po-empty po-empty--idle">
+                <div class="po-empty__icon">🗂️</div>
+                <div class="po-empty__text">ระบุเงื่อนไขแล้วกด “ค้นหา”</div>
+            </div>
         }
     </BodyContentTemplate>
     <FooterContentTemplate>
@@ -91,6 +138,13 @@
         _searched = true;
     }
 
+    // ล้างเงื่อนไข → ค้นหาใหม่ (แสดงทั้งหมด)
+    private async Task ClearAsync()
+    {
+        _filter = new();
+        await SearchAsync();
+    }
+
     private async Task SelectAsync(string? applicationFormNo)
     {
         if (string.IsNullOrWhiteSpace(applicationFormNo)) return;
@@ -109,4 +163,14 @@
     // แปลง code สถานะ → ข้อความ (จาก sc.combo.application_form_status ที่โหลดไว้)
     private string StatusText(string? code) =>
         _statuses.FirstOrDefault(s => s.Code == code)?.Name ?? code ?? "";
+
+    // สีของ badge ตามสถานะ: 2=รออนุมัติ(amber) 1=อนุมัติ(green) 0=ไม่อนุมัติ(gray) 3=ยกเลิก(red)
+    private string StatusBadgeClass(string? code) => "po-badge " + code switch
+    {
+        "2" => "po-badge--wait",
+        "1" => "po-badge--ok",
+        "0" => "po-badge--no",
+        "3" => "po-badge--cancel",
+        _   => "po-badge--no",
+    };
 }

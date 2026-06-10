@@ -14,11 +14,20 @@ public interface ISctelnewbmaService
     /// <summary>อัปเดตใบสมัคร (ยังไม่ถูก approve)</summary>
     Task<ApplicationFormSaveResult> UpdateApplicationAsync(string applicationFormNo, ApplicationFormDto dto, string userId);
 
+    /// <summary>
+    /// ยกเลิก (void) ใบสมัครพร้อมเหตุผล — legacy pka_mem_newmem.sp_docno_cancel.
+    /// ยกเลิกได้เฉพาะสถานะ "รออนุมัติ" (approve_status='2') ที่ยังไม่ถูกยกเลิก (cancel_status='0')
+    /// </summary>
+    Task<ApplicationFormSaveResult> CancelApplicationAsync(string applicationFormNo, string cancelReason, string userId, string branchId);
+
     /// <summary>ค้นหาใบสมัครที่บันทึกไว้ (popOpen) ตามเงื่อนไข filter</summary>
     Task<List<ApplicationSummaryDto>> SearchApplicationsAsync(ApplicationSearchFilter filter);
 
     /// <summary>รายการสถานะใบสมัคร (สำหรับ dropdown filter + แปลง code→ข้อความในตาราง)</summary>
     Task<List<ComboItemDto>> GetApplicationStatusesAsync();
+
+    /// <summary>รายการเหตุผลการยกเลิกใบสมัคร (dropdown popup ยกเลิก — sc_mem_m_ucf_cancel_newform)</summary>
+    Task<List<ComboItemDto>> GetCancelReasonsAsync();
 
     // ── value-change lookups (Group B) ─────────────────────────────────────────
 

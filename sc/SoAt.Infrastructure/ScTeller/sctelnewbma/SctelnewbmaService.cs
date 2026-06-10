@@ -190,6 +190,7 @@ public class SctelnewbmaService(sc.dbFactory dbFactory, sc.save save) : ISctelne
         var scDb = dbFactory.create(userId, branchId);
         try
         {
+            ValidateMemberType(dto);      // pre-save: สมทบต้องมีสมาชิกอ้างอิง (port legacy ofValidateMemberType)
             NormalizeMaskedFields(dto);   // เลขบัตร → ตัวเลขล้วน (ตัด literal mask กัน varchar ล้น)
 
             // sc.save: header + ทุก sub-table (annotate ที่ DTO) ในทรานแซกชันเดียว
@@ -223,10 +224,11 @@ public class SctelnewbmaService(sc.dbFactory dbFactory, sc.save save) : ISctelne
                 applicationFormNo));
 
             if (approveStatus == "")
-                throw new KeyNotFoundException($"ไม่พบใบสมัครเลขที่ {applicationFormNo}");
+                throw new KeyNotFoundException(sc.msg.C($"ไม่พบใบสมัครเลขที่ {applicationFormNo}"));
             if (approveStatus == "1")
-                throw new InvalidOperationException("ไม่สามารถแก้ไขใบสมัครที่อนุมัติแล้ว");
+                throw new InvalidOperationException(sc.msg.C("ไม่สามารถแก้ไขใบสมัครที่อนุมัติแล้ว"));
 
+            ValidateMemberType(dto);      // pre-save: สมทบต้องมีสมาชิกอ้างอิง (port legacy ofValidateMemberType)
             NormalizeMaskedFields(dto);   // เลขบัตร → ตัวเลขล้วน (ตัด literal mask กัน varchar ล้น)
 
             // key มีค่า → sc.save ทำ UPDATE header + ล้าง+เขียน child ใหม่ทั้งหมด (Replace)
@@ -240,6 +242,28 @@ public class SctelnewbmaService(sc.dbFactory dbFactory, sc.save save) : ISctelne
         catch
         {
             await scDb.ofConnectionCloseAsync("UpdateApplication-Error", onError: true);
+            throw;
+        }
+    }
+
+    // ── Cancel Application (void) ─────────────────────────────────────────────
+    // logic (validate สถานะอนุมัติ + set cancel_status='1') อยู่ใน PG เหมือน legacy:
+    //   pka_mem_newmem.sp_docno_cancel — ดู sql/migrations/2026-06-10_pka_cancel_mem_appli.sql
+    // C# แค่ส่งเข้าไปทำงานใน PL (validation error เด้งกลับเป็น prefix E ของ PG)
+
+    public async Task<ApplicationFormSaveResult> CancelApplicationAsync(
+        string applicationFormNo, string cancelReason, string userId, string branchId)
+    {
+        var scDb = dbFactory.create(userId, branchId);   // SET LOCAL app.login_id/login_br → PG อ่าน cancel_id/branch
+        try
+        {
+            await scDb.pkProcedureAsync("pka_mem_newmem.sp_docno_cancel", applicationFormNo, cancelReason);
+            await scDb.ofConnectionCloseAsync("CancelApplication");
+            return new ApplicationFormSaveResult(applicationFormNo, "ยกเลิกใบสมัครสมาชิกเรียบร้อยแล้ว");
+        }
+        catch
+        {
+            await scDb.ofConnectionCloseAsync("CancelApplication-Error", onError: true);
             throw;
         }
     }
@@ -309,6 +333,13 @@ WHERE 1 = 1");
     {
         await using var scDb = dbFactory.create();
         var items = await scDb.getComboAsync(sc.combo.application_form_status);
+        return items.Select(x => new ComboItemDto(x.Code, x.Name)).ToList();
+    }
+
+    public async Task<List<ComboItemDto>> GetCancelReasonsAsync()
+    {
+        await using var scDb = dbFactory.create();
+        var items = await scDb.getComboAsync(sc.combo.sc_mem_m_ucf_cancel_newform);
         return items.Select(x => new ComboItemDto(x.Code, x.Name)).ToList();
     }
 
@@ -608,6 +639,19 @@ WHERE 1 = 1");
         string? ResignDateText, DateTime? ResignDateRaw, string? ApproveDateText, string? ResignCode);
 
     // ── Private helpers ───────────────────────────────────────────────────────
+
+    // pre-save validation: สมาชิกประเภท 02 (สมทบ) ต้องมีสมาชิกอ้างอิง (port legacy panHead.ofValidateMemberType)
+    // legacy (single head field): mem_type=='02' && concern_code!='00' && ไม่มี membership_no → throw C478
+    // ⚠️ เบี่ยง (อธิบาย): model ใหม่ member_refer เป็น list (Form.MemberRefers) ไม่ใช่ field เดี่ยวบน head
+    //    → ตีความกฎเป็น "สมทบ ต้องมีสมาชิกอ้างอิง ≥1 ราย ที่ระบุเลขสมาชิก" (คงเจตนา legacy: สมทบต้องมีผู้อ้างอิง)
+    //    code '02' = สมทบ legacy hardcode ('fix code 02 ทุก coop')
+    static void ValidateMemberType(ApplicationFormDto dto)
+    {
+        if (dto.MemType == "02" &&
+            !dto.MemberRefers.Any(r => !string.IsNullOrWhiteSpace(r.MembershipNo)))
+            throw new InvalidOperationException(
+                sc.msg.C("สมาชิกประเภท 02 - สมทบ ต้องมีสมาชิกอ้างอิง โปรดตรวจสอบ"));
+    }
 
     // ตัด mask literal (ขีด/ช่องว่าง) ของช่องที่ใช้ text mask ก่อนเก็บลง DB
     // DxMaskedInput เก็บค่ารวมตัวคั่น → เลขบัตร 13 หลักกลายเป็น 17 ตัว ล้น varchar(15)

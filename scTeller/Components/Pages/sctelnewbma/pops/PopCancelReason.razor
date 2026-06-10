@@ -1,0 +1,80 @@
+@using SoAt.Application.ScTeller
+@inject ISctelnewbmaService Svc
+
+@* ── PopCancelReason — ระบุเหตุผลก่อนยกเลิกใบสมัคร (เลียน legacy pops/popCancelReason.ascx) ──
+   combo เหตุผล (sc_mem_m_ucf_cancel_newform) + ปุ่มยืนยัน/ยกเลิก
+   ยืนยัน → ต้องเลือกเหตุผล (legacy J140) → ยิง EventCallback OnSubmit(reason) ให้ Page เรียก service
+   ปิด/ยกเลิก → Page แสดง "ยกเลิกใบสมัครสมาชิก ไม่สำเร็จ" (legacy J138) *@
+
+<DxPopup @bind-Visible="Visible" HeaderText="ระบุเหตุผลการยกเลิกใบสมัครสมาชิก"
+         Width="640px" ShowFooter="true" CloseOnEscape="true"
+         Shown="OnShownAsync" Closed="OnClosed">
+    <BodyContentTemplate Context="popup">
+        <div class="nb-field">
+            <label class="nb-label">เหตุผลการยกเลิก</label>
+            <DxComboBox Data="_reasons" TData="ComboItemDto" TValue="string"
+                        ValueFieldName="@nameof(ComboItemDto.Code)" TextFieldName="@nameof(ComboItemDto.Name)"
+                        @bind-Value="_reason" NullText="กรุณาระบุเหตุผลการยกเลิกใบสมัคร"
+                        ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                        CssClass="nb-input" />
+        </div>
+    </BodyContentTemplate>
+    <FooterContentTemplate>
+        <DxButton Text="ยืนยัน" RenderStyle="ButtonRenderStyle.Primary" Click="SubmitAsync" />
+        <DxButton Text="ยกเลิก" RenderStyle="ButtonRenderStyle.Secondary" Click="Close" />
+    </FooterContentTemplate>
+</DxPopup>
+
+@code {
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public EventCallback<bool> VisibleChanged { get; set; }
+
+    /// ยืนยัน + เลือกเหตุผลแล้ว → ส่ง cancel_reason กลับให้ Page เรียก service
+    [Parameter] public EventCallback<string> OnSubmit { get; set; }
+
+    /// ปิด/ยกเลิกโดยไม่ยืนยัน → ให้ Page แจ้ง "ยกเลิกไม่สำเร็จ" (legacy J138)
+    [Parameter] public EventCallback OnDismiss { get; set; }
+
+    [CascadingParameter] public ScMessage? Msg { get; set; }
+
+    private List<ComboItemDto> _reasons = [];
+    private string?            _reason;
+    private bool               _submitted;   // กันยิง OnDismiss ซ้ำตอน Closed หลังยืนยันสำเร็จ
+
+    // เปิด popup ครั้งใด → โหลด combo เหตุผล + ล้างค่าเดิม
+    private async Task OnShownAsync()
+    {
+        _submitted = false;
+        _reason    = null;
+        if (_reasons.Count == 0)
+            _reasons = await Svc.GetCancelReasonsAsync();
+    }
+
+    private async Task SubmitAsync()
+    {
+        // legacy J140 (→ C): ต้องเลือกเหตุผลก่อน
+        if (string.IsNullOrWhiteSpace(_reason))
+        {
+            if (Msg is not null) await Msg.Error(sc.msg.C("กรุณาระบุเหตุผลการยกเลิก"));
+            return;
+        }
+        _submitted = true;
+        await CloseInternal();
+        await OnSubmit.InvokeAsync(_reason);
+    }
+
+    private Task Close() => CloseInternal();
+
+    private async Task CloseInternal()
+    {
+        Visible = false;
+        await VisibleChanged.InvokeAsync(false);
+    }
+
+    // ปิดด้วยปุ่ม/ESC โดยไม่ได้ยืนยัน → แจ้งยกเลิกไม่สำเร็จ (legacy ofClose)
+    private async Task OnClosed()
+    {
+        if (!_submitted)
+            await OnDismiss.InvokeAsync();
+    }
+}

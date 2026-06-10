@@ -121,8 +121,9 @@ else
             await _msg.Success($"{result.Message} (เลขที่ {result.ApplicationFormNo})");
 
             // สร้างใหม่ → ไปหน้าแก้ไขใบนั้น (หลังผู้ใช้กดตกลงในกล่องข้อความ)
+            // ใช้ path แบบ relative (ไม่มี / นำหน้า) ให้ต่อ base href ของ IIS sub-app เอง
             if (!IsEdit)
-                Nav.NavigateTo($"/sctelnewbma/{result.ApplicationFormNo}");
+                Nav.NavigateTo($"sctelnewbma/{result.ApplicationFormNo}");
         }
         catch (Exception ex)
         {

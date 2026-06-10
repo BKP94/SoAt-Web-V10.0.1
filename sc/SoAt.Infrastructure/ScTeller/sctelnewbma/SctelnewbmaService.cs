@@ -269,9 +269,8 @@ WHERE 1 = 1");
         }
         if (!string.IsNullOrWhiteSpace(filter.MemberGroup))
         {
-            sql.Append(" AND EXISTS (SELECT NULL FROM sc_mem_m_ucf_member_group mg" +
-                       " WHERE mg.member_group_no = a.member_group_no" +
-                       " AND (mg.member_group_no LIKE {" + i + "} OR mg.member_group_name LIKE {" + i + "}))");
+            // ใช้ join g ที่มีอยู่แล้ว (ไม่ต้อง EXISTS ตารางเดิมซ้ำ) — match เลขหน่วยของใบสมัครเอง หรือชื่อหน่วยจาก lookup
+            sql.Append(" AND (a.member_group_no LIKE {" + i + "} OR g.member_group_name LIKE {" + i + "})");
             args.Add("%" + filter.MemberGroup.Trim() + "%"); i++;
         }
         if (!string.IsNullOrWhiteSpace(filter.ApproveStatus))

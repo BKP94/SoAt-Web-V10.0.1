@@ -36,6 +36,7 @@ DECLARE
     v_num    text := '';
     v_prefix text := '';
     v_ch     char;
+    v_width  int;
     i        int;
 BEGIN
     -- ยังไม่มี config → สร้างให้ (default 6 หลักตาม Oracle sp_autocode; code ที่ต้องการ
@@ -65,8 +66,14 @@ BEGIN
     END LOOP;
     IF v_num = '' THEN v_num := '0'; END IF;
 
-    -- +1 แล้ว pad 0 กลับให้กว้างเท่าเดิม
-    v_num  := lpad((v_num::bigint + 1)::text, length(v_num), '0');
+    -- +1 — ถ้าเลขใหม่กว้างเกินเดิม (เช่น 99999 → 100000) อย่า lpad ตัดทิ้งเงียบ ๆ ให้ error
+    v_width := length(v_num);
+    v_num   := (v_num::bigint + 1)::text;
+    IF length(v_num) > v_width THEN
+        RAISE EXCEPTION 'E492:เลขรันเอกสาร(%) ล้นความกว้าง % หลัก กรุณาขยายขนาดที่ผู้ดูแลระบบ', p_code, v_width
+            USING ERRCODE = 'P0001';
+    END IF;
+    v_num  := lpad(v_num, v_width, '0');
     v_last := v_prefix || v_num;
 
     UPDATE sc_cnt_m_document_no_control

@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SoAt.Application.Auth;
@@ -9,7 +8,6 @@ using SoAt.Infrastructure.Auth;
 using SoAt.Infrastructure.Fin;
 using SoAt.Infrastructure.Sc;
 using SoAt.Infrastructure.ScTeller;
-using SoAt.Infrastructure.Persistence;
 
 namespace SoAt.Infrastructure;
 
@@ -21,9 +19,8 @@ public static class DependencyInjection
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection")!;
 
-        // EF Core — ใช้เฉพาะ Migrations (ไม่ใช้ใน service queries)
-        services.AddDbContext<AppDbContext>(options =>
-            options.UseNpgsql(connectionString));
+        // schema sc_* + si_security_* คุมที่ pgAdmin ทั้งหมด — ไม่มี EF Core/AppDbContext แล้ว
+        //   query+CRUD ทุกอย่างผ่าน sc.db (Npgsql/Dapper ตรง)
 
         // sc.dbFactory — singleton, ทุก service ใช้ create() เพื่อสร้าง sc.db ต่อ request
         services.AddSingleton<sc.dbFactory>(_ => new sc.dbFactory(connectionString));

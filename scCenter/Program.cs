@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using SoAt.Application.Auth;
 using SoAt.Infrastructure;
 using scCenter.Components;
@@ -69,16 +68,9 @@ var app = builder.Build();
 sc.log.init(app.Services.GetRequiredService<ILoggerFactory>());
 sc.app.init(builder.Configuration);
 
-// ── Database startup: EF migrations (app tables) ────────────────
-//   schema sc_* คุมที่ pgAdmin | scCenter เป็น host หลัก (module app ไม่รัน startup นี้)
-//   data ทุกตาราง Oracle→PG ย้ายด้วย Block A migrator แล้ว → ถอด DatabaseSeeder ออก (2026-06-11)
-//   ⚠️ si_security_apps/si_security_user = migrator ตั้งใจข้าม (schema app-managed คนละแบบ Oracle)
-//      → ถ้า rebuild DB เปล่าจากศูนย์ ต้อง seed auth (user/menu) แยกต่างหาก
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<SoAt.Infrastructure.Persistence.AppDbContext>();
-    await db.Database.MigrateAsync();   // EF Migrations = table ของแอปเอง (si_security_*)
-}
+// ── Database ────────────────────────────────────────────────────
+//   schema ทั้งหมด (sc_* + si_security_*) คุมที่ pgAdmin — ไม่มี EF migration/seeder ที่ startup แล้ว
+//   ⚠️ rebuild DB เปล่า: ต้องสร้าง table + seed auth (si_security_apps/user) เองที่ pgAdmin ก่อนรันแอป
 
 // ── HTTP pipeline ───────────────────────────────────────────────
 if (!app.Environment.IsDevelopment())

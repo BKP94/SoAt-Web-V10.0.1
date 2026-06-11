@@ -7,7 +7,7 @@
 |---|---|---|
 | Frontend | ASP.NET Web Forms + DevExpress 17.1.6 | **Blazor Server + DevExpress** |
 | Backend | C# .NET Framework 4.8 | .NET Core (services เรียกตรงผ่าน DI) |
-| Database | Oracle 19c | PostgreSQL (Npgsql + EF Core migrations) |
+| Database | Oracle 19c | PostgreSQL (Npgsql + Dapper, schema คุมที่ pgAdmin) |
 
 > **ทิศ frontend (ตัดสินใจ 2026-06-04):** เปลี่ยนจาก React/TypeScript → **Blazor Server + DevExpress**
 > เหตุผล: ทีมถนัด C#, ผู้ใช้ใน intranet (จุดอ่อน Blazor Server ไม่กระทบ), และ reuse legacy XtraReports ~2,900 ตัวได้
@@ -76,7 +76,7 @@ await conn.ExecuteAsync("SET LOCAL app.login_br = @br", new { br = branchId });
   - return `sc.ComboItem` (combo.cs) → Blazor component bind ตรง (Value=`code`, Text=`name`)
 - **`sc.combo.*` constants** — ใช้แทน SQL เขียนเอง, ตรวจ combo.cs ก่อนเสมอ
 - **`sc.scCoop.ofParse(membership_no)`** — validate + pad zeros (size จาก sc_cnt_m_coop)
-- **EF Core ใช้เฉพาะ Migrations** (schema) — ไม่ inject `AppDbContext` ใน service
+- **ไม่มี EF Core แล้ว** (ถอดทั้งระบบ 2026-06-11) — schema ทั้งหมดคุมที่ pgAdmin, query+CRUD ผ่าน `sc.db` ตรง
 - **Auth: cookie-based** (Blazor Server) — service เรียกตรงผ่าน DI, ไม่ผ่าน HTTP/JWT
 
 ### Blazor Server + DevExpress (frontend)
@@ -113,9 +113,9 @@ await conn.ExecuteAsync("SET LOCAL app.login_br = @br", new { br = branchId });
 ## Architecture Decisions (ตัดสินใจแล้ว)
 - **.NET Core layers (อยู่ใน `sc/`):** `SoAt.Application` (DTO+services) / `SoAt.Infrastructure` (sc.db, persistence, EF migrations, seeder) / `SoAt.Core` (sc/* library) / `SoAt.Domain`
   - **ตัด `SoAt.API` + JWT แล้ว (2026-06-04)** — Blazor app (scCenter/module) เรียก service ตรงผ่าน DI ไม่ผ่าน REST/controller. auth เหลือ cookie อย่างเดียว (`IAuthService.AuthenticateAsync`)
-- Backend: **`sc.db`** สำหรับ query+CRUD ทั้งหมด, **EF Core** สำหรับ Migrations เท่านั้น
+- Backend: **`sc.db`** สำหรับ query+CRUD ทั้งหมด (Npgsql/Dapper ตรง) — **ไม่มี EF Core** (ถอดทิ้ง 2026-06-11)
 - Dropdown: **`sc.db.getComboAsync` + `sc.combo.*`** — ไม่เขียน SQL เอง
-- DB naming: คงชื่อ Oracle เดิม | EF Core snake_case: **manual loop** ใน OnModelCreating (EFCore.NamingConventions ไม่รองรับ EF Core 10)
+- DB naming: คงชื่อ Oracle เดิม (lowercase snake_case) — สร้าง/แก้ table ที่ pgAdmin โดยตรง
 - **Frontend: Blazor Server + DevExpress** (เปลี่ยนจาก React 2026-06-04) | Auth: **cookie-based** (service ผ่าน DI)
 
 ### ยังไม่ตัดสินใจ
@@ -132,9 +132,8 @@ await conn.ExecuteAsync("SET LOCAL app.login_br = @br", new { br = branchId });
 
 > เดิมใช้ "SQL-first deploy" (deployers ปั๊ม 2,378 .sql ทุก startup) — ช้า + ขัดกับ workflow จริงที่ PL ใช้ pgAdmin. เลิกใช้แล้ว
 
-**ยังเหลือใน `scCenter/Program.cs` startup (2 อย่าง — เร็ว, idempotent):**
-1. `db.Database.MigrateAsync()` — **EF Core Migrations** สร้าง/อัปเดต table ของแอปเอง (`si_security_apps`, `si_security_user` — auth/permission, ไม่ใช่ schema Oracle). migration อยู่ที่ `sc/SoAt.Infrastructure/Migrations/`
-2. `DatabaseSeeder.SeedAsync()` — ย้าย **ข้อมูล** จาก Oracle → PG (สาขา, ตารางอ้างอิง mem UCF, security users) แบบ count-check แล้วข้าม. ต้องการให้ table ปลายทาง (สร้างใน pgAdmin) มีอยู่ก่อน ไม่งั้น try/catch ข้ามเงียบ
+**`scCenter/Program.cs` startup ไม่แตะ DB แล้ว** — ทั้ง EF Migrations และ DatabaseSeeder ถอดออกหมด (2026-06-11). ทุก table (`sc_*` + auth `si_security_apps`/`si_security_user`) สร้าง+seed ที่ **pgAdmin โดยตรง**
+> ⚠️ **rebuild DB เปล่า:** ต้องสร้าง schema + seed auth (user/menu) เองที่ pgAdmin ก่อนรันแอป — ไม่มี migrator คอยสร้างโครงให้แล้ว (โครงเดิม 2 ตาราง auth กู้ DDL จาก git history ก่อน commit ถอด EF ได้)
 
 ---
 

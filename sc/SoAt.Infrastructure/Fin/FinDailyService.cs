@@ -9,14 +9,14 @@ namespace SoAt.Infrastructure.Fin;
 /// </summary>
 public class FinDailyService(sc.dbFactory dbFactory) : IFinDailyService
 {
-    // Oracle: pka_fin_daily.fp_finance_date
+    // legacy: scCoop._finance_date → pka_fin_daily.fp_finance_date('1')
     public async Task<DateTime?> GetFinanceDateAsync()
     {
         await using var scDb = dbFactory.create();
-        return (DateTime?)await scDb.pkFunctionAsync("fp_finance_date", true);
+        return (DateTime?)await scDb.pkFunctionAsync("pka_fin_daily.fp_finance_date('1')");
     }
 
-    // Oracle: pka_fin_daily.fp_counter_opened
+    // legacy: pka_fin_daily.fp_counter_opened (อ่าน login vars ใน package)
     // ต้อง set session variables ก่อน (แทน pka_com_login package)
     public async Task<bool> IsCounterOpenedAsync(string userId, string branchId)
     {
@@ -24,7 +24,7 @@ public class FinDailyService(sc.dbFactory dbFactory) : IFinDailyService
             return false;
 
         await using var scDb = dbFactory.create(userId, branchId);
-        return sc.value.toString(await scDb.pkFunctionAsync("fp_counter_opened")) == "1";
+        return sc.value.toString(await scDb.pkFunctionAsync("pka_fin_daily.fp_counter_opened()")) == "1";
     }
 
     // Oracle equivalent:
@@ -36,13 +36,15 @@ public class FinDailyService(sc.dbFactory dbFactory) : IFinDailyService
 
         await using var scDb = dbFactory.create(userId, branchId);
 
+        // legacy scLayout.master.cs: select pka_fin_daily.fp_counter_opened ... from dual
+        //   (PG ตัด FROM dual; pka_fin_daily.fp_finance_date('1') มาจาก scCoop._finance_date)
         var row = await scDb.getOneAsync<SessionInfoRow>(@"
             SELECT
-                fp_counter_opened()                                                        AS counter_opened,
+                pka_fin_daily.fp_counter_opened()                                          AS counter_opened,
                 (SELECT counter_split FROM si_security_user WHERE user_id  = {0})         AS counter_split,
                 (SELECT branch_name   FROM sc_com_m_branch   WHERE branch_id = {1})       AS branch_name,
                 (SELECT user_name     FROM si_security_user WHERE user_id   = {0})        AS user_name,
-                fp_finance_date(true)                                                      AS finance_date",
+                pka_fin_daily.fp_finance_date('1')                                          AS finance_date",
             userId, branchId);
 
         if (row is null) return null;

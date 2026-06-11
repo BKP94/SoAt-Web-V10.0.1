@@ -147,3 +147,19 @@ await conn.ExecuteAsync("SET LOCAL app.login_br = @br", new { br = branchId });
 1. register DevExpress license จริง (แทน evaluation) — DevExpress License Manager / `DevExpress_License.txt`
 2. migrate module แรกขึ้น Blazor ด้วย DevExpress component (เช่น `sctelnewbma` ใน scTeller — มี service `ISctelnewbmaService` พร้อมแล้ว); UI bind `sc.*` (mask/value/combo) ตาม Coding Guidelines
 3. ต่อ landing scCenter เข้า `IScAppService.GetAppsAsync()` แทนรายการ module ที่ hardcode
+
+---
+
+## Agent skills
+
+### Issue tracker
+
+Issues/PRDs live as markdown under `.scratch/<feature-slug>/` (local markdown, no GitHub Issues). See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Five canonical triage roles, default strings (`needs-triage` / `needs-info` / `ready-for-agent` / `ready-for-human` / `wontfix`). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: `CONTEXT.md` + `docs/adr/` at repo root. See `docs/agents/domain.md`.

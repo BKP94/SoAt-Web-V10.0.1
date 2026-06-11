@@ -4,12 +4,27 @@
 
 <AuthorizeView>
     <Authorized>
-        <h1>ระบบบัญชี (scAccount)</h1>
-        <p>เข้าสู่ระบบในชื่อ <strong>@context.User.Identity?.Name</strong>
-           — สาขา <strong>@context.User.FindFirst("branch_id")?.Value</strong></p>
+        <div class="home">
+            <header class="home-hero">
+                <div class="home-hero-text">
+                    <h1 class="home-title">สวัสดี คุณ@(context.User.Identity?.Name)</h1>
+                    <p class="home-sub">
+                        ระบบบัญชี — เลือกงานจากเมนูด้านซ้ายได้เลย
+                    </p>
+                </div>
+                <span class="home-hero-badge">scAccount</span>
+            </header>
 
-        <div class="center-modules">
-            <div class="module-card placeholder">ยังไม่มีเมนู</div>
+            <section class="home-section">
+                <h2 class="home-section-title">เริ่มงานด่วน</h2>
+                <div class="home-cards">
+                    <div class="home-card home-card--soon">
+                        <span class="home-card-icon">🛠️</span>
+                        <span class="home-card-name">อยู่ระหว่างพัฒนา</span>
+                        <span class="home-card-desc">เร็วๆ นี้</span>
+                    </div>
+                </div>
+            </section>
         </div>
     </Authorized>
 </AuthorizeView>

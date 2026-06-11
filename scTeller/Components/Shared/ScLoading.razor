@@ -1,0 +1,69 @@
+@using DevExpress.Blazor
+
+@* ── ScLoading — overlay loading กลางจอ ระหว่างประมวลผล callback ─────────────────
+   เลียนแนว legacy sc.loading: บัง overlay กลางจอตอนทำงาน, จบงาน → หาย
+   host ในหน้าด้วย @ref แล้วเรียกแบบ imperative (เหมือน ScMessage):
+       <ScLoading @ref="_loading" />
+       var r = await _loading.RunAsync(() => Svc.SaveAsync(...));   // คืนค่าของ work
+       await _loading.RunAsync(() => Svc.DoAsync(...));             // ไม่มีค่าคืน
+   RunAsync จะโชว์ overlay เฉพาะเมื่อ work ใช้เวลาเกิน delayMs (กันกระพริบงานเร็ว)
+   spinner ใช้ DxWaitIndicator (ไม่ override DevExpress) — backdrop เป็น layout (.sc-loading* ใน app.css) *@
+
+@if (_visible)
+{
+    <div class="sc-loading" role="status" aria-live="polite">
+        <div class="sc-loading-box">
+            <DxWaitIndicator Visible="true" />
+            <span class="sc-loading-text">@(_text ?? "กำลังดำเนินการ…")</span>
+        </div>
+    </div>
+}
+
+@code {
+    private bool    _visible;
+    private string? _text;
+
+    /// โชว์ overlay เอง (คุม show/hide เป็นคู่)
+    public void Show(string? text = null)
+    {
+        _text    = text;
+        _visible = true;
+        StateHasChanged();
+    }
+
+    /// ซ่อน overlay
+    public void Hide()
+    {
+        _visible = false;
+        StateHasChanged();
+    }
+
+    /// รัน async work ที่มีค่าคืน + โชว์ overlay เฉพาะเมื่องานนานเกิน delayMs (กันกระพริบ)
+    /// overlay หายทันทีที่ work จบ — ก่อนแสดง ScMessage ผลลัพธ์
+    public async Task<T> RunAsync<T>(Func<Task<T>> work, string? text = null, int delayMs = 150)
+    {
+        using var cts = new CancellationTokenSource();
+        var show = ShowDelayed(text, delayMs, cts.Token);   // โชว์เมื่อครบ delay (fire-and-await ตอน finally)
+        try
+        {
+            return await work();
+        }
+        finally
+        {
+            cts.Cancel();
+            try { await show; } catch { /* ถูกยกเลิกก่อนครบ delay = งานเร็ว ไม่ต้องโชว์ */ }
+            Hide();
+        }
+    }
+
+    /// รัน async work ที่ไม่มีค่าคืน
+    public Task RunAsync(Func<Task> work, string? text = null, int delayMs = 150) =>
+        RunAsync(async () => { await work(); return true; }, text, delayMs);
+
+    // โชว์ overlay หลังครบ delay (ถ้า work จบก่อน → ถูก cancel ไม่โชว์)
+    private async Task ShowDelayed(string? text, int delayMs, CancellationToken ct)
+    {
+        await Task.Delay(delayMs, ct);   // โยน TaskCanceledException เมื่อ work จบก่อน
+        Show(text);
+    }
+}

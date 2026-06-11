@@ -1,0 +1,136 @@
+@using SoAt.Application.Sc
+@inject IScAppService ScApps
+@inject NavigationManager Nav
+
+@* ── Sidebar nav (vertical) ────────────────────────────────────────────────────
+   ดึงจาก si_security_apps ผ่าน GetMenuAsync("scStock")
+     · level 2 = รายการบนเมนู (ถ้ามี s_url = link ตรง, ถ้าไม่มี = หัว group ที่กางได้)
+     · level 3 = ลูกใน group — ผูกกับ group ผ่าน i_parent_id (ลำดับ group 1..n)
+   route แปลงจาก s_url legacy ("../xxx/page.aspx" → "/xxx")
+   เมนูที่ยัง migrate ไม่ถึง → disabled (อยู่ใน _implemented เท่านั้นที่คลิกได้) *@
+
+@if (_top.Count > 0)
+{
+    <ul class="nav-list">
+        @foreach (var top in _top)
+        {
+            var route = ToRoute(top.SUrl);
+            if (route is not null)
+            {
+                @* level-2 ที่เป็น link ตรง (หน้าแรก / ระบบรายงาน) *@
+                <li class="nav-item">
+                    @if (IsReady(route))
+                    {
+                        <NavLink class="nav-link" href="@Rel(route)"
+                                 Match="@(route == "/" ? NavLinkMatch.All : NavLinkMatch.Prefix)">
+                            <span class="nav-dot"></span>
+                            <span class="nav-text">@top.LabelTh</span>
+                        </NavLink>
+                    }
+                    else
+                    {
+                        <span class="nav-link nav-link--disabled">
+                            <span class="nav-dot"></span>
+                            <span class="nav-text">@top.LabelTh</span>
+                            <span class="nav-soon">เร็วๆ นี้</span>
+                        </span>
+                    }
+                </li>
+            }
+            else
+            {
+                @* level-2 ที่เป็นหัว group (กางด้วย <details>) — เปิดค้างถ้ามีหน้าปัจจุบันอยู่ในนั้น *@
+                <li class="nav-group">
+                    <details open="@IsGroupActive(top)">
+                        <summary class="nav-link nav-group-head">
+                            <span class="nav-caret">▸</span>
+                            <span class="nav-text">@top.LabelTh</span>
+                        </summary>
+                        <ul class="nav-sublist">
+                            @foreach (var child in ChildrenOf(top))
+                            {
+                                var r = ToRoute(child.SUrl);
+                                <li>
+                                    @if (IsReady(r))
+                                    {
+                                        <NavLink class="nav-sublink" href="@Rel(r)" Match="NavLinkMatch.Prefix">
+                                            @child.LabelTh
+                                        </NavLink>
+                                    }
+                                    else
+                                    {
+                                        <span class="nav-sublink nav-sublink--disabled">@child.LabelTh</span>
+                                    }
+                                </li>
+                            }
+                        </ul>
+                    </details>
+                </li>
+            }
+        }
+    </ul>
+}
+
+@code {
+    // module นี้ (folder/namespace ตรง legacy)
+    private const string AppName = "scStock";
+
+    // route ที่ migrate เสร็จแล้ว — นอกเหนือจากนี้ขึ้นเมนูแต่ disabled (ยังไม่ migrate หน้าใด → มีแค่ "/")
+    private static readonly HashSet<string> _implemented =
+        new(StringComparer.OrdinalIgnoreCase) { "/" };
+
+    private List<ScMenuItemDto> _top = [];
+    private Dictionary<int, List<ScMenuItemDto>> _childrenByGroup = [];   // groupIndex → children
+    private Dictionary<int, int> _groupOf = [];                          // IMenuId(level2) → groupIndex
+
+    protected override async Task OnInitializedAsync()
+    {
+        var items = (await ScApps.GetMenuAsync(AppName)).ToList();
+
+        _top = items.Where(i => i.ILevel == 2).OrderBy(i => i.ISequence).ToList();
+
+        // group index = ลำดับของ level-2 ที่ไม่มี s_url (เป็นหัว group) → 1,2,3,...
+        int g = 0;
+        foreach (var t in _top)
+            if (string.IsNullOrWhiteSpace(t.SUrl))
+                _groupOf[t.IMenuId] = ++g;
+
+        _childrenByGroup = items
+            .Where(i => i.ILevel == 3 && i.IParentId is not null)
+            .GroupBy(i => i.IParentId!.Value)
+            .ToDictionary(grp => grp.Key, grp => grp.OrderBy(x => x.ISequence).ToList());
+    }
+
+    private IEnumerable<ScMenuItemDto> ChildrenOf(ScMenuItemDto top) =>
+        _groupOf.TryGetValue(top.IMenuId, out var gi)
+        && _childrenByGroup.TryGetValue(gi, out var list)
+            ? list
+            : Enumerable.Empty<ScMenuItemDto>();
+
+    // group เปิดค้างถ้าหน้าปัจจุบันตรงกับ route ของลูกตัวใดตัวหนึ่ง
+    private bool IsGroupActive(ScMenuItemDto top)
+    {
+        var current = "/" + Nav.ToBaseRelativePath(Nav.Uri).Split('?')[0].TrimEnd('/');
+        return ChildrenOf(top)
+            .Select(c => ToRoute(c.SUrl))
+            .Any(r => r is not null && r != "/" &&
+                      current.StartsWith(r, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static bool IsReady(string? route) => route is not null && _implemented.Contains(route);
+
+    // route ภายในเก็บ leading "/" ไว้สำหรับ logic เปรียบเทียบ แต่ href ของ NavLink ต้องเป็น relative
+    // เพื่อให้ base href (PathBase ของ IIS sub-app) ต่อ prefix ให้อัตโนมัติ
+    private static string Rel(string? route) =>
+        string.IsNullOrEmpty(route) || route == "/" ? "" : route.TrimStart('/');
+
+    // "../xxx/page.aspx" → "/xxx" ; "../Home.aspx" → "/"
+    private static string? ToRoute(string? sUrl)
+    {
+        if (string.IsNullOrWhiteSpace(sUrl)) return null;
+        var s = sUrl.Trim().Replace("../", "");
+        if (s.Contains('/')) return "/" + s.Split('/')[0];
+        var name = s.Replace(".aspx", "", StringComparison.OrdinalIgnoreCase);
+        return name.Equals("Home", StringComparison.OrdinalIgnoreCase) ? "/" : "/" + name.ToLowerInvariant();
+    }
+}

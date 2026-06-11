@@ -55,6 +55,8 @@ else
 <ScMessage @ref="_msg" />
 @* popup รายชื่อ ปปง. (cascade ลง PanHead เหมือน ScMessage) *@
 <PopValidateAML @ref="_aml" />
+@* overlay loading กลางจอ ระหว่างเรียก service (save/cancel) — โชว์ตอนเข้า callback, จบ → หาย *@
+<ScLoading @ref="_loading" />
 
 @code {
     [Parameter] public string? ApplicationFormNo { get; set; }
@@ -70,6 +72,7 @@ else
     private bool   _cancelVisible; // popup ระบุเหตุผลยกเลิก (PopCancelReason)
     private List<ComboItemDto> _statuses = [];   // map approve_status code → ข้อความ (J36)
     private ScMessage _msg = default!;   // กล่องข้อความ modal กลางจอ
+    private ScLoading _loading = default!;   // overlay loading กลางจอ ระหว่างประมวลผล
     private PopValidateAML _aml = default!;   // popup รายชื่อ ปปง.
     private string? _loadError;          // error ตอนโหลด (แสดงหลัง render แรก)
 
@@ -134,9 +137,10 @@ else
         try
         {
             // WorkInfo/Spouse/Own skip-empty + bank row-skip จัดที่ DTO (ISaveRowFilter) — ไม่ต้อง massage ที่นี่
-            var result = IsEdit
-                ? await Svc.UpdateApplicationAsync(ApplicationFormNo!, _form, _userId)
-                : await Svc.CreateApplicationAsync(_form, _userId, _branchId);
+            // overlay loading โชว์ระหว่าง service call, หายก่อนเด้งกล่องผลลัพธ์ (ScMessage)
+            var result = await _loading.RunAsync(() => IsEdit
+                ? Svc.UpdateApplicationAsync(ApplicationFormNo!, _form, _userId)
+                : Svc.CreateApplicationAsync(_form, _userId, _branchId), "กำลังบันทึก…");
 
             _saving = false;
             await _msg.Success($"{result.Message} (เลขที่ {result.ApplicationFormNo})");
@@ -198,7 +202,8 @@ else
     {
         try
         {
-            var result = await Svc.CancelApplicationAsync(ApplicationFormNo!, reason, _userId, _branchId);
+            var result = await _loading.RunAsync(
+                () => Svc.CancelApplicationAsync(ApplicationFormNo!, reason, _userId, _branchId), "กำลังยกเลิก…");
             await _msg.Success($"ยกเลิกใบสมัครสมาชิก [ {result.ApplicationFormNo} ] เรียบร้อยแล้ว");
             Nav.NavigateTo("sctelnewbma");   // ล้างฟอร์ม = กลับหน้าสร้างใหม่
         }

@@ -1,27 +1,73 @@
 @inherits LayoutComponentBase
 @inject IConfiguration Config
+@inject SoAt.Application.Sc.IScAppService ScApps
 
 <div class="app-shell">
-    <header class="app-topbar">
-        <a class="app-brand" href="@ScCenterUrl">SoAt</a>
-        <span class="app-module">scCoordinate — ระบบประสานงาน</span>
+    @* CSS-only collapse: label ใน topbar/sidebar toggle checkbox นี้ (ไม่ต้องใช้ JS) *@
+    <input type="checkbox" id="tel-nav-toggle" class="tel-nav-toggle" />
 
-        <div class="app-topbar-spacer"></div>
+    <aside class="app-sidebar">
+        <div class="sidebar-brand">
+            <a class="brand-link" href="@ScCenterUrl" title="กลับ SoAt Center">
+                <span class="brand-mark">SA</span>
+                <span class="brand-name">SoAt</span>
+            </a>
+            <label for="tel-nav-toggle" class="sidebar-collapse" title="ย่อ/ขยายเมนู">«</label>
+        </div>
 
+        @* เมนูหลัก (vertical) — แสดงเมื่อ login แล้ว, โหลดจาก si_security_apps *@
         <AuthorizeView>
             <Authorized>
-                <span class="app-user">@context.User.Identity?.Name</span>
-                <form method="post" action="/logout" class="app-logout-form">
-                    <AntiforgeryToken />
-                    <button type="submit" class="app-logout">ออกจากระบบ</button>
-                </form>
+                <nav class="sidebar-nav">
+                    <TopMenu />
+                </nav>
             </Authorized>
         </AuthorizeView>
-    </header>
 
-    <main class="app-main">
-        @Body
-    </main>
+        <div class="sidebar-foot">
+            <span class="sidebar-module">ระบบประสานงาน</span>
+        </div>
+    </aside>
+
+    <div class="app-body">
+        <header class="app-topbar">
+            <label for="tel-nav-toggle" class="topbar-burger" title="เมนู">☰</label>
+            <span class="app-module">scCoordinate</span>
+
+            <div class="app-topbar-spacer"></div>
+
+            <AuthorizeView>
+                <Authorized>
+                    @* สถานะระบบ (เหมือน scCenter): วันที่การเงิน + ฐานข้อมูล — วางข้างชื่อผู้ใช้ *@
+                    <div class="app-status">
+                        <span class="app-status-item">
+                            <span class="app-status-k">วันที่การเงิน</span>
+                            <span class="app-status-v">@(_info?.FinanceDate ?? "—")</span>
+                        </span>
+                        <span class="app-status-item">
+                            <span class="app-status-k">ฐานข้อมูล</span>
+                            <span class="app-status-v">@(string.IsNullOrEmpty(_info?.SysName) ? "—" : _info!.SysName)</span>
+                        </span>
+                    </div>
+                    <div class="app-userbox">
+                        <span class="app-avatar">@Initial(context.User.Identity?.Name)</span>
+                        <span class="app-userinfo">
+                            <span class="app-username">@context.User.Identity?.Name</span>
+                            <span class="app-userbranch">สาขา @context.User.FindFirst("branch_id")?.Value</span>
+                        </span>
+                    </div>
+                    <form method="post" action="/logout" class="app-logout-form">
+                        <AntiforgeryToken />
+                        <button type="submit" class="app-logout">ออกจากระบบ</button>
+                    </form>
+                </Authorized>
+            </AuthorizeView>
+        </header>
+
+        <main class="app-main">
+            @Body
+        </main>
+    </div>
 </div>
 
 <div id="blazor-error-ui" data-nosnippet>
@@ -32,4 +78,16 @@
 
 @code {
     private string ScCenterUrl => Config["ScCenter:Url"] ?? "http://localhost:5100";
+
+    // แถบสถานะ (วันที่การเงิน + ฐานข้อมูล) — ดึงจากแหล่งเดียวกับ scCenter, guard ไว้ใน service แล้ว
+    private SoAt.Application.Sc.ScCenterInfoDto? _info;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try { _info = await ScApps.GetCenterInfoAsync(); } catch { }
+    }
+
+    // ตัวอักษรแรกของชื่อ → avatar (ไทย/อังกฤษ)
+    private static string Initial(string? name) =>
+        string.IsNullOrWhiteSpace(name) ? "?" : name.Trim()[..1].ToUpperInvariant();
 }

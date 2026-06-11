@@ -23,7 +23,7 @@ public record ApplicationTypeDto(string Code, string? Name, decimal? Fee, string
 public record ConcernDto(string Code, string? RelatedNa);
 public record GroupPositionDto(string Code, string? Description, int? SortOrder);
 public record PositionDto(string Code, string? Name, int? SortOrder);
-public record CoopConfigDto(string CoopNo, int? CountResign, string? AutoApproveNewmem, string? MemTypeOngroup);
+public record CoopConfigDto(string CoopNo, double? CountResign, string? AutoApproveNewmem, string? MemTypeOngroup);  // count_resign = double precision ใน PG → ต้อง double? ไม่งั้น Dapper materialize ไม่ได้
 public record BankBranchDto(string Code, string? Name, string? BankId);   // cascade by BankId (เหมือน Districts ← Province)
 public record SalaryLevelDto(int Code, string? Name);                       // sc_mem_m_ucf_salary_level (ระดับ)
 public record SalaryRateDto(decimal Code, string? Name, int? LevelCode);    // sc_mem_m_ucf_salary_rate (ขั้น, cascade ← LevelCode)

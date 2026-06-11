@@ -1,5 +1,6 @@
 @inherits LayoutComponentBase
 @inject IConfiguration Config
+@inject SoAt.Application.Sc.IScAppService ScApps
 
 <div class="app-shell">
     @* CSS-only collapse: label ใน topbar/sidebar toggle checkbox นี้ (ไม่ต้องใช้ JS) *@
@@ -37,6 +38,17 @@
 
             <AuthorizeView>
                 <Authorized>
+                    @* สถานะระบบ (เหมือน scCenter): วันที่การเงิน + ฐานข้อมูล — วางข้างชื่อผู้ใช้ *@
+                    <div class="app-status">
+                        <span class="app-status-item">
+                            <span class="app-status-k">วันที่การเงิน</span>
+                            <span class="app-status-v">@(_info?.FinanceDate ?? "—")</span>
+                        </span>
+                        <span class="app-status-item">
+                            <span class="app-status-k">ฐานข้อมูล</span>
+                            <span class="app-status-v">@(string.IsNullOrEmpty(_info?.SysName) ? "—" : _info!.SysName)</span>
+                        </span>
+                    </div>
                     <div class="app-userbox">
                         <span class="app-avatar">@Initial(context.User.Identity?.Name)</span>
                         <span class="app-userinfo">
@@ -66,6 +78,14 @@
 
 @code {
     private string ScCenterUrl => Config["ScCenter:Url"] ?? "http://localhost:5100";
+
+    // แถบสถานะ (วันที่การเงิน + ฐานข้อมูล) — ดึงจากแหล่งเดียวกับ scCenter, guard ไว้ใน service แล้ว
+    private SoAt.Application.Sc.ScCenterInfoDto? _info;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try { _info = await ScApps.GetCenterInfoAsync(); } catch { }
+    }
 
     // ตัวอักษรแรกของชื่อ → avatar (ไทย/อังกฤษ)
     private static string Initial(string? name) =>

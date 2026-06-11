@@ -6,8 +6,10 @@
    เลือกแถว → ยิง EventCallback OnSelected(application_form_no) กลับให้ Page เปิดใบสมัคร
    เป็น dumb-ish component: ถือ filter + ผลลัพธ์ของตัวเอง, ไม่ persist อะไร *@
 
-<DxPopup @bind-Visible="Visible" HeaderText="ค้นหาใบสมัครสมาชิก"
-         Width="980px" Height="640px" ShowFooter="true"
+@* Height ปล่อยให้ auto ตามเนื้อหา — footer (ปุ่มปิด) จะ pin ก้น popup เสมอ ไม่หลุดลอย
+   (คุมไม่ให้สูงเกินด้วยความสูงตารางคงที่ .po-grid แทน fixed Height) *@
+<DxPopup Visible="Visible" VisibleChanged="OnVisibleChanged" HeaderText="ค้นหาใบสมัครสมาชิก"
+         Width="980px" ShowFooter="true"
          CloseOnEscape="true" Shown="OnShownAsync">
     <BodyContentTemplate Context="popup">
         @* ── แผงค้นหา ─────────────────────────────────────────────────────── *@
@@ -72,7 +74,7 @@
         }
         else if (_rows.Count > 0)
         {
-            <DxGrid Data="_rows" CssClass="po-grid" PageSize="12"
+            <DxGrid Data="_rows" CssClass="po-grid" PageSize="10"
                     ColumnResizeMode="GridColumnResizeMode.NextColumn">
                 <Columns>
                     <DxGridDataColumn Caption="เลขที่ใบสมัคร" FieldName="@nameof(ApplicationSummaryDto.ApplicationFormNo)"
@@ -153,6 +155,14 @@
     }
 
     private Task Close() => CloseInternal();
+
+    // X ที่หัว popup / Esc → DxPopup ยิง VisibleChanged เอง → ต้อง propagate กลับ Page
+    // (เดิม @bind-Visible อัปเดตแค่ local Visible, _openVisible ฝั่ง Page ค้าง true → เปิดซ้ำไม่ได้)
+    private async Task OnVisibleChanged(bool visible)
+    {
+        Visible = visible;
+        await VisibleChanged.InvokeAsync(visible);
+    }
 
     private async Task CloseInternal()
     {

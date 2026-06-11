@@ -58,11 +58,11 @@ public class ScAppService(sc.dbFactory dbFactory) : IScAppService
         await using var scDb = dbFactory.create();
         var coop = new sc.scCoop(scDb);
 
-        string  sysName  = "";
+        // ฐานข้อมูล = ชื่อ DB ของ PG (จาก connection string ใน appsettings.json) ไม่ใช่ sys_name ใน sc_cnt_m_coop
+        string  sysName  = dbFactory.Database;
         string  coopName = "";
         string? finDate  = null;
 
-        try { sysName  = coop.getCoopSysName(); } catch { }
         try { coopName = coop.getCoopName();   } catch { }
         try { finDate  = sc.value.toStringTH(coop.getFinanceDate()); } catch { }
 

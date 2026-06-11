@@ -163,6 +163,16 @@ html, body {
 .app-module { font-size: .95rem; font-weight: 600; color: var(--navy-800); }
 .app-topbar-spacer { flex: 1; }
 
+/* แถบสถานะระบบใน topbar (วันที่การเงิน / ฐานข้อมูล) — วางก่อนกล่องผู้ใช้ */
+.app-status { display: flex; align-items: center; gap: .5rem; margin-right: .35rem; }
+.app-status-item {
+    display: flex; flex-direction: column; line-height: 1.15;
+    padding: .2rem .6rem;
+}
+.app-status-k { font-size: .66rem; color: var(--ink-muted); }
+.app-status-v { font-size: .82rem; font-weight: 600; color: var(--ink); }
+@media (max-width: 860px) { .app-status { display: none; } }
+
 .app-userbox { display: flex; align-items: center; gap: .55rem; }
 .app-avatar {
     display: grid; place-items: center;
@@ -345,7 +355,9 @@ a.home-card:hover {
 }
 .po-resultbar__count b { color: #374151; }
 
-.po-grid { margin-top: 2px; }
+/* คุมความสูงตารางคงที่ → scroll แถวในตัวเอง (header/pager อยู่กับที่), popup auto-size
+   ตามเนื้อหา footer จึง pin ก้น popup เสมอ ไม่ต้อง fix Height ทั้ง popup */
+.po-grid { margin-top: 2px; height: 300px; }
 .po-openbtn { min-width: 56px; }
 
 /* badge สถานะใบสมัคร */

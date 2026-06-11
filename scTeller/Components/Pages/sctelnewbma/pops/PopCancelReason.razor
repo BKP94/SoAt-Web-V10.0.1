@@ -6,7 +6,7 @@
    ยืนยัน → ต้องเลือกเหตุผล (legacy J140) → ยิง EventCallback OnSubmit(reason) ให้ Page เรียก service
    ปิด/ยกเลิก → Page แสดง "ยกเลิกใบสมัครสมาชิก ไม่สำเร็จ" (legacy J138) *@
 
-<DxPopup @bind-Visible="Visible" HeaderText="ระบุเหตุผลการยกเลิกใบสมัครสมาชิก"
+<DxPopup Visible="Visible" VisibleChanged="OnVisibleChanged" HeaderText="ระบุเหตุผลการยกเลิกใบสมัครสมาชิก"
          Width="640px" ShowFooter="true" CloseOnEscape="true"
          Shown="OnShownAsync" Closed="OnClosed">
     <BodyContentTemplate Context="popup">
@@ -64,6 +64,14 @@
     }
 
     private Task Close() => CloseInternal();
+
+    // X ที่หัว popup / Esc → DxPopup ยิง VisibleChanged เอง → propagate กลับ Page
+    // (เดิม @bind-Visible อัปเดตแค่ local → _cancelVisible ฝั่ง Page ค้าง true เปิดซ้ำไม่ได้)
+    private async Task OnVisibleChanged(bool visible)
+    {
+        Visible = visible;
+        await VisibleChanged.InvokeAsync(visible);
+    }
 
     private async Task CloseInternal()
     {

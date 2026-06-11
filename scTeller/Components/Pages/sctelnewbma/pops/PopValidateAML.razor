@@ -6,8 +6,9 @@
    host ที่ Page แล้ว cascade ลง child (เหมือน ScMessage) → PanHead เรียก Aml.ShowAsync(...)
    PopType: "popName" (ชื่อ-สกุล) | "popHumID" (เลขบัตร) *@
 
+@* Height ปล่อย auto — footer (ปุ่มปิด) pin ก้น popup เสมอ ไม่หลุดลอย *@
 <DxPopup @bind-Visible="_visible" HeaderText="@_header"
-         Width="900px" Height="600px" ShowFooter="true" CloseOnEscape="true"
+         Width="900px" ShowFooter="true" CloseOnEscape="true"
          CssClass="sc-msg sc-msg--alert">
     <BodyContentTemplate Context="popup">
         @if (_rows.Count == 0)

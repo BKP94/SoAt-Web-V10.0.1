@@ -26,9 +26,9 @@ public record ScBranchDto(
     string BranchName
 );
 
-// ข้อมูลแถบสถานะ scCenter (footer) — จาก sc_cnt_m_coop
+// ข้อมูลแถบสถานะ scCenter (footer)
 public record ScCenterInfoDto(
-    string  CoopName,      // coop_name
-    string  SysName,       // sys_name (ฐานข้อมูล เช่น PEAN)
+    string  CoopName,      // coop_name (จาก sc_cnt_m_coop)
+    string  SysName,       // ชื่อ database ของ PG (Database= ใน connection string จาก appsettings.json เช่น soatdb)
     string? FinanceDate    // วันที่การเงิน (พ.ศ. แล้ว) — null ถ้าดึงไม่ได้
 );

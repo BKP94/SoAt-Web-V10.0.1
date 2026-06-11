@@ -69,17 +69,15 @@ var app = builder.Build();
 sc.log.init(app.Services.GetRequiredService<ILoggerFactory>());
 sc.app.init(builder.Configuration);
 
-// ── Database startup: EF migrations (app tables) → seeder (idempotent) ──
+// ── Database startup: EF migrations (app tables) ────────────────
 //   schema sc_* คุมที่ pgAdmin | scCenter เป็น host หลัก (module app ไม่รัน startup นี้)
+//   data ทุกตาราง Oracle→PG ย้ายด้วย Block A migrator แล้ว → ถอด DatabaseSeeder ออก (2026-06-11)
+//   ⚠️ si_security_apps/si_security_user = migrator ตั้งใจข้าม (schema app-managed คนละแบบ Oracle)
+//      → ถ้า rebuild DB เปล่าจากศูนย์ ต้อง seed auth (user/menu) แยกต่างหาก
 using (var scope = app.Services.CreateScope())
 {
-    var db     = scope.ServiceProvider.GetRequiredService<SoAt.Infrastructure.Persistence.AppDbContext>();
-    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-
-    // schema ของธุรกิจ (sc_*) จัดการที่ pgAdmin โดยตรง — ไม่มี SQL deployers แล้ว
-    //   EF Migrations = table ของแอปเอง (si_security_*) | Seeder = ย้ายข้อมูลจาก Oracle (idempotent)
-    await db.Database.MigrateAsync();
-    await SoAt.Infrastructure.Persistence.DatabaseSeeder.SeedAsync(db, builder.Configuration);
+    var db = scope.ServiceProvider.GetRequiredService<SoAt.Infrastructure.Persistence.AppDbContext>();
+    await db.Database.MigrateAsync();   // EF Migrations = table ของแอปเอง (si_security_*)
 }
 
 // ── HTTP pipeline ───────────────────────────────────────────────

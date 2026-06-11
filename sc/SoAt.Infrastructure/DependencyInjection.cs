@@ -21,7 +21,7 @@ public static class DependencyInjection
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection")!;
 
-        // EF Core — ใช้เฉพาะ Migrations + DatabaseSeeder (ไม่ใช้ใน service queries)
+        // EF Core — ใช้เฉพาะ Migrations (ไม่ใช้ใน service queries)
         services.AddDbContext<AppDbContext>(options =>
             options.UseNpgsql(connectionString));
 

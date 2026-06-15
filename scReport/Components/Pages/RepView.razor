@@ -1,0 +1,81 @@
+@page "/repView/{Token}"
+@layout ViewerLayout
+@rendermode InteractiveServer
+@using DevExpress.Blazor.Reporting
+@using DevExpress.XtraReports.UI
+@using scReport.Services
+@inject ReportRequestStore Store
+
+@* RepView — แท็บ preview รายงานเต็มจอ (เลียน legacy repViewer/page.aspx)
+   อ่าน token → ดึงคำขอ (vs_path + composed SQL) จาก ReportRequestStore →
+   สร้าง XtraReport ใหม่ + bind SQL → render DxReportViewer เต็มจอ *@
+
+<PageTitle>@(_title ?? "รายงาน")</PageTitle>
+
+@if (_error is not null)
+{
+    <div class="rv-msg">@_error</div>
+}
+else if (_report is not null)
+{
+    <div class="rv-viewer">
+        <DxReportViewer Report="@_report" />
+    </div>
+}
+else
+{
+    <div class="rv-msg">กำลังเตรียมรายงาน…</div>
+}
+
+@code {
+    [Parameter] public string Token { get; set; } = string.Empty;
+
+    XtraReport? _report;
+    string? _title, _error;
+
+    protected override void OnInitialized()
+    {
+        var entry = Store.Get(Token);
+        if (entry is null)
+        {
+            _error = "ไม่พบคำขอรายงาน (หมดอายุหรือถูกเปิดใหม่) — กรุณาเปิดรายงานอีกครั้งจากระบบรายงาน";
+            return;
+        }
+
+        try
+        {
+            var rep = sc.report.tryCreateReport(entry.VsPath);
+            if (rep is null)
+            {
+                _error = "ยังไม่ได้ย้ายตัวรายงานนี้ (" + entry.VsPath + ")";
+                return;
+            }
+            sc.report.bindReportSql(rep, entry.Sql);
+            applyHeaders(rep, entry);
+            _report = rep;
+            _title = entry.Title;
+        }
+        catch (Exception ex)
+        {
+            _error = sc.msg.C(ex.Message);
+        }
+    }
+
+    // เลียน legacy pageForm.ascx.cs ofLoadReport: หา XRLabel แล้ว set .Text ตอน runtime
+    //   t_header_1=ชื่อสหกรณ์ · t_header_2=ชื่อรายงาน · t_header_3=เงื่อนไข · t_soat=copyright · t_header_publish_date=publish
+    static void applyHeaders(XtraReport rep, ReportRequestStore.Entry e)
+    {
+        setLabel(rep, "t_header_1", string.IsNullOrWhiteSpace(e.CoopName) ? "สหกรณ์ออมทรัพย์ฯ" : e.CoopName);
+        setLabel(rep, "t_header_2", string.IsNullOrWhiteSpace(e.RepText) ? "รายงาน" : e.RepText);
+        setLabel(rep, "t_header_3", string.IsNullOrWhiteSpace(e.Header3) ? "หัวรายงาน" : e.Header3);
+        setLabel(rep, "t_soat", "Copyright©2017 All Right Reserved SO-AT Solution.co.,ltd.@2017");
+        setLabel(rep, "t_header_publish_date",
+            "[" + e.CatId + "/" + e.RepId + "] [" + e.LoginUser + "] ["
+            + e.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss") + "]");
+    }
+
+    static void setLabel(XtraReport rep, string name, string text)
+    {
+        if (rep.FindControl(name, true) is XRLabel lbl) lbl.Text = text;
+    }
+}

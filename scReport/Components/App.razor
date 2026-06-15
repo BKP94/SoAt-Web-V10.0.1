@@ -12,6 +12,8 @@
     <!-- Prompt font (self-host, intranet-friendly) -->
     <link rel="stylesheet" href="fonts/prompt.css" />
     <link rel="stylesheet" href="_content/DevExpress.Blazor.Themes/@(Config["DevExpress:Theme"] ?? "office-white").bs5.min.css" />
+    @* DevExpress Reporting native viewer — CSS ที่ให้ icon toolbar (dxd-icon-*); ไม่งั้นปุ่มขนาด 0px มองไม่เห็น *@
+    <link rel="stylesheet" href="_content/DevExpress.Blazor.Reporting.Viewer/css/dx-blazor-reporting-components.bs5.css" />
     <ResourcePreloader />
     <link rel="stylesheet" href="@Assets["app.css"]" />
     <link rel="stylesheet" href="@Assets["scReport.styles.css"]" />

@@ -1,8 +1,10 @@
 @page "/"
 @rendermode InteractiveServer
-@using DevExpress.Blazor.Reporting
-@using DevExpress.XtraReports.UI
+@using scReport.Services
+@using Microsoft.AspNetCore.Components.Authorization
 @inject sc.dbFactory DbFactory
+@inject ReportRequestStore ReportStore
+@inject IJSRuntime JS
 
 @* repHome — portal รายงาน (เลียน legacy scReport/repHome)
    3 คอลัมน์ master-detail: ระบบงาน → กลุ่มรายงาน → ข้อรายงาน + Operate bar (เปิด/ค้นหา)
@@ -15,7 +17,23 @@
     <div class="nb-titlebar">
         <div>
             <h2 class="nb-title">ระบบรายงาน</h2>
-            <div class="nb-sub">เลือกระบบงาน · กลุ่มรายงาน · ข้อรายงาน แล้วกด “เปิดรายงาน”</div>
+            <div class="nb-sub">เลือกระบบงาน · กลุ่มรายงาน · ข้อรายงาน แล้วกด “เปิดรายงาน” (หรือดับเบิลคลิกข้อรายงาน)</div>
+            <div class="rh-crumb">
+                <span class="rh-crumb__seg @(CurrentApp is not null ? "rh-crumb__seg--active" : null)">
+                    <span class="rh-crumb__k">ระบบ</span>
+                    <span class="rh-crumb__v">@(CurrentApp?.Display ?? "—")</span>
+                </span>
+                <span class="rh-crumb__sep">›</span>
+                <span class="rh-crumb__seg @(CurrentCat is not null ? "rh-crumb__seg--active" : null)">
+                    <span class="rh-crumb__k">กลุ่ม</span>
+                    <span class="rh-crumb__v">@(CurrentCat?.Display ?? "—")</span>
+                </span>
+                <span class="rh-crumb__sep">›</span>
+                <span class="rh-crumb__seg @(CurrentRep is not null ? "rh-crumb__seg--active" : null)">
+                    <span class="rh-crumb__k">ข้อ</span>
+                    <span class="rh-crumb__v">@(CurrentRep?.Display ?? "—")</span>
+                </span>
+            </div>
         </div>
     </div>
 
@@ -29,7 +47,8 @@
             <PanHead Apps="_apps" Cats="_cats" Reps="_reps"
                      SelectedApp="_selApp" SelectedAppChanged="OnAppChanged"
                      SelectedCat="_selCat" SelectedCatChanged="OnCatChanged"
-                     SelectedRep="_selRep" SelectedRepChanged="OnRepChanged" />
+                     SelectedRep="_selRep" SelectedRepChanged="OnRepChanged"
+                     OnRepActivate="OnRepActivate" />
         </HeaderContent>
         <OperateContent>
             <PanOperate CanOpen="@CanOpen" OnOpen="OpenClicked" OnFind="() => _findVisible = true" />
@@ -45,19 +64,17 @@
 <PopArgument @bind-Visible="_argVisible" VsPath="@_argVsPath" OnConfirm="OnArgConfirm" />
 <PopFindReport @bind-Visible="_findVisible" OnPick="OnFindPick" />
 
-@if (_report is not null)
-{
-    <DxPopup @bind-Visible="_reportVisible" HeaderText="@_reportTitle"
-             Width="92vw" Height="88vh" CloseOnEscape="true">
-        <BodyContentTemplate>
-            <div class="rh-viewer">
-                <DxReportViewer Report="@_report" />
-            </div>
-        </BodyContentTemplate>
-    </DxPopup>
-}
-
 @code {
+    // login user สำหรับ publish line หัวรายงาน (เลียน legacy page.loginUser)
+    [CascadingParameter] Task<AuthenticationState>? AuthState { get; set; }
+
+    async Task<string> GetLoginUser()
+    {
+        if (AuthState is null) return "";
+        var auth = await AuthState;
+        return auth.User.Identity?.Name ?? "";
+    }
+
     // ── data: เก็บทั้งหมด แล้ว derive ตาม selection ──
     List<PanHead.AppRow> _apps = new();
     List<PanHead.CatRow> _allCats = new();
@@ -69,10 +86,11 @@
     string? _loadError, _notice;
 
     // popups
-    bool _argVisible, _findVisible, _reportVisible;
-    string? _argVsPath, _reportTitle;
-    XtraReport? _report;
+    bool _argVisible, _findVisible;
+    string? _argVsPath;
 
+    PanHead.AppRow? CurrentApp => _apps.FirstOrDefault(a => a.AppName == _selApp);
+    PanHead.CatRow? CurrentCat => _cats.FirstOrDefault(c => c.CatId == _selCat);
     PanHead.RepRow? CurrentRep => _reps.FirstOrDefault(r => r.RepId == _selRep);
     bool CanOpen => CurrentRep is { HasReport: true };
 
@@ -149,8 +167,11 @@
     void OnCatChanged(string? cat) { _selCat = cat; RecomputeReps(); }
     void OnRepChanged(string? rep) { _selRep = rep; }
 
+    // ดับเบิลคลิกข้อรายงาน → เลือก + เปิดทันที (กันเคส selection round-trip ยังไม่ถึง)
+    Task OnRepActivate(string repId) { _selRep = repId; return OpenClicked(); }
+
     // ── เปิดรายงาน ──
-    void OpenClicked()
+    async Task OpenClicked()
     {
         _notice = null;
         if (CurrentRep is not { HasReport: true } rep) return;
@@ -158,44 +179,57 @@
 
         // ไม่มีเงื่อนไข → เปิดตรง; มีเงื่อนไข → เปิด popup กรอกก่อน
         if (sc.report.getReportArgs(rep.VsPath).Count == 0)
-            BuildReport(rep.VsPath, new());
+            await BuildReport(rep.VsPath, new());
         else
             _argVisible = true;
     }
 
-    void OnArgConfirm(Dictionary<string, sc.report.ReportArgInput> values)
+    async Task OnArgConfirm(Dictionary<string, sc.report.ReportArgInput> values)
     {
-        if (_argVsPath is { } vp) BuildReport(vp, values);
+        if (_argVsPath is { } vp) await BuildReport(vp, values);
     }
 
-    Task OnFindPick(string vsPath)
+    async Task OnFindPick(string vsPath)
     {
         _argVsPath = vsPath;
         if (sc.report.getReportArgs(vsPath).Count == 0)
-            BuildReport(vsPath, new());
+            await BuildReport(vsPath, new());
         else
             _argVisible = true;
-        return Task.CompletedTask;
     }
 
-    void BuildReport(string vsPath, Dictionary<string, sc.report.ReportArgInput> values)
+    // ประกอบ SQL → เก็บคำขอที่ store → เปิดแท็บใหม่ repView/{token}
+    //   (เลียน legacy: CreateReport เก็บ Session[repCode] แล้ว window.open repViewer/page.aspx?...&TIME=opdate '_blank')
+    async Task BuildReport(string vsPath, Dictionary<string, sc.report.ReportArgInput> values)
     {
         try
         {
-            var rep = sc.report.tryCreateReport(vsPath);
-            if (rep is null)
+            // เช็คก่อนว่ารายงาน migrate แล้วหรือยัง (แจ้งที่ portal เลย ไม่ต้องเปิดแท็บเปล่า)
+            if (!sc.report.isMigrated(vsPath))
             {
                 _notice = "ยังไม่ได้ย้ายตัวรายงานนี้ (" + vsPath + ")";
                 return;
             }
+
             var meta = sc.report.getReportArgs(vsPath);
             var composed = sc.report.composeReportSql(vsPath, meta, values);
-            sc.report.bindReportSql(rep, composed.Sql);
 
-            _report = rep;
-            _reportTitle = (CurrentRep?.RepText ?? "รายงาน")
+            // resolve meta หัวรายงานจาก vs_path (ครอบทั้ง path เปิดปกติ + ค้นหาข้ามกลุ่ม)
+            var repRow = _allReps.FirstOrDefault(r => r.VsPath == vsPath) ?? CurrentRep;
+            var repText = repRow?.RepText ?? "";
+            var title = (string.IsNullOrWhiteSpace(repText) ? "รายงาน" : repText)
                 + (string.IsNullOrWhiteSpace(composed.Header3) ? "" : " —" + composed.Header3);
-            _reportVisible = true;
+
+            // ── ข้อมูลหัวรายงาน (เลียน legacy ofLoadReport: COOP_NAME/REP_TEXT/HEADER3/publish) ──
+            string coopName;
+            await using (var db = DbFactory.create())
+                coopName = new sc.scCoop(db).getCoopName();
+
+            var token = ReportStore.Put(
+                vsPath, composed.Sql, title,
+                coopName, repText, composed.Header3 ?? "",
+                repRow?.CatId ?? "", repRow?.RepId ?? "", await GetLoginUser());
+            await JS.InvokeVoidAsync("open", $"repView/{token}", "_blank");
         }
         catch (Exception ex)
         {

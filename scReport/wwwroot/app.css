@@ -393,6 +393,24 @@ a.home-card:hover {
    layout เท่านั้น (ห้าม override DevExpress chrome) */
 .rh-page { padding: 4px 2px; }
 
+/* breadcrumb focus: บอกว่ากำลังเลือก ระบบ/กลุ่ม/ข้อ ไหนอยู่ */
+.rh-crumb {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+    margin-top: 6px; font-size: .9rem;
+}
+.rh-crumb__seg {
+    display: inline-flex; align-items: baseline; gap: 5px;
+    padding: 3px 10px; border-radius: 999px;
+    background: var(--surface-2, #eef2f8); border: 1px solid var(--line, #e6e9ef);
+    max-width: 460px;
+}
+.rh-crumb__seg--active {
+    background: #e6f0ff; border-color: #b9d4ff; color: #1d4ed8; font-weight: 600;
+}
+.rh-crumb__k { font-size: .72rem; color: var(--ink-muted, #6b7787); font-weight: 600; }
+.rh-crumb__v { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rh-crumb__sep { color: #b6bdc9; }
+
 /* PanHead: 3 คอลัมน์ master-detail */
 .rh-cols {
     display: grid; grid-template-columns: minmax(180px, 1fr) minmax(220px, 1.2fr) minmax(260px, 1.6fr);
@@ -403,8 +421,12 @@ a.home-card:hover {
     font-size: .82rem; font-weight: 700; color: var(--ink-muted, #6b7787);
     text-transform: uppercase; letter-spacing: .3px; padding-left: 2px;
 }
-.rh-listbox { height: 360px; }
-.rh-rep--disabled { color: #b0b6c0; font-style: italic; }
+/* req 3: ฟูลล์เต็มจอ — สูงตามวิวพอร์ต (หัก topbar + chrome ด้านบน/ล่าง) */
+.rh-listbox { height: calc(100vh - 270px); min-height: 320px; }
+/* ข้อรายงาน: block เต็มแถว → hit target ดับเบิลคลิกใหญ่+เสถียร (กัน node ถูก replace กลางสองคลิก) */
+.rh-rep-item { display: block; width: 100%; }
+.rh-rep { cursor: pointer; }
+.rh-rep--disabled { color: #b0b6c0; font-style: italic; cursor: default; }
 
 /* notice / error ใต้ portal */
 .rh-notice {
@@ -425,13 +447,36 @@ a.home-card:hover {
     background: #fee2e2; color: #991b1b; font-size: .85rem;
 }
 
-/* PopFindReport: แถบค้นหา + ตารางผล */
+/* PopFindReport: แถบค้นหา + รายการผล (DxListBox + คอลัมน์ในแต่ละแถว) */
 .rh-find-bar { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; }
 .rh-find-input { flex: 1; }
-.rh-find-grid { height: 360px; }
+.rh-find-grid { height: 360px; display: flex; flex-direction: column; }
+.rh-find-listbox { flex: 1; min-height: 0; }
 
-/* viewer popup */
-.rh-viewer { height: 100%; }
+/* แถวผลลัพธ์ = 4 คอลัมน์ (ระบบงาน · กลุ่ม · รหัส · ชื่อรายงาน) */
+.rh-find-head {
+    display: flex; gap: 8px; padding: 6px 10px;
+    font-size: .8rem; font-weight: 600; color: #6b7280;
+    border-bottom: 1px solid #e5e7eb;
+}
+.rh-find-row { display: flex; gap: 8px; width: 100%; align-items: baseline; }
+.rh-find-row--disabled { color: #9ca3af; }
+.rh-find-c { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rh-find-c--app  { flex: 0 0 96px; }
+.rh-find-c--cat  { flex: 1 1 0; }
+.rh-find-c--id   { flex: 0 0 56px; }
+.rh-find-c--name { flex: 2 1 0; }
+
+/* viewer tab (RepView — เต็มจอ เลียน legacy repViewer/page.aspx) */
+.rv-shell { height: 100vh; width: 100vw; overflow: hidden; }
+.rv-viewer { height: 100vh; width: 100vw; }
+.rv-viewer > * { height: 100%; }
+.rv-msg { padding: 24px; font-size: .95rem; color: #374151; }
+
+/* จัด toolbar ของ DxReportViewer ให้อยู่กึ่งกลาง (layout เท่านั้น เลียน legacy)
+   adaptive toolbar มี placeholder ตัว flex-grow:1 ดันปุ่มไปชิดซ้าย → ปลด grow แล้ว center */
+.rv-viewer .dxbrv-toolbar .dxbl-btn-toolbar { justify-content: center; }
+.rv-viewer .dxbrv-toolbar .dxbl-btn-toolbar > .dxbl-toolbar-placeholder { flex-grow: 0; }
 
 /* ── Blazor scaffold boilerplate (เดิม) ───────────────────────── */
 h1:focus { outline: none; }

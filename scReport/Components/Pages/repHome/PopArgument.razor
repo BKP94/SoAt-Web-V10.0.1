@@ -10,7 +10,7 @@
 
 @inject sc.dbFactory DbFactory
 
-<DxPopup @bind-Visible="Visible" HeaderText="กำหนดเงื่อนไขรายงาน"
+<DxPopup Visible="Visible" VisibleChanged="SetVisible" HeaderText="กำหนดเงื่อนไขรายงาน"
          Width="540px" CloseOnEscape="true" ShowFooter="true">
     <BodyContentTemplate>
         @if (_loading)
@@ -47,7 +47,7 @@
     </BodyContentTemplate>
     <FooterContentTemplate>
         <DxButton Text="ตกลง" RenderStyle="ButtonRenderStyle.Primary" Click="OnConfirmClick" />
-        <DxButton Text="ยกเลิก" RenderStyle="ButtonRenderStyle.Secondary" Click="() => Visible = false" />
+        <DxButton Text="ยกเลิก" RenderStyle="ButtonRenderStyle.Secondary" Click="() => SetVisible(false)" />
     </FooterContentTemplate>
 </DxPopup>
 

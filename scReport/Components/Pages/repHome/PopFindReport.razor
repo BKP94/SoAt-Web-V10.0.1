@@ -5,8 +5,8 @@
 
 @inject sc.dbFactory DbFactory
 
-<DxPopup @bind-Visible="Visible" HeaderText="ค้นหารายงาน"
-         Width="720px" CloseOnEscape="true">
+<DxPopup Visible="Visible" VisibleChanged="SetVisible" HeaderText="ค้นหารายงาน"
+         Width="720px" CloseOnEscape="true" ShowFooter="true">
     <BodyContentTemplate>
         <div class="rh-find-bar">
             <DxTextBox @bind-Text="_keyword" NullText="พิมพ์ชื่อรายงาน หรือ vs_path…"
@@ -20,23 +20,35 @@
         }
 
         <div class="rh-find-grid">
-            <DxGrid Data="_rows" PageSize="12"
-                    SelectionMode="GridSelectionMode.Single"
-                    SelectedDataItem="_selected"
-                    SelectedDataItemChanged="@((object v) => _selected = v as FindRow)">
-                <Columns>
-                    <DxGridDataColumn FieldName="@nameof(FindRow.CatApp)" Caption="ระบบงาน" Width="110px" />
-                    <DxGridDataColumn FieldName="@nameof(FindRow.CatText)" Caption="กลุ่ม" />
-                    <DxGridDataColumn FieldName="@nameof(FindRow.RepId)" Caption="รหัส" Width="70px" />
-                    <DxGridDataColumn FieldName="@nameof(FindRow.RepText)" Caption="ชื่อรายงาน" />
-                </Columns>
-            </DxGrid>
+            <div class="rh-find-head">
+                <span class="rh-find-c rh-find-c--app">ระบบงาน</span>
+                <span class="rh-find-c rh-find-c--cat">กลุ่ม</span>
+                <span class="rh-find-c rh-find-c--id">รหัส</span>
+                <span class="rh-find-c rh-find-c--name">ชื่อรายงาน</span>
+            </div>
+            <DxListBox Data="@_rows" TData="FindRow" TValue="string"
+                       ValueFieldName="@nameof(FindRow.Key)" TextFieldName="@nameof(FindRow.RepText)"
+                       SelectionMode="ListBoxSelectionMode.Single"
+                       Values="@Sel(_selected)" ValuesChanged="@OnSel" TValueChangedType="IEnumerable<string>"
+                       CssClass="rh-find-listbox">
+                <ItemDisplayTemplate Context="ctx">
+                    @{ var r = ctx.DataItem; }
+                    <div class="rh-find-row @(r.HasReport ? null : "rh-find-row--disabled")"
+                         title="@(r.HasReport ? "ดับเบิลคลิกเพื่อเปิด · " + r.VsPath : "ไม่พบตัวรายงาน [vs_path]")"
+                         @ondblclick="@(() => OpenRow(r))">
+                        <span class="rh-find-c rh-find-c--app">@r.CatApp</span>
+                        <span class="rh-find-c rh-find-c--cat">@r.CatText</span>
+                        <span class="rh-find-c rh-find-c--id">@r.RepId</span>
+                        <span class="rh-find-c rh-find-c--name">@r.RepText</span>
+                    </div>
+                </ItemDisplayTemplate>
+            </DxListBox>
         </div>
     </BodyContentTemplate>
     <FooterContentTemplate>
         <DxButton Text="เปิดรายงาน" RenderStyle="ButtonRenderStyle.Primary"
                   Enabled="@(_selected is { } r && r.HasReport)" Click="OpenSelected" />
-        <DxButton Text="ปิด" RenderStyle="ButtonRenderStyle.Secondary" Click="() => Visible = false" />
+        <DxButton Text="ปิด" RenderStyle="ButtonRenderStyle.Secondary" Click="() => SetVisible(false)" />
     </FooterContentTemplate>
 </DxPopup>
 
@@ -86,6 +98,22 @@
         }
     }
 
+    // single-selection → DxListBox.Values รับ IEnumerable; แปลงค่าเดี่ยว ↔ collection (เหมือน PanHead)
+    static IEnumerable<string> Sel(FindRow? r) => r is null ? [] : [r.Key];
+
+    void OnSel(IEnumerable<string> keys)
+    {
+        var k = keys.FirstOrDefault();
+        _selected = k is null ? null : _rows.FirstOrDefault(x => x.Key == k);
+    }
+
+    // ดับเบิลคลิกแถว → เลือก + เปิดทันที (เลียน legacy เลือกแถวแล้วเปิด)
+    Task OpenRow(FindRow r)
+    {
+        _selected = r;
+        return OpenSelected();
+    }
+
     async Task OpenSelected()
     {
         if (_selected is not { } r || !r.HasReport) return;
@@ -102,5 +130,7 @@
         public string RepText { get; set; } = "";
         public string VsPath { get; set; } = "";
         public bool HasReport => !string.IsNullOrWhiteSpace(VsPath);
+        // คีย์ unique ต่อแถว (cat+rep) สำหรับ DxListBox ValueFieldName
+        public string Key => CatId + "|" + RepId;
     }
 }

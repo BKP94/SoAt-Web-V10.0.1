@@ -31,8 +31,9 @@
                    CssClass="rh-listbox">
             <ItemDisplayTemplate Context="ctx">
                 @{ var rep = ctx.DataItem; }
-                <span class="@(rep.HasReport ? null : "rh-rep--disabled")"
-                      title="@(rep.HasReport ? rep.VsPath : "ไม่พบตัวรายงาน [vs_path]")">@rep.Display</span>
+                <div class="rh-rep-item @(rep.HasReport ? "rh-rep" : "rh-rep--disabled")"
+                     title="@(rep.HasReport ? "ดับเบิลคลิกเพื่อเปิดรายงาน · " + rep.VsPath : "ไม่พบตัวรายงาน [vs_path]")"
+                     @onclick="@(() => OnRepItemClick(rep.RepId))">@rep.Display</div>
             </ItemDisplayTemplate>
         </DxListBox>
     </div>
@@ -51,6 +52,28 @@
     [Parameter] public EventCallback<string?> SelectedAppChanged { get; set; }
     [Parameter] public EventCallback<string?> SelectedCatChanged { get; set; }
     [Parameter] public EventCallback<string?> SelectedRepChanged { get; set; }
+
+    // ดับเบิลคลิกข้อรายงาน → เปิด PopArgument/รายงานทันที (Page จัดการ)
+    [Parameter] public EventCallback<string> OnRepActivate { get; set; }
+
+    // ── ตรวจจับ double-click เอง (กัน native dblclick พังเพราะ DevExpress re-render <li> กลางสองคลิก) ──
+    // คลิกแรกเปลี่ยน selection → ทั้ง item ถูก replace → คลิกสองตกบน node ใหม่ → native dblclick ไม่จับคู่
+    // แก้: ใช้ @onclick (ยิงอิสระทุกคลิก) แล้วเทียบ repId+เวลา 2 คลิกติดบนข้อเดียวกัน
+    string? _lastClickRep;
+    DateTime _lastClickAt;
+
+    Task OnRepItemClick(string repId)
+    {
+        var now = DateTime.UtcNow;
+        if (repId == _lastClickRep && (now - _lastClickAt).TotalMilliseconds <= 500)
+        {
+            _lastClickRep = null;
+            return OnRepActivate.InvokeAsync(repId);
+        }
+        _lastClickRep = repId;
+        _lastClickAt = now;
+        return Task.CompletedTask;
+    }
 
     // single-selection → DxListBox.Values รับ IEnumerable; แปลงค่าเดี่ยว ↔ collection
     static IEnumerable<string> Sel(string? v) => string.IsNullOrEmpty(v) ? [] : [v];

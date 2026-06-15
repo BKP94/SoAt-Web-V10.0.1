@@ -10,5 +10,9 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.0" />
+    <!-- sc.report ใช้ DevExpress reporting engine (XtraReports.UI + DataAccess.Sql) —
+         วางใน Core เพราะทุกระบบต้องเรียกรายงานได้ เหมือน legacy ที่ report.cs อยู่ใน core lib กลาง.
+         Reporting.Core เป็น engine ฝั่ง cross-platform (ไม่ใช่ Blazor viewer) ดึง DataAccess มาด้วย -->
+    <PackageReference Include="DevExpress.Reporting.Core" Version="25.2.7" />
   </ItemGroup>
 </Project>

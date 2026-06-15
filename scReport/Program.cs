@@ -17,6 +17,9 @@ builder.Services.AddRazorComponents()
 //   25.2 เนเธเน Bootstrap 5 เน€เธเนเธ default เธ•เธฑเธงเน€เธ”เธตเธขเธง (BootstrapVersion option เธ–เธนเธ deprecated เนเธฅเนเธง)
 builder.Services.AddDevExpressBlazor();
 
+// โ”€โ”€ Native Blazor Report Viewer (DxReportViewer) โ€” render legacy XtraReport ฝั่ง server โ”€โ”€
+builder.Services.AddDevExpressServerSideBlazorReportViewer();
+
 // โ”€โ”€ Backend services (sc.dbFactory, AppDbContext, application services) โ”€โ”€
 //   module เนเธกเนเธฃเธฑเธ deployers โ€” scCenter เน€เธเนเธเธเธ deploy DB
 builder.Services.AddInfrastructure(builder.Configuration);

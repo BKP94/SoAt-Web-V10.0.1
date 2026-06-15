@@ -1,0 +1,23 @@
+@* PanOperate (repHome) — แถบปุ่ม Operate แนวตั้ง ขวาของหน้า
+   เลียน legacy panOperate.ascx: btNew "เปิดรายงาน" + btFindReport "ค้นหารายงาน"
+   (btProgram/btCategory = admin นอกสโคป Step 7)
+   ปุ่ม raise EventCallback กลับให้ Page จัดการ (Page ถือ selection) *@
+
+<div class="op-item">
+    <button type="button" class="op-btn" title="เปิดรายงาน"
+            disabled="@(!CanOpen)" @onclick="OnOpen">📂</button>
+    <span class="op-btn-label">เปิดรายงาน</span>
+</div>
+
+<div class="op-item">
+    <button type="button" class="op-btn" title="ค้นหารายงาน" @onclick="OnFind">🔍</button>
+    <span class="op-btn-label">ค้นหา</span>
+</div>
+
+@code {
+    /// เปิดได้เมื่อเลือกข้อรายงานที่มีตัวรายงาน (vs_path ไม่ว่าง)
+    [Parameter] public bool CanOpen { get; set; }
+
+    [Parameter] public EventCallback OnOpen { get; set; }
+    [Parameter] public EventCallback OnFind { get; set; }
+}

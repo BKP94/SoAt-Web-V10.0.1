@@ -14,6 +14,13 @@
       "runtimeArgs": ["run", "--project", "scTeller", "--no-launch-profile", "--urls", "http://localhost:5110"],
       "env": { "ASPNETCORE_ENVIRONMENT": "Development" },
       "port": 5110
+    },
+    {
+      "name": "scReport",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "scReport", "--no-launch-profile", "--urls", "http://localhost:5360"],
+      "env": { "ASPNETCORE_ENVIRONMENT": "Development" },
+      "port": 5360
     }
   ]
 }

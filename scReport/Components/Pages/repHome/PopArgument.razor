@@ -1,0 +1,213 @@
+@* PopArgument (repHome) — ฟอร์มกำหนดเงื่อนไขรายงาน (generic)
+   เลียน legacy popArgument.ascx: อ่าน <arg> จาก repQuery แล้ว build input ตาม control/type
+     - มี combo=  → DxComboBox (resolve sc.combo.* ตามชื่อ หรือ comboQuery ของรายงาน)
+     - type=date  → DxDateEdit
+     - type=integer/decimal → ช่องตัวเลข (DxTextBox)
+     - อื่นๆ       → DxTextBox
+   operator=bt (between) → render 2 ช่อง (จาก/ถึง)
+   ผู้ใช้กด "ตกลง" → ส่ง Dictionary<key, ReportArgInput> กลับให้ Page ประกอบ SQL+เปิดรายงาน
+   (Page เป็นเจ้าของ compose/viewer; popup แค่เก็บค่า — เหมือน PanOperate ยิง callback) *@
+
+@inject sc.dbFactory DbFactory
+
+<DxPopup @bind-Visible="Visible" HeaderText="กำหนดเงื่อนไขรายงาน"
+         Width="540px" CloseOnEscape="true" ShowFooter="true">
+    <BodyContentTemplate>
+        @if (_loading)
+        {
+            <div class="rh-arg-empty">กำลังโหลด…</div>
+        }
+        else if (_fields.Count == 0)
+        {
+            <div class="rh-arg-empty">รายงานนี้ไม่มีเงื่อนไข — กด “ตกลง” เพื่อแสดงรายงาน</div>
+        }
+        else
+        {
+            <div class="rh-arg-form">
+                @foreach (var f in _fields)
+                {
+                    <div class="rh-arg-row">
+                        <label class="rh-arg-label">@f.Arg.Text</label>
+                        <div class="rh-arg-inputs">
+                            @RenderInput(f, false)
+                            @if (f.Between)
+                            {
+                                <span class="rh-arg-sep">ถึง</span>
+                                @RenderInput(f, true)
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        @if (_error is not null)
+        {
+            <div class="rh-arg-error">@_error</div>
+        }
+    </BodyContentTemplate>
+    <FooterContentTemplate>
+        <DxButton Text="ตกลง" RenderStyle="ButtonRenderStyle.Primary" Click="OnConfirmClick" />
+        <DxButton Text="ยกเลิก" RenderStyle="ButtonRenderStyle.Secondary" Click="() => Visible = false" />
+    </FooterContentTemplate>
+</DxPopup>
+
+@code {
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public EventCallback<bool> VisibleChanged { get; set; }
+
+    /// vs_path ของรายงานที่จะกำหนดเงื่อนไข (Page set ก่อนเปิด popup)
+    [Parameter] public string? VsPath { get; set; }
+
+    /// ส่งค่าที่ผู้ใช้กรอกกลับให้ Page (key = ชื่อ arg)
+    [Parameter] public EventCallback<Dictionary<string, sc.report.ReportArgInput>> OnConfirm { get; set; }
+
+    readonly List<Field> _fields = new();
+    string? _loadedVsPath;
+    bool _loading;
+    string? _error;
+
+    async Task SetVisible(bool v)
+    {
+        if (Visible == v) return;
+        Visible = v;
+        await VisibleChanged.InvokeAsync(v);
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // โหลด arg ใหม่เมื่อ popup เปิดและ vs_path เปลี่ยน
+        if (Visible && !string.IsNullOrWhiteSpace(VsPath) && VsPath != _loadedVsPath)
+        {
+            await LoadArgs(VsPath);
+        }
+    }
+
+    async Task LoadArgs(string vsPath)
+    {
+        _loading = true;
+        _error = null;
+        _fields.Clear();
+        StateHasChanged();
+        try
+        {
+            await using var db = DbFactory.create();
+            var meta = sc.report.getReportArgs(vsPath);
+            foreach (var a in meta)
+            {
+                var f = new Field { Arg = a, Between = a.Operator == sc.report.opertors.between };
+
+                var comboDef = ResolveComboDef(a);
+                if (!string.IsNullOrWhiteSpace(comboDef))
+                {
+                    f.IsCombo = true;
+                    f.Items = await db.getComboAsync(comboDef);
+                }
+                else if (a.Type == "date")
+                {
+                    f.IsDate = true;
+                }
+                else if (a.Type is "integer" or "integer2" or "decimal" or "decimal2")
+                {
+                    f.IsNumeric = true;
+                }
+
+                _fields.Add(f);
+            }
+            _loadedVsPath = vsPath;
+        }
+        catch (Exception ex)
+        {
+            _error = sc.msg.C(ex.Message);
+        }
+        finally
+        {
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+
+    // resolve combo definition: comboQuery ของรายงานก่อน, ไม่งั้น map ชื่อ → sc.combo.* const
+    static string ResolveComboDef(sc.report.ReportArg a)
+    {
+        if (!string.IsNullOrWhiteSpace(a.ComboQuery)) return a.ComboQuery;
+        if (!string.IsNullOrWhiteSpace(a.Combo))
+        {
+            var fld = typeof(sc.combo).GetField(a.Combo);
+            return fld?.GetValue(null) as string ?? a.Combo;
+        }
+        return string.Empty;
+    }
+
+    RenderFragment RenderInput(Field f, bool col2) => __builder =>
+    {
+        if (f.IsCombo)
+        {
+            <DxComboBox Data="f.Items" TData="sc.ComboItem" TValue="string"
+                        ValueFieldName="@nameof(sc.ComboItem.Code)" TextFieldName="@nameof(sc.ComboItem.Name)"
+                        Value="@(col2 ? f.Code2 : f.Code1)"
+                        ValueChanged="@((string v) => { if (col2) f.Code2 = v; else f.Code1 = v; })"
+                        NullText="-- ทั้งหมด --"
+                        ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                        CssClass="rh-arg-ctl" />
+        }
+        else if (f.IsDate)
+        {
+            <DxDateEdit T="DateTime?" Date="@(col2 ? f.Date2 : f.Date1)"
+                        DateChanged="@((DateTime? v) => { if (col2) f.Date2 = v; else f.Date1 = v; })"
+                        NullText="-- เลือกวันที่ --" CssClass="rh-arg-ctl" />
+        }
+        else
+        {
+            <DxTextBox Text="@(col2 ? f.Text2 : f.Text1)"
+                       TextChanged="@((string v) => { if (col2) f.Text2 = v; else f.Text1 = v; })"
+                       NullText="@(f.IsNumeric ? "0" : "")" CssClass="rh-arg-ctl" />
+        }
+    };
+
+    async Task OnConfirmClick()
+    {
+        var values = new Dictionary<string, sc.report.ReportArgInput>();
+        foreach (var f in _fields)
+        {
+            var inp = new sc.report.ReportArgInput { HasCol2 = f.Between };
+            (inp.Value1, inp.Text1) = ReadValue(f, false);
+            if (f.Between)
+                (inp.Value2, inp.Text2) = ReadValue(f, true);
+            values[f.Arg.Key] = inp;
+        }
+        await SetVisible(false);
+        await OnConfirm.InvokeAsync(values);
+    }
+
+    // คืน (ค่าดิบสำหรับ composeReportSql, ข้อความแสดงใน header3)
+    static (object? value, string? text) ReadValue(Field f, bool col2)
+    {
+        if (f.IsCombo)
+        {
+            var code = col2 ? f.Code2 : f.Code1;
+            var name = f.Items.FirstOrDefault(i => i.Code == code)?.Name ?? code;
+            return (code, name);
+        }
+        if (f.IsDate)
+        {
+            var d = col2 ? f.Date2 : f.Date1;
+            return (d, d is null ? null : sc.value.toStringTH(d.Value));
+        }
+        var t = col2 ? f.Text2 : f.Text1;
+        return (t, t);
+    }
+
+    class Field
+    {
+        public sc.report.ReportArg Arg = new();
+        public bool IsCombo;
+        public bool IsDate;
+        public bool IsNumeric;
+        public bool Between;
+        public List<sc.ComboItem> Items = new();
+
+        public string? Code1;  public string? Code2;
+        public DateTime? Date1; public DateTime? Date2;
+        public string? Text1;  public string? Text2;
+    }
+}

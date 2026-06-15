@@ -279,6 +279,55 @@ namespace sc
             return $"'{s.ToString()!.Replace("'", "''")}'";
         }
 
+        // ── dbValueT แบบระบุ Type (port จาก legacy sc/value.cs:1595 — ตัดส่วน WebForms Control ออก) ──
+        //   ใช้ใน report arg pipeline (composeReportSql) ที่รู้ _type ของ arg ล่วงหน้า
+        //   null / "" / list ว่าง → "null"; List → IN-clause ('a','b',...); date → quoted ISO;
+        //   numeric → literal (ลอก ','/'%' ออกก่อนเหมือน legacy); else → quoted escaped
+        //   target = PostgreSQL อย่างเดียว (legacy แตกเคส Oracle/MySql/MsSql — ตัดทิ้งตาม stack ใหม่)
+        public static string dbValueT(object? v, Type? t)
+        {
+            // NULL / ว่าง / list ว่าง
+            if (v == null || v is DBNull
+                || (v is string vs && vs.Length == 0)
+                || (v is System.Collections.IList vl0 && vl0.Count == 0))
+            {
+                // in (list ว่าง) → predicate จริงเสมอ กัน syntax error (เลียน legacy " null or null is null")
+                if (v is System.Collections.IList) return " null or null is null";
+                return "null";
+            }
+
+            t ??= v.GetType();
+
+            if (t == typeof(DateTime))
+            {
+                var d = v is DateTime dtv ? dtv : toDate(v);
+                if (d is DateTime dt) return $"'{dt:yyyy-MM-dd HH:mm:ss}'";
+                return "null"; // แปลงเป็นวันที่ไม่ได้
+            }
+            if (isNumeric(t))
+            {
+                try
+                {
+                    object nv = v;
+                    if (nv is string ns) nv = new Regex("[,%]").Replace(ns.Trim(), string.Empty);
+                    return Convert.ToDouble(nv).ToString(CultureInfo.InvariantCulture);
+                }
+                catch { return "null"; }
+            }
+            if (v is System.Collections.IList vl)
+            {
+                var ins = new System.Text.StringBuilder();
+                foreach (var vi in vl)
+                {
+                    if (ins.Length > 0) ins.Append(',');
+                    if (vi is string vistr) ins.Append('\'').Append(vistr.Replace("'", "''")).Append('\'');
+                    else ins.Append(vi);
+                }
+                return "(" + ins + ")";
+            }
+            return "'" + v.ToString()!.Replace("'", "''") + "'";
+        }
+
         public static string sqlArgs(string sqlQuery, params object?[] args)
         {
             if (args == null || args.Length == 0) return sqlQuery;
@@ -291,9 +340,23 @@ namespace sc
 
         public static string sqlWhere(string sqlQuery, string? where, params object?[] args)
         {
-            var whereStr = string.IsNullOrWhiteSpace(where) ? string.Empty : where;
-            var sql = sqlQuery.Replace(db._WHERE, whereStr);
-            return sqlArgs(sql, args);
+            // ── port 1:1 จาก legacy sc/value.cs:1752 — PRESERVE placeholder /*WHERE*/ ──
+            //   legacy: แทรก where แล้วต่อ /*WHERE*/ กลับท้าย → เรียกซ้ำหลาย arg ได้ (multi-arg)
+            //   เดิมเวอร์ชันใหม่ replace placeholder ทิ้ง (ปลอดภัยเฉพาะ arg เดียว) — แก้ให้ตรง legacy
+            //   (ดู deviation ที่บันทึกไว้ใน memory project_report_migration / Step 5)
+            //   host appName=="scReport" ตัด marker บรรทัด "ขอบฟ้า" ออก (เหมือน legacy);
+            //   where ว่าง → ไม่แตะ placeholder (PG มอง /*WHERE*/ เป็น comment เฉย ๆ)
+            if (!string.IsNullOrWhiteSpace(sqlQuery) && !string.IsNullOrWhiteSpace(where))
+            {
+                sqlQuery = sqlQuery.Replace(db._WHERE,
+                    (sc.app.appName == "scReport" ? string.Empty
+                        : "/*-----------------------------ขอบฟ้า----------------------------*/")
+                    + Environment.NewLine
+                    + where
+                    + Environment.NewLine
+                    + db._WHERE);
+            }
+            return sqlArgs(sqlQuery, args);
         }
 
         // ─── toMask ───────────────────────────────────────────────────────────────

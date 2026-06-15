@@ -1,0 +1,205 @@
+@page "/"
+@rendermode InteractiveServer
+@using DevExpress.Blazor.Reporting
+@using DevExpress.XtraReports.UI
+@inject sc.dbFactory DbFactory
+
+@* repHome — portal รายงาน (เลียน legacy scReport/repHome)
+   3 คอลัมน์ master-detail: ระบบงาน → กลุ่มรายงาน → ข้อรายงาน + Operate bar (เปิด/ค้นหา)
+   Page เป็นเจ้าของ data + selection ตัวเดียว; PanHead/PanOperate เป็น dumb component
+   เปิดรายงาน → PopArgument เก็บเงื่อนไข → composeReportSql → tryCreateReport → DxReportViewer *@
+
+<PageTitle>ระบบรายงาน</PageTitle>
+
+<div class="rh-page">
+    <div class="nb-titlebar">
+        <div>
+            <h2 class="nb-title">ระบบรายงาน</h2>
+            <div class="nb-sub">เลือกระบบงาน · กลุ่มรายงาน · ข้อรายงาน แล้วกด “เปิดรายงาน”</div>
+        </div>
+    </div>
+
+    @if (_loadError is not null)
+    {
+        <div class="rh-arg-error">@_loadError</div>
+    }
+
+    <PageRegions>
+        <HeaderContent>
+            <PanHead Apps="_apps" Cats="_cats" Reps="_reps"
+                     SelectedApp="_selApp" SelectedAppChanged="OnAppChanged"
+                     SelectedCat="_selCat" SelectedCatChanged="OnCatChanged"
+                     SelectedRep="_selRep" SelectedRepChanged="OnRepChanged" />
+        </HeaderContent>
+        <OperateContent>
+            <PanOperate CanOpen="@CanOpen" OnOpen="OpenClicked" OnFind="() => _findVisible = true" />
+        </OperateContent>
+    </PageRegions>
+
+    @if (_notice is not null)
+    {
+        <div class="rh-notice">@_notice</div>
+    }
+</div>
+
+<PopArgument @bind-Visible="_argVisible" VsPath="@_argVsPath" OnConfirm="OnArgConfirm" />
+<PopFindReport @bind-Visible="_findVisible" OnPick="OnFindPick" />
+
+@if (_report is not null)
+{
+    <DxPopup @bind-Visible="_reportVisible" HeaderText="@_reportTitle"
+             Width="92vw" Height="88vh" CloseOnEscape="true">
+        <BodyContentTemplate>
+            <div class="rh-viewer">
+                <DxReportViewer Report="@_report" />
+            </div>
+        </BodyContentTemplate>
+    </DxPopup>
+}
+
+@code {
+    // ── data: เก็บทั้งหมด แล้ว derive ตาม selection ──
+    List<PanHead.AppRow> _apps = new();
+    List<PanHead.CatRow> _allCats = new();
+    List<PanHead.RepRow> _allReps = new();
+    List<PanHead.CatRow> _cats = new();
+    List<PanHead.RepRow> _reps = new();
+
+    string? _selApp, _selCat, _selRep;
+    string? _loadError, _notice;
+
+    // popups
+    bool _argVisible, _findVisible, _reportVisible;
+    string? _argVsPath, _reportTitle;
+    XtraReport? _report;
+
+    PanHead.RepRow? CurrentRep => _reps.FirstOrDefault(r => r.RepId == _selRep);
+    bool CanOpen => CurrentRep is { HasReport: true };
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            await using var db = DbFactory.create();
+
+            _apps = await db.getListAsync<PanHead.AppRow>(@"
+                select app_name as AppName, app_text as AppText
+                from si_security_apps
+                where active = true and i_level = 1
+                and exists(
+                    select null from si_rep_cats c
+                    where c.active::text = '1' and c.cat_app = si_security_apps.app_name
+                    and exists(
+                        select null from si_rep_reps r
+                        where r.active::text = '1' and r.cat_id = c.cat_id
+                    )
+                )
+                order by app_name");
+            for (int i = 0; i < _apps.Count; i++) _apps[i].Seq = i + 1;
+
+            _allCats = await db.getListAsync<PanHead.CatRow>(@"
+                select cat_id as CatId, cat_text as CatText, cat_app as CatApp
+                from si_rep_cats
+                where active::text = '1' and mis_status::text = '0'
+                and exists(
+                    select null from si_rep_reps r
+                    where r.active::text = '1' and r.cat_id = si_rep_cats.cat_id
+                )
+                order by cat_app, coalesce(sort_no, 0), cat_id");
+
+            _allReps = await db.getListAsync<PanHead.RepRow>(@"
+                select si_rep_reps.cat_id   as CatId,
+                       si_rep_reps.rep_id   as RepId,
+                       si_rep_reps.rep_text as RepText,
+                       si_rep_reps.vs_path  as VsPath
+                from si_rep_reps, si_rep_cats
+                where si_rep_reps.active::text = '1'
+                  and si_rep_cats.cat_id = si_rep_reps.cat_id
+                  and si_rep_reps.mis_status::text = '0'
+                  and exists(
+                      select null from si_rep_cats c
+                      where c.active::text = '1' and c.cat_id = si_rep_reps.cat_id
+                  )
+                order by si_rep_reps.cat_id, coalesce(si_rep_reps.sort_no, 0), si_rep_reps.rep_id");
+
+            // auto-select คอลัมน์แรกแต่ละชั้น (เลียน legacy ofLoadCats/ofLoadReps)
+            _selApp = _apps.FirstOrDefault()?.AppName;
+            RecomputeCats();
+        }
+        catch (Exception ex)
+        {
+            _loadError = sc.msg.C(ex.Message);
+        }
+    }
+
+    void RecomputeCats()
+    {
+        _cats = _allCats.Where(c => c.CatApp == _selApp).ToList();
+        _selCat = _cats.FirstOrDefault()?.CatId;
+        RecomputeReps();
+    }
+
+    void RecomputeReps()
+    {
+        _reps = _allReps.Where(r => r.CatId == _selCat).ToList();
+        _selRep = _reps.FirstOrDefault()?.RepId;
+    }
+
+    void OnAppChanged(string? app) { _selApp = app; RecomputeCats(); }
+    void OnCatChanged(string? cat) { _selCat = cat; RecomputeReps(); }
+    void OnRepChanged(string? rep) { _selRep = rep; }
+
+    // ── เปิดรายงาน ──
+    void OpenClicked()
+    {
+        _notice = null;
+        if (CurrentRep is not { HasReport: true } rep) return;
+        _argVsPath = rep.VsPath;
+
+        // ไม่มีเงื่อนไข → เปิดตรง; มีเงื่อนไข → เปิด popup กรอกก่อน
+        if (sc.report.getReportArgs(rep.VsPath).Count == 0)
+            BuildReport(rep.VsPath, new());
+        else
+            _argVisible = true;
+    }
+
+    void OnArgConfirm(Dictionary<string, sc.report.ReportArgInput> values)
+    {
+        if (_argVsPath is { } vp) BuildReport(vp, values);
+    }
+
+    Task OnFindPick(string vsPath)
+    {
+        _argVsPath = vsPath;
+        if (sc.report.getReportArgs(vsPath).Count == 0)
+            BuildReport(vsPath, new());
+        else
+            _argVisible = true;
+        return Task.CompletedTask;
+    }
+
+    void BuildReport(string vsPath, Dictionary<string, sc.report.ReportArgInput> values)
+    {
+        try
+        {
+            var rep = sc.report.tryCreateReport(vsPath);
+            if (rep is null)
+            {
+                _notice = "ยังไม่ได้ย้ายตัวรายงานนี้ (" + vsPath + ")";
+                return;
+            }
+            var meta = sc.report.getReportArgs(vsPath);
+            var composed = sc.report.composeReportSql(vsPath, meta, values);
+            sc.report.bindReportSql(rep, composed.Sql);
+
+            _report = rep;
+            _reportTitle = (CurrentRep?.RepText ?? "รายงาน")
+                + (string.IsNullOrWhiteSpace(composed.Header3) ? "" : " —" + composed.Header3);
+            _reportVisible = true;
+        }
+        catch (Exception ex)
+        {
+            _notice = sc.msg.C(ex.Message);
+        }
+    }
+}

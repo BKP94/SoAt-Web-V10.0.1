@@ -13,10 +13,22 @@
     <ProjectReference Include="..\sc\SoAt.Core\SoAt.Core.csproj" />
   </ItemGroup>
 
+  <!-- repQuery XML → copy เข้า output (sc.report.rcReport อ่านจาก AppContext.BaseDirectory\repQuery)
+       Deviation จาก legacy: legacy แชร์ C:\SoAt\repQuery\ กลางทุก IIS site; โครงใหม่ repQuery
+       อยู่ในตัว project scReport แล้ว copy ตามไปกับ output -->
+  <ItemGroup>
+    <None Include="repQuery\**\*.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
   <!-- DevExpress Blazor 25.2 — เปลี่ยน theme ที่ appsettings.json → "DevExpress:Theme" (จุดเดียว) -->
   <ItemGroup>
     <PackageReference Include="DevExpress.Blazor" Version="25.2.7" />
     <PackageReference Include="DevExpress.Blazor.Themes" Version="25.2.7" />
+    <!-- Native Blazor Report Viewer (DxReportViewer) — reuse legacy XtraReport บน net10.
+         ดึง DevExpress.Drawing (engine ของ DX เอง) แทน System.Drawing.Common -->
+    <PackageReference Include="DevExpress.Blazor.Reporting.Viewer" Version="25.2.7" />
   </ItemGroup>
 
 </Project>

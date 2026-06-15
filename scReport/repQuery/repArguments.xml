@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<root>
+  <!--text,clause,operator,table,column,special,mustvalue,type,sqlwhere(1),sqlreplace(0),combo,default,noheader,control,bleft,bright-->
+  <!--control:ASPxCheckBox,ASPxRadioButtonList(2:แนวนอน),ASPxComboBox,ASPxMemo,(ASPxTextBox)-->
+  <clauses>
+    <and text="และ"/>
+    <or text="หรือ"/>
+  </clauses>
+  <operators>
+    <eq text=" เท่ากับ" display=":"></eq>
+    <bt text=" ระหว่าง"/>
+    <lt text=" น้อยกว่า"></lt>
+    <le text=" น้อยกว่าหรือเท่ากับ"></le>
+    <gt text=" มากกว่า"></gt>
+    <ge text=" มากกว่าหรือเท่ากับ"></ge>
+    <ne text=" ไม่เท่ากับ"/>
+  </operators>
+  <classes>
+    <membership_no text="ทะเบียน" table="sc_mem_m_membership_registered" column="membership_no" special="memno"/>
+    <member_group_no text="หน่วย" operator="bt" table="sc_mem_m_ucf_member_group" column="member_group_no" combo="sc_mem_m_ucf_member_group" />
+    <member_group_no2 text="หน่วย" operator="bt" table="sc_mem_m_ucf_member_group" column="member_group_no" combo="sc_mem_m_ucf_member_group2" />
+    <member_group_no3 text="สังกัด" operator="bt" table="sc_mem_m_ucf_member_group" column="member_group_control" combo="sc_mem_m_ucf_member_group3" />
+    <member_group_no4 text="สังกัด" operator="bt" table="sc_mem_m_ucf_member_group" column="member_group_control" combo="sc_mem_m_ucf_member_group4" />
+    <receive_year text="ปี" special="year" table="sc_kep_t_monthly_receive" column="receive_year" type="integer"/>
+    <receive_month text="เดือน" special="month" table="sc_kep_t_monthly_receive" column="receive_month" combo="monthThLong" type="integer"/>
+    <branch_id text="สาขา" table="sc_com_m_branch" combo="sc_com_m_branch" column="branch_id"/>
+    <deposit_type_code text="ประเภทเงินฝาก" table="sc_dep_m_rule" combo="sc_dep_m_rule2" column="deposit_type_code"/>
+    <loan_type text="ประเภทเงินกู้" table="sc_lon_m_rule" combo="sc_lon_m_rule" column="loan_type"/>
+  </classes>
+</root>

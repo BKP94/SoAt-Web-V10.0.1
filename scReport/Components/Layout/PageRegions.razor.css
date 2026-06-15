@@ -1,0 +1,41 @@
+/* PageRegions — region grid (ซ้าย: Header/Detail/Tabs) + operate bar (ขวา) */
+.pr-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 104px;
+    gap: 16px;
+    align-items: start;
+}
+
+.pr-grid--no-operate { grid-template-columns: minmax(0, 1fr); }
+
+.pr-main {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+}
+
+.pr-region {
+    background: var(--card-bg, #fff);
+    border: 1px solid var(--line, #e6e9ef);
+    border-radius: var(--radius, 12px);
+    box-shadow: var(--shadow-sm, 0 1px 2px rgba(16, 33, 60, .06));
+    padding: 20px 22px;
+}
+
+/* Tabs จัด padding เองภายใน (header ของแท็บชิดขอบ) */
+.pr-tabs { padding: 6px 10px 16px; }
+
+.pr-operate {
+    position: sticky;
+    top: calc(var(--topbar-h, 54px) + 16px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 0;
+    background: var(--card-bg, #fff);
+    border: 1px solid var(--line, #e6e9ef);
+    border-radius: var(--radius, 12px);
+    box-shadow: var(--shadow-sm, 0 1px 2px rgba(16, 33, 60, .06));
+}

@@ -389,6 +389,50 @@ a.home-card:hover {
 .col-decimal input, .col-decimal2 input, .col-decimal3 input,
 .col-year input, .col-month input { text-align: right; }
 
+/* ── repHome portal (rh-*) — 3 คอลัมน์ + arg/find popup ────────────
+   layout เท่านั้น (ห้าม override DevExpress chrome) */
+.rh-page { padding: 4px 2px; }
+
+/* PanHead: 3 คอลัมน์ master-detail */
+.rh-cols {
+    display: grid; grid-template-columns: minmax(180px, 1fr) minmax(220px, 1.2fr) minmax(260px, 1.6fr);
+    gap: 14px;
+}
+.rh-col { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.rh-col-head {
+    font-size: .82rem; font-weight: 700; color: var(--ink-muted, #6b7787);
+    text-transform: uppercase; letter-spacing: .3px; padding-left: 2px;
+}
+.rh-listbox { height: 360px; }
+.rh-rep--disabled { color: #b0b6c0; font-style: italic; }
+
+/* notice / error ใต้ portal */
+.rh-notice {
+    margin-top: 14px; padding: 10px 14px; border-radius: 10px;
+    background: #fef3c7; color: #92400e; font-size: .9rem; font-weight: 600;
+}
+
+/* PopArgument: ฟอร์มเงื่อนไข */
+.rh-arg-form { display: flex; flex-direction: column; gap: 12px; padding: 4px 2px; }
+.rh-arg-row { display: grid; grid-template-columns: 130px 1fr; align-items: center; gap: 12px; }
+.rh-arg-label { font-size: .9rem; color: #4b5563; font-weight: 600; text-align: right; }
+.rh-arg-inputs { display: flex; align-items: center; gap: 8px; }
+.rh-arg-sep { color: #9ca3af; font-size: .85rem; white-space: nowrap; }
+.rh-arg-ctl { min-width: 150px; flex: 1; }
+.rh-arg-empty { padding: 28px; text-align: center; color: #6b7280; font-size: .92rem; }
+.rh-arg-error {
+    margin-top: 10px; padding: 9px 12px; border-radius: 8px;
+    background: #fee2e2; color: #991b1b; font-size: .85rem;
+}
+
+/* PopFindReport: แถบค้นหา + ตารางผล */
+.rh-find-bar { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; }
+.rh-find-input { flex: 1; }
+.rh-find-grid { height: 360px; }
+
+/* viewer popup */
+.rh-viewer { height: 100%; }
+
 /* ── Blazor scaffold boilerplate (เดิม) ───────────────────────── */
 h1:focus { outline: none; }
 

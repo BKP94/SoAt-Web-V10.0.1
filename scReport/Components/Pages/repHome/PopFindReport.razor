@@ -1,0 +1,106 @@
+@* PopFindReport (repHome) — ค้นหารายงานข้ามกลุ่ม แล้วเลือกเปิด
+   เลียน legacy popFindReport/ofFindReport: ค้นจาก rep_text หรือ vs_path
+   DEVIATION (frontend): legacy repopulate 3 คอลัมน์ nav; ใหม่ใช้ result grid แบนแล้วเลือกแถวเปิดตรง
+   (scReport = central เห็นทุกระบบงาน — ไม่กรอง cat_app) *@
+
+@inject sc.dbFactory DbFactory
+
+<DxPopup @bind-Visible="Visible" HeaderText="ค้นหารายงาน"
+         Width="720px" CloseOnEscape="true">
+    <BodyContentTemplate>
+        <div class="rh-find-bar">
+            <DxTextBox @bind-Text="_keyword" NullText="พิมพ์ชื่อรายงาน หรือ vs_path…"
+                       CssClass="rh-find-input" />
+            <DxButton Text="ค้นหา" RenderStyle="ButtonRenderStyle.Primary" Click="Search" />
+        </div>
+
+        @if (_error is not null)
+        {
+            <div class="rh-arg-error">@_error</div>
+        }
+
+        <div class="rh-find-grid">
+            <DxGrid Data="_rows" PageSize="12"
+                    SelectionMode="GridSelectionMode.Single"
+                    SelectedDataItem="_selected"
+                    SelectedDataItemChanged="@((object v) => _selected = v as FindRow)">
+                <Columns>
+                    <DxGridDataColumn FieldName="@nameof(FindRow.CatApp)" Caption="ระบบงาน" Width="110px" />
+                    <DxGridDataColumn FieldName="@nameof(FindRow.CatText)" Caption="กลุ่ม" />
+                    <DxGridDataColumn FieldName="@nameof(FindRow.RepId)" Caption="รหัส" Width="70px" />
+                    <DxGridDataColumn FieldName="@nameof(FindRow.RepText)" Caption="ชื่อรายงาน" />
+                </Columns>
+            </DxGrid>
+        </div>
+    </BodyContentTemplate>
+    <FooterContentTemplate>
+        <DxButton Text="เปิดรายงาน" RenderStyle="ButtonRenderStyle.Primary"
+                  Enabled="@(_selected is { } r && r.HasReport)" Click="OpenSelected" />
+        <DxButton Text="ปิด" RenderStyle="ButtonRenderStyle.Secondary" Click="() => Visible = false" />
+    </FooterContentTemplate>
+</DxPopup>
+
+@code {
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public EventCallback<bool> VisibleChanged { get; set; }
+
+    /// ส่ง vs_path ที่เลือกกลับให้ Page เปิด (Page ประกอบ arg+viewer)
+    [Parameter] public EventCallback<string> OnPick { get; set; }
+
+    string? _keyword;
+    string? _error;
+    List<FindRow> _rows = new();
+    FindRow? _selected;
+
+    async Task SetVisible(bool v)
+    {
+        Visible = v;
+        await VisibleChanged.InvokeAsync(v);
+    }
+
+    async Task Search()
+    {
+        _error = null;
+        _selected = null;
+        try
+        {
+            await using var db = DbFactory.create();
+            // scReport เห็นทุกระบบงาน → ไม่เติม and cat_app=... (legacy ofFindReport)
+            _rows = await db.getListAsync<FindRow>(@"
+                select si_rep_cats.cat_app  as CatApp,
+                       si_rep_cats.cat_id   as CatId,
+                       si_rep_cats.cat_text as CatText,
+                       si_rep_reps.rep_id   as RepId,
+                       si_rep_reps.rep_text as RepText,
+                       si_rep_reps.vs_path  as VsPath
+                from si_rep_reps, si_rep_cats
+                where si_rep_reps.cat_id = si_rep_cats.cat_id
+                  and (si_rep_reps.rep_text like '%' || {0} || '%'
+                       or si_rep_reps.vs_path like '%' || {0} || '%')
+                order by si_rep_cats.cat_app, si_rep_cats.cat_id, si_rep_reps.rep_id",
+                _keyword ?? string.Empty);
+        }
+        catch (Exception ex)
+        {
+            _error = sc.msg.C(ex.Message);
+        }
+    }
+
+    async Task OpenSelected()
+    {
+        if (_selected is not { } r || !r.HasReport) return;
+        await SetVisible(false);
+        await OnPick.InvokeAsync(r.VsPath);
+    }
+
+    public class FindRow
+    {
+        public string CatApp { get; set; } = "";
+        public string CatId { get; set; } = "";
+        public string CatText { get; set; } = "";
+        public string RepId { get; set; } = "";
+        public string RepText { get; set; } = "";
+        public string VsPath { get; set; } = "";
+        public bool HasReport => !string.IsNullOrWhiteSpace(VsPath);
+    }
+}

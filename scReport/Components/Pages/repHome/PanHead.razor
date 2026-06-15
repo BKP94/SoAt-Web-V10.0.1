@@ -1,0 +1,88 @@
+@* ── PanHead (repHome) — 3 คอลัมน์ master-detail (เลียน legacy repHome/panHead.ascx) ──
+   ระบบงาน (apps) → กลุ่มรายงาน (cats) → ข้อรายงาน (reps)
+   dumb component: รับ data + selected ผ่าน [Parameter], ยิง EventCallback กลับให้ Page
+   เลือกเดียวต่อคอลัมน์ (DxListBox SelectionMode.Single — DevExpress ไม่มี DxNavBar) *@
+
+<div class="rh-cols">
+    <div class="rh-col">
+        <div class="rh-col-head">ระบบงาน</div>
+        <DxListBox Data="@Apps" TData="AppRow" TValue="string"
+                   ValueFieldName="@nameof(AppRow.AppName)" TextFieldName="@nameof(AppRow.Display)"
+                   SelectionMode="ListBoxSelectionMode.Single"
+                   Values="@Sel(SelectedApp)" ValuesChanged="@OnAppSel" TValueChangedType="IEnumerable<string>"
+                   CssClass="rh-listbox" />
+    </div>
+
+    <div class="rh-col">
+        <div class="rh-col-head">กลุ่มรายงาน</div>
+        <DxListBox Data="@Cats" TData="CatRow" TValue="string"
+                   ValueFieldName="@nameof(CatRow.CatId)" TextFieldName="@nameof(CatRow.Display)"
+                   SelectionMode="ListBoxSelectionMode.Single"
+                   Values="@Sel(SelectedCat)" ValuesChanged="@OnCatSel" TValueChangedType="IEnumerable<string>"
+                   CssClass="rh-listbox" />
+    </div>
+
+    <div class="rh-col">
+        <div class="rh-col-head">ข้อรายงาน</div>
+        <DxListBox Data="@Reps" TData="RepRow" TValue="string"
+                   ValueFieldName="@nameof(RepRow.RepId)" TextFieldName="@nameof(RepRow.Display)"
+                   SelectionMode="ListBoxSelectionMode.Single"
+                   Values="@Sel(SelectedRep)" ValuesChanged="@OnRepSel" TValueChangedType="IEnumerable<string>"
+                   CssClass="rh-listbox">
+            <ItemDisplayTemplate Context="ctx">
+                @{ var rep = ctx.DataItem; }
+                <span class="@(rep.HasReport ? null : "rh-rep--disabled")"
+                      title="@(rep.HasReport ? rep.VsPath : "ไม่พบตัวรายงาน [vs_path]")">@rep.Display</span>
+            </ItemDisplayTemplate>
+        </DxListBox>
+    </div>
+</div>
+
+@code {
+    // ── data + selection (Page เป็นเจ้าของ, ส่งลงมา) ──
+    [Parameter] public List<AppRow> Apps { get; set; } = [];
+    [Parameter] public List<CatRow> Cats { get; set; } = [];
+    [Parameter] public List<RepRow> Reps { get; set; } = [];
+
+    [Parameter] public string? SelectedApp { get; set; }
+    [Parameter] public string? SelectedCat { get; set; }
+    [Parameter] public string? SelectedRep { get; set; }
+
+    [Parameter] public EventCallback<string?> SelectedAppChanged { get; set; }
+    [Parameter] public EventCallback<string?> SelectedCatChanged { get; set; }
+    [Parameter] public EventCallback<string?> SelectedRepChanged { get; set; }
+
+    // single-selection → DxListBox.Values รับ IEnumerable; แปลงค่าเดี่ยว ↔ collection
+    static IEnumerable<string> Sel(string? v) => string.IsNullOrEmpty(v) ? [] : [v];
+
+    Task OnAppSel(IEnumerable<string> v) => SelectedAppChanged.InvokeAsync(v.FirstOrDefault());
+    Task OnCatSel(IEnumerable<string> v) => SelectedCatChanged.InvokeAsync(v.FirstOrDefault());
+    Task OnRepSel(IEnumerable<string> v) => SelectedRepChanged.InvokeAsync(v.FirstOrDefault());
+
+    // ── row models (แชร์กับ Page ผ่าน partial class ในไฟล์เดียวกัน namespace) ──
+    public class AppRow
+    {
+        public string AppName { get; set; } = "";
+        public string AppText { get; set; } = "";
+        public int Seq { get; set; }
+        public string Display => $"{Seq}.{(string.IsNullOrWhiteSpace(AppText) ? AppName : AppText)}";
+    }
+
+    public class CatRow
+    {
+        public string CatId { get; set; } = "";
+        public string CatText { get; set; } = "";
+        public string CatApp { get; set; } = "";
+        public string Display => $"{CatId} - {CatText}";
+    }
+
+    public class RepRow
+    {
+        public string CatId { get; set; } = "";
+        public string RepId { get; set; } = "";
+        public string RepText { get; set; } = "";
+        public string VsPath { get; set; } = "";
+        public bool HasReport => !string.IsNullOrWhiteSpace(VsPath);
+        public string Display => $"{RepId} - {RepText}";
+    }
+}

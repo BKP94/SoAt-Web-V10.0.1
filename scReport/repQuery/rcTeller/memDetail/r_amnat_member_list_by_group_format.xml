@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <arg>
-    <member_group_no text="หน่วย" table="sc_mem_m_membership_registered" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+    <member_group_no text="หน่วย" operator="bt" table="sc_mem_m_membership_registered" combo="sc_mem_m_ucf_member_group2" />
   </arg>
   <combo />
   <sql> SELECT  sc_mem_m_membership_registered.membership_no,
@@ -28,5 +28,4 @@ ORDER BY sc_mem_m_ucf_member_group.member_group_control ASC,
          sc_mem_m_membership_registered.member_group_no ASC,
          sc_mem_m_membership_registered.membership_no </sql>
   <sub />
-  <mis />
 </root>

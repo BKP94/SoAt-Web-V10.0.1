@@ -1,0 +1,183 @@
+@using scReport.Services
+
+@* PopProcedure (repProgram) — builder ของช่อง Procedure (เลียน legacy popProcedure.ascx)
+   - ช่องชื่อ procedure + ตารางแถว "arg name" (combo เลือกจาก argument ที่นิยามใน PanHead)
+   - รายชื่อ arg ที่เลือกได้ = ofArgumentList: แต่ละ arg → id_1 (และ id_2 ถ้า operator=bt)
+   - กด "ตกลง" → ประกอบ name({a_1},{b_1}) → ยิง OnApply กลับให้ Page เขียนลง Model.Procedure
+   dumb popup: ไม่เขียน Model เอง (เหมือน PanOperate ยิง callback) *@
+
+<DxPopup Visible="Visible" VisibleChanged="SetVisible" HeaderText="Procedure"
+         Width="560px" CloseOnEscape="true" ShowFooter="true">
+    <BodyContentTemplate>
+        <div class="rp-pop">
+            <div class="nb-field">
+                <label class="nb-label">Procedure Name</label>
+                <DxTextBox @bind-Text="_procName" NullText="(ชื่อ procedure / function)" />
+            </div>
+
+            <div class="nb-grid-head">
+                <h3 class="nb-h3">Arguments</h3>
+                <DxButton Text="+ เพิ่มแถว" RenderStyle="ButtonRenderStyle.Primary"
+                          Enabled="@(_available.Count > 0)" Click="AddRow" />
+            </div>
+
+            @if (_available.Count == 0)
+            {
+                <div class="nb-empty">ยังไม่มี argument ใน PanHead (เพิ่ม argument ก่อน จึงจะอ้างใน procedure ได้)</div>
+            }
+            else if (_rows.Count == 0)
+            {
+                <div class="nb-empty">ยังไม่ได้เลือก argument — กด “เพิ่มแถว”</div>
+            }
+            else
+            {
+                <DxGrid Data="_rows" PageSize="0" ColumnResizeMode="GridColumnResizeMode.NextColumn">
+                    <Columns>
+                        <DxGridDataColumn Caption="#" Width="44px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                            <CellDisplayTemplate Context="cell">@(cell.VisibleIndex + 1)</CellDisplayTemplate>
+                        </DxGridDataColumn>
+                        <DxGridDataColumn Caption="Arg Name" AllowSort="false">
+                            <CellDisplayTemplate Context="cell">
+                                @{ var r = (ArgRow)cell.DataItem; }
+                                <DxComboBox Data="_available" @bind-Value="r.Name"
+                                            NullText="-- เลือก argument --"
+                                            ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
+                            </CellDisplayTemplate>
+                        </DxGridDataColumn>
+                        <DxGridDataColumn Caption="" Width="56px" AllowSort="false">
+                            <CellDisplayTemplate Context="cell">
+                                @{ var r = (ArgRow)cell.DataItem; }
+                                <DxButton Text="ลบ" RenderStyle="ButtonRenderStyle.Danger" Click="() => RemoveRow(r)" />
+                            </CellDisplayTemplate>
+                        </DxGridDataColumn>
+                    </Columns>
+                </DxGrid>
+            }
+
+            <div class="rp-pop-preview">
+                <span class="rp-pop-preview__k">ผลลัพธ์:</span>
+                <code class="rp-pop-preview__v">@(BuildProcedure() ?? "(ว่าง — ไม่ใช้ procedure)")</code>
+            </div>
+
+            @if (_error is not null)
+            {
+                <div class="rh-arg-error">@_error</div>
+            }
+        </div>
+    </BodyContentTemplate>
+    <FooterContentTemplate>
+        <DxButton Text="ตกลง" RenderStyle="ButtonRenderStyle.Primary" Click="OnConfirmClick" />
+        <DxButton Text="ล้าง" RenderStyle="ButtonRenderStyle.Secondary" Click="OnClearClick" />
+        <DxButton Text="ยกเลิก" RenderStyle="ButtonRenderStyle.Secondary" Click="() => SetVisible(false)" />
+    </FooterContentTemplate>
+</DxPopup>
+
+@code {
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public EventCallback<bool> VisibleChanged { get; set; }
+
+    /// model หลัก (อ่าน Args เพื่อสร้างรายการ argument ที่อ้างได้ + Procedure ปัจจุบัน)
+    [Parameter, EditorRequired] public RepProgramModel Model { get; set; } = default!;
+
+    /// ส่งสตริง procedure ที่ประกอบแล้วกลับให้ Page เขียนลง Model.Procedure
+    [Parameter] public EventCallback<string> OnApply { get; set; }
+
+    readonly List<string> _available = new();   // argx ที่เลือกได้ (id_1 / id_2)
+    readonly List<ArgRow> _rows = new();         // แถวที่ผู้ใช้เลือก
+    string _procName = string.Empty;
+    string? _error;
+    bool _wasVisible;
+
+    async Task SetVisible(bool v)
+    {
+        if (Visible == v) return;
+        Visible = v;
+        await VisibleChanged.InvokeAsync(v);
+    }
+
+    // โหลดสถานะใหม่ทุกครั้งที่ popup ถูกเปิด (เลียน ofSetComboAdrguemnt)
+    protected override void OnParametersSet()
+    {
+        if (Visible && !_wasVisible) LoadFromModel();
+        _wasVisible = Visible;
+    }
+
+    void LoadFromModel()
+    {
+        _error = null;
+        _rows.Clear();
+        try
+        {
+            // รายชื่อ argument ที่อ้างได้ (ofArgumentList)
+            _available.Clear();
+            foreach (var a in Model.Args)
+            {
+                var id = (a.Id ?? string.Empty).Trim();
+                if (string.IsNullOrWhiteSpace(id)) continue;
+                var atts = RepProgramService.ParseAttr(id, (a.Attr ?? string.Empty).Trim());
+                var op = atts.TryGetValue(sc.report.attArg.operator_, out var v) ? v : string.Empty;
+                if (op == sc.report.opertors.between)
+                {
+                    _available.Add(id + "_1");
+                    _available.Add(id + "_2");
+                }
+                else
+                {
+                    _available.Add(id + "_1");
+                }
+            }
+
+            // แตกชื่อ + token ปัจจุบันจาก Model.Procedure
+            var proc = (Model.Procedure ?? string.Empty).Trim();
+            if (proc.IndexOf('(') >= 0)
+            {
+                _procName = proc.Substring(0, proc.IndexOf('('));
+                var inner = proc.Substring(proc.IndexOf('(') + 1,
+                                           proc.LastIndexOf(')') - proc.IndexOf('(') - 1);
+                foreach (var tok in RepProgramService.ParseProcedureTokens(inner))
+                    _rows.Add(new ArgRow { Name = tok });
+            }
+            else
+            {
+                _procName = proc;
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = sc.msg.C(ex.Message);
+        }
+    }
+
+    void AddRow() => _rows.Add(new ArgRow());
+    void RemoveRow(ArgRow r) => _rows.Remove(r);
+
+    // ประกอบ name({a_1},{b_1}) — เลียน ofSubmit (เติม _1 ถ้ายังไม่ลงท้าย _1/_2)
+    string? BuildProcedure()
+    {
+        if (string.IsNullOrWhiteSpace(_procName)) return null;
+        var parts = new List<string>();
+        foreach (var r in _rows)
+        {
+            var name = (r.Name ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(name)) continue;
+            if (!name.EndsWith("_1") && !name.EndsWith("_2")) name += "_1";
+            parts.Add("{" + name + "}");
+        }
+        return _procName.Trim() + "(" + string.Join(",", parts) + ")";
+    }
+
+    async Task OnConfirmClick()
+    {
+        var proc = BuildProcedure() ?? string.Empty;
+        await SetVisible(false);
+        await OnApply.InvokeAsync(proc);
+    }
+
+    void OnClearClick()
+    {
+        _procName = string.Empty;
+        _rows.Clear();
+    }
+
+    class ArgRow { public string? Name { get; set; } }
+}

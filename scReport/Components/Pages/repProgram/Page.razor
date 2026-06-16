@@ -1,0 +1,107 @@
+@page "/repProgram/{Cat}/{Rep}"
+@rendermode InteractiveServer
+@using scReport.Services
+@inject sc.dbFactory DbFactory
+@inject RepProgramService RepProg
+@inject NavigationManager Nav
+
+@* repProgram — หน้าจอจัดการไฟล์ definition รายงาน (เลียน legacy scReport/repProgram)
+   แก้ args / sql / sub / combo ในไฟล์ repQuery\...\*.xml
+   เปิดจาก repHome (ปุ่ม "จัดการรายงาน") เป็นแท็บใหม่ → /repProgram/{cat}/{rep}
+   Page เป็นเจ้าของ model ตัวเดียว → ส่งลง PanHead/PanTabs ผ่าน [Parameter] (reference ร่วม)
+   PanOperate ยิง OnSave กลับให้ Page จัดการ *@
+
+<PageTitle>จัดการรายงาน @Cat/@Rep</PageTitle>
+
+<div class="rp-page">
+    <div class="nb-titlebar">
+        <div>
+            <h2 class="nb-title">จัดการรายงาน</h2>
+            <div class="nb-sub">@_titleLine</div>
+        </div>
+    </div>
+
+    @if (_loadError is not null)
+    {
+        <div class="rh-arg-error">@_loadError</div>
+    }
+    else if (_model is not null)
+    {
+        <PageRegions>
+            <HeaderContent>
+                <PanHead Model="_model" />
+            </HeaderContent>
+            <TabsContent>
+                <PanTabs Model="_model" />
+            </TabsContent>
+            <OperateContent>
+                <PanOperate OnSave="SaveClicked" />
+            </OperateContent>
+        </PageRegions>
+
+        @if (_notice is not null)
+        {
+            <div class="rp-notice">@_notice</div>
+        }
+    }
+</div>
+
+<ScMessage @ref="_msg" />
+
+@code {
+    [Parameter] public string Cat { get; set; } = string.Empty;
+    [Parameter] public string Rep { get; set; } = string.Empty;
+
+    RepProgramModel? _model;
+    string _titleLine = "";
+    string? _loadError, _notice;
+    ScMessage _msg = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            string repText, vsPath;
+            await using (var db = DbFactory.create())
+            {
+                // เลียน legacy Page_Load: lookup rep_text + vs_path จาก si_rep_reps
+                repText = db.getValueString(
+                    "select rep_text from si_rep_reps where cat_id = {0} and rep_id = {1}", Cat, Rep);
+                vsPath = db.getValueString(
+                    "select vs_path from si_rep_reps where cat_id = {0} and rep_id = {1}", Cat, Rep);
+            }
+
+            _titleLine = $"{Cat}/{Rep} — {repText}";
+
+            if (string.IsNullOrWhiteSpace(vsPath))
+            {
+                _loadError = sc.msg.C($"ไม่พบรายงาน {Cat}/{Rep} (vs_path ว่าง)");
+                return;
+            }
+
+            _model = RepProg.Load(vsPath);
+            if (!_model.FileExists)
+                _notice = $"ยังไม่มีไฟล์ definition ({vsPath}.xml) — บันทึกครั้งแรกจะสร้างไฟล์ใหม่";
+        }
+        catch (Exception ex)
+        {
+            _loadError = sc.msg.C(ex.Message);
+        }
+    }
+
+    async Task SaveClicked()
+    {
+        _notice = null;   // ล้าง banner โหลด (เช่น "ยังไม่มีไฟล์") เมื่อบันทึก
+        if (_model is null) return;
+        try
+        {
+            var host = new Uri(Nav.Uri).Host;
+            RepProg.Save(_model, host);
+            await _msg.Success("บันทึกไฟล์รายงานเรียบร้อย");
+        }
+        catch (Exception ex)
+        {
+            await _msg.Error(sc.msg.C(ex.Message));
+        }
+    }
+}

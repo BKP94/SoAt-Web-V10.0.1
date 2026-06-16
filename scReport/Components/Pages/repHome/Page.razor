@@ -51,7 +51,8 @@
                      OnRepActivate="OnRepActivate" />
         </HeaderContent>
         <OperateContent>
-            <PanOperate CanOpen="@CanOpen" OnOpen="OpenClicked" OnFind="() => _findVisible = true" />
+            <PanOperate CanOpen="@CanOpen" CanManage="@CanManage"
+                        OnOpen="OpenClicked" OnFind="() => _findVisible = true" OnManage="ManageClicked" />
         </OperateContent>
     </PageRegions>
 
@@ -93,6 +94,8 @@
     PanHead.CatRow? CurrentCat => _cats.FirstOrDefault(c => c.CatId == _selCat);
     PanHead.RepRow? CurrentRep => _reps.FirstOrDefault(r => r.RepId == _selRep);
     bool CanOpen => CurrentRep is { HasReport: true };
+    // จัดการรายงาน: เปิดได้เมื่อเลือกข้อรายงาน (แม้ยังไม่มีไฟล์ — editor สร้างใหม่ได้)
+    bool CanManage => CurrentRep is not null;
 
     protected override async Task OnInitializedAsync()
     {
@@ -169,6 +172,13 @@
 
     // ดับเบิลคลิกข้อรายงาน → เลือก + เปิดทันที (กันเคส selection round-trip ยังไม่ถึง)
     Task OnRepActivate(string repId) { _selRep = repId; return OpenClicked(); }
+
+    // จัดการรายงาน → เปิดแท็บใหม่ /repProgram/{cat}/{rep} (หน้าจอแก้ไฟล์ definition รายงาน)
+    async Task ManageClicked()
+    {
+        if (CurrentRep is not { } rep) return;
+        await JS.InvokeVoidAsync("open", $"repProgram/{rep.CatId}/{rep.RepId}", "_blank");
+    }
 
     // ── เปิดรายงาน ──
     async Task OpenClicked()

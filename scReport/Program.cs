@@ -23,6 +23,9 @@ builder.Services.AddDevExpressServerSideBlazorReportViewer();
 // โ”€โ”€ ReportRequestStore โ€” เก็บคำขอเปิดรายงาน (composed SQL) ส่งข้ามแท็บ (เลียน legacy Session+opdate) โ”€โ”€
 builder.Services.AddSingleton<scReport.Services.ReportRequestStore>();
 
+// โ”€โ”€ RepProgramService โ€” โหลด/บันทึกไฟล์ definition รายงาน (repProgram editor) โ”€โ”€
+builder.Services.AddScoped<scReport.Services.RepProgramService>();
+
 // โ”€โ”€ Backend services (sc.dbFactory, AppDbContext, application services) โ”€โ”€
 //   module เนเธกเนเธฃเธฑเธ deployers โ€” scCenter เน€เธเนเธเธเธ deploy DB
 builder.Services.AddInfrastructure(builder.Configuration);

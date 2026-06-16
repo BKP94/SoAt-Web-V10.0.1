@@ -1,0 +1,425 @@
+@using scReport.Services
+@using A = sc.report.attArg
+@inject sc.dbFactory DbFactory
+@inject RepProgramService RepProg
+
+@* PopAttribute (repProgram) — builder ของช่อง Attributes ต่อ 1 argument (เลียน legacy popAttribute.ascx)
+   ฟอร์มเต็ม: class/align/special/control/default/text/clause/table/type/column/operator/
+             bleft/bright/nulltext/helptext/cascade/combo + 9 checkbox
+   - table/column ดึงจาก PostgreSQL information_schema (public, ตาราง sc_*/si_*)
+   - class template ดึงจาก repQuery\repArguments.xml (RepProg.LoadArgClasses)
+   - combo (รายชื่อ) ดึงจาก field ของ sc.combo (สะท้อน reflection, ข้ามตัวขึ้นต้น "_")
+   กด "ตกลง" → RepProgramService.FormAttr ตัด default → เขียน attr (+ id ถ้าติ๊ก) ลง Arg แล้วยิง OnApply
+   dumb popup: แก้ Arg (reference ร่วม) ตรง แล้วแจ้ง Page re-render *@
+
+<DxPopup Visible="Visible" VisibleChanged="SetVisible" HeaderText="@($"Attributes — {Arg?.Id}")"
+         Width="900px" CloseOnEscape="true" ShowFooter="true">
+    <BodyContentTemplate>
+        @if (_loading)
+        {
+            <div class="rh-arg-empty">กำลังโหลด…</div>
+        }
+        else
+        {
+            <div class="rp-attr">
+                <div class="rp-attr-col">
+                    <div class="nb-field">
+                        <label class="nb-label">Class</label>
+                        <DxComboBox Data="_classNames" Value="_class"
+                                    ValueChanged="(string v) => ApplyClass(v)"
+                                    NullText="-- เลือก template --"
+                                    ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
+                    </div>
+                    <div class="nb-field">
+                        <label class="nb-label">Align</label>
+                        <DxComboBox Data="_aligns" @bind-Value="_align" NullText="NotSet"
+                                    ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
+                    </div>
+                    <div class="nb-field">
+                        <label class="nb-label">Special</label>
+                        <DxComboBox Data="_specials" @bind-Value="_special"
+                                    ValueFieldName="@nameof(KV.Value)" TextFieldName="@nameof(KV.Text)"
+                                    NullText="-- ไม่มี --"
+                                    ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
+                    </div>
+                    <div class="nb-field">
+                        <label class="nb-label">Control</label>
+                        <DxComboBox Data="_controls" @bind-Value="_control"
+                                    ValueFieldName="@nameof(KV.Value)" TextFieldName="@nameof(KV.Text)"
+                                    NullText="ASPxTextBox" />
+                    </div>
+                    <div class="nb-field">
+                        <label class="nb-label">Default</label>
+                        <DxMemo @bind-Text="_default" Rows="3" />
+                    </div>
+                </div>
+
+                <div class="rp-attr-col">
+                    <div class="nb-field">
+                        <label class="nb-label">Text</label>
+                        <DxTextBox @bind-Text="_text" NullText="ID" />
+                    </div>
+                    <div class="nb-field">
+                        <label class="nb-label">Clause</label>
+                        <DxComboBox Data="_clauses" @bind-Value="_clause"
+                                    ValueFieldName="@nameof(KV.Value)" TextFieldName="@nameof(KV.Text)" NullText="AND" />
+                    </div>
+                    <div class="nb-field">
+                        <label class="nb-label">Table</label>
+                        <DxComboBox Data="_tables" Value="_table"
+                                    ValueChanged="async (string v) => await OnTableChanged(v)"
+                                    NullText="-- เลือกตาราง --" FilteringMode="DataGridFilteringMode.Contains"
+                                    ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
+                    </div>
+                    <div class="nb-field">
+                        <label class="nb-label">Type</label>
+                        <DxComboBox Data="_types" @bind-Value="_type"
+                                    ValueFieldName="@nameof(KV.Value)" TextFieldName="@nameof(KV.Text)" NullText="String" />
+                    </div>
+                    <div class="nb-field">
+                        <label class="nb-label">Column</label>
+                        <DxComboBox Data="_columns" Value="_column"
+                                    ValueChanged="(string v) => OnColumnChanged(v)"
+                                    NullText="ID" FilteringMode="DataGridFilteringMode.Contains"
+                                    ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
+                    </div>
+                    <div class="nb-field">
+                        <label class="nb-label">Operator</label>
+                        <DxComboBox Data="_operators" @bind-Value="_operator"
+                                    ValueFieldName="@nameof(KV.Value)" TextFieldName="@nameof(KV.Text)" NullText="=" />
+                    </div>
+                    <div class="nb-field nb-field--half">
+                        <label class="nb-label">วงเล็บซ้าย</label>
+                        <DxTextBox @bind-Text="_bleft" />
+                    </div>
+                    <div class="nb-field nb-field--half">
+                        <label class="nb-label">วงเล็บขวา</label>
+                        <DxTextBox @bind-Text="_bright" />
+                    </div>
+                    <div class="nb-field">
+                        <label class="nb-label">NullText</label>
+                        <DxTextBox @bind-Text="_nulltext" />
+                    </div>
+                    <div class="nb-field">
+                        <label class="nb-label">HelpText</label>
+                        <DxTextBox @bind-Text="_helptext" />
+                    </div>
+                    <div class="nb-field">
+                        <label class="nb-label">Cascade</label>
+                        <DxTextBox @bind-Text="_cascade" />
+                    </div>
+                    <div class="nb-field">
+                        <label class="nb-label">Combo</label>
+                        <DxComboBox Data="_comboNames" @bind-Value="_combo"
+                                    NullText="-- ไม่มี --" FilteringMode="DataGridFilteringMode.Contains"
+                                    ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
+                    </div>
+                </div>
+
+                <div class="rp-attr-col rp-attr-col--checks">
+                    <DxCheckBox @bind-Checked="_sqlwhere">SQL-Where</DxCheckBox>
+                    <DxCheckBox @bind-Checked="_sqlreplace">SQL-Replace</DxCheckBox>
+                    <DxCheckBox @bind-Checked="_noheader">ไม่แสดงในหัวรายงาน</DxCheckBox>
+                    <DxCheckBox @bind-Checked="_mustvalue">ต้องระบุค่าเสมอ</DxCheckBox>
+                    <DxCheckBox @bind-Checked="_nestwhere">Nest-Where</DxCheckBox>
+                    <DxCheckBox @bind-Checked="_nestreplace">Nest-Replace</DxCheckBox>
+                    <DxCheckBox @bind-Checked="_readOnly">Read Only</DxCheckBox>
+                    <DxCheckBox @bind-Checked="_comboReplace">Combo-Replace</DxCheckBox>
+                    <DxCheckBox @bind-Checked="_comboWhere">Combo-Where</DxCheckBox>
+                    <hr class="rp-attr-sep" />
+                    <DxCheckBox @bind-Checked="_changeId">เปลี่ยน ID ตาม Column</DxCheckBox>
+                </div>
+            </div>
+
+            <div class="rp-pop-preview">
+                <span class="rp-pop-preview__k">attr:</span>
+                <code class="rp-pop-preview__v">@(PreviewAttr())</code>
+            </div>
+
+            @if (_error is not null)
+            {
+                <div class="rh-arg-error">@_error</div>
+            }
+        }
+    </BodyContentTemplate>
+    <FooterContentTemplate>
+        <DxButton Text="ตกลง" RenderStyle="ButtonRenderStyle.Primary" Click="OnConfirmClick" />
+        <DxButton Text="ยกเลิก" RenderStyle="ButtonRenderStyle.Secondary" Click="() => SetVisible(false)" />
+    </FooterContentTemplate>
+</DxPopup>
+
+@code {
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public EventCallback<bool> VisibleChanged { get; set; }
+
+    /// argument ที่กำลังแก้ (reference ร่วมกับ Model.Args) — เขียน Attr/Id กลับตรง
+    [Parameter] public RepArgRow? Arg { get; set; }
+
+    /// แจ้ง Page re-render หลังเขียน attr กลับ
+    [Parameter] public EventCallback OnApply { get; set; }
+
+    bool _loading, _wasVisible;
+    string? _error;
+
+    // ── lookup (โหลดครั้งเดียว) ──
+    readonly List<string> _aligns = new() { "left", "center", "right" };
+    readonly List<KV> _specials = new() {
+        new("memno", "ทะเบียนสมาชิก"), new("year", "ปี"), new("month", "เดือน"), new("tablename", "TableName") };
+    readonly List<KV> _controls = new() {
+        new("ASPxTextBox", "ASPxTextBox"), new("ASPxComboBox", "ASPxComboBox"),
+        new("ASPxCheckBox", "ASPxCheckBox"), new("ASPxCheckBoxList|2", "ASPxCheckBoxList(2)"),
+        new("ASPxCheckBoxList|3", "ASPxCheckBoxList(3)"), new("ASPxCheckBoxList|4", "ASPxCheckBoxList(4)"),
+        new("ASPxMemo", "ASPxMemo"), new("ASPxRadioButtonList", "ASPxRadioButtonList แนวตั้ง"),
+        new("ASPxRadioButtonList2", "ASPxRadioButtonList แนวนอน") };
+    readonly List<KV> _clauses = new() { new("and", "AND"), new("or", "OR") };
+    readonly List<KV> _types = new() {
+        new("string", "String"), new("date", "Date"), new("integer2", "Integer"), new("decimal2", "Decimal") };
+    readonly List<KV> _operators = new() {
+        new("eq", "="), new("lt", "<"), new("le", "<="), new("gt", ">"),
+        new("ge", ">="), new("ne", "!="), new("in", "in"), new("bt", "between") };
+
+    List<string> _tables = new();
+    List<string> _columns = new();
+    Dictionary<string, string> _colTypes = new(StringComparer.OrdinalIgnoreCase);
+    List<string> _comboNames = new();
+    List<string> _classNames = new();
+    List<RepArgClass> _classes = new();
+
+    // ── form state ──
+    string _class = "", _align = "", _special = "", _control = "", _default = "",
+           _text = "", _clause = "", _table = "", _type = "", _column = "", _operator = "",
+           _bleft = "", _bright = "", _nulltext = "", _helptext = "", _cascade = "", _combo = "";
+    bool _sqlwhere, _sqlreplace, _noheader, _mustvalue, _nestwhere, _nestreplace,
+         _readOnly, _comboReplace, _comboWhere, _changeId;
+
+    async Task SetVisible(bool v)
+    {
+        if (Visible == v) return;
+        Visible = v;
+        await VisibleChanged.InvokeAsync(v);
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Visible && !_wasVisible)
+        {
+            _wasVisible = true;
+            await LoadAll();
+        }
+        else if (!Visible)
+        {
+            _wasVisible = false;
+        }
+    }
+
+    async Task LoadAll()
+    {
+        _loading = true;
+        _error = null;
+        StateHasChanged();
+        try
+        {
+            // lookup คงที่ (โหลดครั้งแรกหรือเมื่อยังว่าง)
+            if (_comboNames.Count == 0)
+                _comboNames = typeof(sc.combo).GetFields()
+                    .Where(f => !f.Name.StartsWith("_")).Select(f => f.Name).OrderBy(x => x).ToList();
+            if (_classes.Count == 0)
+            {
+                _classes = RepProg.LoadArgClasses();
+                _classNames = _classes.Select(c =>
+                    c.Name + (string.IsNullOrWhiteSpace(c.Text) ? "" : " - " + c.Text)).ToList();
+            }
+
+            await using var db = DbFactory.create();
+            if (_tables.Count == 0)
+                _tables = await db.getListAsync<string>(@"
+                    select table_name from information_schema.tables
+                    where table_schema = 'public'
+                      and (table_name like 'sc\_%' or table_name like 'si\_%')
+                    order by table_name");
+
+            LoadFromArg();
+
+            // ถ้ามี table อยู่แล้ว → โหลด column ของมัน
+            if (!string.IsNullOrWhiteSpace(_table))
+                await LoadColumns(db, _table);
+        }
+        catch (Exception ex)
+        {
+            _error = sc.msg.C(ex.Message);
+        }
+        finally
+        {
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+
+    // เปิด attr ปัจจุบัน → form (เลียน ofLoadAttr + default)
+    void LoadFromArg()
+    {
+        var id = (Arg?.Id ?? string.Empty).Trim();
+        var atts = RepProgramService.LoadAttr(id, Arg?.Attr ?? string.Empty);
+
+        string G(string k, string def = "") => atts.TryGetValue(k, out var v) && !string.IsNullOrEmpty(v) ? v : def;
+        bool Gb(string k) => atts.TryGetValue(k, out var v) && sc.value.toBoolean(v);
+
+        _class      = "";
+        _align      = G(A.align);
+        _special    = G(A.special);
+        _control    = G(A.control, "ASPxTextBox");
+        _default    = G(A.default_);
+        _text       = G(A.text, id);
+        _clause     = G(A.clause, "and");
+        _table      = G(A.table);
+        _type       = G(A.type, "string");
+        _column     = G(A.column, id);
+        _operator   = G(A.operator_, "eq");
+        _bleft      = G(A.bleft);
+        _bright     = G(A.bright);
+        _nulltext   = G(A.nulltext);
+        _helptext   = G(A.helptext);
+        _cascade    = G(A.cascade);
+        _combo      = G(A.combo);
+        _sqlwhere   = G(A.sqlwhere, "1") != "0";
+        _sqlreplace = Gb(A.sqlreplace);
+        _noheader   = Gb(A.noheader);
+        _mustvalue  = Gb(A.mustvalue);
+        _nestwhere  = Gb(A.nestwhere);
+        _nestreplace= Gb(A.nestreplace);
+        _readOnly   = Gb(A.readOnly);
+        _comboReplace = Gb(A.comboReplace);
+        _comboWhere = Gb(A.comboWhere);
+        _changeId   = false;
+    }
+
+    // เลือก class template → เทค่าจาก template ลง form (เลียน change_class)
+    void ApplyClass(string name)
+    {
+        _class = name;
+        // _classNames อาจมีรูป "name - text" → ตัดเอาเฉพาะชื่อ
+        var key = name?.Split(" - ")[0].Trim() ?? "";
+        var cls = _classes.FirstOrDefault(c => c.Name == key);
+        if (cls is null) return;
+
+        string T(string k) => cls.Attrs.TryGetValue(k, out var v) ? v : "";
+        if (cls.Attrs.ContainsKey(A.text))      _text     = T(A.text);
+        if (cls.Attrs.ContainsKey(A.table))     _table    = T(A.table);
+        if (cls.Attrs.ContainsKey(A.column))    _column   = T(A.column);
+        if (cls.Attrs.ContainsKey(A.special))   _special  = T(A.special);
+        if (cls.Attrs.ContainsKey(A.combo))     _combo    = T(A.combo);
+        if (cls.Attrs.ContainsKey(A.operator_)) _operator = T(A.operator_);
+        if (cls.Attrs.ContainsKey(A.type))      _type     = MapType(T(A.type));
+        if (cls.Attrs.ContainsKey(A.clause))    _clause   = T(A.clause);
+    }
+
+    // repArguments.xml ใช้ type="integer" — map → integer2 (เลียน popArgument)
+    static string MapType(string t) => t switch
+    {
+        "integer" => "integer2",
+        "decimal" => "decimal2",
+        _ => t
+    };
+
+    async Task OnTableChanged(string table)
+    {
+        _table = table;
+        await using var db = DbFactory.create();
+        await LoadColumns(db, table);
+    }
+
+    async Task LoadColumns(sc.db db, string table)
+    {
+        if (string.IsNullOrWhiteSpace(table))
+        {
+            _columns = new();
+            _colTypes = new(StringComparer.OrdinalIgnoreCase);
+            return;
+        }
+        var cols = await db.getListAsync<ColInfo>(@"
+            select lower(column_name) as Name,
+                   (case when numeric_scale > 0 then 'decimal2'
+                         when data_type in ('character varying','character','text') then 'string'
+                         when data_type in ('numeric','integer','bigint','smallint','double precision','real') then 'integer2'
+                         when data_type in ('date','timestamp without time zone','timestamp with time zone') then 'date'
+                         else null end) as Type
+            from information_schema.columns
+            where table_schema = 'public' and table_name = {0}
+            order by ordinal_position", table);
+        _columns = cols.Select(c => c.Name).ToList();
+        _colTypes = cols.Where(c => !string.IsNullOrWhiteSpace(c.Type))
+                        .ToDictionary(c => c.Name, c => c.Type!, StringComparer.OrdinalIgnoreCase);
+    }
+
+    // เลือก column → set type ตาม data_type (เลียน change_column)
+    void OnColumnChanged(string col)
+    {
+        _column = col;
+        if (!string.IsNullOrWhiteSpace(col) && _colTypes.TryGetValue(col, out var t))
+            _type = t;
+    }
+
+    // ประกอบ dict → FormAttr (ตัด default)
+    string BuildAttr()
+    {
+        var id = (Arg?.Id ?? string.Empty).Trim();
+        var atts = new Dictionary<string, string>();
+        void P(string k, string? v) => atts[k] = v ?? "";
+
+        P(A.text, _text);
+        P(A.clause, _clause);
+        P(A.operator_, _operator);
+        P(A.table, _table);
+        P(A.column, _column);
+        P(A.special, _special);
+        P(A.type, _type);
+        P(A.sqlwhere, _sqlwhere ? "1" : "0");
+        P(A.sqlreplace, _sqlreplace ? "1" : "");
+        P(A.combo, _combo);
+        P(A.default_, _default);
+        P(A.noheader, _noheader ? "1" : "");
+        P(A.control, _control);
+        P(A.bleft, _bleft);
+        P(A.bright, _bright);
+        P(A.mustvalue, _mustvalue ? "1" : "");
+        P(A.cascade, _cascade);
+        P(A.nestwhere, _nestwhere ? "1" : "");
+        P(A.nestreplace, _nestreplace ? "1" : "");
+        P(A.align, _align);
+        P(A.nulltext, _nulltext);
+        P(A.helptext, _helptext);
+        P(A.readOnly, _readOnly ? "1" : "");
+        P(A.comboReplace, _comboReplace ? "1" : "");
+        P(A.comboWhere, _comboWhere ? "1" : "");
+
+        return RepProgramService.FormAttr(id, atts);
+    }
+
+    string PreviewAttr()
+    {
+        try { var s = BuildAttr(); return string.IsNullOrWhiteSpace(s) ? "(ว่าง)" : s; }
+        catch { return "(…)"; }
+    }
+
+    async Task OnConfirmClick()
+    {
+        if (Arg is null) { await SetVisible(false); return; }
+        try
+        {
+            // เปลี่ยน ID ตาม Column (เลียน cbChangeID)
+            if (_changeId && !string.IsNullOrWhiteSpace(_column))
+                Arg.Id = _column;
+
+            Arg.Attr = BuildAttr();
+            await SetVisible(false);
+            await OnApply.InvokeAsync();
+        }
+        catch (Exception ex)
+        {
+            _error = sc.msg.C(ex.Message);
+        }
+    }
+
+    record KV(string Value, string Text);
+    class ColInfo { public string Name { get; set; } = ""; public string? Type { get; set; } }
+}

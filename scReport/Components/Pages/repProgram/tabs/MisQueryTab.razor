@@ -1,0 +1,127 @@
+@using scReport.Services
+
+@* tab: MIS Query (เลียน legacy panHead "MIS" — gvMisArg + gvMisDefaultValue)
+   ส่วนบน = นิยามคอลัมน์ MIS (column_name/column_text/column_type/column_width)
+   ส่วนล่าง = ค่าเริ่มต้น (ตารางคอลัมน์ไดนามิกตามที่นิยามไว้)
+   dumb component: แก้ลง Model (reference ร่วม) ตรง *@
+
+<div class="rp-qsec">
+    <div class="nb-grid-head">
+        <h3 class="nb-h3">นิยามคอลัมน์ MIS</h3>
+        <DxButton Text="+ เพิ่มคอลัมน์" RenderStyle="ButtonRenderStyle.Primary" Click="AddColumn" />
+    </div>
+    @if (Model.MisColumns.Count == 0)
+    {
+        <div class="nb-empty">ยังไม่มีคอลัมน์ MIS (รายงานปกติไม่ต้องกำหนด)</div>
+    }
+    else
+    {
+        <DxGrid Data="Model.MisColumns" PageSize="0" ColumnResizeMode="GridColumnResizeMode.NextColumn">
+            <Columns>
+                <DxGridDataColumn Caption="#" Width="44px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                    <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn Caption="Column Name" Width="200px" AllowSort="false">
+                    <CellDisplayTemplate>
+                        @{ var c = (RepMisColumn)context.DataItem; }
+                        <DxTextBox @bind-Text="c.Name" NullText="column_name" />
+                    </CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn Caption="Caption" Width="220px" AllowSort="false">
+                    <CellDisplayTemplate>
+                        @{ var c = (RepMisColumn)context.DataItem; }
+                        <DxTextBox @bind-Text="c.Text" NullText="ข้อความหัวคอลัมน์" />
+                    </CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn Caption="Type" Width="150px" AllowSort="false">
+                    <CellDisplayTemplate>
+                        @{ var c = (RepMisColumn)context.DataItem; }
+                        <DxComboBox Data="_types" @bind-Value="c.Type"
+                                    ValueFieldName="@nameof(TypeItem.Value)" TextFieldName="@nameof(TypeItem.Text)" />
+                    </CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn Caption="Width" Width="100px" AllowSort="false">
+                    <CellDisplayTemplate>
+                        @{ var c = (RepMisColumn)context.DataItem; }
+                        <DxTextBox @bind-Text="c.Width" NullText="0" />
+                    </CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn Caption="" Width="56px" AllowSort="false">
+                    <CellDisplayTemplate>
+                        @{ var c = (RepMisColumn)context.DataItem; }
+                        <DxButton Text="ลบ" RenderStyle="ButtonRenderStyle.Danger" Click="() => RemoveColumn(c)" />
+                    </CellDisplayTemplate>
+                </DxGridDataColumn>
+            </Columns>
+        </DxGrid>
+    }
+</div>
+
+<div class="rp-qsec">
+    <div class="nb-grid-head">
+        <h3 class="nb-h3">ค่าเริ่มต้น (Default Values)</h3>
+        <DxButton Text="+ เพิ่มแถว" RenderStyle="ButtonRenderStyle.Primary"
+                  Enabled="@(Model.MisColumns.Count > 0)" Click="AddRow" />
+    </div>
+    @if (Model.MisColumns.Count == 0)
+    {
+        <div class="nb-empty">กำหนดคอลัมน์ MIS ด้านบนก่อน จึงจะใส่ค่าเริ่มต้นได้</div>
+    }
+    else if (Model.MisRows.Count == 0)
+    {
+        <div class="nb-empty">ยังไม่มีค่าเริ่มต้น</div>
+    }
+    else
+    {
+        <DxGrid Data="Model.MisRows" PageSize="0" ColumnResizeMode="GridColumnResizeMode.NextColumn">
+            <Columns>
+                <DxGridDataColumn Caption="#" Width="44px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                    <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+                </DxGridDataColumn>
+                @foreach (var col in Model.MisColumns)
+                {
+                    var key = col.Name;
+                    <DxGridDataColumn Caption="@ColCaption(col)" AllowSort="false">
+                        <CellDisplayTemplate>
+                            @{ var r = (RepMisRow)context.DataItem; }
+                            <DxTextBox Text="@r.Get(key)" TextChanged="(string v) => r.Set(key, v)"
+                                       NullText="@(col.Type == "date" ? "วว/ดด/ปปปป (พ.ศ.)" : "")" />
+                        </CellDisplayTemplate>
+                    </DxGridDataColumn>
+                }
+                <DxGridDataColumn Caption="" Width="56px" AllowSort="false">
+                    <CellDisplayTemplate>
+                        @{ var r = (RepMisRow)context.DataItem; }
+                        <DxButton Text="ลบ" RenderStyle="ButtonRenderStyle.Danger" Click="() => RemoveRow(r)" />
+                    </CellDisplayTemplate>
+                </DxGridDataColumn>
+            </Columns>
+        </DxGrid>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public RepProgramModel Model { get; set; } = default!;
+
+    record TypeItem(string Value, string Text);
+
+    // ชนิดคอลัมน์ MIS (ตรง legacy: string/decimal2/integer2/date; ว่าง = string)
+    readonly TypeItem[] _types =
+    {
+        new("", "String"),
+        new("decimal2", "Decimal"),
+        new("integer2", "Integer"),
+        new("date", "Date"),
+    };
+
+    static string ColCaption(RepMisColumn c)
+        => !string.IsNullOrWhiteSpace(c.Text) ? c.Text
+         : !string.IsNullOrWhiteSpace(c.Name) ? c.Name
+         : "(คอลัมน์)";
+
+    void AddColumn() => Model.MisColumns.Add(new RepMisColumn());
+    void RemoveColumn(RepMisColumn c) => Model.MisColumns.Remove(c);
+
+    void AddRow() => Model.MisRows.Add(new RepMisRow());
+    void RemoveRow(RepMisRow r) => Model.MisRows.Remove(r);
+}

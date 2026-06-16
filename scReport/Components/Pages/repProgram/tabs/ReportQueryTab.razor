@@ -1,0 +1,98 @@
+@using scReport.Services
+
+@* tab: Report Query (เลียน legacy panHead "Report Query" tab)
+   SQL หลัก (mmQuery) + Sub Query (gvSubReport) + Combo Query (gvCombos)
+   dumb component: แก้ลง Model (reference ร่วม) ตรง *@
+
+<div class="rp-qsec">
+    <h3 class="nb-h3">SQL หลัก</h3>
+    <DxMemo @bind-Text="Model.Sql" Rows="16" CssClass="rp-sql" NullText="select ..." />
+</div>
+
+<div class="rp-qsec">
+    <div class="nb-grid-head">
+        <h3 class="nb-h3">Sub Query</h3>
+        <DxButton Text="+ เพิ่มแถว" RenderStyle="ButtonRenderStyle.Primary" Click="AddSub" />
+    </div>
+    @if (Model.Subs.Count == 0)
+    {
+        <div class="nb-empty">ยังไม่มี sub query</div>
+    }
+    else
+    {
+        <DxGrid Data="Model.Subs" PageSize="0" ColumnResizeMode="GridColumnResizeMode.NextColumn">
+            <Columns>
+                <DxGridDataColumn Caption="#" Width="44px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                    <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn Caption="ชื่อ Sub" Width="200px" AllowSort="false">
+                    <CellDisplayTemplate>
+                        @{ var r = (RepSubRow)context.DataItem; }
+                        <DxTextBox @bind-Text="r.Name" NullText="sub name" />
+                    </CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn Caption="SQL" AllowSort="false">
+                    <CellDisplayTemplate>
+                        @{ var r = (RepSubRow)context.DataItem; }
+                        <DxMemo @bind-Text="r.Query" Rows="3" NullText="select ..." />
+                    </CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn Caption="" Width="56px" AllowSort="false">
+                    <CellDisplayTemplate>
+                        @{ var r = (RepSubRow)context.DataItem; }
+                        <DxButton Text="ลบ" RenderStyle="ButtonRenderStyle.Danger" Click="() => RemoveSub(r)" />
+                    </CellDisplayTemplate>
+                </DxGridDataColumn>
+            </Columns>
+        </DxGrid>
+    }
+</div>
+
+<div class="rp-qsec">
+    <div class="nb-grid-head">
+        <h3 class="nb-h3">Combo Query</h3>
+        <DxButton Text="+ เพิ่มแถว" RenderStyle="ButtonRenderStyle.Primary" Click="AddCombo" />
+    </div>
+    @if (Model.Combos.Count == 0)
+    {
+        <div class="nb-empty">ยังไม่มี combo query</div>
+    }
+    else
+    {
+        <DxGrid Data="Model.Combos" PageSize="0" ColumnResizeMode="GridColumnResizeMode.NextColumn">
+            <Columns>
+                <DxGridDataColumn Caption="#" Width="44px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                    <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn Caption="ชื่อ Combo" Width="200px" AllowSort="false">
+                    <CellDisplayTemplate>
+                        @{ var r = (RepComboRow)context.DataItem; }
+                        <DxTextBox @bind-Text="r.Name" NullText="combo name" />
+                    </CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn Caption="SQL" AllowSort="false">
+                    <CellDisplayTemplate>
+                        @{ var r = (RepComboRow)context.DataItem; }
+                        <DxMemo @bind-Text="r.Query" Rows="3" NullText="select code, name ..." />
+                    </CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn Caption="" Width="56px" AllowSort="false">
+                    <CellDisplayTemplate>
+                        @{ var r = (RepComboRow)context.DataItem; }
+                        <DxButton Text="ลบ" RenderStyle="ButtonRenderStyle.Danger" Click="() => RemoveCombo(r)" />
+                    </CellDisplayTemplate>
+                </DxGridDataColumn>
+            </Columns>
+        </DxGrid>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public RepProgramModel Model { get; set; } = default!;
+
+    void AddSub() => Model.Subs.Add(new RepSubRow());
+    void RemoveSub(RepSubRow r) => Model.Subs.Remove(r);
+
+    void AddCombo() => Model.Combos.Add(new RepComboRow());
+    void RemoveCombo(RepComboRow r) => Model.Combos.Remove(r);
+}

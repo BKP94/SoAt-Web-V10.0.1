@@ -1,0 +1,19 @@
+@using scReport.Services
+@using scReport.Components.Pages.repProgram.tabs
+
+@* PanTabs (repProgram) — main composer ของแท็บ (เลียน legacy panTabs)
+   มีแค่ DxTabs + DxTabPage ที่เรียก component ของแต่ละแท็บ (ไม่ใส่ logic เอง)
+   แท็บ: "Report Query" (SQL + Sub + Combo) + "MIS Query" (นิยามคอลัมน์ + ค่าเริ่มต้น) *@
+
+<DxTabs>
+    <DxTabPage Text="Report Query">
+        <ReportQueryTab Model="Model" />
+    </DxTabPage>
+    <DxTabPage Text="MIS Query">
+        <MisQueryTab Model="Model" />
+    </DxTabPage>
+</DxTabs>
+
+@code {
+    [Parameter, EditorRequired] public RepProgramModel Model { get; set; } = default!;
+}

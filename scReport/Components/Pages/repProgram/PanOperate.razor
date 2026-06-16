@@ -1,0 +1,12 @@
+@* PanOperate (repProgram) — แถบปุ่ม Operate แนวตั้ง ขวาของหน้า
+   เลียน legacy panOperate ของ repProgram: ปุ่มบันทึก (ofSave)
+   ปุ่ม raise EventCallback กลับให้ Page จัดการ (Page ถือ model + guard C30) *@
+
+<div class="op-item">
+    <button type="button" class="op-btn" title="บันทึกไฟล์รายงาน" @onclick="OnSave">💾</button>
+    <span class="op-btn-label">บันทึก</span>
+</div>
+
+@code {
+    [Parameter] public EventCallback OnSave { get; set; }
+}

@@ -1,0 +1,146 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <receive_year special="year" text="ปี" table="sc_kep_t_monthly_receive_det" type="integer2" readonly="0" comboreplace="0" combowhere="0" />
+    <receive_month special="month" text="เดือน" table="sc_kep_t_monthly_receive_det" type="integer2" combo="monthThLong" readonly="0" comboreplace="0" combowhere="0" />
+    <op_date text="วันที่หนังสือ" type="date" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <as_letter text="เลขที่หนังสือ" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <member_group_no text="หน่วยงาน" table="sc_mem_m_ucf_member_group" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>    select PKA_COM_FUNCTION.fp_get_thaidate( '!op_date_1!' , 'SD  MONTH  YYYY' ) as op_date
+    ,   '!as_letter_1!' as as_letter
+    ,   sc_kep_t_monthly_receive_det.membership_no
+    ,   sc_mem_m_membership_registered.member_group_no
+    ,   pka_com_function.fp_get_member_name(sc_kep_t_monthly_receive_det.membership_no)as member_name
+
+    ,   sc_kep_t_monthly_receive_det.principal_of_loan
+    ,   sc_kep_t_monthly_receive_det.interest
+    ,   sc_kep_t_monthly_receive_det.money_amount
+    ,   sc_kep_t_monthly_receive_det.principal_not
+    ,   sc_kep_t_monthly_receive_det.interest_not
+    ,   sc_kep_t_monthly_receive_det.money_amount_not
+    ,   sc_kep_t_monthly_receive_det.ukpaid_agent_p
+    ,   sc_kep_t_monthly_receive_det.ukpaid_agent_i
+    ,   sc_kep_t_monthly_receive_det.ukpaid_agent_a
+    ,   sc_kep_t_monthly_receive_det.ukpaid_after_p
+    ,   sc_kep_t_monthly_receive_det.ukpaid_after_i
+    ,   sc_kep_t_monthly_receive_det.ukpaid_after_a
+    ,   sc_kep_t_monthly_receive_det.principal_balance_of_loan
+
+    ,   decode(
+    sc_kep_t_monthly_receive.posted_run,'0',sc_kep_t_monthly_receive_det.principal_balance_of_loan,
+    (case (select sc_kep_m_ucf_keeping_item_type.keeping_type_group from sc_kep_m_ucf_keeping_item_type
+    where sc_kep_m_ucf_keeping_item_type.keeping_type_code = sc_kep_t_monthly_receive_det.keeping_type_code)
+    when 'LON' then sc_kep_t_monthly_receive_det.mpost_principal_balance + SC_KEP_T_MONTHLY_RECEIVE_DET.unkeep_principal_of_loan
+    end
+    )) as c_amount
+
+    ,   pka_com_function.fp_get_moneythai( decode(
+    sc_kep_t_monthly_receive.posted_run,'0',sc_kep_t_monthly_receive_det.principal_balance_of_loan,
+    (case (select sc_kep_m_ucf_keeping_item_type.keeping_type_group from sc_kep_m_ucf_keeping_item_type
+    where sc_kep_m_ucf_keeping_item_type.keeping_type_code = sc_kep_t_monthly_receive_det.keeping_type_code)
+    when 'LON' then sc_kep_t_monthly_receive_det.mpost_principal_balance + SC_KEP_T_MONTHLY_RECEIVE_DET.unkeep_principal_of_loan
+    end
+    )) )as c_amount_thai
+
+
+    ,   sc_lon_m_contract.loan_contract_no
+    ,   PKA_COM_FUNCTION.fp_get_thaidate( sc_lon_m_contract.begining_of_contract , 'DD MONTH YYYY' )as begining_of_contract
+    ,   sc_lon_m_contract.loan_approve_amount
+    ,   sc_lon_m_contract.loan_installment_amount
+
+    ,   sc_lon_m_contract_coll.ref_own_no
+    ,   sc_lon_m_contract_coll.collateral_description
+    ,   pka_com_function.fp_get_member_group(sc_lon_m_contract_coll.ref_own_no)as coll_group_no
+    --ที่อยู่ปัจจุบัน
+    ,   (case when sc_lon_m_contract_coll.collateral_type_code in ('01')
+    then pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no, '0' , 6 )
+    else sc_lon_m_contract_coll.address_no end) as address_no
+    ,   (case when sc_lon_m_contract_coll.collateral_type_code in ('01')
+    then pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no, '0' , 8 )
+    else sc_lon_m_contract_coll.moo end) as moo
+    ,   (case when sc_lon_m_contract_coll.collateral_type_code in ('01')
+    then pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no, '0' , 7 )
+    else sc_lon_m_contract_coll.moo_ban end) as mooban
+    ,   (case when sc_lon_m_contract_coll.collateral_type_code in ('01')
+    then pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no, '0' , 10 )
+    else sc_lon_m_contract_coll.soi end) as soi
+    ,   (case when sc_lon_m_contract_coll.collateral_type_code in ('01')
+    then pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no, '0' , 9 )
+    else sc_lon_m_contract_coll.road end) as road
+    ,   (case when sc_lon_m_contract_coll.collateral_type_code in ('01')
+    then pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no, '0' , 11 )
+    else sc_lon_m_contract_coll.tambol end) as tambol
+    ,   (case when sc_lon_m_contract_coll.collateral_type_code in ('01')
+    then pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no, '0' , 12 )
+    else pka_com_function.fp_get_district_name(sc_lon_m_contract_coll.province_code,sc_lon_m_contract_coll.district_code) end) as district
+    ,   (case when sc_lon_m_contract_coll.collateral_type_code in ('01')
+    then pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no, '0' , 13 )
+    else pka_com_function.fp_get_province_name(sc_lon_m_contract_coll.province_code) end) as province
+    ,   (case when sc_lon_m_contract_coll.collateral_type_code in ('01')
+    then pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no, '0' , 14 )
+    else sc_lon_m_contract_coll.postcode end) as postcode
+    ,   (case when sc_lon_m_contract_coll.collateral_type_code in ('01')
+    then pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no, '0' , 15 )
+    else pka_com_function.fp_get_province_name(sc_lon_m_contract_coll.telephone) end) as telephone
+
+    ,   sc_mem_m_ucf_member_group.group_section
+    ,   case when sc_kep_t_monthly_receive_det.keeping_type_code = 'ML01' then 'ฉุกเฉิน' when sc_kep_t_monthly_receive_det.keeping_type_code = 'ML02' then 'สามัญ' else 'พิเศษ' end as keeping_type
+    ,   sc_kep_t_monthly_receive_det.receive_year + 543 as receive_year
+    ,   pka_com_function.fp_get_month_name(sc_kep_t_monthly_receive_det.receive_month)as month_name
+
+    from sc_kep_t_monthly_receive_det
+    ,   sc_lon_m_contract_coll
+    ,   sc_lon_m_contract
+    ,   sc_mem_m_membership_registered
+    ,   sc_mem_m_ucf_member_group
+    ,   sc_kep_t_monthly_receive
+    where 1=1
+    and sc_kep_t_monthly_receive.receive_year = sc_kep_t_monthly_receive_det.receive_year
+    and sc_kep_t_monthly_receive.receive_month = sc_kep_t_monthly_receive_det.receive_month
+    and sc_kep_t_monthly_receive.membership_no = sc_kep_t_monthly_receive_det.membership_no
+    and sc_kep_t_monthly_receive_det.receive_description = sc_lon_m_contract_coll.loan_contract_no
+    and sc_lon_m_contract_coll.loan_contract_no = sc_lon_m_contract.loan_contract_no
+    and sc_mem_m_membership_registered.membership_no = sc_lon_m_contract.membership_no
+    and sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+    and sc_lon_m_contract_coll.status = '0'
+    and sc_lon_m_contract_coll.collateral_type_code in ('01','12','13')
+    --and (sc_kep_t_monthly_receive_det.principal_of_loan &gt; sc_kep_t_monthly_receive_det.principal_not or sc_kep_t_monthly_receive_det.interest &gt; sc_kep_t_monthly_receive_det.interest_not )
+    and sc_kep_t_monthly_receive_det.money_amount &gt; (sc_kep_t_monthly_receive_det.money_amount_not + nvl(sc_kep_t_monthly_receive_det.ukpaid_after_a,0) + nvl(sc_kep_t_monthly_receive_det.ukpaid_agent_a,0))
+    and sc_kep_t_monthly_receive_det.keeping_type_code in ('ML01' , 'ML02' , 'ML03')
+    --and sc_mem_m_membership_registered.membership_no = '018742'
+/*WHERE*/
+    order by sc_mem_m_ucf_member_group.group_section
+    ,   sc_mem_m_membership_registered.member_group_no
+    ,   sc_mem_m_membership_registered.membership_no
+    ,   sc_kep_t_monthly_receive_det.receive_seq
+
+  </sql>
+  <sub>
+    <r_ktm_book_alert_mem_loan_1_nest_coll>
+      <sql>
+        SELECT sc_lon_m_contract_coll.ref_own_no,
+        sc_lon_m_contract_coll.collateral_description,
+        sc_lon_m_contract_coll.loan_contract_no,
+        decode( sc_mem_m_membership_registered.member_status_code , '0'
+        ,pka_com_function.fp_get_thaidate( sc_mem_m_membership_registered.resignation_approve_date , 'DD/MM/YYYY'  )) as resignation_approve_date
+        ,pka_com_function.fp_get_group_name(sc_mem_m_membership_registered.member_group_no) as group_name_coll
+        ,sc_mem_m_membership_registered.member_group_no as group_no_coll
+        ,(select sc_lon_m_contract.begining_of_contract from sc_lon_m_contract where loan_contract_no = sc_lon_m_contract_coll.loan_contract_no ) as begining_of_contract
+        ,(select sum(sc_lon_m_loan_card.principal_balance) from sc_lon_m_loan_card where loan_contract_no = sc_lon_m_contract_coll.loan_contract_no ) as principal_balance
+        ,(select pka_com_function.fp_get_moneythai (sum(sc_lon_m_loan_card.principal_balance)) from sc_lon_m_loan_card where loan_contract_no = sc_lon_m_contract_coll.loan_contract_no ) as thai_principal_balance
+
+        FROM sc_lon_m_contract_coll,
+        sc_mem_m_membership_registered
+        WHERE ( sc_lon_m_contract_coll.ref_own_no = sc_mem_m_membership_registered.membership_no )
+        and   ( ( sc_lon_m_contract_coll.loan_contract_no = {0} )
+        and   ( sc_lon_m_contract_coll.ref_own_no = {1} )
+        AND   ( sc_lon_m_contract_coll.status = '0' )
+        AND   ( sc_lon_m_contract_coll.collateral_type_code = '01' ) )
+        and   sc_mem_m_membership_registered.member_status_code = '3'
+        ORDER BY sc_lon_m_contract_coll.ref_own_no ASC
+      </sql>
+    </r_ktm_book_alert_mem_loan_1_nest_coll>
+  </sub>
+</root>

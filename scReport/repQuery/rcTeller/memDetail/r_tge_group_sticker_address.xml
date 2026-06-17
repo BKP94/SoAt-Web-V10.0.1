@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+  </arg>
+  <combo>
+  </combo>
+  <sql>select  pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as membername
+,       pka_com_function.fp_get_group_name_mem(sc_mem_m_membership_registered.membership_no) as groupname
+,       sc_mem_m_membership_registered.membership_no
+,       sc_mem_m_membership_registered.member_group_no
+,       sc_mem_m_ucf_member_group_addr.tambol as tambol
+
+,       (select district_name 
+        from sc_mem_m_ucf_district 
+        where district_code = sc_mem_m_ucf_member_group_addr.district_code
+        ) as district
+        
+,       decode(sc_mem_m_ucf_member_group_addr.province_code,'','กรุงเทพมหานคร',(select province_name from sc_mem_m_ucf_province where province_code = sc_mem_m_ucf_member_group_addr.province_code)) as province
+,       sc_mem_m_ucf_member_group_addr.postcode
+
+from    sc_mem_m_ucf_member_group_addr
+,       sc_mem_m_membership_registered
+,       sc_rep_memno
+where   sc_mem_m_ucf_member_group_addr.member_group_no = sc_mem_m_membership_registered.member_group_no
+and     sc_rep_memno.membership_no = sc_mem_m_membership_registered.membership_no
+and     sc_rep_memno.rep_type = 'GROUP'
+/*WHERE*/
+order by sc_rep_memno.order_no
+  </sql>
+  <sub />
+</root>

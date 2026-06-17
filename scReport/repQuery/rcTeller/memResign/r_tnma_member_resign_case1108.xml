@@ -1,0 +1,92 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <resignation_approve_date text="วันที่บันทึก" table="sc_mem_m_membership_registered" type="date" operator="bt" nestreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <membership_no align="center" special="memno" text="ทะเบียน" table="sc_mem_m_resign_requestment" readonly="0" comboreplace="0" combowhere="0" />
+    <RESIGN_DOC_NO text="เลขที่คำขอ" table="sc_mem_m_resign_requestment" column="resign_doc_no" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo>
+  </combo>
+  <sql>SELECT sc_mem_m_resign_requestment.MEMBERSHIP_NO
+	,sc_mem_m_resign_requestment.RESIGN_DATE
+	,sc_mem_m_ucf_resign_cause.resign_cause_code
+    ,sc_mem_m_ucf_resign_cause.resign_cause_name
+	,pka_com_function.fp_get_member_name(sc_mem_m_resign_requestment.MEMBERSHIP_NO) as memname
+    ,pka_lon_reqsrv.fp_calc_agetext(sc_mem_m_membership_registered.date_of_birth) as agetext
+	,SC_MEM_M_MEMBERSHIP_REGISTERED.MEMBER_GROUP_NO
+	,SC_MEM_M_UCF_MEMBER_GROUP.MEMBER_GROUP_NAME
+	,sc_mem_m_resign_requestment.REMARK
+	,sc_mem_m_resign_share.SHR_VALUE
+	--,sc_mem_m_resign_requestment.DIFFERENT_SHARELOAN
+    ,sc_mem_m_ucf_member_group.member_group_control
+    ,pka_com_function.fp_get_group_name(sc_mem_m_ucf_member_group.member_group_control) as group_control_name
+    ,sc_mem_m_resign_requestment.RESIGN_DOC_NO
+    ,sc_mem_m_resign_requestment.RESIGN_CODE
+    ,SC_MEM_M_MEMBERSHIP_REGISTERED.RESIGNATION_APPROVE_DATE
+    ,SC_MEM_M_UCF_MEMBER_GROUP.KEEPING_GROUP
+    ,SC_MEM_M_MEMBERSHIP_REGISTERED.mem_type
+    ,SC_MEM_M_MEMBERSHIP_REGISTERED.sex
+   
+
+    ,(select sc_mem_m_member_member_refer.membership_no_ref
+      from sc_mem_m_member_member_refer
+      where SC_MEM_M_MEMBERSHIP_REGISTERED.membership_no = sc_mem_m_member_member_refer.membership_no 
+      and   sc_mem_m_member_member_refer.membership_no_ref like '02%') as membership_no_ref
+      
+
+
+    FROM sc_mem_m_resign_requestment 
+    ,sc_mem_m_ucf_resign_cause
+    ,SC_MEM_M_MEMBERSHIP_REGISTERED
+    ,SC_MEM_M_UCF_PRENAME
+    ,SC_MEM_M_UCF_MEMBER_GROUP
+    ,sc_mem_m_resign_share
+    WHERE (sc_mem_m_resign_requestment.RESIGN_CODE = sc_mem_m_ucf_resign_cause.resign_cause_code)
+    AND (sc_mem_m_resign_requestment.MEMBERSHIP_NO = SC_MEM_M_MEMBERSHIP_REGISTERED.MEMBERSHIP_NO)
+    AND (SC_MEM_M_MEMBERSHIP_REGISTERED.PRENAME_CODE = SC_MEM_M_UCF_PRENAME.PRENAME_CODE)
+    AND (SC_MEM_M_MEMBERSHIP_REGISTERED.MEMBER_GROUP_NO = SC_MEM_M_UCF_MEMBER_GROUP.MEMBER_GROUP_NO)
+    AND (sc_mem_m_resign_requestment.RESIGN_DOC_NO = sc_mem_m_resign_share.RESIGN_DOC_NO)
+    AND (sc_mem_m_resign_requestment.approve_result &lt;&gt; '0')
+and sc_mem_m_resign_requestment.cancel_status &lt;&gt; 1
+and sc_mem_m_ucf_resign_cause.resign_cause_code in ('1108','1109')
+
+/*WHERE*/
+ 
+ order by sc_mem_m_ucf_member_group.member_group_control
+ , sc_mem_m_resign_requestment.MEMBERSHIP_NO  
+ asc
+ </sql>
+  <sub>
+    <r_tnma_member_resign_renew_nest_loncoll>
+      <sql>SELECT sc_lon_m_contract_coll.loan_contract_no
+,sc_lon_m_loan_card.loan_type
+	,sc_lon_m_loan_card.membership_no
+	,sc_lon_m_loan_card.principal_balance
+	,PKA_COM_FUNCTION.fp_get_member_name(sc_lon_m_loan_card.membership_no) AS membername
+FROM sc_lon_m_contract_coll
+	,sc_lon_m_loan_card
+WHERE (sc_lon_m_contract_coll.loan_contract_no = sc_lon_m_loan_card.loan_contract_no)
+	AND (sc_lon_m_contract_coll.ref_own_no ={0})
+	AND (sc_lon_m_contract_coll.STATUS = '0')
+	AND (
+		sc_lon_m_loan_card.principal_balance &gt; 0
+		OR sc_lon_m_loan_card.loan_contract_no IN (
+			SELECT sc_atm_lon_card.loan_contract_no
+			FROM sc_atm_lon_card
+			WHERE sc_atm_lon_card.modify_status &lt;&gt; 'C'
+			)
+		)
+ORDER BY sc_lon_m_loan_card.membership_no ASC
+</sql>
+    </r_tnma_member_resign_renew_nest_loncoll>
+    <r_tnma_member_resign_case1108_nestloan>
+      <sql>select sc_lon_m_loan_card.loan_contract_no
+,sc_lon_m_loan_card.loan_type
+,sc_lon_m_loan_card.principal_balance
+from sc_lon_m_loan_card
+where 1=1
+and sc_lon_m_loan_card.membership_no = {0}
+and sc_lon_m_loan_card.principal_balance &gt; 0</sql>
+    </r_tnma_member_resign_case1108_nestloan>
+  </sub>
+</root>

@@ -1,0 +1,62 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <receipt_effectdate text="วันที่คืน" table="sc_kep_t_monthly_receive" type="date" column="receipt_effectdate" operator="bt" readonly="0" />
+    <membership_no special="memno" text="ทะเบียนผู้กู้" table="sc_mem_m_membership_registered" readonly="0" />
+    <as_name default="นางชุติมา  พุ่มบุบผา" text="ผู้ช่วยฯ" combo="sc_cnt_m_committee_list3" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    SELECT sc_mem_m_membership_registered.membership_no,
+    pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as member_name,
+    sc_kep_t_monthly_receive.member_group_no,
+    sc_kep_t_monthly_receive.receipt_date ,
+    ( select coop_name from sc_cnt_m_coop) as coop_name ,
+    pka_com_function.fp_get_group_name(sc_kep_t_monthly_receive.member_group_no) as member_group_name,
+    sc_mem_m_share_mem.share_amount,
+    pka_com_function.fp_get_month_name(sc_rep_kep_return_month.last_month,'LT') as last_month_thai,
+    sc_rep_kep_return_month.last_year + 543 as last_year_thai,
+    pka_com_function.fp_get_month_name(sc_kep_t_monthly_receive.receive_month,'LT') as receive_month_thai,
+    sc_kep_t_monthly_receive.receive_year + 543 as receive_year_thai,
+    sc_rep_kep_return_month.count_month,
+    ( select sc_kep_t_monthly_receive_det.unkeep_money_amount
+    from   sc_kep_t_monthly_receive_det
+    where  sc_kep_t_monthly_receive_det.keeping_type_code ='MS00'
+    and    sc_kep_t_monthly_receive_det.receive_year   =  sc_kep_t_monthly_receive.receive_year
+    and    sc_kep_t_monthly_receive_det.receive_month  =  sc_kep_t_monthly_receive.receive_month
+    and    sc_kep_t_monthly_receive_det.membership_no  =  sc_kep_t_monthly_receive.membership_no
+    and    sc_kep_t_monthly_receive_det.seq_no  =  sc_kep_t_monthly_receive.seq_no
+    ) as unkeep_money_amount,
+    pka_com_function.fp_get_thaidate(sc_rep_kep_return_month.book_date , 'SD MONTH YYYY') as book_date_tdate ,
+    '!as_name_1!' as ass_name
+
+    FROM sc_kep_t_monthly_receive ,
+    sc_mem_m_membership_registered ,
+    sc_mem_m_ucf_member_group,
+    sc_rep_kep_return_month,
+    sc_mem_m_share_mem
+
+    WHERE sc_mem_m_membership_registered.membership_no = sc_kep_t_monthly_receive.membership_no
+    AND	  sc_mem_m_ucf_member_group.member_group_no = sc_kep_t_monthly_receive.member_group_no
+    AND   sc_mem_m_membership_registered.membership_no = sc_mem_m_share_mem.membership_no
+    AND	  sc_rep_kep_return_month.membership_no	=	sc_kep_t_monthly_receive.membership_no
+    AND	  sc_kep_t_monthly_receive.receipt_status = '2'
+    AND   sc_mem_m_membership_registered.member_status_code = '0'
+    AND	  sc_rep_kep_return_month.count_month	= 1
+    AND   sc_rep_kep_return_month.rep_type = 'BOK'
+
+    --เงื่อนไขเอาเฉพาะที่ ไม่มีเรียกเก็บหนี้
+    AND   NOT EXISTS ( select sc_kep_t_monthly_receive_det.membership_no
+    from sc_kep_t_monthly_receive_det
+    where sc_kep_t_monthly_receive_det.receive_year  = sc_kep_t_monthly_receive.receive_year
+    and   sc_kep_t_monthly_receive_det.receive_month = sc_kep_t_monthly_receive.receive_month
+    and   sc_kep_t_monthly_receive_det.membership_no = sc_kep_t_monthly_receive.membership_no
+    and   sc_kep_t_monthly_receive_det.seq_no = sc_kep_t_monthly_receive.seq_no
+    and   sc_kep_t_monthly_receive_det.keeping_type_code in ('ML01' , 'ML02' , 'ML03')
+    )
+    /*WHERE*/
+    order by sc_kep_t_monthly_receive.member_group_no ,
+    sc_mem_m_membership_registered.membership_no
+  </sql>
+  <sub />
+</root>

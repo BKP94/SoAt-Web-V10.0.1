@@ -1,0 +1,145 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <loan_requestment_no align="center" text="เลขที่คำขอ" table="vr_tel_lon_hang" readonly="0" />
+  </arg>
+  <combo />
+  <sql>SELECT vr_tel_lon_hang.loan_requestment_no 
+    ,pka_com_function.fp_get_member_name(vr_tel_lon_hang.membership_no) as memname
+    ,vr_tel_lon_hang.membership_no
+    ,substr(pka_lon_reqsrv.fp_calc_agetext_m_live(vr_tel_lon_hang.membership_no),1,30) as age_life_text
+    ,substr(pka_lon_reqsrv.fp_calc_agetext(pka_lon_reqsrv.fp_calc_install_m_age(vr_tel_lon_hang.membership_no)),1,30) as age_mem_text
+    ,vr_tel_lon_hang.salary_amount --เงินเดือน
+    ,(vr_tel_lon_hang.salary_amount*12)/100 as salary_12_per --12%เงินเดือน
+    ,vr_tel_lon_hang.total_share_value-- หุ้น
+    ,vr_tel_lon_hang.insure_amount --เงินฝาก66
+    ,vr_tel_lon_hang.total_crem_balance --หนี้สามัญ(ฌ)
+    ,vr_tel_lon_hang.retire_provident_fund --กองทุนสำรองเลี้ยงชีพ ณ ปัจจุบัน
+    ,vr_tel_lon_hang.retire_paid_crem --หนี้สามัญ(ฌ)
+        
+    --แบบไม่แขวนหนี้    
+    ,vr_tel_lon_hang.mem_request_amount --ขอกู้
+    ,vr_tel_lon_hang.retire_install --จำนวนงวด
+    ,vr_tel_lon_hang.retire_period --งวดละ
+    ,vr_tel_lon_hang.saman_clear_target_66 -- หักหนี้สามัญเดิม
+    ,vr_tel_lon_hang.saman_clear_target --หักหนี้สามัญทั้งหมด
+    ,vr_tel_lon_hang.dep_amount--เงินฝาก
+    ,vr_tel_lon_hang.realamount --รับสุทธิ
+    ,vr_tel_lon_hang.balance_salary - (vr_tel_lon_hang.retire_period - vr_tel_lon_hang.period_payment_amount) as balance_sal_no_hang --หน้าซองคงเหลือ(ไม่แขวนหนี้สามัญ)
+    
+    --แบบแขวนหนี้เงินกู้สามัญ
+     ,vr_tel_lon_hang.mem_request_amount --ขอกู้
+     ,loan_installment_amount--งวด
+     ,period_payment_amount --งวดละ
+     ,(mem_request_amount - retire_paid) as work_amount--ส่งตามอายุงาน(จำนวนเงิน)
+     ,(loan_installment_amount - retire_install) as install_hang-- แขวนหนี้(งวด)
+     ,retire_paid --แขวนหนี้(จำนวนเงิน)
+     ,vr_tel_lon_hang.balance_salary --หน้างซองคงเหลือ(แบบแขวนกู้สามัญ)
+     
+     --แขวนหนี้
+    
+    , (mem_request_amount + (select nvl(sum(principal_of_loan),0) 
+                            from sc_lon_m_loan_history,sc_lon_m_rule
+                            where sc_lon_m_loan_history.loan_requestment_no = vr_tel_lon_hang.loan_requestment_no
+                            and sc_lon_m_rule.loan_type = sc_lon_m_loan_history.loan_type
+                            and (sc_lon_m_loan_history.clear_target = 0))) as loan_burden --ภาระเงินกู้ 
+                                                                          
+     ,(SELECT nvl(sum(sc_lon_m_loan_card.principal_balance),0)  
+       from sc_lon_m_contract_coll,   
+       sc_lon_m_contract,   
+       sc_lon_m_loan_card,
+       sc_lon_m_rule,
+       sc_mem_m_membership_registered
+       where sc_lon_m_contract_coll.loan_contract_no = sc_lon_m_contract.loan_contract_no
+       and sc_lon_m_contract_coll.loan_contract_no = sc_lon_m_loan_card.loan_contract_no
+       and sc_lon_m_contract.loan_type = sc_lon_m_rule.loan_type
+       and sc_lon_m_contract.membership_no = sc_mem_m_membership_registered.membership_no
+       and sc_lon_m_contract_coll.ref_own_no = vr_tel_lon_hang.membership_no
+       and sc_lon_m_contract_coll.collateral_type_code = '01'
+       and sc_lon_m_rule.loan_type not like '3%'
+       and sc_lon_m_loan_card.principal_balance &gt; 0
+       ) as coll_amount --ภาระค้ำประกัน
+     
+     ,(SELECT nvl(sum(sc_lon_m_loan_card.principal_balance),0)  
+       from sc_lon_m_contract_coll,   
+       sc_lon_m_contract,   
+       sc_lon_m_loan_card,
+       sc_lon_m_rule,
+       sc_mem_m_membership_registered
+       where sc_lon_m_contract_coll.loan_contract_no = sc_lon_m_contract.loan_contract_no
+       and sc_lon_m_contract_coll.loan_contract_no = sc_lon_m_loan_card.loan_contract_no
+       and sc_lon_m_contract.loan_type = sc_lon_m_rule.loan_type
+       and sc_lon_m_contract.membership_no = sc_mem_m_membership_registered.membership_no
+       and sc_lon_m_contract_coll.ref_own_no = vr_tel_lon_hang.membership_no
+       and sc_lon_m_contract_coll.collateral_type_code = '01'
+       and sc_lon_m_rule.loan_type like '3%'
+       and sc_lon_m_loan_card.principal_balance &gt; 0
+       ) as coll_amount_char --ภาระค้ำประกันฌาปนกิจ
+       ,vr_tel_lon_hang.provident_fund--กองทุนสำรองเลี้ยงชีพ
+       ,nvl(vr_tel_lon_hang.total_special_balance,0) as total_special_balance--หนี้พิเศษแขวน
+       
+     ,sc_lon_m_ucf_loan_obj.loan_objective_code
+     ,sc_lon_m_ucf_loan_obj.loan_type
+     ,sc_lon_m_ucf_loan_obj.loan_objective_description
+     ,vr_tel_lon_hang.remark
+     ,vr_tel_lon_hang.own_send_provident_rate*100 as own_send_provident_rate
+
+FROM vr_tel_lon_hang
+,sc_lon_m_ucf_loan_obj
+where vr_tel_lon_hang.loan_objective_code = sc_lon_m_ucf_loan_obj.loan_objective_code
+and vr_tel_lon_hang.loan_type = sc_lon_m_ucf_loan_obj.loan_type
+--and vr_tel_lon_hang.membership_no = '11901'
+
+/*WHERE*/</sql>
+  <sub>
+    <r_mwa_loan_no_hang_nest_loan>
+      <sql>select
+    sc_lon_m_loan_card.loan_contract_no 
+    ,pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract ,'DD/MM/YYYY') as begining_of_contract_tdate
+    ,sc_lon_m_contract.loan_approve_amount
+    ,sc_lon_m_contract.loan_installment_amount
+    ,sc_lon_m_contract.period_payment_amount
+    ,pka_com_function.fp_get_thaidate(sc_lon_m_loan_card.last_calcint_date ,'DD/MM/YYYY') as last_calcint_tdate
+    ,sc_lon_m_loan_card.last_period
+    ,sc_lon_m_loan_card.principal_balance
+    
+from sc_lon_m_contract
+,sc_lon_m_loan_card
+
+where sc_lon_m_loan_card.loan_contract_no = sc_lon_m_contract.loan_contract_no
+and sc_lon_m_loan_card.membership_no = {0}
+and sc_lon_m_loan_card.principal_balance &gt;0
+
+order by sc_lon_m_contract.period_payment_amount desc</sql>
+    </r_mwa_loan_no_hang_nest_loan>
+    <r_mwa_loan_no_hang_nest_coll>
+      <sql>select sc_lon_m_loan_card.loan_contract_no,
+    sc_lon_m_contract.loan_type,
+    sc_mem_m_membership_registered.membership_no,
+    (select prename from sc_mem_m_ucf_prename where prename_code = sc_mem_m_membership_registered.prename_code)
+    ||''||sc_mem_m_membership_registered.member_name||'  '||sc_mem_m_membership_registered.member_surname as member_name, 
+    sc_lon_m_loan_card.principal_balance
+    ,sc_lon_m_contract_coll.collateral_amount
+    ,sc_lon_m_contract_coll.ref_own_no
+    
+from sc_lon_m_contract_coll,   
+    sc_lon_m_contract,   
+    sc_lon_m_loan_card,
+    sc_lon_m_rule,
+    sc_mem_m_membership_registered
+
+where sc_lon_m_contract_coll.loan_contract_no = sc_lon_m_contract.loan_contract_no
+and sc_lon_m_contract_coll.loan_contract_no = sc_lon_m_loan_card.loan_contract_no
+and sc_lon_m_contract.loan_type = sc_lon_m_rule.loan_type
+and sc_lon_m_contract.membership_no = sc_mem_m_membership_registered.membership_no
+and sc_lon_m_contract_coll.collateral_type_code = '01'
+and sc_lon_m_loan_card.principal_balance &gt; 0
+
+and sc_lon_m_contract_coll.ref_own_no = (select membership_no 
+                                                                             from sc_lon_m_loan_request
+                                                                             where sc_lon_m_loan_request.loan_requestment_no = {0})
+
+order by sc_lon_m_loan_card.loan_contract_no</sql>
+    </r_mwa_loan_no_hang_nest_coll>
+  </sub>
+</root>

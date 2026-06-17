@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <approve_date text="วันที่อนุมัติ" table="sc_mem_m_membership_registered" type="date" operator="bt" readonly="0" />
+    <as_board_group text="ประชุมชุดที่" column="as_board_group" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <as_timeofmeeting text="ประชุมครั้งที่" column="as_timeofmeeting" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <as_dateofmeeting text="วันที่ลงมติ" column="as_dateofmeeting" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <as_month text="เรียกเก็บงวดแรกสิ้นเดือน" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <as_bookno text="เลขที่หนังสือ" column="as_bookno" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_mem_m_membership_registered.membership_no,
+    sc_mem_m_ucf_prename.prename,
+    sc_mem_m_membership_registered.member_name,
+    sc_mem_m_membership_registered.member_surname,
+    sc_mem_m_membership_registered.approve_date,
+    sc_mem_m_ucf_member_group.member_group_name,
+    sc_cnt_m_coop.coop_name,
+    sc_cnt_m_coop.manager_name,
+    sc_cnt_m_coop.address,
+    sc_cnt_m_coop.tumbol_name,
+    sc_cnt_m_coop.telephone_no,
+    sc_cnt_m_coop.postcode,
+    sc_cnt_m_coop.fax_no,
+    sc_mem_m_ucf_province.province_name,
+    sc_mem_m_ucf_district.district_name,
+    pka_com_function.fp_get_thaidate(sysdate , 'SD MONTH YYYY') as sysdate_tdate,
+    '!as_bookno!' as  as_bookno,
+    '!as_board_group!' as  as_board_group,
+    '!as_timeofmeeting!' as  as_timeofmeeting,
+    '!as_dateofmeeting!' as  as_dateofmeeting,
+    '!as_guarantor!' as  as_guarantor,
+    '!as_month!' as as_month
+
+    FROM sc_mem_m_membership_registered,
+    sc_mem_m_ucf_prename,
+    sc_mem_m_ucf_member_group,
+    sc_cnt_m_coop,
+    sc_mem_m_ucf_province,
+    sc_mem_m_ucf_district
+
+    WHERE ( sc_mem_m_membership_registered.prename_code = sc_mem_m_ucf_prename.prename_code ) AND
+    ( sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no ) AND
+    sc_mem_m_ucf_province.province_code = sc_cnt_m_coop.province_code AND
+    sc_mem_m_ucf_district.district_code = sc_cnt_m_coop.district_code AND
+    sc_mem_m_ucf_district.province_code = sc_mem_m_ucf_province.province_code
+
+    /*WHERE*/
+
+  </sql>
+  <sub />
+</root>

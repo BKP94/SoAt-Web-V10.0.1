@@ -1,0 +1,34 @@
+﻿using System;
+using System.Drawing;
+using System.Collections;
+using System.ComponentModel;
+using DevExpress.XtraReports.UI;
+
+namespace scReport.Reports.rcTeller.loanCon
+{
+    public partial class r_mwa_req_form_loan_norm_insure : DevExpress.XtraReports.UI.XtraReport
+    {
+        public r_mwa_req_form_loan_norm_insure()
+        {
+            InitializeComponent();
+        }
+
+        private void loan_emer_BeforePrint(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            sc.report.setResource(sender, "scReport.Reports.rcTeller.loanCon.r_mwa_req_form_loan_norm_insure_loan_emer");
+            sc.report.ofBeforePrint(this, (XRSubreport)sender, this.GetCurrentColumnValue("LOAN_REQUESTMENT_NO"));
+        }
+
+        private void loan_norm_BeforePrint(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            sc.report.setResource(sender, "scReport.Reports.rcTeller.loanCon.r_mwa_req_form_loan_norm_insure_loan_norm");
+            sc.report.ofBeforePrint(this, (XRSubreport)sender, this.GetCurrentColumnValue("LOAN_REQUESTMENT_NO"));
+        }
+
+        private void loan_spec_BeforePrint(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            sc.report.setResource(sender, "scReport.Reports.rcTeller.loanCon.r_mwa_req_form_loan_norm_insure_loan_spec");
+            sc.report.ofBeforePrint(this, (XRSubreport)sender, this.GetCurrentColumnValue("LOAN_REQUESTMENT_NO"));
+        }
+    }
+}

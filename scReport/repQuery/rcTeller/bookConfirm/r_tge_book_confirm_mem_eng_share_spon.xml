@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="T080" rep_text="หนังสือยืนยันยอด">
+  <arg>
+    <data_date align="center" text="หุ้น ณ วันที่" type="date" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <membership_no align="center" special="memno" text="ทะเบียน" table="sc_mem_m_membership_registered" readonly="0" />
+    <book_no align="center" default="/2023" text="Ref." sqlwhere="0" sqlreplace="1" readonly="0" />
+    <guarantor_of column="guarantor_of" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select  'This is to certify that '||trim(pka_com_function.fp_get_member_name_eng(sc_mem_m_membership_registered.membership_no))||' the guarantor/sponsor of' as paragraph_1
+,       ' '||'!guarantor_of!'||' is a member of our customers, has an amount of' as paragraph_2
+,       ' ' || REPLACE(to_snumber(pka_com_function.fp_shr_get_balance_atdate( sc_mem_m_membership_registered.membership_no , '!data_date!' )),
+        RIGHT(to_snumber(pka_com_function.fp_shr_get_balance_atdate( sc_mem_m_membership_registered.membership_no , '!data_date!' )),3),null)||' in baht currency as a stockholder of' as paragraph_3
+,       ' Teachers’ Saving Co-operative of the General Education Department Ltd. This amount of shares' as paragraph_4
+,       ' stated above can be converted and withdrawn into cash immediately upon request from the member.' as paragraph_5
+,       sc_mem_m_membership_registered.membership_no
+,       pka_com_function.fp_shr_get_balance_atdate( sc_mem_m_membership_registered.membership_no , '!data_date!' )as share_mem
+,       pka_com_function.fp_get_thaidate('!data_date!','SD')as day
+,       pka_com_function.fp_get_thaidate('!data_date!','MM')as month
+,       pka_com_function.fp_get_month_name(pka_com_function.fp_get_thaidate('!data_date!','MM'),'LE')as month_eng  
+,       pka_com_function.fp_get_thaidate('!data_date!','YYYY')-543 as year
+,       '!data_date!'as data_date
+,       '!book_no!'as book_no
+,       '!guarantor_of!'as guarantor_of
+,       (select trim(pka_com_function.fp_get_member_name_eng(membership_no))
+         from   sc_hr_off_member
+         where  sc_hr_off_member.official_position = '008'
+         )as manager_name_eng
+,       sc_cnt_m_coop.coop_name
+
+
+    from    sc_mem_m_membership_registered
+    ,       sc_cnt_m_coop
+    where   1=1
+    and     pka_com_function.fp_shr_get_balance_atdate( sc_mem_m_membership_registered.membership_no , '!data_date!' ) &gt; 0
+    --and     sc_mem_m_membership_registered.membership_no = '039660'
+    /*WHERE*/
+  </sql>
+  <sub>
+  </sub>
+</root>

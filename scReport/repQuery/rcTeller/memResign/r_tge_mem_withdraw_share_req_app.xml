@@ -1,0 +1,72 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="T025" rep_text="รายงานการถอนหุ้น โอนหุ้น แยกประเภท">
+  <arg>
+    <approve_date text="วันที่อนุมัติ" table="sc_mem_m_share_withdraw_head" type="date" sqlreplace="1" readonly="0" />
+    <committee_date text="วันที่คณะกรรมการอนุมัติ" type="date" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo>
+  </combo>
+  <sql>    SELECT	substr(pka_com_function.fp_get_member_name(sc_mem_m_share_withdraw_head.membership_no),1,100) as member_name,
+    sc_mem_m_share_withdraw_head.withdraw_doc_no,
+    sc_mem_m_share_withdraw_head.membership_no,
+    sc_mem_m_share_withdraw_head.withdraw_date ,
+    sc_mem_m_share_withdraw_head.approve_date ,
+    sc_mem_m_share_withdraw_head.trans_type ,
+    sc_mem_m_share_withdraw_det.membership_recieve ,
+    sc_mem_m_share_withdraw_det.share_withdraw ,
+    pka_com_function.fp_get_member_group ( sc_mem_m_share_withdraw_head.membership_no ) as group_no ,
+    pka_com_function.fp_get_group_name ( pka_com_function.fp_get_member_group ( sc_mem_m_share_withdraw_head.membership_no ) ) as group_name ,
+    '!withdraw_date_1!' as from_date ,
+    '!withdraw_date_2!' as to_date ,
+    '!committee_date!' as committee_date ,    
+
+    (select nvl(share_stock,0)
+    from sc_mem_m_share_holding_detail
+    where membership_no  = sc_mem_m_share_withdraw_head.membership_no
+    and  seq_no = ( select max( seq_no )
+    from sc_mem_m_share_holding_detail
+    where membership_no  = sc_mem_m_share_withdraw_head.membership_no
+    and operate_date &lt;  ( select  beginning_of_account  from sc_acc_m_account_constant ) 
+                  )
+    ) as share_stock ,
+    
+    (select nvl(share_stock,0) /2
+    from sc_mem_m_share_holding_detail
+    where membership_no  = sc_mem_m_share_withdraw_head.membership_no
+    and  seq_no = ( select max( seq_no ) 
+                    from sc_mem_m_share_holding_detail
+                    where membership_no  = sc_mem_m_share_withdraw_head.membership_no
+                    and operate_date &lt;  ( select  beginning_of_account  from sc_acc_m_account_constant ) 
+                  )
+    ) as half_share_stock ,
+    
+    REPLACE (( select to_snumber(nvl(share_stock,0) /2)
+    from sc_mem_m_share_holding_detail
+    where membership_no  = sc_mem_m_share_withdraw_head.membership_no
+    and  seq_no = ( select max( seq_no ) 
+                    from sc_mem_m_share_holding_detail
+                    where membership_no  = sc_mem_m_share_withdraw_head.membership_no
+                    and operate_date &lt;  ( select  beginning_of_account  from sc_acc_m_account_constant ) 
+                  )
+    ),RIGHT(( select to_snumber(nvl(share_stock,0) /2)
+    from sc_mem_m_share_holding_detail
+    where membership_no  = sc_mem_m_share_withdraw_head.membership_no
+    and  seq_no = ( select max( seq_no ) 
+                    from sc_mem_m_share_holding_detail
+                    where membership_no  = sc_mem_m_share_withdraw_head.membership_no
+                    and operate_date &lt;  ( select  beginning_of_account  from sc_acc_m_account_constant )
+    )
+    ),5),'00') as half_share_stock_round
+
+    FROM 		sc_mem_m_share_withdraw_head ,
+    sc_mem_m_share_withdraw_det
+    WHERE 	( sc_mem_m_share_withdraw_det.withdraw_doc_no = sc_mem_m_share_withdraw_head.withdraw_doc_no )
+    and   ( sc_mem_m_share_withdraw_head.trans_type = 'REQ' )
+    and		( sc_mem_m_share_withdraw_head.withdraw_status = '0' )
+    and		( sc_mem_m_share_withdraw_head.approve_status = '1' )
+    /*WHERE*/
+    --and   sc_mem_m_share_withdraw_head.membership_no = '049898'
+    ORDER BY sc_mem_m_share_withdraw_head.withdraw_doc_no
+  </sql>
+  <sub />
+</root>

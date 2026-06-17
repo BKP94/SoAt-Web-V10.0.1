@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<root>
+  <arg>
+    
+  </arg>
+  <sql>
+    SELECT sc_mem_m_membership_registered.membership_no,
+    PKA_COM_FUNCTION.fp_get_member_name( sc_mem_m_membership_registered.membership_no ) as membername,
+    sc_mem_m_ucf_member_group.member_group_no,
+    sc_mem_m_ucf_member_group.member_group_name,
+    sc_mem_m_ucf_member_group.member_group_control,
+    sc_mem_m_ucf_member_group.control_id,
+    sc_mem_m_membership_sequester.seq_no,
+    sc_mem_m_membership_sequester.sqter_status,
+    sc_mem_m_membership_sequester.sqter_share,
+    sc_mem_m_membership_sequester.sqter_div,
+    sc_mem_m_membership_sequester.sqter_aver,
+    sc_mem_m_membership_sequester.sqter_other,
+    sc_mem_m_membership_sequester.begin_date,
+    sc_mem_m_membership_sequester.end_date,
+    sc_mem_m_membership_sequester.department,
+    sc_mem_m_membership_sequester.number_of_case,
+    sc_mem_m_membership_sequester.plaintiff,
+    sc_mem_m_membership_sequester.defendant,
+    sc_mem_m_membership_sequester.condition,
+    sc_mem_m_membership_sequester.remark,
+    sc_mem_m_membership_sequester.address_desc,
+    sc_mem_m_membership_sequester.prename_group,
+    sc_mem_m_membership_sequester.court
+    ,sc_mem_m_membership_sequester.money_type_id
+    ,sc_com_m_ucf_money_type.money_type_name
+    ,sc_mem_m_membership_sequester.deed_status
+    FROM sc_mem_m_membership_registered,
+    sc_mem_m_ucf_member_group,
+    sc_mem_m_membership_sequester,
+    sc_com_m_ucf_money_type
+    WHERE ( sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no )
+    and   ( sc_mem_m_membership_registered.membership_no = sc_mem_m_membership_sequester.membership_no )
+    and   ( sc_com_m_ucf_money_type.money_type_id = sc_mem_m_membership_sequester.money_type_id )
+    and   ( sc_mem_m_membership_sequester.sqter_status = '0' )
+    /*WHERE*/
+    order by sc_mem_m_membership_registered.membership_no
+    ,sc_mem_m_membership_sequester.begin_date
+  </sql>
+</root>

@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+  </arg>
+  <combo>
+  </combo>
+  <sql>select  pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as membername
+,       sc_mem_m_membership_registered.membership_no
+,       pka_com_function.fp_get_member_address_letter( sc_mem_m_membership_registered.membership_no , 0 , 1 ) as line_1
+,       pka_com_function.fp_get_member_address_letter( sc_mem_m_membership_registered.membership_no , 0 , 2 ) as line_2
+,       pka_com_function.fp_get_member_address_letter( sc_mem_m_membership_registered.membership_no , 0 , 3 )||' '||pka_com_function.fp_get_member_address_letter( sc_mem_m_membership_registered.membership_no , 0 , 4 ) as line_3
+from    sc_mem_m_membership_registered
+,       sc_rep_memno
+where   sc_rep_memno.membership_no = sc_mem_m_membership_registered.membership_no
+and     sc_rep_memno.rep_type = 'PRESENT'
+/*WHERE*/
+order by sc_rep_memno.order_no</sql>
+  <sub />
+</root>

@@ -1,0 +1,89 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <confirm_date align="center" text="วันที่" table="sc_cls_confirm_data" type="date" column="confirm_date" readonly="0" />
+  </arg>
+  <combo />
+  <sql>SELECT sc_lon_m_rule.loan_type,   
+         sc_lon_m_rule.loan_type_description,   
+         sum(sc_cls_confirm_data.data_balance) as principal_balance,   
+         count(sc_cls_confirm_data.data_refno) as count_contract,   
+         sc_lon_m_rule.loan_group_code,   
+         sc_lon_m_rule.loan_type_group
+         ,pka_com_function.fp_get_thaidate(sysdate , 'DD/MM/YYYY') as sysdate_tdate
+         ,( case  sc_lon_m_rule.loan_group_code when '01' then 'ฉุกเฉิน' when '02' then 'สามัญ' else 'พิเศษ' end ) as group_code_des
+         
+  ,( select 	count(sc_mem_m_share_mem.membership_no)  
+    from  		sc_mem_m_share_mem , sc_mem_m_membership_registered
+    where	(sc_mem_m_share_mem.membership_no = sc_mem_m_membership_registered.membership_no) 
+    and   (sc_mem_m_share_mem.share_stock &lt;&gt; 0) 
+    and   (sc_mem_m_share_mem.membership_no &lt; '70000') 
+    and   (member_status_code  = '0')
+    ) as count_mem_share_normal
+         
+  ,( select 	count(sc_mem_m_share_mem.membership_no)  
+    from  		sc_mem_m_share_mem , sc_mem_m_membership_registered
+    where	(sc_mem_m_share_mem.membership_no = sc_mem_m_membership_registered.membership_no) 
+    and   (sc_mem_m_share_mem.share_stock &lt;&gt; 0) 
+    and   (member_status_code  = '0') 
+    and   (mem_type  ='02')
+    ) as count_mem_share_spec
+    
+  ,( select 	count(sc_mem_m_share_mem.membership_no)   
+    from  		sc_mem_m_share_mem , sc_mem_m_membership_registered
+    where	(sc_mem_m_share_mem.membership_no = sc_mem_m_membership_registered.membership_no) 
+    and   (sc_mem_m_share_mem.share_stock &lt;&gt; 0) 
+    and   (member_status_code  = '0')
+    ) as count_mem_share
+    
+  ,( select 	count(sc_mem_m_membership_registered.membership_no)   
+    from  		sc_mem_m_membership_registered
+    where	(sc_mem_m_membership_registered.membership_no &gt;= '90000') 
+    and   (member_status_code  = '0')
+    ) as count_mem_share_coll
+    
+  ,( select 	sum(sc_mem_m_share_mem.share_stock)  
+     from 	sc_mem_m_share_mem,   
+         		sc_mem_m_membership_registered  
+     where ( sc_mem_m_membership_registered.membership_no = sc_mem_m_share_mem.membership_no ) 
+     and   (member_status_code  = '0')
+     and   (sc_mem_m_share_mem.membership_no &lt; '70000') 
+    ) as sumshare_mem_code_0_normal
+    
+   ,( select 	sum(sc_mem_m_share_mem.share_stock)  
+      from 	sc_mem_m_share_mem,   
+         		sc_mem_m_membership_registered  
+     where ( sc_mem_m_membership_registered.membership_no = sc_mem_m_share_mem.membership_no ) 
+     and   (member_status_code  = '0')  
+     and   (mem_type ='02' )
+     ) as sumshare_mem_code_0_spec
+     
+  ,( select 	sum(sc_mem_m_share_mem.share_stock)  
+    from 	sc_mem_m_share_mem,   	
+         		sc_mem_m_membership_registered  
+    Where ( sc_mem_m_membership_registered.membership_no = sc_mem_m_share_mem.membership_no ) 
+    and   (sc_mem_m_membership_registered.member_status_code  = '0') 
+    and   (sc_mem_m_membership_registered.member_group_no  not in ('a8000', 'a8100')) 
+    ) as sumshare_mem_code_0
+     
+FROM    sc_cls_confirm_data,
+        sc_lon_m_rule,   
+        sc_mem_m_membership_registered
+              
+WHERE ( sc_lon_m_rule.loan_type = sc_cls_confirm_data.data_type )
+and   ( sc_cls_confirm_data.membership_no = sc_mem_m_membership_registered.membership_no ) 
+and   ( sc_cls_confirm_data.data_group = 'LON' )
+
+/*WHERE*/
+--and   sc_cls_confirm_data.confirm_date = to_date('2024-8-31 0:0:0','yyyy-mm-dd hh24:mi:ss')
+
+GROUP BY sc_lon_m_rule.loan_group_code,   
+         sc_lon_m_rule.loan_type,   
+         sc_lon_m_rule.loan_type_description,   
+         sc_lon_m_rule.loan_type_group  
+         
+ORDER BY sc_lon_m_rule.loan_group_code ASC,   
+         sc_lon_m_rule.loan_type_group ASC,   
+         sc_lon_m_rule.loan_type ASC  </sql>
+  <sub />
+</root>

@@ -1,0 +1,28 @@
+﻿using System;
+using System.Drawing;
+using System.Collections;
+using System.ComponentModel;
+using DevExpress.XtraReports.UI;
+
+namespace scReport.Reports.rcTeller.loanRequest
+{
+    public partial class r_ktm_loan_req_norm_mol_wait : DevExpress.XtraReports.UI.XtraReport
+    {
+        public r_ktm_loan_req_norm_mol_wait()
+        {
+            InitializeComponent();
+        }
+
+        private void coll_BeforePrint(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            sc.report.setResource(sender, "scReport.Reports.rcTeller.loanRequest.r_ktm_loan_req_norm_mol_wait_nest_coll_mol");
+            sc.report.ofBeforePrint(this, (XRSubreport)sender, this.GetCurrentColumnValue("LOAN_REQUESTMENT_NO"));
+        }
+
+        private void old_loan_BeforePrint(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            sc.report.setResource(sender, "scReport.Reports.rcTeller.loanRequest.r_ktm_loan_req_norm_mol_wait_nest_old_loan");
+            sc.report.ofBeforePrint(this, (XRSubreport)sender, this.GetCurrentColumnValue("LOAN_REQUESTMENT_NO"));
+        }
+    }
+}

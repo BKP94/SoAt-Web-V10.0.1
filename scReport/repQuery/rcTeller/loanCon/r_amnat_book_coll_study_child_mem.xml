@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <loan_contract_no align="center" default="select max(loan_contract_no) from sc_lon_m_contract where loan_type = 'ส' and begining_of_contract &gt;= sysdate - 3" text="เลขที่สัญญา" table="sc_lon_m_contract" operator="bt" readonly="0" />
+    <begining_of_contract text="วันที่ขอกู้" table="sc_lon_m_contract" type="date" readonly="0" />
+    <membership_no special="memno" text="ทะเบียน" table="sc_lon_m_contract" readonly="0" />
+    <loan_type text="ประเภทกู้" table="sc_lon_m_rule" combo="sc_lon_m_rule2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select  sc_lon_m_contract.loan_contract_no ,
+        sc_lon_m_contract.begining_of_contract,
+        extract ( day from ( sc_lon_m_contract.begining_of_contract ) )  as begin_day,
+        pka_com_function.fp_get_thaidate(  sc_lon_m_contract.begining_of_contract  , 'MONTH') as begin_month,
+        extract ( year from ( sc_lon_m_contract.begining_of_contract )  ) + 543 as begin_year,
+        sc_lon_m_contract_coll.collateral_description as coll_name,
+        sc_lon_m_contract_coll.ref_own_no ,
+        pka_com_function.fp_get_member_position_long( sc_lon_m_contract_coll.ref_own_no ) as position_long ,
+        pka_com_function.fp_get_member_group( sc_lon_m_contract_coll.ref_own_no ) as mem_group_no ,
+        pka_com_function.fp_get_group_name( pka_com_function.fp_get_member_group( sc_lon_m_contract_coll.ref_own_no ) ) as mem_group_name,
+        pka_com_function.fp_get_district_name(  sc_mem_m_ucf_member_group_addr.province_code  , sc_mem_m_ucf_member_group_addr.district_code ) as group_distinct ,
+        pka_com_function.fp_get_member_address_tel(sc_lon_m_contract_coll.ref_own_no ,0 ) as tel_coll ,
+        pka_com_function.fp_get_member_name(sc_lon_m_contract.membership_no ) as mem_name ,
+        sc_lon_m_contract.membership_no ,
+        pka_com_function.fp_get_member_spname (sc_lon_m_contract_coll.ref_own_no ) as spouse_name,
+        si_security_user.user_name ,
+        sc_cnt_m_coop.coop_name ,
+        sc_cnt_m_coop.manager_name as manager_coop ,
+        sc_mem_m_ucf_member_group.manager_name as manager_group ,
+        PKA_LON_REQSRV.fp_calc_agetext_m_live(sc_lon_m_contract_coll.ref_own_no) as  age_coll
+from    sc_lon_m_contract, 
+        sc_lon_m_contract_coll,
+        si_security_user,
+        sc_cnt_m_coop,
+        sc_mem_m_ucf_member_group,
+        sc_mem_m_ucf_member_group_addr 
+where   sc_lon_m_contract.loan_contract_no = sc_lon_m_contract_coll.loan_contract_no
+and     si_security_user.user_id = sc_lon_m_contract.appove_officer
+and     sc_mem_m_ucf_member_group.member_group_no = pka_com_function.fp_get_member_group( sc_lon_m_contract_coll.ref_own_no )
+and     sc_mem_m_ucf_member_group_addr.member_group_no = pka_com_function.fp_get_member_group( sc_lon_m_contract_coll.ref_own_no )
+    /*WHERE*/
+ --AND ( sc_lon_m_contract.loan_contract_no = 'บ65000003' )
+ORDER BY sc_lon_m_contract.loan_contract_no ASC</sql>
+  <sub>
+  </sub>
+</root>

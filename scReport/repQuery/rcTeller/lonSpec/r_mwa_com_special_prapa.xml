@@ -1,0 +1,126 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <receipt_date align="center" text="วันที่" table="sc_com_m_receipt" type="date" column="receipt_date" operator="bt" readonly="0" />
+    <money_type_id align="center" text="ประเภทการชำระ" table="sc_com_m_receipt" column="money_type_id" combo="sc_com_m_ucf_money_type2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>SELECT (select coop_name from sc_cnt_m_coop) as coop_name
+	, sc_cnt_m_coop.manager_name
+
+      ,(select si_security_user.user_sign from si_security_user 
+		where si_security_user.user_id = 'treasurer' ) as treasurer_sign
+        ,pka_com_function.fp_get_member_name( sc_cnt_m_coop.treasurer_name ) as treasurer_name
+            
+       ,(select si_security_user.user_name from si_security_user 
+		where si_security_user.user_id = sc_com_m_receipt.entry_id ) as user_name
+       ,(select si_security_user.user_sign from si_security_user 
+		where si_security_user.user_id = sc_com_m_receipt.entry_id ) as user_sign
+
+       ,sc_com_m_receipt.receipt_no   
+       ,pka_com_function.fp_get_member_name(sc_com_m_receipt.membership_no) as member_name
+       ,sc_com_m_receipt.remark
+       ,sc_com_m_receipt.money_type_id
+       ,(select sc_com_m_ucf_money_type.money_type_name from sc_com_m_ucf_money_type where sc_com_m_ucf_money_type.money_type_id = sc_com_m_receipt.money_type_id ) as money_type_name
+       ,sc_com_m_receipt.recept_amount
+       ,pka_com_function.fp_get_moneythai ( (select sum(sc_com_m_receipt_item.item_amount) from sc_com_m_receipt_item where sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no) ) as thai_sum_item_amount 
+       ,pka_com_function.fp_get_thaidate(sc_com_m_receipt.receipt_date ,'DD/MM/YYYY') as receipt_date
+       ,pka_com_function.fp_get_thaidate(sc_com_m_receipt.calcint_date,'DD/MM/YYYY') as calcint_date      
+       ,sc_com_m_receipt.membership_no
+       ,sc_mem_m_ucf_member_group.member_group_no
+       ,sc_mem_m_ucf_member_group.member_group_name 
+       , sc_com_m_receipt.share_stock 
+						+  nvl( ( select sum( item_amount )
+						from sc_com_m_receipt_item
+						where receipt_no =  sc_com_m_receipt.receipt_no
+						and item_type_id in ( 'SB' , 'SL' ) ) , 0 ) 
+						
+						-  decode( sc_com_m_receipt.money_type_id  ,'TNL' ,  recept_amount , 0 )   
+       as share_stock        
+
+
+        ,decode( sc_com_m_receipt.money_type_id 
+		, 'CHQ' , 'ใบเสร็จจะสมบูรณ์เมื่อเช็คเรียกเก็บเงินได้' 
+		 , 'TRB' ,    'โอนชำระผ่าน ' ||   (select bank_name from sc_fin_m_bank where bank_fin = sc_com_m_receipt.fin_bank ) ||' '
+									   || (select  pka_com_function.fp_form( sc_fin_m_bank.bank_id_code , 'XXX-X-XXXXX-X' ) from sc_fin_m_bank where bank_fin = sc_com_m_receipt.fin_bank )
+									   || '#'|| sc_com_m_receipt.remark 
+             , 'CLR' , 'หักกลบลบหนี้ สัญญา ' || sc_com_m_receipt.loan_contract_no 
+						  || ' ยอดอนุมัติกู้ ' ||  ( select trim( to_char( loan_approve_amount , '999,999,990.00') )
+															from sc_lon_m_contract
+															where loan_contract_no = sc_com_m_receipt.loan_contract_no )|| ' บาท'
+						  || ' เงินรับจริง ' ||  ( select trim( to_char( real_recieve , '999,999,990.00') )
+															from sc_lon_m_contract
+															where loan_contract_no = sc_com_m_receipt.loan_contract_no )|| ' บาท'
+									    , sc_com_m_receipt.remark  ) as remark_footer 
+     
+       ,(select sum(sc_com_m_receipt_item.item_amount) 
+         from sc_com_m_receipt_item 
+         where sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no) as sum_item_amount
+         
+      
+       ,'ที่อยู่ 400 ถนนประชาชื่น แขวงทุ่งสองห้อง เขตหลักสี่ กรุงเทพมหานคร 10210' as coop_address
+       ,sc_cnt_m_coop.address
+       ,sc_cnt_m_coop.road
+       ,sc_cnt_m_coop.tumbol_name
+       ,pka_com_function.fp_get_district_name(sc_cnt_m_coop.province_code, sc_cnt_m_coop.district_code) as district_name
+       ,pka_com_function.fp_get_province_name(sc_cnt_m_coop.province_code) as province_name
+       ,sc_cnt_m_coop.postcode
+
+       ,nvl((  select sum(sc_dep_m_creditor.deposit_balance) 
+          from sc_dep_m_creditor 
+          where sc_dep_m_creditor.membership_no = sc_com_m_receipt.membership_no
+          and   sc_dep_m_creditor.deposit_type_code = '66' ),0) as deposit_balance
+
+       ,(select sum(sc_com_m_receipt_item.balance) from sc_com_m_receipt_item where sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no and	sc_com_m_receipt_item.item_amount &gt; 0) as sum_balance
+       ,(select sum(sc_com_m_receipt_item.interest_notpay) from sc_com_m_receipt_item where sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no and	sc_com_m_receipt_item.item_amount &gt; 0) as sum_interest_notpay
+
+,sc_com_m_receipt.entry_id
+,sc_com_m_receipt.entry_date
+,sc_cnt_m_status_01.status_code
+,decode( sc_cnt_m_status_01.status_code , '0' , 'ต้นฉบับ' ,'สำเนา' ) as copy_desc
+  FROM sc_com_m_receipt
+, sc_mem_m_ucf_member_group
+, sc_cnt_m_coop 
+, sc_cnt_m_status_01
+
+WHERE sc_com_m_receipt.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+and sc_cnt_m_status_01.status_code in ( '0' ,'1' )  
+--and   sc_com_m_receipt.receipt_no = 'ก49000066' 
+
+/*WHERE*/
+
+ORDER BY sc_com_m_receipt.receipt_no ASC
+,sc_cnt_m_status_01.status_code
+</sql>
+  <sub>
+    <r_mwa_com_special_prapa_nest>
+      <sql>SELECT /*decode( sc_com_m_receipt_item.item_type_id 
+ 		, 'IS',  ( 	select  insurance_desc
+				from sc_mem_m_insure_rule
+				where   sc_mem_m_insure_rule.insurance_type = loan_type )
+ 		,sc_com_m_receipt_item.description ) as description ,  */ 
+                  sc_com_m_receipt.receipt_no,
+         		sc_com_m_receipt_item.item_type_id,
+			sc_com_m_receipt_item.loan_type,
+			sc_com_m_receipt_item.description,      
+         sc_com_m_receipt_item.principal_amount,   
+         sc_com_m_receipt_item.interest_amount,   
+         sc_com_m_receipt_item.item_amount,   
+         sc_com_m_receipt_item.balance,   
+         sc_com_m_receipt_item.period,
+         sc_com_m_receipt_item.interest_arrear,
+         sc_com_m_receipt_item.interest_notpay
+         
+FROM sc_com_m_receipt_item,
+   sc_com_m_receipt
+         
+WHERE sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+and	sc_com_m_receipt_item.item_amount &gt; 0
+--and sc_com_m_receipt_item.receipt_no = 'พ6607009'
+
+and sc_com_m_receipt_item.receipt_no = {0}
+
+</sql>
+    </r_mwa_com_special_prapa_nest>
+  </sub>
+</root>

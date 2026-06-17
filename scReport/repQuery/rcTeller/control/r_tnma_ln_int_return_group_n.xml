@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="T025" rep_text="-&gt; รายงานเคลื่อนไหวหุ้น">
+  <arg>
+    <receive_year special="year" text="ปี" table="sc_kep_t_monthly_receive" type="integer" readonly="0" comboreplace="0" combowhere="0" />
+    <receive_month special="month" text="เดือน" table="sc_kep_t_monthly_receive" type="integer" combo="monthThLong" readonly="0" comboreplace="0" combowhere="0" />
+    <member_group_no text="สังกัด" table="sc_mem_m_membership_registered" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>select      SC_MEM_M_MEMBERSHIP_REGISTERED.member_group_no
+         ,SC_MEM_M_UCF_MEMBER_GROUP.member_group_name
+         ,sum(sc_kep_t_monthly_receive_det.return_interest) as return_interest
+             
+         from sc_kep_t_monthly_receive_det
+         ,sc_kep_t_monthly_receive
+         ,SC_MEM_M_MEMBERSHIP_REGISTERED
+         ,SC_MEM_M_UCF_MEMBER_GROUP
+         where 1=1
+         and sc_kep_t_monthly_receive.membership_no = sc_kep_t_monthly_receive_det.membership_no
+         and sc_kep_t_monthly_receive_det.membership_no = SC_MEM_M_MEMBERSHIP_REGISTERED.membership_no
+         and SC_MEM_M_MEMBERSHIP_REGISTERED.member_group_no = SC_MEM_M_UCF_MEMBER_GROUP.member_group_no
+         and sc_kep_t_monthly_receive_det.receive_year = sc_kep_t_monthly_receive.receive_year
+         and sc_kep_t_monthly_receive_det.receive_month = sc_kep_t_monthly_receive.receive_month
+         and sc_kep_t_monthly_receive_det.keeping_type_code like 'ML%'
+    --    and sc_kep_t_monthly_receive_det.receive_year = 2025
+    --     and sc_kep_t_monthly_receive_det.receive_month = 8
+         /*WHERE*/
+   group by  SC_MEM_M_MEMBERSHIP_REGISTERED.member_group_no
+         ,SC_MEM_M_UCF_MEMBER_GROUP.member_group_name
+    order by SC_MEM_M_MEMBERSHIP_REGISTERED.member_group_no asc</sql>
+  <sub />
+</root>

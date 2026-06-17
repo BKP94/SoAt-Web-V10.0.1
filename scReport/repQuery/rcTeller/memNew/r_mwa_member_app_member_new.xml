@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <approve_date text="วันที่" table="sc_mem_m_application_form" type="date" column="approve_date" operator="bt" readonly="0" />
+    <sex align="center" text="เพศ" table="sc_mem_m_membership_registered" combo="sex" readonly="0" />
+  </arg>
+  <combo>
+  </combo>
+  <sql>    select sc_mem_m_membership_registered.membership_no
+    ,(select prename from sc_mem_m_ucf_prename where prename_code = sc_mem_m_membership_registered.prename_code)||sc_mem_m_membership_registered.member_name||' '||sc_mem_m_membership_registered.member_surname as member_name
+    ,sc_mem_m_membership_registered.sex
+    ,sc_mem_m_ucf_member_group.member_group_no
+    ,sc_mem_m_ucf_member_group.member_group_name
+    ,sc_mem_m_ucf_application_type.application_fee
+    ,substr ( PKA_LON_REQSRV.fp_calc_agetext( sc_mem_m_membership_registered.date_of_birth ),0,2)  as age
+    ,sc_mem_m_member_work_info.salary_amount
+    ,sc_mem_m_member_work_info.salary_id
+    ,sc_mem_m_share_mem.share_amount
+
+    ,( select pka_com_function.fp_form( sc_mem_m_member_bank_accno.bank_acc_no , 'XXX-X-XXXXX-X' )
+    from sc_mem_m_member_bank_accno
+    where sc_mem_m_member_bank_accno.membership_no = sc_mem_m_membership_registered.membership_no
+    and   sc_mem_m_member_bank_accno.paid_dividen = '1' /*เงินปันผล*/
+    ) as bank_acc_no
+
+    from sc_mem_m_application_form
+    ,sc_mem_m_membership_registered
+    ,sc_mem_m_ucf_member_group
+    ,sc_mem_m_ucf_application_type
+    ,sc_mem_m_member_work_info
+    ,sc_mem_m_share_mem
+
+    where sc_mem_m_membership_registered.application_form_no = sc_mem_m_application_form.application_form_no
+    and   sc_mem_m_ucf_member_group.member_group_no = sc_mem_m_membership_registered.member_group_no
+    and   sc_mem_m_ucf_application_type.appl_type_code = sc_mem_m_application_form.appl_type_code
+    and   sc_mem_m_member_work_info.membership_no = sc_mem_m_membership_registered.membership_no
+    and   sc_mem_m_share_mem.membership_no = sc_mem_m_membership_registered.membership_no
+    and   sc_mem_m_ucf_member_group.member_group_control  not in ('80000','90000')
+    --and   substr ( PKA_LON_REQSRV.fp_calc_agetext( sc_mem_m_membership_registered.date_of_birth ),0,2) between  '!age_life_1!'  and  '!age_life_2!'
+
+    /*WHERE*/
+    --and   sc_mem_m_application_form.approve_date between '01/01/2023' and '07/11/2023'
+    order by sc_mem_m_membership_registered.membership_no asc</sql>
+  <sub />
+</root>

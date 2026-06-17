@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+  </arg>
+  <combo />
+  <sql>SELECT sc_lon_m_rule.loan_type,   
+         sc_lon_m_rule.loan_type_description,   
+         sc_lon_m_loan_card.principal_balance,   
+         sc_lon_m_rule.loan_group_code,   
+         sc_lon_m_loan_card.loan_contract_no,
+         pka_com_function.fp_get_thaidate(sysdate,'DD/MM/YYYY') as sysdate_tdate,
+         ( case loan_group_code  when '01' then 'ฉุกเฉิน' when '02' then 'สามัญ' else 'พิเศษ' end ) as group_code_name
+
+  ,( select 	count(sc_mem_m_share_mem.membership_no)  
+    from  sc_mem_m_share_mem,
+          sc_mem_m_membership_registered
+    where	(sc_mem_m_share_mem.membership_no = sc_mem_m_membership_registered.membership_no) 
+    and   (sc_mem_m_share_mem.share_stock &lt;&gt; 0) 
+    ) as count_mem_share_normal
+    
+   ,( select 	sum(sc_mem_m_share_mem.share_stock)  
+    from  sc_mem_m_share_mem,
+          sc_mem_m_membership_registered
+    where	(sc_mem_m_share_mem.membership_no = sc_mem_m_membership_registered.membership_no) 
+    ) as sum_share_stock
+    
+FROM sc_lon_m_loan_card,   
+    sc_lon_m_rule,   
+    sc_mem_m_membership_registered,   
+    sc_lon_m_contract  
+WHERE ( sc_lon_m_contract.loan_type = sc_lon_m_rule.loan_type ) 
+and   ( sc_lon_m_contract.loan_contract_no = sc_lon_m_loan_card.loan_contract_no ) 
+and   ( sc_lon_m_contract.membership_no = sc_mem_m_membership_registered.membership_no ) 
+and   ( sc_lon_m_loan_card.principal_balance &gt; 0 ) 
+and   ( sc_lon_m_loan_card.contact_status &lt;&gt; '1' )
+/*WHERE*/
+order by sc_lon_m_rule.loan_group_code
+      ,sc_lon_m_rule.loan_type</sql>
+  <sub />
+</root>

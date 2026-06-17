@@ -1,0 +1,121 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <receive_year special="year" text="ปี" table="sc_kep_t_monthly_receive" type="integer" column="receive_year" readonly="0" />
+    <receive_month special="month" text="เดือน" table="sc_kep_t_monthly_receive" type="integer" column="receive_month" combo="monthThLong" readonly="0" />
+    <membership_no special="memno" text="ทะเบียน" table="sc_kep_t_monthly_receive" readonly="0" />
+    <member_group_no text="หน่วย" table="sc_mem_m_ucf_member_group" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>SELECT (select coop_name from sc_cnt_m_coop) as coop_name,
+	  sc_kep_t_monthly_receive.receipt_no as receipt_no,   
+         pka_com_function.fp_get_member_name(sc_kep_t_monthly_receive.membership_no) as member_name,      
+         sc_kep_t_monthly_receive.kep_method_amount as recept_amount ,   
+         pka_com_function.fp_get_moneythai ( sc_kep_t_monthly_receive.kep_method_amount ) as thai_recept_amount,   
+
+
+         ( select nvl(sum(  sc_kep_t_monthly_receive_det.mpost_principal_balance + sc_kep_t_monthly_receive_det.unkeep_principal_of_loan),0)
+           from sc_kep_t_monthly_receive_det
+		,sc_kep_m_ucf_keeping_item_type
+           where 1=1
+		and 	sc_kep_t_monthly_receive_det.keeping_type_code = sc_kep_m_ucf_keeping_item_type.keeping_type_code
+		and	sc_kep_t_monthly_receive_det.membership_no = sc_kep_t_monthly_receive.membership_no 
+		and	sc_kep_t_monthly_receive_det.receive_year = sc_kep_t_monthly_receive.receive_year 
+		and	sc_kep_t_monthly_receive_det.receive_month = sc_kep_t_monthly_receive.receive_month 
+		and	sc_kep_t_monthly_receive_det.seq_no = sc_kep_t_monthly_receive.seq_no
+		and  	sc_kep_m_ucf_keeping_item_type.keeping_type_group = 'LON'
+         )  as balance ,
+         
+         ( select nvl(sum(  sc_kep_t_monthly_receive_det.principal_not  ),0)
+           from sc_kep_t_monthly_receive_det
+		,sc_kep_m_ucf_keeping_item_type
+           where 1=1
+		and 	sc_kep_t_monthly_receive_det.keeping_type_code = sc_kep_m_ucf_keeping_item_type.keeping_type_code
+		and	sc_kep_t_monthly_receive_det.membership_no = sc_kep_t_monthly_receive.membership_no 
+		and	sc_kep_t_monthly_receive_det.receive_year = sc_kep_t_monthly_receive.receive_year 
+		and	sc_kep_t_monthly_receive_det.receive_month = sc_kep_t_monthly_receive.receive_month 
+		and	sc_kep_t_monthly_receive_det.seq_no = sc_kep_t_monthly_receive.seq_no
+		and  	sc_kep_m_ucf_keeping_item_type.keeping_type_group = 'LON'
+         )  as principal_amount ,
+         
+         ( select nvl(sum(  sc_kep_t_monthly_receive_det.interest_not   ),0)
+           from sc_kep_t_monthly_receive_det
+		,sc_kep_m_ucf_keeping_item_type
+           where 1=1
+		and 	sc_kep_t_monthly_receive_det.keeping_type_code = sc_kep_m_ucf_keeping_item_type.keeping_type_code
+		and	sc_kep_t_monthly_receive_det.membership_no = sc_kep_t_monthly_receive.membership_no 
+		and	sc_kep_t_monthly_receive_det.receive_year = sc_kep_t_monthly_receive.receive_year 
+		and	sc_kep_t_monthly_receive_det.receive_month = sc_kep_t_monthly_receive.receive_month 
+		and	sc_kep_t_monthly_receive_det.seq_no = sc_kep_t_monthly_receive.seq_no
+		and  	sc_kep_m_ucf_keeping_item_type.keeping_type_group = 'LON'
+         )  as interest_amount ,
+
+
+         sc_kep_t_monthly_receive.receipt_date as receipt_date,   
+         sc_kep_t_monthly_receive.membership_no as membership_no  ,   
+         sc_mem_m_ucf_member_group.member_group_name,   
+         sc_kep_t_monthly_receive.total_interest_value  as total_interest,   
+         sc_kep_t_monthly_receive.total_share_value  as share_stock,   
+         pka_com_function.fp_get_group_name(sc_mem_m_ucf_member_group.member_group_control) as group_control_name,   
+ 
+        decode( sc_kep_t_monthly_receive.amount_form_file , 0 , 'หัก ณ ที่จ่ายไม่ได้' 
+	, 'ตัวแทนนำส่ง  ' || trim( to_char( sc_kep_t_monthly_receive.amount_form_file  , '9,999,999.99'  )  ) ) as remark    
+
+, sc_kep_t_monthly_receive.receive_year
+, sc_kep_t_monthly_receive.receive_month 
+
+    FROM sc_kep_t_monthly_receive,       
+         sc_mem_m_ucf_member_group  
+   WHERE  1 =  1 and 
+         ( sc_kep_t_monthly_receive.member_group_no = sc_mem_m_ucf_member_group.member_group_no )   
+
+/*WHERE*/
+--and sc_kep_t_monthly_receive.receive_year = 2022
+--and sc_kep_t_monthly_receive.receive_month = 1
+--and sc_kep_t_monthly_receive.membership_no = '005004'
+
+
+ORDER BY sc_kep_t_monthly_receive.membership_no ASC   </sql>
+  <sub>
+    <r_amnat_monthly_pay_receipt_nest>
+      <sql>  SELECT 
+         CASE
+            WHEN sc_kep_m_ucf_keeping_item_type.keeping_type_group = 'DEP' THEN
+                 'เงินฝาก'||sc_kep_t_monthly_receive_det.receive_description
+            ELSE
+                sc_kep_t_monthly_receive_det.receive_description
+        END  as description,  
+         sc_kep_t_monthly_receive_det.principal_not as principal_amount,   
+         sc_kep_t_monthly_receive_det.interest_not as interest_amount,   
+         sc_kep_t_monthly_receive_det.money_amount_not as item_amount,
+        sc_kep_t_monthly_receive_det.period as period, 
+
+         CASE
+            WHEN sc_kep_m_ucf_keeping_item_type.keeping_type_group = 'LON' THEN
+                mpost_principal_balance + unkeep_principal_of_loan
+            WHEN sc_kep_m_ucf_keeping_item_type.keeping_type_group = 'ISP' THEN
+                mpost_principal_balance + unkeep_principal_of_loan
+            WHEN sc_kep_m_ucf_keeping_item_type.keeping_type_group = 'COL' THEN
+                principal_balance_of_loan
+            ELSE
+                mpost_principal_balance - unkeep_money_amount
+        END  as balance,   
+
+         sc_kep_m_ucf_keeping_item_type.sorting   as sort_order  
+
+
+    FROM sc_kep_t_monthly_receive_det,   
+         sc_kep_m_ucf_keeping_item_type  
+   WHERE 1=1
+and  sc_kep_t_monthly_receive_det.keeping_type_code = sc_kep_m_ucf_keeping_item_type.keeping_type_code 
+
+and 	sc_kep_t_monthly_receive_det.keeping_type_code = sc_kep_m_ucf_keeping_item_type.keeping_type_code
+and	sc_kep_t_monthly_receive_det.membership_no = {0}
+and	sc_kep_t_monthly_receive_det.receive_year = {1}
+and	sc_kep_t_monthly_receive_det.receive_month = {2}
+
+
+ORDER BY sc_kep_m_ucf_keeping_item_type.sorting ASC </sql>
+    </r_amnat_monthly_pay_receipt_nest>
+  </sub>
+</root>

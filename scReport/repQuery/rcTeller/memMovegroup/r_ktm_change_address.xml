@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <operate_date text="วันที่" table="sc_mem_edit_address" type="date" operator="bt" readonly="0" />
+    <address_type text="ประเภทที่อยู่" table="sc_mem_edit_address" combo="address_type" readonly="0" />
+  </arg>
+  <combo>
+    <address_type>0=ที่อยู่ปัจจุบัน/1=ที่อยู่ตามทะเบียนบ้าน</address_type>
+  </combo>
+  <sql>    select sum(tab.row_memno)over(order by tab.membership_no) as rowno,  tab.*
+    from (
+    select decode(lag(sc_mem_edit_address.membership_no,1,null)over(  order by sc_mem_edit_address.membership_no ) ,sc_mem_edit_address.membership_no,0,1) as row_memno,
+    sc_mem_edit_address.membership_no,
+    PKA_COM_FUNCTION.fp_get_member_name( sc_mem_edit_address.membership_no ) as memname,
+    sc_mem_edit_address.entry_id,
+    sc_mem_edit_address.operate_date,
+    sc_mem_m_membership_registered.member_group_no,
+    pka_com_function.fp_get_group_name (sc_mem_m_membership_registered.member_group_no) as member_group_name,
+    sc_mem_edit_address.pre_address_no,
+    sc_mem_edit_address.pre_moo,
+    sc_mem_edit_address.pre_road,
+    sc_mem_edit_address.pre_soi,
+    sc_mem_edit_address.pre_tambol,
+    sc_mem_edit_address.pre_district_code,
+    sc_mem_edit_address.pre_province_code,
+    sc_mem_edit_address.pre_postcode,
+    sc_mem_edit_address.pre_telephone,
+    sc_mem_edit_address.pre_mooban,
+    sc_mem_edit_address.address_no,
+    sc_mem_edit_address.moo,
+    sc_mem_edit_address.road,
+    sc_mem_edit_address.soi,
+    sc_mem_edit_address.tambol,
+    sc_mem_edit_address.district_code,
+    sc_mem_edit_address.province_code,
+    sc_mem_edit_address.postcode,
+    sc_mem_edit_address.telephone,
+    sc_mem_edit_address.mooban,
+    PKA_COM_FUNCTION.fp_get_province_name(sc_mem_edit_address.province_code) as name_province,
+    PKA_COM_FUNCTION.fp_get_district_name(sc_mem_edit_address.province_code,sc_mem_edit_address.district_code) as name_district
+
+    from sc_mem_edit_address,
+    sc_mem_m_membership_registered
+    where sc_mem_edit_address.membership_no = sc_mem_m_membership_registered.membership_no
+    /*WHERE*/
+    )tab
+  </sql>
+  <sub />
+</root>

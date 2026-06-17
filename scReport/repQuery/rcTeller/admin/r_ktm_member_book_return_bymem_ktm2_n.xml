@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <receipt_effectdate text="วันที่คืน" table="sc_kep_t_monthly_receive" type="date" column="receipt_effectdate" operator="bt" readonly="0" />
+    <membership_no special="memno" text="ทะเบียนผู้กู้" table="sc_mem_m_membership_registered" readonly="0" />
+    <as_name default="นางชุติมา  พุ่มบุบผา" text="ผู้ช่วยฯ" combo="sc_cnt_m_committee_list3" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_mem_m_membership_registered.membership_no,
+    pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as member_name,
+    sc_kep_t_monthly_receive.member_group_no,
+    sc_mem_m_membership_registered.coop_position,
+    sc_kep_t_monthly_receive_det.money_amount,
+    pka_com_function.fp_get_moneythai(sc_kep_t_monthly_receive_det.money_amount) as thai_money_amount,
+    sc_kep_t_monthly_receive_det.period,
+    '!as_name_1!' as ass_name,
+    sc_kep_t_monthly_receive_det.receive_description,
+    sc_lon_m_contract.loan_approve_amount,
+    pka_com_function.fp_get_moneythai(sc_lon_m_contract.loan_approve_amount) as thai_loan_approve_amount,
+    sc_lon_m_contract.begining_of_contract  ,
+    sc_lon_m_contract.loan_contract_no ,
+    sc_lon_m_contract.loan_installment_amount ,
+    sc_lon_m_contract.period_payment_amount ,
+    pka_com_function.fp_get_moneythai(sc_lon_m_contract.period_payment_amount) as thai_period_payment_amount,
+    sc_kep_t_monthly_receive_det.keeping_type_code,
+    pka_com_function.fp_get_month_name(sc_kep_t_monthly_receive.receive_month,'LT') as receive_month_thai,
+    pka_com_function.fp_get_thaidate(sc_kep_t_monthly_receive.receipt_date , 'DD/MM/YYYY') as tdate_due,
+    pka_com_function.fp_get_thaidate(sc_rep_kep_return_month.book_date , 'SD MONTH YYYY') as book_date_tdate,
+    ( select 	td_share.money_amount
+    from   	sc_kep_t_monthly_receive_det td_share
+    where  	td_share.keeping_type_code ='MS00'
+    and 		td_share.receive_year   =  sc_kep_t_monthly_receive.receive_year
+    and     td_share.receive_month  =  sc_kep_t_monthly_receive.receive_month
+    and 		td_share.membership_no  =  sc_kep_t_monthly_receive.membership_no
+    ) as share_return_amount,
+    (select coop_name from sc_cnt_m_coop) as coop_name
+
+    FROM sc_mem_m_membership_registered,
+    sc_kep_t_monthly_receive,
+    sc_kep_t_monthly_receive_det,
+    sc_lon_m_contract ,
+    sc_lon_m_rule ,
+    sc_rep_kep_return_month
+
+    WHERE  sc_mem_m_membership_registered.membership_no = sc_kep_t_monthly_receive.membership_no
+    AND	sc_kep_t_monthly_receive.membership_no = sc_kep_t_monthly_receive_det.membership_no
+    AND	sc_kep_t_monthly_receive.receive_year = sc_kep_t_monthly_receive_det.receive_year
+    AND	sc_kep_t_monthly_receive.receive_month = sc_kep_t_monthly_receive_det.receive_month
+    AND	sc_lon_m_contract.loan_contract_no = trim( sc_kep_t_monthly_receive_det.receive_description )
+    AND	sc_lon_m_rule.loan_type = sc_lon_m_contract.loan_type
+    AND	sc_rep_kep_return_month.membership_no	=	sc_kep_t_monthly_receive.membership_no
+    AND	sc_kep_t_monthly_receive.receipt_status = '2'
+    AND	sc_lon_m_rule.loan_group_code	in ( '02' , '03' )
+    AND	sc_lon_m_contract.loan_contract_no in ( select distinct loan_contract_no
+    from sc_lon_m_contract_coll
+    where sc_lon_m_contract.loan_contract_no = sc_lon_m_contract_coll.loan_contract_no
+    and sc_lon_m_contract_coll.status = '0' )
+    and  sc_rep_kep_return_month.rep_type = 'BOK'
+
+    /*WHERE*/
+    --and ( sc_kep_t_monthly_receive.receive_year = 2016  )
+    --and (  sc_kep_t_monthly_receive.receive_month = 1  )
+    --and  (	sc_mem_m_membership_registered.membership_no	=	'077602')
+    order by sc_kep_t_monthly_receive.member_group_no ,
+    sc_mem_m_membership_registered.membership_no
+
+  </sql>
+  <sub />
+</root>

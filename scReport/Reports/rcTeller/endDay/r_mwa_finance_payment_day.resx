@@ -1,0 +1,453 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <metadata name="sqlDataSource1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>17, 17</value>
+  </metadata>
+  <data name="customSqlQuery1.Sql" xml:space="preserve">
+    <value>select tm.*
+    from ( select sc_com_m_receipt.receipt_date,
+    sc_com_m_receipt.money_type_id,
+    
+    (select sum(sc_com_m_receipt_item.item_amount)
+    from   sc_com_m_receipt_item
+    where  sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no ) as s_item_amount,
+
+    (select sum(sc_com_m_receipt_item.item_amount)
+    from   sc_com_m_receipt_item
+    where  sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no 
+    and    sc_com_m_receipt.receipt_mode  = 'F') as s_item_amount_mode_f,
+
+
+ sc_com_m_receipt.receipt_mode,
+    case sc_com_m_receipt.receipt_mode when 'F' then 'ชำระหนี้กองทุนค้ำประกัน' when 'R' then 'ชำระหนี้เก็บไม่ได้' else '' end as receipt_mode_des,
+
+    (
+    select sc_com_m_ucf_money_type.money_type_name ||' '||case sc_com_m_receipt.receipt_mode when 'F' then 'ชำระหนี้กองทุนค้ำประกัน' when 'R' then 'ชำระหนี้เก็บไม่ได้' else '' end  as money_type_mode
+    from sc_com_m_ucf_money_type
+    where sc_com_m_receipt.money_type_id = sc_com_m_ucf_money_type.money_type_id
+    ) as money_type_name,
+    sc_com_m_receipt.receipt_no,
+    sc_mem_m_membership_registered.membership_no||' : '||(select prename from sc_mem_m_ucf_prename where prename_code = sc_mem_m_membership_registered.prename_code)||sc_mem_m_membership_registered.member_name||' '||sc_mem_m_membership_registered.member_surname as member_name,
+    sc_mem_m_membership_registered.member_group_no,
+    (
+    select sum(sc_com_m_receipt_item.item_amount)
+    from sc_com_m_receipt_item
+    where sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+    and (sc_com_m_receipt_item.item_type_id = 'FUN'
+    or  sc_com_m_receipt_item.item_type_id = 'MFEE' )
+    ) as fund_new, /*กองทุนใหม่*/
+    (
+    select sum(sc_com_m_receipt_item.item_amount)
+    from sc_com_m_receipt_item,
+    sc_com_m_ucf_receipt_item_type
+    where sc_com_m_receipt_item.item_type_id = sc_com_m_ucf_receipt_item_type.item_type_id
+    and sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+    and sc_com_m_ucf_receipt_item_type.group_item = 'SHR'
+    ) as by_share, /*ซื้อหุ้นพิเศษ*/
+
+       ( select nvl(sum(sc_com_m_receipt_item.item_amount),0)
+    from sc_com_m_receipt_item,
+    sc_com_m_ucf_receipt_item_type
+    where sc_com_m_receipt_item.item_type_id = sc_com_m_ucf_receipt_item_type.item_type_id
+    and sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+    and sc_com_m_ucf_receipt_item_type.group_item = 'MFE'
+    ) as fee, /*ค่าธรรมเนียมสมาชิก*/
+
+    0.00 as crem_amount, /*ฌาปนกิจ*/
+    0.00 as c_dep, /*เงินฝาก*/
+    sc_com_m_receipt.entry_id, /*ผู้บันทึก*/
+    sc_mem_m_membership_registered.membership_no,
+    sc_com_m_receipt.branch_id,
+
+    (
+    select sum(sc_com_m_receipt_item.principal_amount)
+    from sc_com_m_receipt_item,
+    sc_com_m_ucf_receipt_item_type,
+    sc_lon_m_rule
+    where sc_com_m_ucf_receipt_item_type.item_type_id = sc_com_m_receipt_item.item_type_id
+    and sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+    and sc_com_m_receipt_item.loan_type = sc_lon_m_rule.loan_type
+    and sc_lon_m_rule.loan_group_code = '01'
+    and sc_com_m_ucf_receipt_item_type.group_item = 'LON'
+    and sc_com_m_receipt_item.item_amount &gt; 0
+    ) as principal_amount_01,
+    
+    (
+      select sum(sc_com_m_receipt_item.interest_amount)
+      from sc_com_m_receipt_item,
+          sc_com_m_ucf_receipt_item_type,
+          sc_lon_m_rule
+      where sc_com_m_ucf_receipt_item_type.item_type_id = sc_com_m_receipt_item.item_type_id
+      and sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+      and sc_com_m_receipt_item.loan_type = sc_lon_m_rule.loan_type
+      and sc_lon_m_rule.loan_group_code = '01'
+      and sc_com_m_ucf_receipt_item_type.group_item = 'LON'
+      and sc_com_m_receipt_item.item_amount &gt; 0
+    ) as interest_amount_01,
+    
+    (
+      select sum(sc_com_m_receipt_item.interest_amount)
+      from sc_com_m_receipt_item,
+          sc_com_m_ucf_receipt_item_type,
+          sc_lon_m_rule
+      where sc_com_m_ucf_receipt_item_type.item_type_id = sc_com_m_receipt_item.item_type_id
+      and sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+      and sc_com_m_receipt_item.loan_type = sc_lon_m_rule.loan_type
+      and sc_lon_m_rule.loan_group_code = '02'
+      and sc_com_m_ucf_receipt_item_type.group_item = 'LON'
+      and sc_com_m_receipt_item.item_amount &gt; 0
+    ) as interest_amount_02,
+    
+    
+     (
+      select sum(sc_com_m_receipt_item.principal_amount)
+      from sc_com_m_receipt_item,
+          sc_com_m_ucf_receipt_item_type,
+          sc_lon_m_rule
+      where sc_com_m_ucf_receipt_item_type.item_type_id = sc_com_m_receipt_item.item_type_id
+      and sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+      and sc_com_m_receipt_item.loan_type = sc_lon_m_rule.loan_type
+      and sc_lon_m_rule.loan_group_code = '02'
+      and sc_com_m_ucf_receipt_item_type.group_item = 'LON'
+      and sc_com_m_receipt_item.item_amount &gt; 0
+    ) as principal_amount_02,
+    
+    (
+      select sum(sc_com_m_receipt_item.principal_amount)
+      from sc_com_m_receipt_item,
+          sc_com_m_ucf_receipt_item_type,
+          sc_lon_m_rule
+      where sc_com_m_ucf_receipt_item_type.item_type_id = sc_com_m_receipt_item.item_type_id
+      and sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+      and sc_com_m_receipt_item.loan_type = sc_lon_m_rule.loan_type
+      and sc_lon_m_rule.loan_group_code = '03'
+      and sc_com_m_ucf_receipt_item_type.group_item = 'LON'
+      and sc_com_m_receipt_item.item_amount &gt; 0
+    ) as principal_amount_03,
+    
+    (
+      select sum(sc_com_m_receipt_item.interest_amount)
+      from sc_com_m_receipt_item,
+          sc_com_m_ucf_receipt_item_type,
+          sc_lon_m_rule
+      where sc_com_m_ucf_receipt_item_type.item_type_id = sc_com_m_receipt_item.item_type_id
+      and sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+      and sc_com_m_receipt_item.loan_type = sc_lon_m_rule.loan_type
+      and sc_lon_m_rule.loan_group_code = '03'
+      and sc_com_m_ucf_receipt_item_type.group_item = 'LON'
+      and sc_com_m_receipt_item.item_amount &gt; 0
+    ) as interest_amount_03,
+    
+    
+    nvl(sum(decode(sc_lon_m_rule.loan_group_code,'01',1,0)),0) as count_01,
+    nvl(sum(decode(sc_lon_m_rule.loan_group_code,'02',1,0)),0) as count_02,
+    nvl(sum(decode(sc_lon_m_rule.loan_group_code,'03',1,0)),0) as count_03
+	,    (select nvl(sum(sc_com_m_receipt_item.item_amount),0)
+      from   sc_com_m_receipt_item
+      where  sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+      and     sc_com_m_receipt_item.loan_type = 'FL') as free_amount
+	
+,(select   mr.month_receive_month
+    from    sc_com_m_receipt mr
+    where   mr.receipt_no = sc_com_m_receipt.receipt_no) as receipt_month
+    
+    ,(select   to_number(to_char(receipt_date ,'mm'))
+    from    sc_com_m_receipt mr
+    where   mr.receipt_no = sc_com_m_receipt.receipt_no) as month_receipt_date
+
+
+    --ส่วนสรุปหักเก็บไม่ได้--
+    ,(
+    select nvl(sum(sc_com_m_receipt_item.principal_amount),0)
+    from sc_com_m_receipt_item,
+    sc_com_m_ucf_receipt_item_type,
+    sc_lon_m_rule
+    where sc_com_m_ucf_receipt_item_type.item_type_id = sc_com_m_receipt_item.item_type_id
+    and sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+    and sc_com_m_receipt_item.loan_type = sc_lon_m_rule.loan_type
+    and sc_lon_m_rule.loan_group_code = '01'
+    and sc_com_m_receipt.receipt_mode = 'R'
+    and sc_com_m_ucf_receipt_item_type.group_item = 'LON'
+    and sc_com_m_receipt_item.item_amount &gt; 0
+    ) as R_principal_amount_01,
+    
+    (
+      select nvl(sum(sc_com_m_receipt_item.interest_amount),0)
+      from sc_com_m_receipt_item,
+          sc_com_m_ucf_receipt_item_type,
+          sc_lon_m_rule
+      where sc_com_m_ucf_receipt_item_type.item_type_id = sc_com_m_receipt_item.item_type_id
+      and sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+      and sc_com_m_receipt_item.loan_type = sc_lon_m_rule.loan_type
+      and sc_lon_m_rule.loan_group_code = '01'
+      and sc_com_m_receipt.receipt_mode = 'R'
+      and sc_com_m_ucf_receipt_item_type.group_item = 'LON'
+      and sc_com_m_receipt_item.item_amount &gt; 0
+    ) as R_interest_amount_01,
+    
+    (
+      select nvl(sum(sc_com_m_receipt_item.interest_amount),0)
+      from sc_com_m_receipt_item,
+          sc_com_m_ucf_receipt_item_type,
+          sc_lon_m_rule
+      where sc_com_m_ucf_receipt_item_type.item_type_id = sc_com_m_receipt_item.item_type_id
+      and sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+      and sc_com_m_receipt_item.loan_type = sc_lon_m_rule.loan_type
+      and sc_lon_m_rule.loan_group_code = '02'
+      and sc_com_m_receipt.receipt_mode = 'R'
+      and sc_com_m_ucf_receipt_item_type.group_item = 'LON'
+      and sc_com_m_receipt_item.item_amount &gt; 0
+    ) as R_interest_amount_02,
+    
+    
+     (
+      select nvl(sum(sc_com_m_receipt_item.principal_amount),0)
+      from sc_com_m_receipt_item,
+          sc_com_m_ucf_receipt_item_type,
+          sc_lon_m_rule
+      where sc_com_m_ucf_receipt_item_type.item_type_id = sc_com_m_receipt_item.item_type_id
+      and sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+      and sc_com_m_receipt_item.loan_type = sc_lon_m_rule.loan_type
+      and sc_lon_m_rule.loan_group_code = '02'
+      and sc_com_m_receipt.receipt_mode = 'R'
+      and sc_com_m_ucf_receipt_item_type.group_item = 'LON'
+      and sc_com_m_receipt_item.item_amount &gt; 0
+    ) as R_principal_amount_02,
+    
+    (
+      select nvl(sum(sc_com_m_receipt_item.principal_amount),0)
+      from sc_com_m_receipt_item,
+          sc_com_m_ucf_receipt_item_type,
+          sc_lon_m_rule
+      where sc_com_m_ucf_receipt_item_type.item_type_id = sc_com_m_receipt_item.item_type_id
+      and sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+      and sc_com_m_receipt_item.loan_type = sc_lon_m_rule.loan_type
+      and sc_lon_m_rule.loan_group_code = '03'
+      and sc_com_m_receipt.receipt_mode = 'R'
+      and sc_com_m_ucf_receipt_item_type.group_item = 'LON'
+      and sc_com_m_receipt_item.item_amount &gt; 0
+    ) as R_principal_amount_03,
+    
+    (
+      select nvl(sum(sc_com_m_receipt_item.interest_amount),0)
+      from sc_com_m_receipt_item,
+          sc_com_m_ucf_receipt_item_type,
+          sc_lon_m_rule
+      where sc_com_m_ucf_receipt_item_type.item_type_id = sc_com_m_receipt_item.item_type_id
+      and sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+      and sc_com_m_receipt_item.loan_type = sc_lon_m_rule.loan_type
+      and sc_lon_m_rule.loan_group_code = '03'
+      and sc_com_m_receipt.receipt_mode = 'R'
+      and sc_com_m_ucf_receipt_item_type.group_item = 'LON'
+      and sc_com_m_receipt_item.item_amount &gt; 0
+    ) as R_interest_amount_03,
+
+     sc_mem_m_ucf_member_group.member_group_type,
+
+    ( select nvl(sum(sc_com_m_receipt_item.item_amount),0)
+    from sc_com_m_receipt_item,
+    sc_com_m_ucf_receipt_item_type
+    where sc_com_m_receipt_item.item_type_id = sc_com_m_ucf_receipt_item_type.item_type_id
+    and sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+    and sc_com_m_ucf_receipt_item_type.group_item = 'LFE'
+    ) as dep_66, /*เงินฝาก 66*/
+    
+     (
+    select nvl(sum(sc_com_m_receipt_item.principal_amount),0)
+    from sc_com_m_receipt_item
+        ,sc_com_m_ucf_money_type
+    where  sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+    and    sc_com_m_receipt.money_type_id = sc_com_m_ucf_money_type.money_type_id
+    and sc_com_m_receipt_item.item_amount &gt; 0
+    and   ( sc_com_m_receipt_item.loan_code is not null and  sc_com_m_receipt_item.loan_code != '0' )	--*เอาเฉพาะสัญญาไม่ปกติ
+    and sc_com_m_ucf_money_type.money_type_id not in (  'TBK' , 'CLR' , 'AOP' ,'TRL' ,'FUN' , 'CRC')
+    ) as loan_code_principal_amount,
+    
+    (
+    select nvl(sum(sc_com_m_receipt_item.interest_amount),0)
+    from sc_com_m_receipt_item
+        ,sc_com_m_ucf_money_type
+    where  sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+    and    sc_com_m_receipt.money_type_id = sc_com_m_ucf_money_type.money_type_id
+    and sc_com_m_receipt_item.item_amount &gt; 0
+    and   ( sc_com_m_receipt_item.loan_code is not null and  sc_com_m_receipt_item.loan_code != '0' )	--*เอาเฉพาะสัญญาไม่ปกติ
+    and sc_com_m_ucf_money_type.money_type_id not in (  'TBK' , 'CLR' , 'AOP' ,'TRL' ,'FUN' , 'CRC')
+    ) as loan_code_interest_amount
+
+
+    from sc_mem_m_membership_registered,
+    sc_com_m_ucf_money_type,
+    sc_com_m_receipt,
+    sc_com_m_receipt_item,
+    sc_com_m_ucf_receipt_item_type,
+    sc_lon_m_rule,
+    sc_mem_m_ucf_member_group
+
+    where sc_com_m_receipt.membership_no = sc_mem_m_membership_registered.membership_no 
+    and sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+    and ( sc_com_m_receipt_item.loan_type = sc_lon_m_rule.loan_type or sc_com_m_receipt_item.item_type_id = 'SB' ) /* แก้ไขซื่อหุ้นอย่างเดียวไม่ขึ้น   */
+    and sc_com_m_receipt.money_type_id = sc_com_m_ucf_money_type.money_type_id
+    and sc_com_m_ucf_receipt_item_type.item_type_id = sc_com_m_receipt_item.item_type_id
+    and sc_mem_m_ucf_member_group.member_group_no = sc_mem_m_membership_registered.member_group_no
+    and sc_com_m_receipt_item.item_amount &gt; 0
+    and exists (select null from sc_com_m_receipt_item where sc_com_m_receipt_item.item_amount &gt; 0 and receipt_no = sc_com_m_receipt.receipt_no)
+     and 1=2
+/*WHERE*/
+ --  and sc_com_m_receipt.receipt_no = 'พ6015134'
+--   and sc_com_m_receipt.receipt_date between '21/08/2017' and '22/08/2017'
+--   and sc_com_m_ucf_money_type.money_type_id = 'TRB'
+    group by sc_com_m_receipt.receipt_no ,sc_com_m_receipt.receipt_date ,sc_com_m_receipt.money_type_id ,sc_mem_m_membership_registered.membership_no
+    ,sc_mem_m_membership_registered.prename_code ,sc_mem_m_membership_registered.member_name ,sc_mem_m_membership_registered.member_surname
+    ,sc_mem_m_membership_registered.member_group_no ,sc_com_m_receipt.entry_id ,sc_com_m_receipt.branch_id ,sc_com_m_ucf_money_type.money_type_id
+    ,sc_com_m_receipt.finance_date ,sc_mem_m_membership_registered.prename_code 
+    ,sc_com_m_receipt.recept_amount ,sc_com_m_receipt.receipt_mode ,sc_mem_m_ucf_member_group.member_group_type
+order by sc_com_m_receipt.receipt_date,
+     sc_com_m_receipt.receipt_mode,
+    sc_com_m_receipt.money_type_id,
+    sc_com_m_receipt.receipt_no
+    )tm</value>
+  </data>
+  <data name="sqlDataSource1.ResultSchemaSerializable" xml:space="preserve">
+    <value>PERhdGFTZXQgTmFtZT0ic3FsRGF0YVNvdXJjZTEiPjxWaWV3IE5hbWU9IlF1ZXJ5Ij48RmllbGQgTmFtZT0iUkVDRUlQVF9EQVRFIiBUeXBlPSJEYXRlVGltZSIgLz48RmllbGQgTmFtZT0iTU9ORVlfVFlQRV9JRCIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJTX0lURU1fQU1PVU5UIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJTX0lURU1fQU1PVU5UX01PREVfRiIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iUkVDRUlQVF9NT0RFIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IlJFQ0VJUFRfTU9ERV9ERVMiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iTU9ORVlfVFlQRV9OQU1FIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IlJFQ0VJUFRfTk8iIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iTUVNQkVSX05BTUUiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iTUVNQkVSX0dST1VQX05PIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IkZVTkRfTkVXIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJCWV9TSEFSRSIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iRkVFIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJDUkVNX0FNT1VOVCIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iQ19ERVAiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IkVOVFJZX0lEIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9Ik1FTUJFUlNISVBfTk8iIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iQlJBTkNIX0lEIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IlBSSU5DSVBBTF9BTU9VTlRfMDEiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IklOVEVSRVNUX0FNT1VOVF8wMSIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iSU5URVJFU1RfQU1PVU5UXzAyIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJQUklOQ0lQQUxfQU1PVU5UXzAyIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJQUklOQ0lQQUxfQU1PVU5UXzAzIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJJTlRFUkVTVF9BTU9VTlRfMDMiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IkNPVU5UXzAxIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJDT1VOVF8wMiIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iQ09VTlRfMDMiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IkZSRUVfQU1PVU5UIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJSRUNFSVBUX01PTlRIIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJNT05USF9SRUNFSVBUX0RBVEUiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IlJfUFJJTkNJUEFMX0FNT1VOVF8wMSIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iUl9JTlRFUkVTVF9BTU9VTlRfMDEiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IlJfSU5URVJFU1RfQU1PVU5UXzAyIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJSX1BSSU5DSVBBTF9BTU9VTlRfMDIiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IlJfUFJJTkNJUEFMX0FNT1VOVF8wMyIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iUl9JTlRFUkVTVF9BTU9VTlRfMDMiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9Ik1FTUJFUl9HUk9VUF9UWVBFIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IkRFUF82NiIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iTE9BTl9DT0RFX1BSSU5DSVBBTF9BTU9VTlQiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IkxPQU5fQ09ERV9JTlRFUkVTVF9BTU9VTlQiIFR5cGU9IkRlY2ltYWwiIC8+PC9WaWV3PjwvRGF0YVNldD4=</value>
+  </data>
+  <metadata name="ReportFooter.UserDesignerLocked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <data name="total.Expression" xml:space="preserve">
+    <value>Iif(IsNull([FUND_NEW]),0 ,[FUND_NEW] ) + 
+Iif(IsNull([BY_SHARE]),0,[BY_SHARE] ) + 
+Iif(IsNull([CREM_AMOUNT]),0,[CREM_AMOUNT] ) + 
+Iif(IsNull([PRINCIPAL_01]),0 ,[PRINCIPAL_01] ) + 
+Iif(IsNull([LOAN_01]),0,[LOAN_01] ) + 
+Iif(IsNull([PRINCIPAL_02]),0 ,[PRINCIPAL_02] ) + 
+Iif(IsNull([LOAN_02]),0,[LOAN_02] ) + 
+Iif(IsNull([PRINCIPAL_03]),0,[PRINCIPAL_03] ) + 
+Iif(IsNull([LOAN_03]),0,[LOAN_03] ) + 
+[C_DEP]</value>
+  </data>
+  <data name="calculatedField1.Expression" xml:space="preserve">
+    <value>Iif(IsNull([PRINCIPAL_AMOUNT_01]),0,[PRINCIPAL_AMOUNT_01] ) + 
+Iif(IsNull([INTEREST_AMOUNT_01]),0,[INTEREST_AMOUNT_01] ) + 
+Iif(IsNull([PRINCIPAL_AMOUNT_02]),0,[PRINCIPAL_AMOUNT_02] ) + 
+Iif(IsNull([INTEREST_AMOUNT_02]),0,[INTEREST_AMOUNT_02] ) + 
+Iif(IsNull([PRINCIPAL_AMOUNT_03]),0,[PRINCIPAL_AMOUNT_03] ) + 
+Iif(IsNull([INTEREST_AMOUNT_03]),0,[INTEREST_AMOUNT_03] )</value>
+  </data>
+</root>

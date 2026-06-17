@@ -1,0 +1,66 @@
+<root>
+  <arg>
+    <loan_type default="12" text="ประเภทเงินกู้" table="sc_lon_m_rule" combo="sc_lon_m_rule2" mustvalue="1" readonly="0" comboreplace="0" combowhere="0" />
+    <requestment_date text="วันที่ขอกู้" table="sc_lon_m_loan_request" type="date" mustvalue="1" readonly="0" comboreplace="0" combowhere="0" />
+    <document_group align="center" default="1" text="กลุ่มเอกสาร" table="sc_lon_m_loan_request" type="integer2" mustvalue="1" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>SELECT  sc_lon_m_loan_request.loan_requestment_no
+,       sc_lon_m_loan_request.loan_type
+,       sc_lon_m_loan_request.requestment_date
+,       sc_lon_m_loan_request.document_group
+,       sc_lon_m_loan_request.document_status
+,       sc_lon_m_loan_request.loan_request_amount
+,       sc_lon_m_loan_request.buy_share
+,       sc_lon_m_loan_request.total_old_loan
+,       sc_lon_m_loan_request.total_oldint
+,       sc_lon_m_loan_request.real_receive
+,       sc_lon_m_loan_request.membership_no
+,       pka_com_function.fp_get_member_name( sc_lon_m_loan_request.membership_no ) as member_name
+,       sc_lon_m_loan_request_mpaid.paid_amount
+,       pka_com_function.fp_form( sc_lon_m_loan_request_mpaid.bank_acc_no , 'XXX-X-XXXXX-X' ) as bank_acc_no
+
+,       nvl((select sum(paid_amount)
+        from    sc_lon_m_loan_request_mpaid 
+        where   loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+        and     other_loan_status = '1'
+        ),0) as other_loan_amount
+
+,       nvl((select amount
+        from    sc_lon_m_req_fee
+        where   loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+        and     fee_type = decode(sc_lon_m_loan_request.loan_type,'12','48','47')
+        ),0) as forward_fee_amount
+        
+,        nvl((select amount
+        from    sc_lon_m_req_fee
+        where   loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+        and     fee_type = '01'
+        ),0) as fee_amount        
+        
+FROM 	sc_lon_m_loan_request 
+,       sc_mem_m_membership_registered 
+,       sc_mem_m_ucf_member_group 
+,       sc_lon_m_rule 
+,       si_security_user 
+,       sc_mem_m_share_mem 
+,       sc_lon_m_loan_request_mpaid
+
+WHERE   ( sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no )
+and	    ( sc_lon_m_loan_request.entry_id = si_security_user.user_id )
+and	    ( sc_mem_m_membership_registered.membership_no = sc_lon_m_loan_request.membership_no )
+and	    ( sc_lon_m_loan_request.loan_type = sc_lon_m_rule.loan_type )
+and	    ( sc_mem_m_membership_registered.membership_no = sc_mem_m_share_mem.membership_no )
+and	    ( sc_lon_m_loan_request_mpaid.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no )
+and     sc_lon_m_loan_request.cancel_status = '0'
+and     sc_lon_m_loan_request_mpaid.other_loan_status = '0'
+and     sc_lon_m_loan_request.document_status = '1'
+/*WHERE*/
+--and     sc_lon_m_loan_request.requestment_date = '21 พ.ค. 2024'
+--and     sc_lon_m_loan_request.loan_type = '12'
+--and     sc_lon_m_loan_request.document_group = '4'
+order by sc_lon_m_loan_request.loan_requestment_no</sql>
+  <sub>
+  </sub>
+  <mis />
+</root>

@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <confirm_date align="center" text="วันที่" table="sc_cls_confirm_mem" type="date" readonly="0" comboreplace="0" combowhere="0" />
+    <member_group_no text="หน่วย" table="sc_cls_confirm_mem" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>select sc_mem_m_ucf_member_group.member_group_control
+,   pka_com_function.fp_get_group_name(sc_mem_m_ucf_member_group.member_group_control) AS control_name
+,   sum((case when sc_cls_confirm_data.data_group = 'SHR' then sc_cls_confirm_data.data_balance else 0 end))as shr
+,   sum((case when sc_cls_confirm_data.data_group = 'LON' then sc_cls_confirm_data.data_balance else 0 end))as lon
+,   sum((case when sc_cls_confirm_data.data_group = 'DEP' then sc_cls_confirm_data.data_balance else 0 end))as dep
+,   count((case when sc_cls_confirm_data.data_group = 'SHR'and sc_cls_confirm_data.data_balance &gt;0 then sc_cls_confirm_data.membership_no end))as shr_member_count
+,   count(distinct(case when sc_cls_confirm_data.data_group = 'LON'and sc_cls_confirm_data.data_balance &gt;0 then sc_cls_confirm_data.membership_no end))as lon_member_count
+,   count(distinct(case when sc_cls_confirm_data.data_group = 'DEP'and sc_cls_confirm_data.data_balance &gt;0 then sc_cls_confirm_data.membership_no end))as dep_member_count
+    --,   sum(sc_cls_confirm_data.data_balance)as ddd
+    from sc_cls_confirm_data
+    ,   sc_cls_confirm_mem
+    ,   sc_mem_m_ucf_member_group
+    where 1=1
+    and sc_cls_confirm_data.confirm_date = sc_cls_confirm_mem.confirm_date
+    and sc_cls_confirm_data.membership_no = sc_cls_confirm_mem.membership_no
+    and sc_cls_confirm_mem.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+    --and sc_cls_confirm_data.confirm_date = to_date('30/09/2025','dd/mm/yyyy')
+    and sc_cls_confirm_mem.member_status_code = '0'
+    --and sc_cls_confirm_data.data_balance &gt;0
+    and sc_cls_confirm_data.data_group in ('SHR','LON','DEP')
+    /*WHERE*/
+    group by sc_mem_m_ucf_member_group.member_group_control
+    order by sc_mem_m_ucf_member_group.member_group_control</sql>
+  <sub />
+</root>

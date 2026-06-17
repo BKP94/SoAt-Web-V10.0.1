@@ -1,0 +1,256 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <membership_no special="memno" text="เลขทะเบียน" table="sc_mem_m_membership_registered" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select  /*รายละเอียดผู้ขอกู้*/
+        pka_com_function.fp_get_member_name(sc_lon_req_coll_law_head.membership_no)as member_name
+,       sc_lon_req_coll_law_head.membership_no
+,       sc_lon_req_coll_law_head.doc_no
+,       pka_com_function.fp_get_member_salary(sc_lon_req_coll_law_head.membership_no)as salary_amount
+,       pka_com_function.fp_get_member_position_long(sc_lon_req_coll_law_head.membership_no)as position
+,       pka_com_function.fp_get_group_name_mem(sc_lon_req_coll_law_head.membership_no)as group_name
+,       substr(pka_lon_reqsrv.fp_calc_agetext_m_live (sc_mem_m_membership_registered.membership_no),1,3) as age_live
+,       pka_com_function.fp_get_thaidate( sc_mem_m_membership_registered.date_of_birth  ) as date_of_birth
+,       pka_com_function.fp_get_thaidate(pka_lon_reqsrv.fp_calc_member_retire(sc_mem_m_membership_registered.membership_no)) as retire_date
+,       sc_mem_m_member_address.address_no
+,       sc_mem_m_member_address.moo
+,       sc_mem_m_member_address.soi
+,       sc_mem_m_member_address.road
+,       pka_com_function.fp_get_sub_district_name( sc_mem_m_member_address.tambol ) as tambol
+,       pka_com_function.fp_get_district_name( sc_mem_m_member_address.province_code , sc_mem_m_member_address.district_code )as district
+,       pka_com_function.fp_get_province_name( sc_mem_m_member_address.province_code )as province
+
+,       (select marriage_status 
+        from    sc_mem_m_ucf_marriage_status 
+        where   marriage_status_code =  sc_mem_m_membership_registered.marriage_status
+        )as marriage_status
+        
+,       pka_com_function.fp_get_member_spname(sc_lon_req_coll_law_head.membership_no)as spouse_name
+
+,       (select spouse_member_no 
+        from    sc_mem_m_member_spouse_info 
+        where   membership_no = sc_mem_m_membership_registered.membership_no
+        ) as spouse_member_no
+        
+,       (select substr(pka_lon_reqsrv.fp_calc_install_m_live (date_of_birth)/12 ,1,2) 
+        from    sc_mem_m_member_spouse_info 
+        where   membership_no = sc_mem_m_membership_registered.membership_no
+        ) as spouse_age
+        
+,       (select sc_mem_m_ucf_position.position_name 
+        from    sc_mem_m_member_spouse_info , sc_mem_m_ucf_position 
+        where   sc_mem_m_member_spouse_info.membership_no = sc_mem_m_membership_registered.membership_no 
+        and     sc_mem_m_member_spouse_info.position_code = sc_mem_m_ucf_position.position_code
+        ) as spouse_position
+        
+,       (select workname 
+        from    sc_mem_m_member_spouse_info 
+        where   membership_no = sc_mem_m_membership_registered.membership_no
+        ) as spouse_workname
+        
+,       (select salary_amount 
+        from    sc_mem_m_member_spouse_info 
+        where   membership_no = sc_mem_m_membership_registered.membership_no
+        ) as spouse_salary_amount
+        
+,       (select pka_com_function.fp_get_member_sharestock(spouse_member_no) 
+        from    sc_mem_m_member_spouse_info 
+        where   membership_no = sc_mem_m_membership_registered.membership_no
+        ) as spouse_share_stock
+        
+,       (select pka_com_function.fp_lon_get_balance_atnow(spouse_member_no) 
+        from    sc_mem_m_member_spouse_info 
+        where   membership_no = sc_mem_m_membership_registered.membership_no
+        ) as spouse_loan_bal
+        
+        /*ประวัติการส่งเงินสหกรณ์*/
+,       pka_com_function.fp_get_member_sharestock(sc_lon_req_coll_law_head.membership_no)as share_stock
+
+,       (select nvl(sum(sc_lon_m_loan_history.principal_of_loan),0)
+        from   sc_lon_m_loan_history
+        where  sc_lon_m_loan_history.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+        and    ( sc_lon_m_loan_history.clear_target = '1' or sc_lon_m_loan_history.clear_focus = '1')
+        ) as deduct_norm
+ 
+,       (select nvl(sum(sc_lon_m_loan_history.principal_of_loan),0)
+        from   sc_lon_m_loan_history ,sc_lon_m_rule
+        where  sc_lon_m_loan_history.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+        and    ( sc_lon_m_loan_history.clear_target = '1' or sc_lon_m_loan_history.clear_focus = '1')
+        and    sc_lon_m_rule.loan_type = sc_lon_m_loan_history.loan_type
+        and    sc_lon_m_rule.account_id = '115140'  --หนี้โครงการ
+        ) as deduct_krongkarn
+
+,       (select nvl(sum(sc_lon_m_loan_history.principal_of_loan),0)
+        from   sc_lon_m_loan_history ,sc_lon_m_rule
+        where  sc_lon_m_loan_history.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+        and    ( sc_lon_m_loan_history.clear_target = '1' or sc_lon_m_loan_history.clear_focus = '1')
+        and    sc_lon_m_rule.loan_type = sc_lon_m_loan_history.loan_type
+        and    sc_lon_m_rule.account_id = '115110' --หนี้ฉุกเฉิน
+        ) as deduct_emer
+
+        /*หลักทรัพย์ที่ประเมิน*/
+,       sc_lon_req_coll_law_house.house_detail
+,       sc_lon_req_coll_law_land.count_land
+,       sc_lon_req_coll_law_land.all_rai
+,       sc_lon_req_coll_law_land.all_nharn
+
+        /*เอกสารที่ดิน สิ่งปลูกสร้าง*/
+,       sc_lon_req_coll_law_land.land_address_no
+,       sc_lon_req_coll_law_land.portion
+,       sc_lon_req_coll_law_land.land_number
+,       sc_lon_req_coll_law_land.explore
+,       sc_lon_req_coll_law_land.book_no
+,       sc_lon_req_coll_law_land.page_no
+,       sc_lon_req_coll_law_land.all_square_two_meters
+,       sc_lon_req_coll_law_land.tambol as land_tambol
+,       sc_lon_req_coll_law_land.lh_no
+,       pka_com_function.fp_get_district_name(sc_lon_req_coll_law_land.province_code,sc_lon_req_coll_law_land.district_code) as land_district_name
+,       pka_com_function.fp_get_province_name(sc_lon_req_coll_law_land.province_code) as land_province_name
+
+        /*ผู้ถือกรรมสิทธิ์ที่ดิน*/
+,       sc_lon_req_coll_law_owner.owner_name
+
+        /*ที่ตั้งสิ่งปลูกสร้าง*/
+,       sc_lon_req_coll_law_house.address_no as house_address_no
+,       sc_lon_req_coll_law_house.moo as house_moo
+,       sc_lon_req_coll_law_house.mooban as house_mooban
+,       sc_lon_req_coll_law_house.soi as house_soi
+,       sc_lon_req_coll_law_house.road as house_road
+,       sc_lon_req_coll_law_house.tambol as house_tambol
+,       pka_com_function.fp_get_district_name(sc_lon_req_coll_law_house.province_code,sc_lon_req_coll_law_house.district_code) as house_district_name
+,       pka_com_function.fp_get_province_name(sc_lon_req_coll_law_house.province_code) as house_province_name
+
+        /*อายุของสิ่งปลูกสร้าง*/
+,       sc_lon_req_coll_law_house.house_age
+,       sc_lon_req_coll_law_house.house_state
+,       sc_lon_req_coll_law_house.house_utilization
+,       sc_lon_req_coll_law_house.house_comment
+
+        /*ราคาของการประเมินที่ดิน*/
+,       sc_lon_req_coll_law_appraise.land_coop
+,       (sc_lon_req_coll_law_appraise.land_rate * 100) as land_rate
+,       (sc_lon_req_coll_law_appraise.land_coop * sc_lon_req_coll_law_appraise.land_square) as land_coop_amount
+,       (sc_lon_req_coll_law_appraise.land_coop * sc_lon_req_coll_law_appraise.land_square * sc_lon_req_coll_law_appraise.land_rate) as land_coop_rate_amount
+
+        /*ราคาประเมินของสิ่งปลูกสร้าง*/
+,       sc_lon_req_coll_law_appraise.house_square
+,       sc_lon_req_coll_law_appraise.house_coop
+,       (sc_lon_req_coll_law_appraise.house_rate * 100) as house_rate
+,       (sc_lon_req_coll_law_appraise.house_coop * sc_lon_req_coll_law_appraise.house_square) as house_coop_amount
+,       (sc_lon_req_coll_law_appraise.house_coop * sc_lon_req_coll_law_appraise.house_square * sc_lon_req_coll_law_appraise.house_rate) as house_coop_rate_amount
+
+        /*สรุปการประเมินตามความเห็นของบริษัท*/
+,       sc_lon_req_coll_law_land.land_address_no as land_address_company
+,       sc_lon_req_coll_law_appraise.company_square
+,       sc_lon_req_coll_law_appraise.land_company
+,       (sc_lon_req_coll_law_appraise.company_square * sc_lon_req_coll_law_appraise.land_company)as land_value
+,       ((sc_lon_req_coll_law_appraise.company_square * sc_lon_req_coll_law_appraise.land_company)+sc_lon_req_coll_law_appraise.house_company)as sum_land_house_value
+,       sc_lon_req_coll_law_appraise.house_company
+,       sc_lon_req_coll_law_appraise.insure_amount
+,       sc_lon_req_coll_law_appraise.forced_sale
+,       sc_lon_req_coll_law_appraise.market_price
+
+        /*สิทธิในการกู้ตามระเบียบสหกรณ์*/
+,       (select sum(land_coop * land_square * land_rate)
+        from    sc_lon_req_coll_law_appraise 
+        where   doc_no = sc_lon_req_coll_law_head.doc_no
+        ) as loan_land_amount
+        
+,       (select sum(house_coop * house_square * house_rate)
+        from    sc_lon_req_coll_law_appraise 
+        where   doc_no = sc_lon_req_coll_law_head.doc_no
+        ) as loan_building_amount
+        
+,       (select nvl(sum(req_amount * 0.95),0)
+        from    sc_lon_m_req_coll
+        where   sc_lon_m_req_coll.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+        and     sc_lon_m_req_coll.collateral_type_code = '02' 
+        ) as share_95
+        
+,       sc_lon_m_loan_request.mem_request_amount
+,       sc_lon_m_loan_request.loan_request_amount
+
+,       (select loan_objective_description 
+        from    sc_lon_m_ucf_loan_obj 
+        where   loan_objective_code = sc_lon_m_loan_request.loan_objective_code 
+        and     loan_type = sc_lon_m_loan_request.loan_type
+        )as loan_objective_description
+
+,       (select (case when type_pay_money = 'CSH' then 'เงินสด'
+        when type_pay_money = 'TRB' then 'โอนธนาคาร'
+        when type_pay_money = 'CHQ' then 'เช็ค'
+        else type_pay_money
+        end)
+        from sc_lon_m_loan_request_mpaid where loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+        )as type_pay_money
+        
+,       sc_lon_m_loan_request.loan_installment_amount
+,       to_snumber(sc_lon_m_loan_request.loan_installment_amount/12)as loan_installment_year
+,       sc_lon_m_loan_request.period_payment_amount
+,       pka_lon_intsrv.fp_calint(null, sc_lon_m_loan_request.loan_type ,sc_lon_m_loan_request.loan_request_amount,sc_lon_m_loan_request.begining_of_contract,sc_lon_m_loan_request.start_keep_date, pka_lon_intsrv.fp_intrate_table_loantype( sc_lon_m_loan_request.loan_type , sc_lon_m_loan_request.begining_of_contract ) ,01,'1')  as interest_calculate
+,       sc_lon_m_loan_request.monthshare
+,       sc_lon_m_loan_request.other_amount
+,       sc_lon_m_loan_request.balance_salary
+
+,       (select sc_lon_m_ucf_req_doc.doc_note
+        from    sc_lon_m_req_doc
+        ,       sc_lon_m_ucf_req_doc
+        where   sc_lon_m_req_doc.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+        and     sc_lon_m_ucf_req_doc.doc_code = sc_lon_m_req_doc.doc_code
+        )as doc_note
+        
+from    sc_lon_req_coll_law_land
+,       sc_lon_req_coll_law_head
+,       sc_mem_m_membership_registered
+,       sc_mem_m_member_address
+,       sc_lon_m_loan_request
+,       sc_lon_req_coll_law_house /*รายละเอียดสิ่งปลูกสร้าง*/
+,       sc_lon_req_coll_law_appraise /*ประเมิน*/
+,       sc_lon_req_coll_law_owner /*เจ้าของ*/
+where   sc_lon_req_coll_law_land.doc_no = sc_lon_req_coll_law_head.doc_no
+and     sc_mem_m_membership_registered.membership_no = sc_lon_req_coll_law_head.membership_no
+and     sc_mem_m_member_address.membership_no = sc_lon_req_coll_law_head.membership_no
+and     sc_lon_m_loan_request.membership_no = sc_lon_req_coll_law_head.membership_no
+and     sc_lon_req_coll_law_house.doc_no = sc_lon_req_coll_law_land.doc_no
+and     sc_lon_req_coll_law_appraise.doc_no = sc_lon_req_coll_law_land.doc_no
+and     sc_lon_req_coll_law_owner.doc_no = sc_lon_req_coll_law_land.doc_no
+and     sc_lon_req_coll_law_appraise.seq_no = sc_lon_req_coll_law_house.seq_no
+and     sc_lon_m_loan_request.loan_type = '60'
+and     sc_lon_m_loan_request.cancel_status = '0'
+and     sc_mem_m_member_address.address_type = '0'
+/*ข้อมูลตรงนี้ลูกค้าต้องการแค่แถวแรก*/
+and     sc_lon_req_coll_law_owner.seq_no = (select min(seq_no)
+                                           from    sc_lon_req_coll_law_owner
+                                           where   doc_no = sc_lon_req_coll_law_owner.doc_no
+                                           )
+                                           
+and     sc_lon_req_coll_law_appraise.seq_no = (select min(seq_no)
+                                              from    sc_lon_req_coll_law_appraise
+                                              where   doc_no = sc_lon_req_coll_law_appraise.doc_no
+                                              )
+                                              
+--/*WHERE*/
+--and     sc_lon_req_coll_law_land.doc_no = 'ฉน000016'</sql>
+  <sub>
+    <r_tge_property_appraisal_nest>
+      <sql>select   /*ราคาประเมินของสิ่งปลูกสร้าง*/
+        sc_lon_req_coll_law_appraise.seq_no
+,       sc_lon_req_coll_law_appraise.house_square
+,       sc_lon_req_coll_law_appraise.house_coop
+,       (sc_lon_req_coll_law_appraise.house_rate * 100) as house_rate
+,       (sc_lon_req_coll_law_appraise.house_coop * sc_lon_req_coll_law_appraise.house_square) as house_coop_amount
+,       (sc_lon_req_coll_law_appraise.house_coop * sc_lon_req_coll_law_appraise.house_square * sc_lon_req_coll_law_appraise.house_rate) as house_coop_rate_amount
+,       sc_lon_req_coll_law_appraise.doc_no
+,       sc_lon_req_coll_law_head.membership_no
+from    sc_lon_req_coll_law_appraise
+,       sc_lon_req_coll_law_head
+where   sc_lon_req_coll_law_appraise.doc_no = sc_lon_req_coll_law_head.doc_no
+and     sc_lon_req_coll_law_appraise.doc_no = {0}
+/*WHERE*/
+--and     sc_lon_req_coll_law_appraise.doc_no = 'ฉน000016'
+order by sc_lon_req_coll_law_appraise.doc_no , sc_lon_req_coll_law_appraise.seq_no</sql>
+    </r_tge_property_appraisal_nest>
+  </sub>
+</root>

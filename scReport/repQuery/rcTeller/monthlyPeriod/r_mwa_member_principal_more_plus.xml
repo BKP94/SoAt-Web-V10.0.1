@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <member_group_no text="หน่วย" table="sc_mem_m_ucf_member_group" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    select sc_mem_m_membership_registered.membership_no ,
+    pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as member_name,
+    prename||member_name||' '||member_surname,
+    sc_lon_m_loan_card.loan_contract_no ,
+    sc_lon_m_loan_card.principal_balance ,
+    sc_lon_m_contract.begining_of_contract ,
+    sc_lon_m_rule.loan_type ,
+    sc_lon_m_rule.loan_type_description ,
+    sc_mem_m_share_mem.share_stock ,
+    sc_lon_m_contract.loan_approve_amount ,
+    sc_mem_m_membership_registered.salary_amount ,
+    sc_mem_m_membership_registered.date_of_birth ,
+    sc_lon_m_contract.loan_installment_amount   ,
+    sc_mem_m_ucf_member_group.member_group_name
+    from sc_lon_m_loan_card ,
+    sc_mem_m_membership_registered ,
+    sc_mem_m_ucf_prename ,
+    sc_lon_m_contract ,
+    sc_lon_m_rule ,
+    sc_mem_m_share_mem     ,
+    sc_mem_m_ucf_member_group
+
+    where ( sc_lon_m_loan_card.membership_no = sc_mem_m_membership_registered.membership_no )
+    and ( sc_mem_m_membership_registered.prename_code = sc_mem_m_ucf_prename.prename_code )
+    and ( sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no)
+    and ( sc_lon_m_contract.loan_contract_no = sc_lon_m_loan_card.loan_contract_no )
+    and ( sc_lon_m_rule.loan_type = sc_lon_m_contract.loan_type )
+    and ( sc_mem_m_share_mem.membership_no = sc_mem_m_membership_registered.membership_no )
+    and ( sc_lon_m_loan_card.principal_balance &gt; 0 ) 
+and ( sc_mem_m_membership_registered.member_status_code &lt;&gt; '3' )
+--     and    (sc_mem_m_membership_registered.member_group_no between :9500  and  : a9000 )  
+    /*and ( sc_mem_m_membership_registered.member_group_no = '9500' ) */
+    /*and ( sc_lon_m_loan_card.loan_type &lt;&gt; 'ฉฉ' ) )  */
+    /*WHERE*/
+
+  </sql>
+  <sub />
+</root>

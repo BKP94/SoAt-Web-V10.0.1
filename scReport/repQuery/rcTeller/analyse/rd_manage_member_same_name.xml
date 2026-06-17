@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+  </arg>
+  <combo />
+  <sql>select  		sc_mem_m_membership_registered.member_name,   
+         		sc_mem_m_membership_registered.member_surname,   
+			count( sc_mem_m_membership_registered.membership_no) as c_count  
+
+from 		sc_mem_m_ucf_member_group ,
+			sc_mem_m_membership_registered 
+where 	
+			( sc_mem_m_membership_registered.member_group_no 		= sc_mem_m_ucf_member_group.member_group_no ) and   			
+			( sc_mem_m_membership_registered.member_status_code 	&lt;&gt; '3' 	) 
+group by	sc_mem_m_membership_registered.member_name,   
+         		sc_mem_m_membership_registered.member_surname
+having		 ( count( sc_mem_m_membership_registered.member_name) &gt; 1 )   
+
+/*WHERE*/</sql>
+  <sub />
+</root>

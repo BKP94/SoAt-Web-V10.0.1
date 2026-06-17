@@ -1,0 +1,152 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <loan_contract_no text="สัญญาเลขที่" table="sc_lon_m_contract" operator="bt" readonly="0" comboreplace="0" combowhere="0" />
+    <loan_type text="ประเภทเงินกู้" table="sc_lon_m_contract" combo="sc_lon_m_rule2" readonly="0" comboreplace="0" combowhere="0" />
+    <approve_date text="วันที่อนุมัติ" table="sc_lon_m_contract" type="date" operator="bt" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT SC_MEM_M_UCF_PRENAME.prename || sc_mem_m_membership_registered.member_name || '  ' || sc_mem_m_membership_registered.member_surname AS c_name
+    ,SC_LON_M_CONTRACT.MEMBERSHIP_NO
+    ,SC_LON_M_CONTRACT.loan_contract_no
+    ,SC_LON_M_CONTRACT.real_recieve
+    ,SC_LON_M_CONTRACT.loan_approve_amount
+    ,SC_LON_M_CONTRACT.share_coll_amount
+    ,SC_LON_M_CONTRACT.real_recieve
+    ,SC_LON_M_CONTRACT.loan_installment_amount
+    ,SC_LON_M_CONTRACT.period_payment_amount
+    ,SC_MEM_M_UCF_MEMBER_GROUP_a.member_group_no
+    ,SC_MEM_M_UCF_MEMBER_GROUP_a.member_group_name
+    ,SC_LON_M_LOAN_REQUEST.total_old_loan
+    ,SC_LON_M_LOAN_REQUEST.total_oldint
+    ,SC_LON_M_LOAN_REQUEST.buy_share
+    ,SC_LON_M_LOAN_REQUEST.total_share_value
+    ,SC_LON_M_LOAN_REQUEST.fee_amount
+    ,SC_MEM_M_UCF_MEMBER_GROUP_b.member_group_name
+    ,sc_cnt_m_coop.coop_name
+    ,SC_MEM_M_UCF_MEMBER_GROUP_a.member_group_control
+    ,SC_LON_M_RULE.loan_type_description
+    --	,SC_LON_M_LOAN_REQUEST.bank_code
+    --	,SC_LON_M_LOAN_REQUEST.bank_acc_no/
+    -- ,sc_acc_m_ucf_bank.bank_name
+    ,SC_LON_M_LOAN_REQUEST.remark
+    ,(SELECT DECODE(bank_code,
+    '006', 'กรุงไทย',
+    '025', 'กรุงศรี',
+    DECODE(type_pay_money, 'TRD', 'บัญชีสหกรณ์ฯ', '')
+    ) AS bank_name
+    FROM sc_lon_m_loan_request_mpaid
+    WHERE loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no) as bank_code
+
+
+    , ( select sum(sc_com_m_receipt_item.interest_amount)
+    from sc_com_m_receipt
+    ,sc_com_m_receipt_item
+    where sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no
+    and sc_com_m_receipt.loan_contract_no = sc_lon_m_contract.loan_contract_no
+    and sc_com_m_receipt.receipt_status = '0'
+    and sc_com_m_receipt_item.item_type_id = 'PL'
+    ) as interest_amount_new
+
+    ,(select sc_lon_m_loan_request_mpaid.bank_acc_no
+    from sc_lon_m_loan_request_mpaid
+    where sc_lon_m_loan_request_mpaid.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no) as bank_acc_no
+    ,pka_com_function.fp_get_thaidate('!approve_date_1!','dd/mm/yyyy') as approve_date1
+    ,pka_com_function.fp_get_thaidate('!approve_date_2!','dd/mm/yyyy') as approve_date2
+    ,pka_com_function.fp_get_thaidate(sc_lon_m_contract.approve_date,'dd/mm/yyyy') as approve_date
+    FROM SC_LON_M_CONTRACT
+    ,sc_mem_m_membership_registered
+    ,SC_MEM_M_UCF_MEMBER_GROUP SC_MEM_M_UCF_MEMBER_GROUP_a
+    ,SC_MEM_M_UCF_PRENAME
+    ,SC_LON_M_LOAN_REQUEST
+    ,SC_MEM_M_UCF_MEMBER_GROUP SC_MEM_M_UCF_MEMBER_GROUP_b
+    ,sc_cnt_m_coop
+    ,SC_LON_M_RULE
+    -- ,sc_acc_m_ucf_bank
+    WHERE (sc_mem_m_membership_registered.member_group_no = SC_MEM_M_UCF_MEMBER_GROUP_a.member_group_no)
+    -- and sc_acc_m_ucf_bank.bank_id = SC_LON_M_LOAN_REQUEST.bank_code
+    AND (sc_mem_m_membership_registered.prename_code = SC_MEM_M_UCF_PRENAME.prename_code)
+    AND (SC_LON_M_CONTRACT.loan_requestment_no = SC_LON_M_LOAN_REQUEST.loan_requestment_no)
+    AND (SC_LON_M_CONTRACT.loan_type = SC_LON_M_LOAN_REQUEST.loan_type)
+    AND (SC_LON_M_CONTRACT.MEMBERSHIP_NO = sc_mem_m_membership_registered.membership_no)
+    AND (SC_MEM_M_UCF_MEMBER_GROUP_a.member_group_control = SC_MEM_M_UCF_MEMBER_GROUP_b.member_group_no)
+    AND (SC_LON_M_CONTRACT.loan_type = SC_LON_M_RULE.loan_type)
+    AND (SC_LON_M_CONTRACT.rec_rep_status = '1')
+    --       and ( SC_LON_M_CONTRACT.loan_contract_no between '!loan_contract_no_1!' and '!loan_contract_no_2!')
+    /*WHERE*/
+  </sql>
+  <sub>
+    <r_tnma_member_detail_nest_loan>
+      <sql>  SELECT decode(SC_COM_M_RECEIPT_ITEM.DESCRIPTION,  SC_COM_M_RECEIPT.loan_contract_no ,  'ดอกเบี้ยรับล่วงหน้า' , SC_COM_M_RECEIPT_ITEM.DESCRIPTION )as DESCRIPTION , 
+         "SC_COM_M_RECEIPT_ITEM"."SEQ_NO",   
+         "SC_COM_M_RECEIPT_ITEM"."ITEM_AMOUNT",   
+         "SC_COM_M_RECEIPT_ITEM"."INTEREST_AMOUNT",   
+         "SC_COM_M_RECEIPT_ITEM"."ITEM_TYPE_ID",   
+         "SC_COM_M_RECEIPT_ITEM"."PRINCIPAL_AMOUNT",   
+         "SC_COM_M_RECEIPT_ITEM"."RECEIPT_NO"  
+    FROM "SC_COM_M_RECEIPT",   
+         "SC_COM_M_RECEIPT_ITEM"  
+   WHERE ( "SC_COM_M_RECEIPT"."RECEIPT_NO" = "SC_COM_M_RECEIPT_ITEM"."RECEIPT_NO" ) and  
+         ( ( SC_COM_M_RECEIPT.loan_contract_no = {0} ) AND  
+         ( SC_COM_M_RECEIPT.money_type_id = 'CLR' ) AND  
+         ( SC_COM_M_RECEIPT_ITEM.item_type_id = 'PL' ) AND  
+         ( SC_COM_M_RECEIPT.receipt_status = '0' ) )    </sql>
+    </r_tnma_member_detail_nest_loan>
+    <r_tnma_member_detail_nest_clearother>
+      <sql>  SELECT "SC_COM_M_RECEIPT_ITEM"."DESCRIPTION",   
+         "SC_COM_M_RECEIPT_ITEM"."SEQ_NO",   
+         "SC_COM_M_RECEIPT_ITEM"."ITEM_AMOUNT",   
+         "SC_COM_M_RECEIPT_ITEM"."INTEREST_AMOUNT",   
+         "SC_COM_M_RECEIPT_ITEM"."ITEM_TYPE_ID",   
+         "SC_COM_M_RECEIPT_ITEM"."PRINCIPAL_AMOUNT",   
+         "SC_COM_M_RECEIPT_ITEM"."RECEIPT_NO"  
+    FROM "SC_COM_M_RECEIPT",   
+         "SC_COM_M_RECEIPT_ITEM"  
+   WHERE ( "SC_COM_M_RECEIPT"."RECEIPT_NO" = "SC_COM_M_RECEIPT_ITEM"."RECEIPT_NO" ) and  
+         ( ( SC_COM_M_RECEIPT.loan_contract_no = {0} ) AND  
+         ( SC_COM_M_RECEIPT.money_type_id = 'CLR' ) AND  
+         ( SC_COM_M_RECEIPT_ITEM.item_type_id &lt;&gt; 'PL' ) AND  
+         ( SC_COM_M_RECEIPT.receipt_status = '0' ) )    </sql>
+    </r_tnma_member_detail_nest_clearother>
+    <r_tnma_member_detail_nest_loan_ref>
+      <sql>SELECT 
+--decode(SC_COM_M_RECEIPT_ITEM.item_type_id , 'PL','ดอกเบี้ยล่วงหน้า' , SC_COM_M_RECEIPT_ITEM.description ) as description ,
+  SC_COM_M_RECEIPT_ITEM.description,   
+      --   (SC_LON_M_CONTRACT.period_payment_amount) as c_period,   
+         (SC_COM_M_RECEIPT_ITEM.interest_amount) as c_int,   
+         (SC_COM_M_RECEIPT_ITEM.principal_amount) as c_prin    ,
+         SC_COM_M_RECEIPT_ITEM.item_amount as c_period
+    FROM "SC_COM_M_RECEIPT",   
+         "SC_COM_M_RECEIPT_ITEM",   
+               "SC_LON_M_CONTRACT"  
+   WHERE ( "SC_COM_M_RECEIPT"."RECEIPT_NO" = "SC_COM_M_RECEIPT_ITEM"."RECEIPT_NO" ) and  
+--         ( "SC_LON_M_RULE"."LOAN_TYPE" = "SC_COM_M_RECEIPT_ITEM"."LOAN_TYPE" ) and  
+         ( "SC_COM_M_RECEIPT"."LOAN_CONTRACT_NO" = "SC_LON_M_CONTRACT"."LOAN_CONTRACT_NO" ) and  
+         ( ( SC_COM_M_RECEIPT.money_type_id = 'CLR' ) AND  
+      --   ( SC_COM_M_RECEIPT_ITEM.item_type_id = 'PL' ) AND  
+         ( SC_COM_M_RECEIPT.loan_contract_no = {0} ) AND  
+         ( SC_COM_M_RECEIPT.receipt_status = '0' ) )   
+
+</sql>
+    </r_tnma_member_detail_nest_loan_ref>
+    <r_tnma_member_detail_nest_loancoll>
+      <sql>
+        select sc_lon_m_contract_coll.ref_own_no as typename
+        --,decode(sc_lon_m_contract_coll.collateral_type_code,
+        --'01', sc_lon_m_contract_coll.collateral_description,
+        --'02', 'หุ้นค้ำประกัน',
+        --'12',sc_lon_m_contract_coll.collateral_description
+        --,'13',sc_lon_m_contract_coll.collateral_description) as collateral_description
+        ,(case when sc_lon_m_contract_coll.collateral_type_code = '02' then 'หุ้นค้ำประกัน'
+          else sc_lon_m_contract_coll.collateral_description end )as  collateral_description
+        
+        from sc_lon_m_contract_coll
+        ,SC_LON_M_CONTRACT
+        where 1=1
+        and sc_lon_m_contract.loan_contract_no = sc_lon_m_contract_coll.loan_contract_no
+        and  sc_lon_m_contract.loan_contract_no = {0}
+        order by to_number(sc_lon_m_contract_coll.collateral_no) asc
+      </sql>
+    </r_tnma_member_detail_nest_loancoll>
+  </sub>
+</root>

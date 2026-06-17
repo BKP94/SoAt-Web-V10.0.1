@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <membership_no text="คีย์ทะเบียนเต็ม" table="sc_mem_m_membership_registered" cascade="name" readonly="0" />
+    <name text="ชื่อ - สกุล" combo="member_name" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo>
+    <member_name>select (select prename from sc_mem_m_ucf_prename where prename_code = sc_mem_m_membership_registered.prename_code)||sc_mem_m_membership_registered.member_name||' '||sc_mem_m_membership_registered.member_surname as item_code
+    ,(select prename from sc_mem_m_ucf_prename where prename_code = sc_mem_m_membership_registered.prename_code)||sc_mem_m_membership_registered.member_name||' '||sc_mem_m_membership_registered.member_surname as item_desc
+from sc_mem_m_membership_registered
+where membership_no = {0}</member_name>
+  </combo>
+  <sql>SELECT (select prename from sc_mem_m_ucf_prename where prename_code = sc_mem_m_membership_registered.prename_code)||sc_mem_m_membership_registered.member_name||' '||sc_mem_m_membership_registered.member_surname as member_name , 
+         sc_mem_m_membership_registered.membership_no,   
+         sc_mem_m_membership_registered.member_group_no  
+FROM sc_mem_m_membership_registered
+WHERE 1 = 1
+/*WHERE*/
+--and   ( ( sc_mem_m_membership_registered.membership_no = '009532' ) )    </sql>
+  <sub />
+</root>

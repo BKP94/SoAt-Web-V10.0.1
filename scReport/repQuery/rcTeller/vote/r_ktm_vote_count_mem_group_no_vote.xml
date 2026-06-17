@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <balance_date text="วันที่" table="sc_rep_mem_share_loan_bal" type="date" column="balance_date" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+      SELECT sc_rep_mem_share_loan_bal.membership_no
+      ,	PKA_COM_FUNCTION.fp_get_member_name( sc_rep_mem_share_loan_bal.membership_no ) as membername
+      ,	sc_mem_m_ucf_member_group.member_group_control
+      ,	sc_mem_m_ucf_member_group.member_group_no
+      ,	sc_mem_m_ucf_member_group.member_group_name
+      , pka_com_function.fp_get_thaidate(sysdate , 'SD MONTH YYYY') as sysdate_tdatepka_com_function.fp_get_thaidate(sysdate , 'SD MONTH YYYY') as sysdate_tdate
+      ,	sc_rep_mem_share_loan_bal.balance_date
+      , pka_com_function.fp_get_group_name_mem(sc_mem_m_ucf_member_group.member_group_control) as mem_no
+
+      FROM sc_rep_mem_share_loan_bal,
+      sc_mem_m_ucf_member_group ,
+      sc_mem_m_ucf_region_group
+      WHERE ( sc_rep_mem_share_loan_bal.member_group_no = sc_mem_m_ucf_member_group.member_group_no ) and
+      ( sc_rep_mem_share_loan_bal.share_balance &gt; 0 ) AND
+      ( sc_rep_mem_share_loan_bal.member_status_code = '0' )
+      and     ( sc_mem_m_ucf_member_group.region_group = sc_mem_m_ucf_region_group.region_group )
+      and    ( sc_mem_m_ucf_region_group.region_group_control = '9000' )
+    /*WHERE*/
+  </sql>
+  <sub />
+</root>

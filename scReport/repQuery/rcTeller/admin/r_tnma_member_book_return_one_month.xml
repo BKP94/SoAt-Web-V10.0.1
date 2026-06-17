@@ -1,0 +1,130 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <receive_year special="year" text="ปี" table="sc_kep_t_monthly_receive" type="integer" nestwhere="1" readonly="0" comboreplace="0" combowhere="0" />
+    <receive_month special="month" text="เดือน" table="sc_kep_t_monthly_receive" type="integer" combo="monthThLong" nestwhere="1" readonly="0" comboreplace="0" combowhere="0" />
+    <member_group_no text="หน่วยงาน" table="sc_mem_m_ucf_member_group" operator="bt" combo="sc_mem_m_ucf_member_group2" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <book_no align="center" text="เลขที่หนังสือ" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <book_date align="center" text="วันที่หนังสือ" type="date" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <book_payment_date align="center" text="ชำระภายในวันที่" type="date" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo>
+    <manager_position_combo> ผู้จัดการ /ผู้ช่วยผู้จัดการ รักษาการในตำแหน่งผู้จัดการ</manager_position_combo>
+  </combo>
+  <sql>    SELECT  sc_kep_t_monthly_receive.membership_no
+      ,     PKA_COM_FUNCTION.fp_get_member_name( sc_kep_t_monthly_receive.membership_no ) AS mem_name
+      ,     sc_mem_m_ucf_member_group.member_group_no
+      ,     sc_cnt_m_coop.manager_name
+      
+, ( sc_kep_t_monthly_receive.receive_year + 543 ) AS receive_year
+, PKA_COM_FUNCTION.fp_get_month_name(sc_kep_t_monthly_receive.receive_month) AS receive_month
+      ,     to_snumber( NVL( PKA_KEP.fp_get_money_amount_unk(sc_kep_t_monthly_receive.membership_no, sc_kep_t_monthly_receive.receive_year, sc_kep_t_monthly_receive.receive_month, sc_kep_t_monthly_receive.seq_no  ),0) - NVL(sc_kep_t_monthly_receive.ppm_amount,0) ) AS kep_ppm_amount
+      ,     sc_kep_t_monthly_receive.kep_method_amount
+      
+      ,     '!book_no_1!' as book_no
+      ,     PKA_COM_FUNCTION.fp_get_thaidate( '!book_date_1!' , 'SD  MONTH  YYYY' ) as book_date
+      ,     PKA_COM_FUNCTION.fp_get_thaidate( '!book_payment_date_1!' , 'SD MONTH YYYY' ) as book_payment_date
+      
+            -- ที่อยู่ สหกรณ์
+      ,     sc_cnt_m_coop.coop_name
+      ,     sc_cnt_m_coop.address AS coop_address
+      ,     sc_cnt_m_coop.muu AS coop_muu
+      ,     sc_cnt_m_coop.road AS coop_road
+      ,     sc_cnt_m_coop.tumbol_name AS coop_tumbol_name
+      ,     PKA_COM_FUNCTION.fp_get_district_name( sc_cnt_m_coop.province_code , sc_cnt_m_coop.district_code ) AS coop_district_name 
+      ,     PKA_COM_FUNCTION.fp_get_province_name( sc_cnt_m_coop.province_code ) AS coop_province_name 
+      ,     sc_cnt_m_coop.postcode AS coop_postcode
+      
+              -- ที่อยู่ปัจจุบัน สมาชิก
+--     ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '6' ) , '-' , '' , 'บ้านเลขที่ ' || PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '6' ) ) AS address_pres_address_no
+--      ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '8' ) , '-' , '' , ' หมู่ที่  ' || PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '8' ) ) AS address_pres_moo
+--      ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '7' ) , '-' , '' , ' หมู่บ้าน ' || PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '7' ) ) AS address_pres_mooban
+--      ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '9' ) , '-' , '' , ' ถนน ' || PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '9' ) ) AS address_pres_road
+--      ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '10' ) , '-' , '' , ' ซอย ' || PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '10' ) ) AS address_pres_soi
+--      ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '11' ) , '-' , '' , ' ตำบล ' || PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '11' ) ) AS address_pres_tambol
+--      ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '12' ) , '-' , '' , 'อำเภอ ' || PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '12' ) ) AS address_pres_district
+--      ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '13' ) , '-' , '' , ' จังหวัด ' || PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '13' ) ) AS address_pres_province
+--      ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '14' ) , '-' , '' , PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '14' ) ) AS address_pres_post
+--      ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '15' ) , '-' , '' , 'เบอร์โทรศัพท์ ' || PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '15' ) ) AS address_pres_telephone
+ 
+
+       ,PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '6' ) AS address_no
+       ,PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '8' ) AS moo
+       ,PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '7' ) as mooban
+       ,PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '9' )AS road
+       ,PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '10' ) AS soi
+       ,PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '11' ) AS tambol
+       ,PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '12' ) AS district
+       ,PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '13' ) AS province
+       ,PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '14' ) AS postcode
+       ,PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '15' ) as telephone
+      
+      
+    FROM    sc_kep_t_monthly_receive
+     ,      sc_mem_m_membership_registered
+     ,      sc_mem_m_ucf_member_group
+     ,      sc_cnt_m_coop
+    
+    WHERE   1=1
+    AND     sc_kep_t_monthly_receive.membership_no = sc_mem_m_membership_registered.membership_no
+    AND     sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+    AND     sc_kep_t_monthly_receive.receipt_status = '2'
+    AND     NVL( PKA_KEP.fp_get_money_amount_unk(sc_kep_t_monthly_receive.membership_no, sc_kep_t_monthly_receive.receive_year, sc_kep_t_monthly_receive.receive_month, sc_kep_t_monthly_receive.seq_no  ),0) &gt; NVL(sc_kep_t_monthly_receive.ppm_amount,0)
+    --AND     sc_kep_t_monthly_receive.receive_year = 2025
+    --AND     sc_kep_t_monthly_receive.receive_month = 8
+    /*WHERE*/
+    
+    ORDER BY sc_mem_m_ucf_member_group.member_group_no , sc_kep_t_monthly_receive.membership_no ASC
+    </sql>
+  <sub>
+    <r_tnma_member_book_return_one_month_nest_1>
+      <sql> select     tab.*
+ FROM
+ (       SELECT  sc_kep_m_ucf_keeping_item_type.keeping_type_group
+          ,     sc_kep_m_ucf_process.proc_detail
+          ,     sc_kep_m_ucf_process.order_no 
+          --,     sc_kep_m_ucf_keeping_item_type.keeping_type_code
+          --,     sc_kep_m_ucf_keeping_item_type.keeping_type_name
+          --,     sc_kep_t_monthly_receive_det.loan_type AS loan_type
+          ,     SUM( sc_kep_t_monthly_receive_det.unkeep_money_amount ) AS unkeep_money_amount
+          
+          ,     SUM( ( sc_kep_t_monthly_receive_det.unkeep_money_amount ) - NVL( (   SELECT  SUM( sc_com_m_receipt_item.item_amount ) AS item_amount
+                                                                                        FROM    sc_com_m_receipt
+                                                                                         ,      sc_com_m_receipt_item
+                                                                                        WHERE   sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no
+                                                                                        AND     ( sc_com_m_receipt.money_type_id = 'PPM' OR sc_com_m_receipt.receipt_mode = 'R' )
+                                                                                        AND     sc_com_m_receipt.month_membership_no = sc_kep_t_monthly_receive_det.membership_no
+                                                                                        AND     sc_com_m_receipt.month_receive_year = sc_kep_t_monthly_receive_det.receive_year
+                                                                                        AND     sc_com_m_receipt.month_receive_month = sc_kep_t_monthly_receive_det.receive_month
+                                                                                        AND     sc_com_m_receipt_item.loan_type = sc_kep_t_monthly_receive_det.loan_type
+                                                                                  ),0)
+                ) AS after_unkeep_amount
+        
+        FROM    sc_kep_t_monthly_receive_det
+         ,      sc_kep_t_monthly_receive
+         ,      sc_kep_m_ucf_keeping_item_type
+         ,      sc_mem_m_ucf_member_group
+         ,      sc_kep_m_ucf_process
+        
+        WHERE   1=1
+        AND     sc_kep_t_monthly_receive_det.membership_no = sc_kep_t_monthly_receive.membership_no
+        AND     sc_kep_t_monthly_receive_det.receive_year = sc_kep_t_monthly_receive.receive_year
+        AND     sc_kep_t_monthly_receive_det.receive_month = sc_kep_t_monthly_receive.receive_month
+        AND     sc_kep_t_monthly_receive_det.keeping_type_code = sc_kep_m_ucf_keeping_item_type.keeping_type_code
+        AND     sc_kep_t_monthly_receive.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+        AND     sc_kep_m_ucf_keeping_item_type.keeping_type_group = sc_kep_m_ucf_process.proc_code
+        AND     sc_kep_t_monthly_receive.receipt_status = '2'
+        AND     NVL( PKA_KEP.fp_get_money_amount_unk(sc_kep_t_monthly_receive.membership_no, sc_kep_t_monthly_receive.receive_year, sc_kep_t_monthly_receive.receive_month, sc_kep_t_monthly_receive.seq_no  ),0) &gt; NVL(sc_kep_t_monthly_receive.ppm_amount,0)
+        AND     sc_kep_t_monthly_receive_det.membership_no = {0}
+        /*WHERE*/
+        
+        GROUP BY sc_kep_m_ucf_keeping_item_type.keeping_type_group , sc_kep_m_ucf_process.proc_detail , sc_kep_m_ucf_process.order_no 
+            --, sc_kep_m_ucf_keeping_item_type.keeping_type_code , sc_kep_m_ucf_keeping_item_type.keeping_type_name , sc_kep_t_monthly_receive_det.loan_type
+        
+        ORDER BY sc_kep_m_ucf_process.order_no ASC
+    ) tab
+    
+WHERE   tab.after_unkeep_amount &gt; 0</sql>
+    </r_tnma_member_book_return_one_month_nest_1>
+  </sub>
+</root>

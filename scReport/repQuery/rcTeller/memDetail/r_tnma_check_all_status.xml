@@ -1,0 +1,68 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <member_group_no text="หน่วย" table="sc_mem_m_ucf_member_group" operator="bt" nulltext="ดูทั้งหมด ไม่ต้องเลือกนะจ๊ะ" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    select sc_mem_m_ucf_member_group.member_group_control
+    ,   sc_mem_m_membership_registered.member_group_no
+    ,   sc_mem_m_membership_registered.membership_no
+    ,   pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no)as mem_name
+    ,   sc_mem_m_ucf_debtor.debtor_desc
+    ,   sc_mem_m_ucf_other_code.mem_type_desc
+    ,   sc_mem_m_ucf_shareloan_status.description
+    ,   sc_mem_m_ucf_othersaving.saving_name
+    ,   tab_lon.loan_contract_no
+    ,   tab_lon.principal_balance
+    ,   tab_lon.begining_of_contract
+    ,   tab_lon.loan_approve_amount
+
+    ,   tab_coll.loan_contract_no
+    ,   tab_coll.ref_own_no
+    ,   tab_coll.collateral_description
+
+    from sc_mem_m_membership_registered
+    ,   sc_mem_m_ucf_member_group
+    ,   sc_mem_m_ucf_debtor
+    ,   sc_mem_m_ucf_other_code
+    ,   sc_mem_m_ucf_shareloan_status
+    ,   sc_mem_m_ucf_othersaving
+
+    ,   (select sc_lon_m_contract.membership_no
+    ,   sc_lon_m_loan_card.loan_contract_no
+    ,  sc_lon_m_loan_card.principal_balance
+    ,   pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract)as begining_of_contract
+    ,   sc_lon_m_contract.loan_approve_amount
+    from sc_lon_m_loan_card
+    ,   sc_lon_m_contract
+    where sc_lon_m_loan_card.loan_contract_no = sc_lon_m_contract.loan_contract_no
+    and sc_lon_m_loan_card.principal_balance > 0
+    and sc_lon_m_loan_card.loan_type = 'ป'
+    )tab_lon
+
+    ,   (select sc_lon_m_contract_coll.loan_contract_no
+    ,   sc_lon_m_contract_coll.ref_own_no
+    ,   sc_lon_m_contract_coll.collateral_description
+    from sc_lon_m_contract_coll
+    where sc_lon_m_contract_coll.collateral_type_code = '01'
+    and sc_lon_m_contract_coll.status = '0'
+    )tab_coll
+
+    where 1=1
+    and sc_mem_m_ucf_member_group.member_group_no = sc_mem_m_membership_registered.member_group_no
+    and sc_mem_m_membership_registered.membership_no = tab_lon.membership_no(+)
+    and tab_lon.loan_contract_no = tab_coll.loan_contract_no(+)
+    and sc_mem_m_ucf_debtor.debtor_code = sc_mem_m_membership_registered.debtor_code
+    and sc_mem_m_ucf_other_code.mem_type_code = sc_mem_m_membership_registered.other_status
+    and sc_mem_m_ucf_shareloan_status.shareloan_code = sc_mem_m_membership_registered.shareloan_code
+    and sc_mem_m_ucf_othersaving.other_saving_member = sc_mem_m_membership_registered.other_saving_member
+    and (sc_mem_m_ucf_debtor.debtor_desc like '%อายัด%' or sc_mem_m_ucf_other_code.mem_type_desc like '%อายัด%'
+    or sc_mem_m_ucf_shareloan_status.description like '%อายัด%' or sc_mem_m_ucf_othersaving.saving_name like '%อายัด%')
+    /*WHERE*/
+    order by sc_mem_m_ucf_member_group.member_group_control
+    ,   sc_mem_m_membership_registered.member_group_no
+    ,   sc_mem_m_membership_registered.membership_no
+  </sql>
+  <sub />
+</root>

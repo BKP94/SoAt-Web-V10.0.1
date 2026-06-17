@@ -1,0 +1,75 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <year_1 align="center" special="year" text="ปี" column="year_1" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <month_1 align="center" special="month" text="เดือน" column="month_1" combo="monthThLong" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select
+    sc_lon_m_contract.begining_of_contract,
+    sc_lon_m_rule.loan_type_group,
+    sc_lon_m_rule.loan_type_description,
+    sc_lon_m_rule.loan_type,
+    pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract, 'YYYY') as begin_year,
+    pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract, 'MONTH') as begin_month,
+    count(sc_lon_m_contract.loan_contract_no) as c_count,
+    sum(sc_lon_m_contract.real_recieve) as c_real,
+    sum(sc_lon_m_contract.paid_first_amount) as c_app,
+    sum(sc_lon_m_contract.loan_approve_amount) as c_app_1,
+
+    sum((
+        select nvl(sum(sc_com_m_receipt_item.item_amount),0)
+        from sc_com_m_receipt_item,
+             sc_com_m_receipt
+        where sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no
+          and sc_com_m_receipt.money_type_id in('CLR','TRL')
+          and sc_com_m_receipt_item.item_type_id = 'PL'
+          and sc_com_m_receipt.receipt_status = '0'
+          and sc_com_m_receipt.loan_contract_no = sc_lon_m_loan_card.loan_contract_no
+    )) as old_loan,
+
+sum((SELECT 
+    nvl(sum(sc_lon_m_req_fee.amount),0)
+FROM sc_com_m_receipt
+,sc_com_m_receipt_item
+,sc_lon_m_req_fee
+where sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no
+--and sc_com_m_receipt_item.item_type_id = 'PL'
+and sc_com_m_receipt.loan_contract_no = sc_lon_m_loan_card.loan_contract_no
+and sc_lon_m_contract.loan_contract_no = sc_lon_m_loan_card.loan_contract_no
+and sc_lon_m_req_fee.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
+and sc_lon_m_req_fee.fee_type = '20')) as dep_amount_66,
+
+    sum((
+        select nvl(sum(sc_com_m_receipt_item.interest_amount),0)
+        from sc_com_m_receipt_item,
+             sc_com_m_receipt
+        where sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no
+          and sc_com_m_receipt.money_type_id in('CLR','TRL')
+          and sc_com_m_receipt_item.item_type_id = 'PL'
+          and sc_com_m_receipt.receipt_status = '0'
+          and sc_com_m_receipt.loan_contract_no = sc_lon_m_loan_card.loan_contract_no
+    )) as old_int
+
+from
+    sc_lon_m_contract,
+    sc_lon_m_loan_card,
+    sc_lon_m_rule
+
+where
+    sc_lon_m_contract.loan_contract_no = sc_lon_m_loan_card.loan_contract_no
+    and sc_lon_m_loan_card.loan_type = sc_lon_m_rule.loan_type
+    and extract(year from to_date(sc_lon_m_contract.begining_of_contract)) = '!year_1!'
+    and extract(month from to_date(sc_lon_m_contract.begining_of_contract)) = '!month_1!'
+    and nvl(sc_lon_m_rule.loan_type_group,0) not in ('99') 
+
+group by
+    sc_lon_m_contract.begining_of_contract,
+    sc_lon_m_rule.loan_type_group,
+    sc_lon_m_rule.loan_type_description,
+    sc_lon_m_rule.loan_type,
+    sc_lon_m_contract.begining_of_contract
+
+order by  sc_lon_m_rule.loan_type_group</sql>
+  <sub />
+</root>

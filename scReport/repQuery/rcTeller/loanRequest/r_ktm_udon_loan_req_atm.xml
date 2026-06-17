@@ -1,0 +1,111 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <begining_of_contract text="วันที่เริ่มสัญญา" table="sc_lon_m_loan_request" type="date" column="begining_of_contract" operator="bt" readonly="0" />
+    <member_group_control text="หน่วยคุม" table="sc_mem_m_ucf_member_group" column="member_group_control" combo="sc_mem_m_ucf_member_group4" readonly="0" />
+    <approve_status text="สถานะ" table="sc_lon_m_loan_request" column="approve_status" combo="approve_status" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    select sum(row_memno) over ( partition by  tab.member_group_control order by tab.member_group_control,tab.member_group_no,tab.loan_requestment_no) as rowno ,tab.*
+    from ( select sc_lon_m_loan_request.loan_requestment_no ,
+    decode(lag(sc_mem_m_membership_registered.membership_no,null,1)over(order by sc_mem_m_ucf_member_group.member_group_control ,sc_mem_m_ucf_member_group.member_group_no ,sc_lon_m_loan_request.loan_requestment_no) ,sc_mem_m_membership_registered.membership_no,0,1) as row_memno,
+    sc_lon_m_loan_request.requestment_date ,
+    PKA_COM_FUNCTION.fp_get_thaidate( sc_lon_m_loan_request.requestment_date ) AS requestment_date_tdate ,
+    sc_lon_m_loan_request.loan_type ,
+    sc_lon_m_loan_request.membership_no ,
+    PKA_COM_FUNCTION.fp_get_member_name( sc_lon_m_loan_request.membership_no ) AS membername ,
+    sc_lon_m_loan_request.loan_request_amount ,
+    sc_lon_m_loan_request.mem_request_amount ,
+    sc_lon_m_loan_request.period_payment_amount ,
+    sc_lon_m_loan_request.loan_installment_amount ,
+    sc_lon_m_loan_request.begining_of_contract ,
+    sc_lon_m_loan_request.remark ,
+    sc_lon_m_loan_request.start_keep_date ,
+    sc_lon_m_loan_request.salary_amount ,
+    sc_lon_m_loan_request.total_old_loan ,
+    sc_lon_m_loan_request.total_oldint ,
+    sc_lon_m_loan_request.loan_payment_type_code ,
+    sc_lon_m_loan_request.entry_id ,
+    sc_lon_m_loan_request.fee_amount ,
+    sc_lon_m_loan_request.total_share_value ,
+
+    sc_lon_m_loan_request.entry_date ,
+    sc_lon_m_loan_request.approve_status ,
+    sc_lon_m_loan_request.cancel_status ,
+    sc_lon_m_loan_request.approve_id ,
+    sc_lon_m_loan_request.interest_first int_approx,
+    sc_lon_m_loan_request.buy_share ,
+    sc_lon_m_loan_request.max_loan_permit ,
+    sc_lon_m_loan_request.contract_code ,
+    ( select sc_lon_m_ucf_loan_obj.loan_objective_description
+    from sc_lon_m_ucf_loan_obj
+    where trim(sc_lon_m_loan_request.loan_type) = trim(sc_lon_m_ucf_loan_obj.loan_type)
+    and  sc_lon_m_loan_request.loan_objective_code  = sc_lon_m_ucf_loan_obj.loan_objective_code ) as loan_objective_description,
+    sc_lon_m_rule.loan_type_description ,
+    sc_mem_m_ucf_member_group.member_group_no,
+    sc_mem_m_ucf_member_group.member_group_name,
+    sc_mem_m_ucf_member_group.member_group_control ,
+    pka_com_function.fp_get_group_name(sc_mem_m_ucf_member_group.member_group_control) AS member_control_name,
+    sc_mem_m_ucf_member_group.control_id,
+    sc_com_m_branch.branch_id ,
+    sc_com_m_branch.branch_name,
+    sc_lon_m_loan_request.interest_first,
+
+    NVL(sc_mem_m_member_work_info.position_long,'ไม่ได้ระบุ') position_long,
+    sc_mem_m_share_mem.period_recrieve,
+    sc_mem_m_share_mem.share_amount,
+    sc_mem_m_share_mem.share_stock,
+    sc_mem_m_ucf_group_position.description,
+    sc_mem_m_member_work_info.group_position ,
+    sc_mem_m_ucf_member_type.mem_type_desc ,
+    sc_mem_m_ucf_member_type.mem_type_code
+    ,sc_lon_m_loan_request.bank_code
+    ,sc_lon_m_loan_request.bank_acc_no
+    ,sc_com_m_ucf_money_type.money_type_id
+    ,sc_com_m_ucf_money_type.money_type_name
+    FROM sc_lon_m_loan_request ,
+    sc_mem_m_membership_registered ,
+    sc_mem_m_ucf_member_group ,
+    sc_lon_m_rule ,
+    sc_com_m_branch,
+    si_security_user,
+    sc_mem_m_member_work_info,
+    sc_mem_m_share_mem ,
+    sc_mem_m_ucf_group_position ,
+    sc_mem_m_ucf_member_type
+    ,sc_com_m_ucf_money_type
+    WHERE ( sc_lon_m_loan_request.membership_no          = sc_mem_m_membership_registered.membership_no )
+    AND ( sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no )
+    AND ( trim(sc_lon_m_loan_request.loan_type )        = trim(sc_lon_m_rule.loan_type) )
+    AND ( sc_lon_m_loan_request.entry_br                 = sc_com_m_branch.branch_id )
+    AND (sc_lon_m_loan_request.entry_id                  = si_security_user.user_id)
+    AND (sc_mem_m_member_work_info.membership_no         = sc_lon_m_loan_request.membership_no)
+    AND (sc_mem_m_share_mem.membership_no                = sc_lon_m_loan_request.membership_no)
+    AND (sc_mem_m_ucf_group_position.group_position      = sc_mem_m_member_work_info.group_position)
+    and sc_lon_m_loan_request.cancel_status  = '0'
+    AND (sc_lon_m_rule.atm_status = '1' )
+    AND sc_mem_m_membership_registered.mem_type          = sc_mem_m_ucf_member_type.mem_type_code
+    and  sc_lon_m_loan_request.type_pay_money = sc_com_m_ucf_money_type.money_type_id
+    /*WHERE*/
+    )tab
+  </sql>
+  <sub>
+    <r_ktm_udon_loan_req_atm_nest_old_loan>
+      <sql>
+        SELECT sc_lon_m_loan_history.sequence_no,
+        sc_lon_m_loan_history.loan_contract_no,
+        sc_lon_m_loan_history.principal_balance_of_loan,
+        sc_lon_m_loan_history.last_period,
+        sc_lon_m_loan_history.clear_target,
+        sc_lon_m_loan_history.principal_of_loan,
+        sc_lon_m_loan_card.pending_amount,
+        sc_lon_m_loan_history.interest_amount
+        FROM sc_lon_m_loan_history,
+        sc_lon_m_loan_card
+        WHERE ( sc_lon_m_loan_history.loan_contract_no = sc_lon_m_loan_card.loan_contract_no ) 
+        and   ( ( sc_lon_m_loan_history.loan_requestment_no = {0} ) )
+      </sql>
+    </r_ktm_udon_loan_req_atm_nest_old_loan>
+  </sub>
+</root>

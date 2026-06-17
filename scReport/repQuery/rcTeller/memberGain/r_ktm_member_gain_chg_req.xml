@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <change_date text="วันที่ยื่น" table="sc_mem_m_gain_change_head" type="date" column="change_date" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    select sum(tab.row_memno)over(order by tab.change_doc_no) as rowno,  tab.*
+    from ( SELECT sc_mem_m_gain_change_head.change_doc_no,
+    decode(lag(sc_mem_m_gain_change_head.membership_no,1,null)over(  order by sc_mem_m_gain_change_head.change_doc_no) ,sc_mem_m_gain_change_head.membership_no,0,1) as row_memno,
+    sc_mem_m_gain_change_head.membership_no,
+    sc_mem_m_gain_change_head.member_name,
+    sc_mem_m_gain_change_head.change_date,
+    sc_mem_m_gain_change_head.approve_status,
+    sc_mem_m_gain_change_head.entry_id,
+    pka_com_function.fp_get_user_name(sc_mem_m_gain_change_head.entry_id) as entry_name,
+    sc_mem_m_gain_change_head.entry_date,
+    sc_mem_m_gain_change_head.remark,
+    sc_mem_m_gain_change_det.seq_no,
+    sc_mem_m_gain_change_det.operate_type,
+    (case sc_mem_m_gain_change_det.operate_type
+    when 'NC' then 'คงเดิม'
+    when 'CG' then 'เปลี่ยน'
+    when 'DL' then 'ยกเลิก'
+    when 'NW' then 'เพิ่ม'
+    end) as operate_type_name,
+    sc_mem_m_gain_change_det.old_prename_code,
+    (select prename from sc_mem_m_ucf_prename where prename_code = sc_mem_m_gain_change_det.old_prename_code ) as old_prename,
+    sc_mem_m_gain_change_det.old_gain_name,
+    sc_mem_m_gain_change_det.old_gain_surname,
+    sc_mem_m_gain_change_det.old_concern_code,
+    (select related_na from sc_mem_m_ucf_concern where conceern_code = sc_mem_m_gain_change_det.old_concern_code ) as old_related_na,
+    sc_mem_m_gain_change_det.new_prename_code,
+    (select prename from sc_mem_m_ucf_prename where prename_code = sc_mem_m_gain_change_det.new_prename_code ) as new_prename,
+    sc_mem_m_gain_change_det.new_gain_name,
+    sc_mem_m_gain_change_det.new_gain_surname,
+    sc_mem_m_gain_change_det.new_concern_code,
+    (select related_na from sc_mem_m_ucf_concern where conceern_code = sc_mem_m_gain_change_det.new_concern_code ) as new_related_na,
+    sc_mem_m_gain_change_det.new_gain_id_card,
+    pka_com_function.fp_form( sc_mem_m_gain_change_det.new_gain_id_card , 'X-XXXX-XXXXX-XX-XXXXXXXX' ) as from_new_gain_id_card,
+    sc_mem_m_gain_change_det.new_gain_telephone
+    FROM sc_mem_m_gain_change_head,
+    sc_mem_m_gain_change_det,
+    sc_mem_m_membership_registered,
+    sc_mem_m_ucf_member_group
+    WHERE ( sc_mem_m_gain_change_head.change_doc_no = sc_mem_m_gain_change_det.change_doc_no ) and
+    ( sc_mem_m_gain_change_head.membership_no = sc_mem_m_membership_registered.membership_no ) and
+    ( sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no ) and
+    ( ( sc_mem_m_gain_change_head.approve_status &lt;&gt; '0'  ) )
+    /*WHERE*/
+    order by sc_mem_m_gain_change_head.change_doc_no
+    ,sc_mem_m_gain_change_det.seq_no
+    )tab
+  </sql>
+  <sub />
+</root>

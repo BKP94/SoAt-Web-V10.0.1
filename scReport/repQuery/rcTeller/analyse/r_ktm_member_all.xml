@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <member_group_no text="หน่วย" table="sc_mem_m_membership_registered" column="member_group_no" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    select sc_mem_m_membership_registered.membership_no ,
+    sc_mem_m_membership_registered.member_group_no,
+    sc_mem_m_ucf_prename.prename||sc_mem_m_membership_registered.member_name||' '||sc_mem_m_membership_registered.member_surname as memname,
+    --pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as memname,
+    pka_lon_reqsrv.fp_calc_agetext(sc_mem_m_membership_registered.date_of_birth) as age_mem ,
+    PKB_KTM.fp_get_loan_balance_type(sc_mem_m_membership_registered.membership_no , '9' ) as loan_bal_9 ,
+    PKB_KTM.fp_get_loan_balance_type(sc_mem_m_membership_registered.membership_no , '2' ) as loan_bal_2 ,
+    PKB_KTM.fp_get_loan_balance_type(sc_mem_m_membership_registered.membership_no , '4' ) as loan_bal_4 ,
+    PKB_KTM.fp_get_loan_balance_type(sc_mem_m_membership_registered.membership_no , '6' ) as loan_bal_6 ,
+    PKB_KTM.fp_get_loan_balance_type(sc_mem_m_membership_registered.membership_no , '8' ) as loan_bal_8 ,
+    PKB_KTM.fp_get_loan_balance_type(sc_mem_m_membership_registered.membership_no , '3' ) as loan_bal_3 ,
+    pka_com_function.fp_get_member_sharestock(sc_mem_m_membership_registered.membership_no) as share_stock
+
+    from sc_mem_m_membership_registered ,
+    sc_mem_m_ucf_member_group,
+    sc_mem_m_ucf_prename
+
+    where sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+    and   ( sc_mem_m_membership_registered.prename_code = sc_mem_m_ucf_prename.prename_code )
+    and sc_mem_m_membership_registered.member_status_code = '0'
+    /*WHERE*/
+    --and sc_mem_m_membership_registered.member_group_no between '011000' and '011007'
+    order by sc_mem_m_membership_registered.date_of_birth,
+    sc_mem_m_membership_registered.membership_no
+  </sql>
+  <sub />
+</root>

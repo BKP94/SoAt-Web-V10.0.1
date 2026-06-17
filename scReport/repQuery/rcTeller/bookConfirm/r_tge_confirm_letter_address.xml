@@ -1,0 +1,94 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="T080" rep_text="หนังสือยืนยันยอด">
+  <arg>
+    <confirm_date align="center" text="วันที่ยืนยัน" table="sc_cls_confirm_data" type="date" readonly="0" />
+    <member_group_no text="หน่วย" table="sc_mem_m_ucf_member_group" column="member_group_no" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+    <book_no align="center" default="/2566" text="ที่" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <book_date align="center" text="วันที่พิมพ์" type="date" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <membership_no align="center" special="memno" text="ทะเบียน" table="sc_cls_confirm_mem" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select  sc_mem_m_ucf_member_group.member_group_no
+,       sc_mem_m_ucf_member_group.member_group_name
+,       sc_cls_confirm_mem.membership_no
+,       sc_cls_confirm_mem.member_fullname as member_name
+,       sc_cls_confirm_data.data_balance as share_stock
+,       (select month_name_thai from sc_cnt_m_month where month_no = extract(month from sc_cls_confirm_data.confirm_date)) as confirm_month_thai
+,       extract(year from sc_cls_confirm_data.confirm_date)+543 as confirm_year
+,       sc_cls_confirm_data.confirm_date
+,       pka_com_function.fp_get_member_address_letter( sc_cls_confirm_mem.membership_no , 0 , 1 ) as line_1
+,       pka_com_function.fp_get_member_address_letter( sc_cls_confirm_mem.membership_no , 0 , 2 ) as line_2
+,       pka_com_function.fp_get_member_address_letter( sc_cls_confirm_mem.membership_no , 0 , 3 )||' '||pka_com_function.fp_get_member_address_letter( sc_cls_confirm_mem.membership_no , 0 , 4 ) as line_3
+,       (select manager_name from sc_cnt_m_coop) as manager_name
+,       '!book_no!' as book_no
+,       '!book_date!' as book_date
+,       sc_cls_confirm_cnt.confirm_letter
+,       sc_cls_confirm_cnt.confirm_return
+,       sc_cls_confirm_cnt.auditor_name
+,       sc_cls_confirm_cnt.auditor_address1
+,       sc_cls_confirm_cnt.auditor_address2
+,       sc_cls_confirm_cnt.auditor_address3
+,       sc_cls_confirm_cnt.auditor_address4
+from    sc_cls_confirm_mem
+,       sc_cls_confirm_data
+,       sc_mem_m_ucf_member_group
+,       sc_cls_confirm_letter
+,       sc_cls_confirm_cnt
+where   sc_cls_confirm_mem.confirm_date = sc_cls_confirm_data.confirm_date
+and     sc_cls_confirm_mem.membership_no = sc_cls_confirm_data.membership_no
+and     sc_mem_m_ucf_member_group.member_group_no = sc_cls_confirm_mem.member_group_no
+and     sc_cls_confirm_letter.confirm_date = sc_cls_confirm_mem.confirm_date
+and     sc_cls_confirm_letter.membership_no = sc_cls_confirm_mem.membership_no
+and     sc_cls_confirm_cnt.confirm_date = sc_cls_confirm_letter.confirm_date
+and     sc_cls_confirm_mem.member_status_code = '0'  
+and     sc_cls_confirm_mem.mem_type = '01'
+and     sc_cls_confirm_data.data_group = 'SHR'
+/*WHERE*/
+--and     sc_cls_confirm_data.confirm_date = '31/07/2023'
+--and     sc_cls_confirm_mem.membership_no = '051847'
+order by sc_mem_m_ucf_member_group.member_group_no , sc_cls_confirm_mem.membership_no</sql>
+  <sub>
+    <r_tge_confirm_letter_nest>
+      <sql>select  seq_no , account_name , data_refno , data_balance , data_group , confirm_date , membership_no
+from    (
+select  substr(sc_acc_m_account_master.account_name,8,100) as account_name
+,       sc_cls_confirm_data.membership_no
+,       sc_cls_confirm_data.confirm_date
+,       sc_cls_confirm_data.seq_no 
+,       sc_cls_confirm_data.data_refno 
+,       sc_cls_confirm_data.data_balance
+,       sc_cls_confirm_data.data_group
+from    sc_cls_confirm_data
+,       sc_acc_m_account_master
+,       sc_lon_m_rule
+where   sc_cls_confirm_data.data_type = sc_lon_m_rule.loan_type
+and     sc_acc_m_account_master.account_id = sc_lon_m_rule.account_id
+and     sc_cls_confirm_data.data_group = 'LON'
+and     sc_cls_confirm_data.data_balance &gt; '0'
+/*WHERE*/
+and     sc_cls_confirm_data.membership_no = {0}
+and     sc_cls_confirm_data.confirm_date = {1}
+
+union all
+
+select  sc_dep_m_rule.deposit_name as account_name 
+,       sc_cls_confirm_data.membership_no
+,       sc_cls_confirm_data.confirm_date
+,       sc_cls_confirm_data.seq_no 
+,       sc_cls_confirm_data.data_refno 
+,       sc_cls_confirm_data.data_balance
+,       sc_cls_confirm_data.data_group
+from    sc_cls_confirm_data
+,       sc_dep_m_rule
+where   sc_cls_confirm_data.data_type = sc_dep_m_rule.deposit_type_code
+and     sc_cls_confirm_data.data_group = 'DEP'
+and     sc_cls_confirm_data.data_balance &gt; '0'
+/*WHERE*/
+and     sc_cls_confirm_data.membership_no = {0}
+and     sc_cls_confirm_data.confirm_date = {1}
+) tab
+order by membership_no , seq_no
+</sql>
+    </r_tge_confirm_letter_nest>
+  </sub>
+</root>

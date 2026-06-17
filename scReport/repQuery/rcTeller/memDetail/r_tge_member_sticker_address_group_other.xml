@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <mem_1 align="center" special="memno" text="1. ทะเบียน" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <mem_2 align="center" special="memno" text="2. ทะเบียน" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <mem_3 align="center" special="memno" text="3. ทะเบียน" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <mem_4 align="center" special="memno" text="4. ทะเบียน" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <mem_5 align="center" special="memno" text="5. ทะเบียน" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <mem_6 align="center" special="memno" text="6. ทะเบียน" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <mem_7 align="center" special="memno" text="7. ทะเบียน" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <mem_8 align="center" special="memno" text="8. ทะเบียน" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <mem_9 align="center" special="memno" text="9. ทะเบียน" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <mem_10 align="center" special="memno" text="10. ทะเบียน" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo>
+  </combo>
+  <sql>
+    select      pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as membername
+    ,       sc_mem_m_membership_registered.membership_no
+    ,       trim(sc_mem_m_member_address.address_no ||' '||decode(sc_mem_m_member_address.mooban , null , null ,'หมู่บ้าน'||trim(sc_mem_m_member_address.mooban)) ||' '||
+    decode(sc_mem_m_member_address.moo , null , null ,trim(sc_mem_m_member_address.moo)) ||' '||decode(sc_mem_m_member_address.soi , null , null ,'ซอย'||trim(sc_mem_m_member_address.soi)))as line_1
+    ,       decode(sc_mem_m_member_address.road , null , null ,'ถนน'||trim(sc_mem_m_member_address.road))||' '||
+    decode(sc_mem_m_member_address.tambol , null , null ,decode(sc_mem_m_member_address.province_code , '010' , 'แขวง'||trim(PKA_COM_FUNCTION.fp_get_sub_district_name (sc_mem_m_member_address.tambol)) , 'ตำบล'||trim(PKA_COM_FUNCTION.fp_get_sub_district_name (sc_mem_m_member_address.tambol))))as line_2
+    ,       decode(sc_mem_m_member_address.district_code , null , null ,decode(sc_mem_m_member_address.province_code , '010' , 'เขต'||trim(PKA_COM_FUNCTION.fp_get_district_name(sc_mem_m_member_address.province_code,sc_mem_m_member_address.district_code)) , 'อำเภอ'||trim(PKA_COM_FUNCTION.fp_get_district_name(sc_mem_m_member_address.province_code,sc_mem_m_member_address.district_code)))||' '||
+    decode(sc_mem_m_member_address.province_code , null , null ,(decode(sc_mem_m_member_address.province_code , '010' , trim(PKA_COM_FUNCTION.fp_get_province_name(sc_mem_m_member_address.province_code)),'จังหวัด'||trim(PKA_COM_FUNCTION.fp_get_province_name(sc_mem_m_member_address.province_code))))) ||' '||trim(sc_mem_m_member_address.postcode)) as line_3
+    from    sc_mem_m_member_address
+    ,       sc_mem_m_membership_registered
+    ,       sc_mem_m_ucf_member_group
+    where   sc_mem_m_member_address.membership_no = sc_mem_m_membership_registered.membership_no
+    and     sc_mem_m_ucf_member_group.member_group_no = sc_mem_m_membership_registered.member_group_no
+    and     sc_mem_m_ucf_member_group.member_group_control = '042'
+    and     sc_mem_m_member_address.membership_no  = '!mem_1!'
+    and     sc_mem_m_member_address.membership_no = sc_mem_m_membership_registered.membership_no
+    and     sc_mem_m_ucf_member_group.member_group_no = sc_mem_m_membership_registered.member_group_no
+    and     sc_mem_m_ucf_member_group.member_group_control = '042'
+    and     sc_mem_m_member_address.address_type = '0'
+    or      sc_mem_m_member_address.membership_no  = '!mem_2!'
+    and     sc_mem_m_member_address.membership_no = sc_mem_m_membership_registered.membership_no
+    and     sc_mem_m_ucf_member_group.member_group_no = sc_mem_m_membership_registered.member_group_no
+    and     sc_mem_m_ucf_member_group.member_group_control = '042'
+    and     sc_mem_m_member_address.address_type = '0'
+    or      sc_mem_m_member_address.membership_no  = '!mem_3!'
+    and     sc_mem_m_member_address.membership_no = sc_mem_m_membership_registered.membership_no
+    and     sc_mem_m_ucf_member_group.member_group_no = sc_mem_m_membership_registered.member_group_no
+    and     sc_mem_m_ucf_member_group.member_group_control = '042'
+    and     sc_mem_m_member_address.address_type = '0'
+    or      sc_mem_m_member_address.membership_no  = '!mem_4!'
+    and     sc_mem_m_member_address.membership_no = sc_mem_m_membership_registered.membership_no
+    and     sc_mem_m_ucf_member_group.member_group_no = sc_mem_m_membership_registered.member_group_no
+    and     sc_mem_m_ucf_member_group.member_group_control = '042'
+    and     sc_mem_m_member_address.address_type = '0'
+    or      sc_mem_m_member_address.membership_no  = '!mem_5!'
+    and     sc_mem_m_member_address.membership_no = sc_mem_m_membership_registered.membership_no
+    and     sc_mem_m_ucf_member_group.member_group_no = sc_mem_m_membership_registered.member_group_no
+    and     sc_mem_m_ucf_member_group.member_group_control = '042'
+    and     sc_mem_m_member_address.address_type = '0'
+    or      sc_mem_m_member_address.membership_no  = '!mem_6!'
+    and     sc_mem_m_member_address.membership_no = sc_mem_m_membership_registered.membership_no
+    and     sc_mem_m_ucf_member_group.member_group_no = sc_mem_m_membership_registered.member_group_no
+    and     sc_mem_m_ucf_member_group.member_group_control = '042'
+    and     sc_mem_m_member_address.address_type = '0'
+    or      sc_mem_m_member_address.membership_no  = '!mem_7!'
+    and     sc_mem_m_member_address.membership_no = sc_mem_m_membership_registered.membership_no
+    and     sc_mem_m_ucf_member_group.member_group_no = sc_mem_m_membership_registered.member_group_no
+    and     sc_mem_m_ucf_member_group.member_group_control = '042'
+    and     sc_mem_m_member_address.address_type = '0'
+    or      sc_mem_m_member_address.membership_no  = '!mem_8!'
+    and     sc_mem_m_member_address.membership_no = sc_mem_m_membership_registered.membership_no
+    and     sc_mem_m_ucf_member_group.member_group_no = sc_mem_m_membership_registered.member_group_no
+    and     sc_mem_m_ucf_member_group.member_group_control = '042'
+    and     sc_mem_m_member_address.address_type = '0'
+    or      sc_mem_m_member_address.membership_no  = '!mem_9!'
+    and     sc_mem_m_member_address.membership_no = sc_mem_m_membership_registered.membership_no
+    and     sc_mem_m_ucf_member_group.member_group_no = sc_mem_m_membership_registered.member_group_no
+    and     sc_mem_m_ucf_member_group.member_group_control = '042'
+    and     sc_mem_m_member_address.address_type = '0'
+    or      sc_mem_m_member_address.membership_no  = '!mem_10!'
+    and     sc_mem_m_member_address.membership_no = sc_mem_m_membership_registered.membership_no
+    and     sc_mem_m_ucf_member_group.member_group_no = sc_mem_m_membership_registered.member_group_no
+    and     sc_mem_m_ucf_member_group.member_group_control = '042'
+    and     sc_mem_m_member_address.address_type = '0'
+    /*WHERE*/
+    order by '!mem_1!','!mem_2!','!mem_3!','!mem_4!','!mem_5!','!mem_6!','!mem_7!','!mem_8!','!mem_9!','!mem_10!'
+  </sql>
+  <sub />
+</root>

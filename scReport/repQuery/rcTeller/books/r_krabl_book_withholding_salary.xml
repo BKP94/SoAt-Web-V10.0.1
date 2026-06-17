@@ -1,0 +1,72 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <receive_year special="year" text="ประจำปี" table="sc_kep_m_agent_send" type="integer" column="receive_year" readonly="0" />
+    <receive_month special="month" text="ประจำเดือน" table="sc_kep_m_agent_send" type="integer" column="receive_month" combo="monthThLong" readonly="0" />
+    <adtm_date text="วันที่" type="date" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <as_letter text="เลขที่" column="as_letter" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <member_group_keeping text="หน่วย" table="sc_fin_ucf_keeping_group" column="member_group_keeping" operator="bt" combo="sc_fin_ucf_keeping_group2" readonly="0" />
+    <as_name default="นางรวีวรรณ  ช่อดอก" text="ผู้ช่วยฯ" combo="sc_cnt_m_committee_list3" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo>
+  </combo>
+  <sql>
+    SELECT sc_mem_m_ucf_coop_control.control_id
+    ,sc_mem_m_ucf_coop_control.control_desc
+    ,sc_fin_ucf_keeping_group.member_group_keeping
+    ,sc_fin_ucf_keeping_group.member_group_name
+    ,(select manager_name from sc_mem_m_ucf_member_group where sc_mem_m_ucf_member_group.member_group_no = sc_fin_ucf_keeping_group.member_group_keeping ) as manager_name
+    ,'!as_letter!' as as_letter
+    , '!adtm_date!' as adtm_date
+    , to_tdate( '!adtm_date!' , 'month') as tadtm_date
+    ,( case  sc_kep_m_agent_send.agent_no when '0' then 'ห้วยขวาง' when '1' then 'อโศก  -  ดินแดง' when '2' then 'ย่อยกระทรวงแรงงาน'  else   'ศาลาว่าการกรุงเทพมหานคร 2'  end ) as case_branch
+    ,( case  sc_kep_m_agent_send.agent_no when '0' then '033- 1 - 10056 - 8' when '1' then '056 - 1 - 23934 - 7' when '2' then '383 - 0 - 02007 - 4'  else '688-0-00451-2' end ) as case_bank
+    ,'!as_name_1!' as as_name
+    ,sc_kep_m_agent_send.receive_year
+    ,sc_kep_m_agent_send.receive_month
+    ,sc_kep_m_agent_send.salary_time
+    ,sc_kep_m_agent_send.agent_no
+    ,(select member_group_name from sc_fin_ucf_keeping_group where member_group_keeping = sc_kep_m_agent_send.agent_no ) as agent_name
+    ,sc_kep_m_agent_send.post_status
+    ,sc_kep_m_agent_send.post_date
+    ,pka_com_function.fp_get_coopname () as coop_name
+    ,sc_kep_m_agent_send.keeping_amount as c_sum
+    ,pka_com_function.fp_get_moneythai (sc_kep_m_agent_send.keeping_amount) as thai_sum
+    ,sc_kep_m_agent_send.keeping_balance
+    ,sc_kep_m_agent_send.keeping_amount - sc_kep_m_agent_send.keeping_balance as keeping_receive
+    ,sc_kep_m_agent_send.count_return
+    ,sc_kep_m_agent_send.return_amount
+    ,substr( sc_kep_m_agent_send.agent_no ,2,2) as group_1
+    ,substr( sc_kep_m_agent_send.agent_no ,5,7) as group_2
+    ,sc_kep_m_agent_send.agent_amount
+    ,sc_kep_m_agent_send.agent_balance
+    ,sc_kep_m_agent_send.agent_amount - sc_kep_m_agent_send.agent_balance  as agent_receive
+    ,sc_kep_m_agent_send.agent_count_return
+    ,sc_kep_m_agent_send.agent_return
+
+    , (  sc_kep_m_agent_send.keeping_amount - sc_kep_m_agent_send.keeping_balance ) + ( sc_kep_m_agent_send.agent_amount ) as keep_post
+
+    ,sc_kep_m_agent_send.count_mem
+
+    FROM sc_kep_m_agent_send
+    ,sc_fin_ucf_keeping_group
+    ,sc_mem_m_ucf_member_group
+    ,sc_mem_m_ucf_coop_control
+    WHERE ( sc_fin_ucf_keeping_group.member_group_keeping = sc_kep_m_agent_send.agent_no )
+    and sc_mem_m_ucf_coop_control.control_id = sc_fin_ucf_keeping_group.control_id
+    and  (sc_mem_m_ucf_member_group.keeping_fingroup = sc_fin_ucf_keeping_group.member_group_keeping)
+
+    /*WHERE*/
+    -- and sc_kep_m_agent_send.receive_year = 2020
+    -- and sc_kep_m_agent_send.receive_month = 7
+    -- and sc_fin_ucf_keeping_group.member_group_keeping between '011001' and '042099'
+    -- and sc_kep_m_agent_send.agent_no = '011001' ;
+    order by sc_mem_m_ucf_coop_control.control_id
+    ,sc_fin_ucf_keeping_group.member_group_keeping
+    ,sc_kep_m_agent_send.receive_year
+    ,sc_kep_m_agent_send.receive_month
+    ,sc_kep_m_agent_send.salary_time
+    ,sc_kep_m_agent_send.agent_no
+  </sql>
+  <sub />
+</root>

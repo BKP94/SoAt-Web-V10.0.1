@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <member_group_no align="center" text="หน่วย" table="sc_mem_m_membership_registered" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+    <membership_no align="center" special="memno" text="ทะเบียน" table="sc_mem_m_membership_registered" readonly="0" />
+    <doc_place align="center" default="02" text="ที่อยู่" combo="combo_doc_place" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo>
+    <combo_doc_place>select
+    item_code
+    ,item_code||' - '||doc_place as item_desc
+from sc_mem_m_ucf_doc_place
+where item_code in ('01','02')</combo_doc_place>
+  </combo>
+  <sql>select  sc_mem_m_membership_registered.membership_no
+,pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no)||' / '||sc_mem_m_membership_registered.membership_no as membername
+,pka_com_function.fp_get_member_address_letter(sc_mem_m_membership_registered.membership_no, 0,1) as mem_address_line1
+,pka_com_function.fp_get_member_address_letter(sc_mem_m_membership_registered.membership_no, 0,2) as mem_address_line2
+,pka_com_function.fp_get_member_address_letter(sc_mem_m_membership_registered.membership_no, 0,3) as mem_address_line3
+,pka_com_function.fp_get_member_address_letter(sc_mem_m_membership_registered.membership_no, 0,4) as mem_address_line4
+,sc_mem_m_ucf_member_group.member_group_name
+,'!doc_place!' as doc_place
+
+--ที่อยู่ coop
+,sc_cnt_m_coop.coop_name
+,'เลขที่'||' '||sc_cnt_m_coop.address||' ต.'||sc_cnt_m_coop.tumbol_name as coop_address_line1
+,'อ.'||pka_com_function.fp_get_district_name(sc_cnt_m_coop.province_code, sc_cnt_m_coop.district_code)||' จ.'||pka_com_function.fp_get_province_name(sc_cnt_m_coop.province_code)||' '||sc_cnt_m_coop.postcode as coop_address_line2
+,'โทร '||sc_cnt_m_coop.telephone_no||' โทรสาร '||sc_cnt_m_coop.fax_no as coop_address_line3
+
+from sc_mem_m_membership_registered
+,sc_mem_m_ucf_member_group
+,sc_cnt_m_coop
+
+where sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+
+/*WHERE*/</sql>
+  <sub />
+</root>

@@ -1,0 +1,92 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="T015" rep_text="รายงาน หุ้น-หนี้ คงเหลือ รายตัว">
+  <arg>
+    <member_group_no text="หน่วย" table="sc_mem_m_ucf_member_group" operator="bt" combo="sc_mem_m_ucf_member_group2" nestreplace="1" />
+  </arg>
+  <combo />
+  <sql>
+    select sc_mem_m_ucf_member_group.member_group_no ,
+    sc_mem_m_ucf_member_group.member_group_name,
+    (select prename from sc_mem_m_ucf_prename where prename_code = sc_mem_m_membership_registered.prename_code)||sc_mem_m_membership_registered.member_name||' '||sc_mem_m_membership_registered.member_surname  as member_name,
+    tm.*
+    from (
+    select sc_mem_m_membership_registered.membership_no,
+    nvl(sc_mem_m_share_mem.share_stock,0) as share_stock,
+    nvl(sum(decode(sc_lon_m_rule.loan_group_code,'01',sc_lon_m_loan_card.principal_balance,0)),0) as loan_01,
+    nvl(sum(decode(sc_lon_m_rule.loan_group_code,'02',sc_lon_m_loan_card.principal_balance,0)),0) as loan_02,
+    nvl(sum(decode(sc_lon_m_rule.loan_group_code,'03',sc_lon_m_loan_card.principal_balance,0)),0) as loan_03,
+    nvl(sum(decode(sc_lon_m_rule.loan_group_code,'01',1,0)),0) as count_01,
+    nvl(sum(decode(sc_lon_m_rule.loan_group_code,'02',1,0)),0) as count_02,
+    nvl(sum(decode(sc_lon_m_rule.loan_group_code,'03',1,0)),0) as count_03
+    from sc_mem_m_membership_registered,sc_mem_m_share_mem,sc_lon_m_loan_card,sc_lon_m_rule
+    where sc_mem_m_membership_registered.membership_no = sc_mem_m_share_mem.membership_no
+    and sc_mem_m_membership_registered.membership_no = sc_lon_m_loan_card.membership_no
+    and sc_lon_m_loan_card.principal_balance &gt; 0
+    and sc_lon_m_loan_card.loan_type = sc_lon_m_rule.loan_type
+    and sc_lon_m_rule.loan_type != 'รก'
+    group by sc_mem_m_membership_registered.membership_no,sc_mem_m_share_mem.share_stock
+    union all
+    select sc_mem_m_membership_registered.membership_no ,
+    sc_mem_m_share_mem.share_stock,0,0,0,0,0,0
+    from sc_mem_m_membership_registered , sc_mem_m_share_mem
+    where sc_mem_m_membership_registered.membership_no = sc_mem_m_share_mem.membership_no
+    and sc_mem_m_share_mem.share_stock &gt; 0
+    and not exists(select null from sc_lon_m_loan_card where principal_balance &gt; 0 and membership_no = sc_mem_m_membership_registered.membership_no)
+    ) tm ,sc_mem_m_membership_registered , sc_mem_m_ucf_member_group
+    where sc_mem_m_membership_registered.membership_no = tm.membership_no
+    and sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+    and (tm.share_stock &gt; 0 or tm.loan_01 &gt; 0 or tm.loan_02 &gt; 0 or tm.loan_03 &gt; 0)
+    /*WHERE*/
+    order by sc_mem_m_ucf_member_group.member_group_no,
+    sc_mem_m_membership_registered.membership_no
+  </sql>
+  <sub>
+    <r_ktm_share_loan_balance_2group_no_nest_conno>
+      <sql>
+        select sc_lon_m_loan_card.loan_type||'/'||nvl((select loan_code_desc from sc_lon_m_ucf_loan_code where loan_code = sc_lon_m_loan_card.loan_code and loan_code != '0'),'ปกติ') as loan_code ,
+        sc_lon_m_loan_card.loan_contract_no ,
+        sc_lon_m_rule.loan_type,
+        (case when principal_balance &gt; 0 then 1 else 0 end) as have_loan,
+        sc_lon_m_loan_card.principal_balance,
+        sc_lon_m_loan_card.membership_no
+        from sc_lon_m_loan_card , sc_lon_m_rule , sc_mem_m_membership_registered
+        where sc_lon_m_loan_card.loan_type = sc_lon_m_rule.loan_type
+        and sc_lon_m_loan_card.membership_no = sc_mem_m_membership_registered.membership_no
+        and sc_lon_m_loan_card.principal_balance &gt; 0
+        and sc_lon_m_rule.loan_group_code = {1} /*01-ฉุกเฉิน ,02-สามัญ ,03-พิเศษ*/
+        and sc_mem_m_membership_registered.membership_no = {0}
+        and sc_lon_m_rule.loan_type != 'รก'
+        /*WHERE*/
+        order by sc_lon_m_loan_card.loan_contract_no
+      </sql>
+    </r_ktm_share_loan_balance_2group_no_nest_conno>
+    <r_ktm_share_loan_balance_2group_no_nest_grpno>
+      <sql>
+        select tm.loan_type, tm.loan_code ,
+        sum(tm.principal_balance) as principal_balance,
+        sum(tm.have_loan) as have_loan,
+        count(distinct  tm.membership_no  ) as membership_no
+        from (
+        select sc_lon_m_loan_card.loan_type||'/'||nvl((select loan_code_desc from sc_lon_m_ucf_loan_code where loan_code = sc_lon_m_loan_card.loan_code and loan_code != '0'),'ปกติ') as loan_code ,
+        sc_lon_m_loan_card.loan_contract_no ,
+        sc_lon_m_rule.loan_type,
+        (case when principal_balance &gt; 0 then 1 else 0 end) as have_loan,
+        sc_lon_m_loan_card.principal_balance,
+        sc_lon_m_loan_card.membership_no
+        from sc_lon_m_loan_card , sc_lon_m_rule , sc_mem_m_membership_registered
+        where sc_lon_m_loan_card.loan_type = sc_lon_m_rule.loan_type
+        and sc_lon_m_loan_card.membership_no = sc_mem_m_membership_registered.membership_no
+        and sc_lon_m_loan_card.principal_balance &gt; 0
+        and sc_lon_m_rule.loan_type != 'รก'
+        and sc_lon_m_rule.loan_group_code = {0} /*01-ฉุกเฉิน ,02-สามัญ ,03-พิเศษ*/
+        and sc_mem_m_membership_registered.member_group_no between '!member_group_no_1!' and '!member_group_no_2!'
+        and sc_lon_m_rule.loan_type != 'รก'
+        /*WHERE*/
+        order by sc_lon_m_loan_card.loan_type
+        ) tm
+        group by tm.loan_type, tm.loan_code
+        order by tm.loan_type, tm.loan_code
+      </sql>
+    </r_ktm_share_loan_balance_2group_no_nest_grpno>
+  </sub>
+</root>

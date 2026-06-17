@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <receipt_date align="center" text="วันที่" table="sc_com_m_receipt" type="date" column="receipt_date" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select  sc_mem_m_membership_registered.membership_no
+,pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no)||' / '||sc_mem_m_membership_registered.membership_no as membername
+,pka_com_function.fp_get_member_address_letter(sc_mem_m_membership_registered.membership_no, 0,1) as mem_address_line1
+,pka_com_function.fp_get_member_address_letter(sc_mem_m_membership_registered.membership_no, 0,2) as mem_address_line2
+,pka_com_function.fp_get_member_address_letter(sc_mem_m_membership_registered.membership_no, 0,3) as mem_address_line3
+,pka_com_function.fp_get_member_address_letter(sc_mem_m_membership_registered.membership_no, 0,4) as mem_address_line4
+,sc_mem_m_ucf_member_group.member_group_name
+,sc_mem_m_ucf_member_group.member_group_no
+--ที่อยู่ coop
+,sc_cnt_m_coop.coop_name
+,'เลขที่'||' '||sc_cnt_m_coop.address||' ต.'||sc_cnt_m_coop.tumbol_name as coop_address_line1
+,'อ.'||pka_com_function.fp_get_district_name(sc_cnt_m_coop.province_code, sc_cnt_m_coop.district_code)||' จ.'||pka_com_function.fp_get_province_name(sc_cnt_m_coop.province_code)||' '||sc_cnt_m_coop.postcode as coop_address_line2
+,'โทร '||sc_cnt_m_coop.telephone_no||' โทรสาร '||sc_cnt_m_coop.fax_no as coop_address_line3
+
+,(SELECT min(receipt_no)
+FROM
+sc_com_m_receipt
+where sc_com_m_receipt.membership_no = sc_mem_m_membership_registered.membership_no
+and money_type_id = 'TRB'
+ /*WHERE*/
+) as receipt_no
+
+from sc_mem_m_membership_registered
+,sc_mem_m_ucf_member_group
+,sc_cnt_m_coop
+
+where sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+and sc_mem_m_membership_registered.membership_no in (SELECT DISTINCT(membership_no)
+                                                                                                             FROM sc_com_m_receipt
+                                                                                                             where money_type_id = 'TRB'
+                                                                                                             /*WHERE*/
+                                                                                                             )
+
+order by (SELECT min(receipt_no)
+FROM
+sc_com_m_receipt
+where sc_com_m_receipt.membership_no = sc_mem_m_membership_registered.membership_no
+and money_type_id = 'TRB'
+ /*WHERE*/
+) 
+</sql>
+  <sub />
+</root>

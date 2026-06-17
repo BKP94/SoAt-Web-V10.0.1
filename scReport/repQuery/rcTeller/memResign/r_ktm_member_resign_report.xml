@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <approve_date text="วันที่อนุมัติ" table="sc_mem_m_resign_requestment" type="date" column="approve_date" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    SELECT sc_mem_m_membership_registered.member_group_no,
+    sc_mem_m_membership_registered.membership_no,
+    pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as memname,
+    sc_mem_m_resign_requestment.resign_code,
+    ( select sc_mem_m_ucf_resign_cause.resign_cause_name from sc_mem_m_ucf_resign_cause where resign_cause_code = sc_mem_m_resign_requestment.resign_code ) as resign_code_name,
+    sc_mem_m_resign_requestment.approve_date,
+    sc_mem_m_ucf_member_group.member_group_type,
+    sc_mem_m_resign_requestment.share_stock,
+    sc_mem_m_resign_requestment.fund_bal,
+    sc_mem_m_resign_requestment.dep_bal,
+    sc_mem_m_resign_requestment.dep_int,
+    sc_mem_m_resign_requestment.emer_bal,
+    sc_mem_m_resign_requestment.emer_int,
+    sc_mem_m_resign_requestment.norm_bal,
+    sc_mem_m_resign_requestment.norm_int,
+    sc_mem_m_resign_requestment.spec_bal,
+    sc_mem_m_resign_requestment.spec_int,
+    sc_mem_m_resign_requestment.tran_bal,
+    sc_mem_m_resign_requestment.resign_bal,
+    sc_mem_m_resign_requestment.return_bal,
+    sc_mem_m_resign_requestment.return_fund,
+    sc_mem_m_resign_requestment.coll_bal,
+    sc_mem_m_resign_requestment.norm_bf,
+    sc_mem_m_resign_requestment.emer_bf,
+    sc_mem_m_resign_requestment.spec_bf,
+    pka_com_function.fp_login_id() as entry_id,
+    pka_com_function.fp_get_thaidate(sysdate , 'DD/MM/YYYY') as sysdate_tdate
+    FROM sc_mem_m_resign_requestment,
+    sc_mem_m_membership_registered,
+    sc_mem_m_ucf_member_group
+    WHERE ( sc_mem_m_resign_requestment.membership_no = sc_mem_m_membership_registered.membership_no )
+    and   ( sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no )
+    --and   sc_mem_m_membership_registered.membership_no = '068137'
+    /*WHERE*/
+    --   and   ( ( sc_mem_m_resign_requestment.approve_date between '01/04/2020'  and '29/04/2020' ) )
+    order by sc_mem_m_ucf_member_group.member_group_type
+    ,sc_mem_m_membership_registered.member_group_no
+    ,sc_mem_m_membership_registered.membership_no
+  </sql>
+  <sub>
+    <r_ktm_member_resign_report_nest>
+      <sql>
+        SELECT sc_lon_m_trans_loan_coll_head.membership_no,
+        pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as memname,
+        sc_lon_m_trans_loan_coll_head.loan_contract_no,
+        sc_mem_m_membership_registered.member_group_no,
+        sc_lon_m_trans_loan_coll_det.collateral_no,
+        sc_lon_m_trans_loan_coll_det.new_contract_no,
+        pka_com_function.fp_get_member_group(sc_lon_m_trans_loan_coll_det.collateral_no) as group_collateral_no,
+        pka_com_function.fp_get_member_name(sc_lon_m_trans_loan_coll_det.collateral_no) as memname_collateral,
+        sc_lon_m_trans_loan_coll_det.loan_transfer_amount,
+        sc_lon_m_trans_loan_coll_head.principal_balance
+        FROM sc_lon_m_trans_loan_coll_det,
+        sc_lon_m_trans_loan_coll_head,
+        sc_mem_m_membership_registered,
+        sc_mem_m_ucf_member_group
+        WHERE ( sc_lon_m_trans_loan_coll_det.transfer_doc_no = sc_lon_m_trans_loan_coll_head.transfer_doc_no )
+        and   ( sc_lon_m_trans_loan_coll_head.membership_no = sc_mem_m_membership_registered.membership_no )
+        and   ( sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no )
+        AND   ( sc_lon_m_trans_loan_coll_head.transfer_status = '0' )
+        /*WHERE*/
+        and   ( ( sc_lon_m_trans_loan_coll_head.transfer_date = {0} )
+        AND   ( sc_mem_m_ucf_member_group.member_group_type = {1} ) )
+      </sql>
+    </r_ktm_member_resign_report_nest>
+  </sub>
+</root>

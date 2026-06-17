@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <entry_date text="วันที่" type="date" operator="bt" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <app_status align="center" text="สถานะ" table="sc_mem_m_chg_accno" nulltext="ดูทั้งหมด ไม่ต้องเลือก" combo="app_status" readonly="0" />
+  </arg>
+  <combo>
+    <app_status>0=ไม่อนุมัติ/1=อนุมัติ/2=รออนุมัติ</app_status>
+  </combo>
+  <sql>SELECT    sc_mem_m_membership_registered.member_group_no
+    ,sc_mem_m_membership_registered.membership_no
+    ,pka_com_function.fp_get_member_name( sc_mem_m_membership_registered.membership_no ) as memname
+    ,sc_mem_m_ucf_member_group.member_group_type
+    ,sc_mem_m_ucf_member_group.member_group_name
+    ,sc_mem_m_chg_accno.acc_type
+    ,sc_mem_m_chg_accno.seq_no
+    ,sc_mem_m_chg_accno.bank_old
+    ,pka_com_function.fp_form(sc_mem_m_chg_accno.accno_old , 'XXX-X-XXXXX-X') as accno_old
+    ,sc_mem_m_chg_accno.bank_new
+    ,pka_com_function.fp_form(sc_mem_m_chg_accno.accno_new , 'XXX-X-XXXXX-X') as accno_new
+    ,sc_mem_m_chg_accno.remark
+    ,sc_mem_m_chg_accno.entry_date
+    ,sc_mem_m_chg_accno.entry_id
+    ,sc_mem_m_chg_accno.app_status
+    ,sc_mem_m_chg_accno.app_date
+    ,sc_mem_m_chg_accno.app_id
+    
+    ,sc_wef_req_edu.class_type
+    ,sc_wef_req_edu.num_rec
+
+FROM sc_mem_m_membership_registered
+    ,sc_mem_m_ucf_member_group
+    ,sc_mem_m_chg_accno
+    ,sc_wef_req
+    ,sc_wef_req_edu
+
+WHERE sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+and  sc_mem_m_membership_registered.membership_no = sc_mem_m_chg_accno.membership_no
+and  sc_wef_req.membership_no = sc_mem_m_chg_accno.membership_no
+and  sc_wef_req_edu.requestment_no = sc_wef_req.requestment_no
+and  sc_wef_req_edu.num_rec is not null
+and sc_wef_req.cancel_status = '0'
+and sc_wef_req.approve_status= '1'
+and to_date(sc_mem_m_chg_accno.entry_date) between '!entry_date_1!' and '!entry_date_2!'
+/*WHERE*/
+order by sc_wef_req_edu.class_type
+    ,sc_wef_req_edu.num_rec</sql>
+  <sub />
+</root>

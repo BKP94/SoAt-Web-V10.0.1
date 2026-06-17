@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <begining_of_contract text="วันที่เริ่มสัญญา" table="sc_lon_m_contract" type="date" operator="bt" readonly="0" />
+    <loan_type default="22" text="ประเภท" table="sc_lon_m_rule" combo="sc_lon_m_rule2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select  sc_lon_m_rule.loan_type
+,       sc_lon_m_contract.membership_no
+,       pka_com_function.fp_get_member_name( sc_lon_m_contract.membership_no ) as memer_name
+,       pka_com_function.fp_get_member_group( sc_lon_m_contract.membership_no ) as member_group
+,       pka_com_function.fp_get_group_name( pka_com_function.fp_get_member_group ( sc_lon_m_contract.membership_no )) as member_group_name
+,       sc_lon_m_contract.loan_contract_no
+,       sc_lon_m_contract.loan_approve_amount
+,       sc_lon_m_contract.period_payment_amount
+,       sc_lon_m_contract.loan_installment_amount
+,       sc_lon_m_contract.begining_of_contract
+,       sc_lon_m_contract.cal_shr_auto
+from    sc_lon_m_contract
+,       sc_lon_m_rule
+where   sc_lon_m_contract.loan_type = sc_lon_m_rule.loan_type
+and     sc_lon_m_contract.create_loan_status = '1'
+and     sc_lon_m_rule.invest_status = '0'
+/*WHERE*/
+--and     sc_lon_m_contract.membership_no = '025658'
+order by  sc_lon_m_contract.loan_type
+,         sc_lon_m_contract.membership_no</sql>
+  <sub>
+    <r_tge_loan_approve_norm_atm_nest>
+      <sql>select  trim(sc_acc_m_ucf_bank.short_name)||' - '||trim(sc_mem_m_member_bank_accno.bank_acc_no) as bank_acc_no
+from    sc_mem_m_member_bank_accno
+,       sc_acc_m_ucf_bank
+where   sc_mem_m_member_bank_accno.bank_id = sc_acc_m_ucf_bank.bank_id
+and     sc_mem_m_member_bank_accno.atm_lon = '1'
+and     sc_mem_m_member_bank_accno.membership_no = {0}
+--and     sc_mem_m_member_bank_accno.membership_no = '025658'
+/*WHERE*/
+order by  sc_mem_m_member_bank_accno.membership_no 
+,         sc_mem_m_member_bank_accno.seq_no</sql>
+    </r_tge_loan_approve_norm_atm_nest>
+  </sub>
+</root>

@@ -1,0 +1,135 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <loan_type text="ประเภท" table="sc_lon_m_rule" column="loan_type" combo="sc_lon_m_rule2" readonly="0" />
+    <requestment_date text="วันที่ยื่น" table="sc_lon_m_loan_request" type="date" column="requestment_date" operator="bt" readonly="0" />
+    <user_id text="ผู้ทำรายการ" table="si_security_user" combo="si_security_user2" readonly="0" />
+    <approve_status default="2" text="สถานะ" table="sc_lon_m_loan_request" combo="approve_status" readonly="0" />
+  </arg>
+  <combo />
+  <sql>SELECT PKA_COM_FUNCTION.fp_get_member_name( sc_lon_m_loan_request.membership_no, 0) as membername ,
+    sc_lon_m_loan_request.membership_no ,
+    sc_lon_m_loan_request.loan_type ,
+    sc_lon_m_loan_request.loan_requestment_no ,
+    sc_lon_m_loan_request.interest_first,
+    to_tdate(sc_lon_m_loan_request.requestment_date) as tdate_requestment_date ,
+    sc_lon_m_loan_request.requestment_date ,
+    sc_lon_m_loan_request.begining_of_contract ,
+    sc_lon_m_loan_request.loan_payment_type_code ,
+    sc_lon_m_loan_request.crem_status,
+    sc_lon_m_loan_request.loan_request_amount ,
+    sc_lon_m_loan_request.loan_installment_amount ,
+    sc_lon_m_loan_request.period_payment_amount ,
+    sc_lon_m_loan_request.start_keep_date ,
+    sc_lon_m_loan_request.max_loan_permit,
+    sc_lon_m_loan_request.crem_code,
+    sc_doc_regis.regis_date,
+    sc_doc_regis.request_amount,
+    pka_lon_reqsrv.fp_rule_loanpermit_levelcustom(sc_lon_m_loan_request.loan_type ,sc_lon_m_loan_request.membership_no ,to_date(sysdate) ,'loan_by_salary') as recoverable
+
+    ,( select nvl(sum(fund_new),0)
+    from sc_lon_m_req_fund_new
+    where sc_lon_m_req_fund_new.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+    ) as fund_new
+
+    ,(  select nvl(sum(fund_real),0) + nvl(sum(fund_int),0)
+    from sc_lon_m_req_fund_ret
+    where sc_lon_m_req_fund_ret.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+    and fund_ret &gt; 0
+    ) as fund_ret
+
+    , ( select nvl(sum(fund_real),0) + nvl(sum(fund_int),0)
+    from sc_lon_m_req_fund_ret
+    where sc_lon_m_req_fund_ret.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+    and fund_ret &gt; 0
+    and deposit_account_no = 'NEW'
+    ) as fund_ret_old
+
+    ,(  select nvl(sum(fund_real),0) + nvl(sum(fund_int),0)
+    from sc_lon_m_req_fund_ret
+    where sc_lon_m_req_fund_ret.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+    and fund_ret &gt; 0
+    and deposit_account_no &lt;&gt; 'NEW'
+    ) as fund_ret_50
+
+    ,nvl((select sc_lon_m_req_fee.amount
+    from sc_lon_m_req_fee
+    where ( sc_lon_m_req_fee.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+    and fee_type = '05' )) ,0)as amount
+
+    ,nvl((select sc_lon_m_req_fee.real_amount
+    from sc_lon_m_req_fee
+    where ( sc_lon_m_req_fee.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+    and fee_type = '05' )) ,0)as real_amount
+
+    ,sc_lon_m_loan_request.crem_amount,
+    sc_lon_m_loan_request_mpaid.bank_code,
+    sc_lon_m_loan_request_mpaid.bank_acc_no ,
+    sc_lon_m_loan_request_mpaid.type_pay_money,
+    (select sc_com_m_ucf_money_type.money_type_name from sc_com_m_ucf_money_type where sc_com_m_ucf_money_type.money_type_id = sc_lon_m_loan_request_mpaid.type_pay_money) as money_type_name ,
+
+
+    sc_lon_m_loan_request.salary_amount ,
+    sc_lon_m_loan_request.entry_id ,
+    sc_lon_m_loan_request.total_old_loan ,
+    sc_lon_m_loan_request.total_oldint ,
+
+    sc_mem_m_ucf_member_group.member_group_no,
+    sc_mem_m_ucf_member_group.member_group_name,
+    sc_mem_m_ucf_member_group.member_group_control ,
+    sc_mem_m_ucf_member_group.control_id
+
+
+    ,sc_lon_m_loan_request.buy_share
+    ,sc_lon_m_loan_request.fee_amount
+    ,sc_lon_m_rule.ref_contract_no
+    ,FPB_GET_LOAN_TYPE_DESC( sc_lon_m_rule.loan_type ) as loan_type_description
+    ,sc_mem_m_share_mem.share_stock
+
+    FROM 	sc_lon_m_loan_request ,
+    sc_mem_m_membership_registered ,
+    sc_mem_m_ucf_member_group ,
+    sc_lon_m_rule ,
+    si_security_user ,
+    sc_mem_m_share_mem ,
+    sc_lon_m_loan_request_mpaid,
+    sc_doc_regis
+    WHERE ( sc_mem_m_membership_registered.member_group_no 	= sc_mem_m_ucf_member_group.member_group_no )
+    and		(sc_lon_m_loan_request.entry_id = si_security_user.user_id)
+    and   ( sc_mem_m_membership_registered.membership_no 	= sc_lon_m_loan_request.membership_no )
+    and   ( sc_lon_m_loan_request.loan_type 							= sc_lon_m_rule.loan_type )
+    and   ( sc_mem_m_membership_registered.membership_no 	= sc_mem_m_share_mem.membership_no )
+    and   ( sc_lon_m_loan_request_mpaid.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no )
+    and   ( sc_doc_regis.regis_no = sc_lon_m_loan_request.loan_requestment_no )
+    /*WHERE*/
+    order by sc_lon_m_loan_request.entry_id ,sc_lon_m_loan_request.loan_requestment_no</sql>
+  <sub>
+    <r_ktm_loan_req_month_by_entry_id_nest_old_loan>
+      <sql>
+        SELECT sc_lon_m_loan_history.principal_balance_of_loan,
+        sc_lon_m_loan_history.interest_amount,
+        sc_lon_m_loan_history.loan_contract_no,
+        sc_lon_m_loan_history.loan_type
+        FROM sc_lon_m_loan_history
+        WHERE sc_lon_m_loan_history.loan_requestment_no = {0}
+        and   sc_lon_m_loan_history.clear_target = '1'
+        order by sc_lon_m_loan_history.loan_contract_no
+      </sql>
+    </r_ktm_loan_req_month_by_entry_id_nest_old_loan>
+    <r_ktm_loan_req_month_by_entry_id_nest_coll>
+      <sql>
+        select sc_lon_m_req_coll.collateral_description,
+        ( case collateral_type_code when '01' then  pka_com_function.fp_get_member_name(trim( ref_own_no ),0)
+        when '02' then 'ใช้หุ้นค้ำประกัน'
+        when '03' then 'เงินฝากเลขที่ '||ref_own_no
+        else  'ที่ดินเลขที่ '||collateral_description
+        end )  as case_collateral_type_code,
+        sc_lon_m_req_coll.ref_own_no  ,
+        sc_lon_m_req_coll.collateral_type_code,
+        sc_lon_m_req_coll.evaluate_amount ,req_amount
+        from sc_lon_m_req_coll
+        where sc_lon_m_req_coll.loan_requestment_no = {0}
+      </sql>
+    </r_ktm_loan_req_month_by_entry_id_nest_coll>
+  </sub>
+</root>

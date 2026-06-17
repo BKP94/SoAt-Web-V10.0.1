@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <operate_date text="วันที่" table="sc_mem_m_share_holding_detail" type="date" operator="bt" readonly="0" />
+    <membership_no special="memno" text="ทะเบียน" table="sc_mem_m_share_holding_detail" column="membership_no" operator="bt" readonly="0" />
+    <member_group_no text="หน่วย" table="sc_mem_m_membership_registered" column="member_group_no" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_mem_m_share_holding_detail.membership_no
+    , (select prename from sc_mem_m_ucf_prename where prename_code = sc_mem_m_membership_registered.prename_code)||' '||sc_mem_m_membership_registered.member_name
+    ||'  '||sc_mem_m_membership_registered.member_surname as name
+    , sc_mem_m_share_holding_detail.seq_no
+    , sc_mem_m_share_holding_detail.operate_date
+    , sc_mem_m_share_holding_detail.period
+    , sc_mem_m_share_holding_detail.item_type
+    , sc_mem_m_ucf_share_item_type.item_type_description
+    , sc_mem_m_share_holding_detail.share_value
+    , sc_mem_m_share_holding_detail.share_stock
+    FROM sc_mem_m_share_holding_detail
+    , sc_mem_m_ucf_share_item_type
+    , sc_mem_m_membership_registered
+    WHERE ( sc_mem_m_share_holding_detail.item_type = sc_mem_m_ucf_share_item_type.item_type )
+    and ( sc_mem_m_membership_registered.membership_no = sc_mem_m_share_holding_detail.membership_no )
+    --arg
+    /*WHERE*/
+    -- and   ( ( sc_mem_m_share_holding_detail.operate_date between '1/10/2019' and '30/9/2020' ) --วันที่
+    -- AND   ( sc_mem_m_share_holding_detail.membership_no_between '000014' and '000042' ) ) --ทะเบียน
+    ORDER BY sc_mem_m_share_holding_detail.membership_no ASC,
+    sc_mem_m_share_holding_detail.seq_no ASC
+  </sql>
+  <sub />
+</root>

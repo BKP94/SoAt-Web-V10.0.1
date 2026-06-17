@@ -1,0 +1,243 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <metadata name="sqlDataSource1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>17, 17</value>
+  </metadata>
+  <data name="customSqlQuery1.Sql" xml:space="preserve">
+    <value>    SELECT PKA_COM_FUNCTION.fp_get_member_name( sc_lon_m_contract.membership_no ) as membername ,
+    sc_lon_m_contract.membership_no ,
+    sc_lon_m_loan_request.crem_amount,
+    
+    ( select nvl(sum(fund_new),0)
+    from sc_lon_m_req_fund_new
+    where sc_lon_m_req_fund_new.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
+    ) as fund_new
+
+    , (  select nvl(sum(fund_real),0)
+    from sc_lon_m_req_fund_ret
+    where sc_lon_m_req_fund_ret.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
+    and fund_ret &gt; 0
+    ) as fund_ret
+
+
+    , (  select nvl(sum(fund_real),0)
+    from sc_lon_m_req_fund_ret
+    where sc_lon_m_req_fund_ret.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
+    and fund_ret &gt; 0
+    and deposit_account_no = 'NEW'
+    ) as fund_ret_old
+
+    , (  select nvl(sum(fund_real),0)
+    from sc_lon_m_req_fund_ret
+    where sc_lon_m_req_fund_ret.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
+    and fund_ret &gt; 0
+    and deposit_account_no &lt;&gt; 'NEW'
+    ) as fund_ret_50
+
+    , (  select nvl(sum(fund_int),0)
+    from sc_lon_m_req_fund_ret
+    where sc_lon_m_req_fund_ret.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
+    and fund_ret &gt; 0
+    and deposit_account_no &lt;&gt; 'NEW'
+    ) as fund_int_50
+
+    , FPB_GET_LOAN_TYPE_REF(  sc_lon_m_contract.loan_type ) as loan_type ,
+    FPB_GET_LOAN_TYPE_DESC( FPB_GET_LOAN_TYPE_REF(  sc_lon_m_contract.loan_type ))  as loan_type_description ,
+
+    sc_lon_m_loan_request.crem_date,
+    sc_lon_m_loan_request.total_share_value,
+    sc_lon_m_contract.loan_requestment_no ,
+    pka_com_function.fp_get_thaidate( sc_lon_m_contract.begining_of_contract , 'dd/mm/yyyy' ) as begining_of_contract ,
+    pka_com_function.fp_get_thaidate( sc_lon_m_contract.approve_date , 'dd/mm/yyyy' ) as approve_date  ,
+    sc_lon_m_loan_request.requestment_date,
+    to_tdate(sc_lon_m_contract.begining_of_contract , 'dd month')||' '||'พ.ศ.'||to_tdate(sc_lon_m_contract.begining_of_contract , 'yyyy') as thia_begining_of_contract,
+    sc_lon_m_contract.loan_payment_type_code ,
+    sc_lon_m_contract.loan_approve_amount ,
+    sc_lon_m_contract.loan_installment_amount ,
+    sc_lon_m_contract.period_payment_amount ,
+    pka_com_function.fp_get_thaidate( sc_lon_m_contract.start_keep_date , 'dd/mm/yyyy' ) as start_keep_date ,
+    sc_lon_m_contract.real_recieve ,
+    sc_lon_m_contract.loan_contract_no ,
+    sc_lon_m_contract.appove_officer ,
+    sc_lon_m_contract.rec_rep_status,
+
+    sc_lon_m_loan_request.salary_amount ,
+    sc_lon_m_loan_request.entry_id ,
+    sc_lon_m_loan_request.loan_request_amount ,
+   
+    sc_com_m_branch.branch_id ,
+    sc_com_m_branch.branch_name ,
+    sc_mem_m_ucf_member_group.member_group_no
+
+    ,sc_lon_m_loan_request.total_old_loan  as principal_amount
+    ,sc_lon_m_loan_request.total_oldint as interest_amount
+    ,sc_lon_m_loan_request.buy_share
+    ,sc_lon_m_ucf_loan_payment_type.loan_payment_type_desc
+
+    ,(   SELECT   sum( sc_com_m_receipt_item.item_amount )
+    FROM  sc_com_m_receipt,
+    sc_com_m_receipt_item
+    WHERE ( sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no ) and
+    ( sc_com_m_receipt.loan_contract_no = sc_lon_m_contract.loan_contract_no ) AND
+    ( sc_com_m_receipt.money_type_id in( 'CLR' , 'TRL' ) ) AND
+    ( sc_com_m_receipt.receipt_status = '0' )
+    ) as item_amount
+
+ ,  (select sc_acc_m_ucf_bank.bank_name
+    from sc_acc_m_ucf_bank
+    where  sc_acc_m_ucf_bank.bank_id = sc_lon_m_loan_request_mpaid.bank_code
+    ) as bank_name
+
+ ,  (select sc_acc_m_ucf_bank_branch.bank_name
+    from sc_acc_m_ucf_bank_branch
+    where  sc_acc_m_ucf_bank_branch.bank_id = sc_lon_m_loan_request_mpaid.bank_code
+    and   sc_acc_m_ucf_bank_branch.bank_branch_id = sc_lon_m_loan_request_mpaid.branch_code
+    ) as bank_branch_name
+
+,   pka_com_function.fp_form( sc_lon_m_loan_request_mpaid.bank_acc_no , 'XXX-X-XXXXX-X' ) as bank_acc_no
+
+    FROM   sc_lon_m_loan_request ,
+    sc_mem_m_membership_registered ,
+    sc_mem_m_ucf_member_group ,
+    sc_lon_m_rule ,
+    sc_lon_m_contract ,
+    sc_com_m_branch ,
+    sc_lon_m_ucf_loan_payment_type ,
+    sc_lon_m_loan_request_mpaid
+ 
+    WHERE   ( sc_mem_m_membership_registered.member_group_no  = sc_mem_m_ucf_member_group.member_group_no )
+    and     ( sc_lon_m_contract.loan_requestment_no     = sc_lon_m_loan_request.loan_requestment_no )
+    and     ( sc_mem_m_membership_registered.membership_no  = sc_lon_m_contract.membership_no )
+    and     ( sc_lon_m_contract.loan_type        = sc_lon_m_rule.loan_type )
+    and     ( sc_com_m_branch.branch_id        = sc_lon_m_contract.branch_id )
+    and     ( sc_lon_m_ucf_loan_payment_type.loan_payment_type_code = sc_lon_m_contract.loan_payment_type_code )
+    and     ( sc_lon_m_loan_request_mpaid.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no )
+    and     sc_lon_m_loan_request_mpaid.other_loan_status = '0'
+    and     sc_lon_m_loan_request.approve_status = '1'
+    and      sc_lon_m_loan_request_mpaid.type_pay_money &lt;&gt; 'ATM'
+    /*WHERE*/
+--    and     sc_lon_m_contract.begining_of_contract between to_date('2024-4-05 0:0:0','yyyy-mm-dd hh24:mi:ss') and to_date('2024-4-05 0:0:0','yyyy-mm-dd hh24:mi:ss')
+--    and     sc_lon_m_rule.loan_type = '34'
+    order by    sc_lon_m_contract.loan_contract_no</value>
+  </data>
+  <data name="sqlDataSource1.ResultSchemaSerializable" xml:space="preserve">
+    <value>PERhdGFTZXQgTmFtZT0ic3FsRGF0YVNvdXJjZTEiPjxWaWV3IE5hbWU9IlF1ZXJ5Ij48RmllbGQgTmFtZT0iTUVNQkVSTkFNRSIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJNRU1CRVJTSElQX05PIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IkNSRU1fQU1PVU5UIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJGVU5EX05FVyIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iRlVORF9SRVQiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IkZVTkRfUkVUX09MRCIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iRlVORF9SRVRfNTAiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IkZVTkRfSU5UXzUwIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJMT0FOX1RZUEUiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iTE9BTl9UWVBFX0RFU0NSSVBUSU9OIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IkNSRU1fREFURSIgVHlwZT0iRGF0ZVRpbWUiIC8+PEZpZWxkIE5hbWU9IlRPVEFMX1NIQVJFX1ZBTFVFIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJMT0FOX1JFUVVFU1RNRU5UX05PIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IkJFR0lOSU5HX09GX0NPTlRSQUNUIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IkFQUFJPVkVfREFURSIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJSRVFVRVNUTUVOVF9EQVRFIiBUeXBlPSJEYXRlVGltZSIgLz48RmllbGQgTmFtZT0iVEhJQV9CRUdJTklOR19PRl9DT05UUkFDVCIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJMT0FOX1BBWU1FTlRfVFlQRV9DT0RFIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IkxPQU5fQVBQUk9WRV9BTU9VTlQiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IkxPQU5fSU5TVEFMTE1FTlRfQU1PVU5UIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJQRVJJT0RfUEFZTUVOVF9BTU9VTlQiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IlNUQVJUX0tFRVBfREFURSIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJSRUFMX1JFQ0lFVkUiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IkxPQU5fQ09OVFJBQ1RfTk8iIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iQVBQT1ZFX09GRklDRVIiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iUkVDX1JFUF9TVEFUVVMiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iU0FMQVJZX0FNT1VOVCIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iRU5UUllfSUQiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iTE9BTl9SRVFVRVNUX0FNT1VOVCIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iQlJBTkNIX0lEIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IkJSQU5DSF9OQU1FIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9Ik1FTUJFUl9HUk9VUF9OTyIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJQUklOQ0lQQUxfQU1PVU5UIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJJTlRFUkVTVF9BTU9VTlQiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IkJVWV9TSEFSRSIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iTE9BTl9QQVlNRU5UX1RZUEVfREVTQyIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJJVEVNX0FNT1VOVCIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iQkFOS19OQU1FIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IkJBTktfQlJBTkNIX05BTUUiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iQkFOS19BQ0NfTk8iIFR5cGU9IlN0cmluZyIgLz48L1ZpZXc+PC9EYXRhU2V0Pg==</value>
+  </data>
+</root>

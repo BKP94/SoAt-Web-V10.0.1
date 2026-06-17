@@ -1,0 +1,149 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <balance_date text="วันที่" table="sc_rep_mem_share_loan_year" type="date" column="balance_date" readonly="0" />
+    <member_group_no text="หน่วย" table="sc_mem_m_ucf_member_group" operator="bt" nulltext="ดูทั้งหมด ไม่ต้องเลือกนะจ๊ะ" combo="sc_mem_m_ucf_member_group2" nestwhere="1" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>select sum(tab.row_memno)over( order by tab.member_group_control ,tab.member_group_no , tab.membership_no) as rowno,  tab.* 
+from ( SELECT sc_rep_mem_share_loan_year.client_id,
+    decode(lag(sc_rep_mem_share_loan_year.membership_no,1,null)over(  order by sc_mem_m_ucf_member_group.member_group_control , sc_mem_m_ucf_member_group.member_group_no , sc_rep_mem_share_loan_year.membership_no ) ,sc_rep_mem_share_loan_year.membership_no,0,1) as row_memno,
+    sc_rep_mem_share_loan_year.seq_no,
+    sc_rep_mem_share_loan_year.membership_no,
+    sc_rep_mem_share_loan_year.member_group_no,
+    sc_rep_mem_share_loan_year.share_balance,
+    sc_rep_mem_share_loan_year.share_period,
+    sc_rep_mem_share_loan_year.share_installment,
+    sc_rep_mem_share_loan_year.emer_contract,
+    sc_rep_mem_share_loan_year.emer_loantype,
+    sc_rep_mem_share_loan_year.emer_balance,
+    sc_rep_mem_share_loan_year.emer_period,
+     sc_rep_mem_share_loan_year.emer_installment,
+    sc_rep_mem_share_loan_year.norm_contract,
+    sc_rep_mem_share_loan_year.norm_loantype,
+     sc_rep_mem_share_loan_year.norm_balance,
+     sc_rep_mem_share_loan_year.norm_period,
+     sc_rep_mem_share_loan_year.norm_installment,
+    sc_rep_mem_share_loan_year.spec_contract,
+    sc_rep_mem_share_loan_year.spec_loantype,
+     sc_rep_mem_share_loan_year.spec_balance,
+     sc_rep_mem_share_loan_year.spec_period,
+     sc_rep_mem_share_loan_year.spec_installment,
+
+    sc_rep_mem_share_loan_year.salary_amount,
+    sc_mem_m_ucf_member_group.member_group_name,
+    sc_mem_m_ucf_member_group.member_group_control,
+    sc_mem_m_ucf_member_group.member_group_type,
+    sc_mem_m_membership_registered.mem_type,
+    pka_com_function.fp_get_group_name( sc_mem_m_ucf_member_group.member_group_control ) as grp_con_name,
+    sc_rep_mem_share_loan_year.emer_intarr,
+    sc_rep_mem_share_loan_year.norm_intarr,
+    sc_rep_mem_share_loan_year.spec_intarr,
+    sc_rep_mem_share_loan_year.balance_date,
+    pka_com_function.fp_get_thaidate(sc_rep_mem_share_loan_year.balance_date , 'SD MONTH YYYY') as balance_tdate,
+    sc_rep_mem_share_loan_year.intarr_date,
+    sc_mem_m_ucf_member_group.control_id,
+    sc_mem_m_ucf_coop_control.control_desc ,
+    sc_rep_mem_share_loan_year.member_name
+    ,sc_rep_mem_share_loan_year.member_status_code
+    ,sc_rep_mem_share_loan_year.fund_amount
+    FROM sc_rep_mem_share_loan_year,
+    sc_mem_m_membership_registered,
+    sc_mem_m_ucf_member_group ,
+    sc_mem_m_ucf_coop_control
+    WHERE ( sc_rep_mem_share_loan_year.membership_no = sc_mem_m_membership_registered.membership_no ) and
+    ( sc_rep_mem_share_loan_year.member_group_no = sc_mem_m_ucf_member_group.member_group_no ) and
+    ( sc_mem_m_ucf_coop_control.control_id =  sc_mem_m_ucf_member_group.control_id ) and
+    ( ( sc_rep_mem_share_loan_year.client_id = '000' ) )
+    and (     sc_rep_mem_share_loan_year.share_balance &gt; 0 or   
+sc_rep_mem_share_loan_year.emer_balance &gt; 0 or   
+sc_rep_mem_share_loan_year.norm_balance &gt; 0 or   
+sc_rep_mem_share_loan_year.spec_balance &gt; 0 or
+sc_rep_mem_share_loan_year.emer_intarr &gt; 0 or   
+sc_rep_mem_share_loan_year.norm_intarr &gt; 0 or   
+sc_rep_mem_share_loan_year.spec_intarr &gt; 0 
+)
+/*WHERE*/
+--and sc_rep_mem_share_loan_year.balance_date = '30/09/2024'
+order by sc_mem_m_ucf_member_group.member_group_control
+,        sc_mem_m_ucf_member_group.member_group_no
+,        sc_rep_mem_share_loan_year.membership_no
+)tab</sql>
+  <sub>
+    <r_hchora_rep_mem_share_loan_year_nest_emer>
+      <sql>SELECT        
+sc_lon_m_rule.loan_type
+,decode( sc_lon_m_ucf_loan_code.loan_code , '0' ,sc_lon_m_rule.loan_type_description  ,  sc_lon_m_ucf_loan_code.loan_code_desc    || '  ' || sc_lon_m_rule.loan_type_description  ) as loan_type_description
+, sum( sc_rep_mem_share_loan_bal.emer_balance ) as loan_balance
+    FROM sc_rep_mem_share_loan_bal,   
+         sc_lon_m_ucf_loan_code,   
+         sc_lon_m_rule,
+         sc_mem_m_ucf_member_group
+   WHERE ( sc_rep_mem_share_loan_bal.emer_loan_code = sc_lon_m_ucf_loan_code.loan_code ) and  
+         ( sc_rep_mem_share_loan_bal.emer_loantype = sc_lon_m_rule.loan_type ) and
+         ( sc_rep_mem_share_loan_bal.member_group_no = sc_mem_m_ucf_member_group.member_group_no ) and  
+         ( sc_rep_mem_share_loan_bal.emer_balance &gt; 0 )   
+     
+/*WHERE*/
+and  sc_rep_mem_share_loan_bal.balance_date = {0}
+and sc_lon_m_rule.loan_group_code = '01'
+
+GROUP BY sc_lon_m_rule.loan_type,   
+         sc_lon_m_rule.loan_type_description,   
+         sc_lon_m_ucf_loan_code.loan_code,   
+         sc_lon_m_ucf_loan_code.loan_code_desc   
+order by sc_lon_m_ucf_loan_code.loan_code ,
+sc_lon_m_rule.loan_type</sql>
+    </r_hchora_rep_mem_share_loan_year_nest_emer>
+    <r_hchora_rep_mem_share_loan_year_nest_norm>
+      <sql>SELECT        
+sc_lon_m_rule.loan_type
+,decode( sc_lon_m_ucf_loan_code.loan_code , '0' ,sc_lon_m_rule.loan_type_description  ,  sc_lon_m_ucf_loan_code.loan_code_desc    || '  ' || sc_lon_m_rule.loan_type_description  ) as loan_type_description
+, sum( sc_rep_mem_share_loan_bal.emer_balance ) as loan_balance
+    FROM sc_rep_mem_share_loan_bal,   
+         sc_lon_m_ucf_loan_code,   
+         sc_lon_m_rule,
+         sc_mem_m_ucf_member_group  
+   WHERE ( sc_rep_mem_share_loan_bal.emer_loan_code = sc_lon_m_ucf_loan_code.loan_code ) and  
+         ( sc_rep_mem_share_loan_bal.emer_loantype = sc_lon_m_rule.loan_type ) and
+         ( sc_rep_mem_share_loan_bal.member_group_no = sc_mem_m_ucf_member_group.member_group_no ) and  
+         ( sc_rep_mem_share_loan_bal.emer_balance &gt; 0 )   
+     
+/*WHERE*/
+and  sc_rep_mem_share_loan_bal.balance_date = {0}
+and sc_lon_m_rule.loan_group_code = '02'
+
+GROUP BY sc_lon_m_rule.loan_type,   
+         sc_lon_m_rule.loan_type_description,   
+         sc_lon_m_ucf_loan_code.loan_code,   
+         sc_lon_m_ucf_loan_code.loan_code_desc   
+order by sc_lon_m_ucf_loan_code.loan_code ,
+sc_lon_m_rule.loan_type</sql>
+    </r_hchora_rep_mem_share_loan_year_nest_norm>
+    <r_hchora_rep_mem_share_loan_year_nest_spec>
+      <sql>SELECT        
+sc_lon_m_rule.loan_type
+,decode( sc_lon_m_ucf_loan_code.loan_code , '0' ,sc_lon_m_rule.loan_type_description  ,  sc_lon_m_ucf_loan_code.loan_code_desc    || '  ' || sc_lon_m_rule.loan_type_description  ) as loan_type_description
+, sum( sc_rep_mem_share_loan_bal.emer_balance ) as loan_balance
+    FROM sc_rep_mem_share_loan_bal,   
+         sc_lon_m_ucf_loan_code,   
+         sc_lon_m_rule,
+         sc_mem_m_ucf_member_group  
+   WHERE ( sc_rep_mem_share_loan_bal.emer_loan_code = sc_lon_m_ucf_loan_code.loan_code ) and  
+         ( sc_rep_mem_share_loan_bal.emer_loantype = sc_lon_m_rule.loan_type ) and
+         ( sc_rep_mem_share_loan_bal.member_group_no = sc_mem_m_ucf_member_group.member_group_no ) and  
+         ( sc_rep_mem_share_loan_bal.emer_balance &gt; 0 )   
+     
+/*WHERE*/
+and  sc_rep_mem_share_loan_bal.balance_date = {0}
+and sc_lon_m_rule.loan_group_code = '03'
+
+GROUP BY sc_lon_m_rule.loan_type,   
+         sc_lon_m_rule.loan_type_description,   
+         sc_lon_m_ucf_loan_code.loan_code,   
+         sc_lon_m_ucf_loan_code.loan_code_desc   
+order by sc_lon_m_ucf_loan_code.loan_code ,
+sc_lon_m_rule.loan_type</sql>
+    </r_hchora_rep_mem_share_loan_year_nest_spec>
+  </sub>
+</root>

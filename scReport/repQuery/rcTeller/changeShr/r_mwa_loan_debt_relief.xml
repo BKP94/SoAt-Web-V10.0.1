@@ -1,0 +1,88 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <operate_date text="วันที่" table="sc_mem_m_chang_request" type="date" column="operate_date" operator="bt" readonly="0" />
+    <dep_code align="center" text="ฝ่าย" table="sc_mem_m_chang_request" column="dep_code" nulltext="ดูทั้งหมด ไม่ต้องเลือกนะจ๊ะ" combo="dep_code" readonly="0" />
+    <drop_status align="center" text="สถานะการเปลี่ยนแปลง" table="sc_mem_m_chg_loan_det" nulltext="ดูทั้งหมด ไม่ต้องเลือกนะจ๊ะ" combo="drop_status_chg" readonly="0" />
+  </arg>
+  <combo>
+    <dep_code>01=หุ้นหนี้/02=บริหาร/03=ติดตามหนี้/04=สินเชื่อ</dep_code>
+    <drop_status_chg>0=-/1=งดทั้งหมด/2=งดต้น/3=งดดอก/4=ปกติ เปลี่ยนแปลง</drop_status_chg>
+  </combo>
+  <sql>SELECT  sc_mem_m_chg_loan_det.membership_no 
+        ,sc_mem_m_chg_loan_det.document_no 
+        ,sc_mem_m_chg_loan_det.loan_contract 
+        ,sc_mem_m_chg_loan_det.pricipal 
+        ,sc_mem_m_chg_loan_det.balance 
+        ,nvl(sc_mem_m_chg_loan_det.period_old,0) as period_old
+        ,sc_mem_m_chg_loan_det.period_payment_old 
+        ,sc_mem_m_chg_loan_det.period_payment_new 
+        ,sc_mem_m_chg_loan_det.period_compomise 
+
+        ,pka_com_function.fp_get_thaidate(sc_mem_m_chg_loan_det.effactive_date, 'DD/MM/YYYY') as effactive_tdate
+        ,sc_mem_m_chg_loan_det.remark 
+        ,sc_mem_m_share_mem.share_stock 
+        ,sc_mem_m_membership_registered.salary_amount 
+        ,sc_mem_m_ucf_member_group_a.member_group_no 
+        ,sc_mem_m_ucf_member_group_a.member_group_control 
+        ,sc_mem_m_ucf_member_group_a.member_group_name 
+        ,sc_mem_m_ucf_member_group_b.member_group_name 
+        ,sc_mem_m_ucf_prename.prename 
+        ,sc_mem_m_membership_registered.member_name 
+        ,sc_mem_m_membership_registered.member_surname 
+        ,sc_mem_m_share_mem.period_recrieve  
+        ,pka_com_function.fp_get_thaidate(sc_mem_m_chang_request.operate_date, 'DD/MM/YYYY') as operate_tdate
+        ,sc_mem_m_chg_loan_det.installment_old  
+        ,sc_mem_m_chang_request.approve_id 
+        
+        ,sc_mem_m_chg_loan_det.code_put
+        ,case 
+         when sc_mem_m_chg_loan_det.code_put = '01' then 'คงต้น'
+         when sc_mem_m_chg_loan_det.code_put = '02' then 'คงยอด'
+         else null
+         end as code_put_desc
+        
+        ,sc_mem_m_chg_loan_det.drop_status_last
+        ,case
+        when sc_mem_m_chg_loan_det.drop_status_last = '0' then 'ปกติ'
+        when sc_mem_m_chg_loan_det.drop_status_last = '1' then 'งดส่งทั้งหมด'
+        when sc_mem_m_chg_loan_det.drop_status_last = '2' then 'งดต้น'
+        when sc_mem_m_chg_loan_det.drop_status_last = '3' then 'งดดอก'
+        when sc_mem_m_chg_loan_det.drop_status_last = '4' then 'ปกติ/เปลี่ยนแปลง'
+        else null
+        end as drop_status_last_desc
+        
+        ,sc_mem_m_chg_loan_det.drop_status
+        ,case
+        when sc_mem_m_chg_loan_det.drop_status = '0' then 'ปกติ'
+        when sc_mem_m_chg_loan_det.drop_status = '1' then 'งดส่งทั้งหมด'
+        when sc_mem_m_chg_loan_det.drop_status = '2' then 'งดต้น'
+        when sc_mem_m_chg_loan_det.drop_status = '3' then 'งดดอก'
+        when sc_mem_m_chg_loan_det.drop_status = '4' then 'ปกติ/เปลี่ยนแปลง'
+        else null
+        end as drop_status_desc
+         
+         
+FROM sc_mem_m_chg_loan_det
+    ,sc_mem_m_membership_registered
+    ,sc_mem_m_share_mem
+    ,sc_mem_m_ucf_member_group sc_mem_m_ucf_member_group_a
+    ,sc_mem_m_ucf_member_group sc_mem_m_ucf_member_group_b
+    ,sc_mem_m_ucf_prename
+    ,sc_mem_m_chang_request 
+           
+WHERE ( sc_mem_m_membership_registered.membership_no = sc_mem_m_share_mem.membership_no )       
+    and ( sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group_a.member_group_no )        
+    and ( sc_mem_m_ucf_member_group_a.member_group_control = sc_mem_m_ucf_member_group_b.member_group_no )         
+    and ( sc_mem_m_ucf_prename.prename_code = sc_mem_m_membership_registered.prename_code )        
+    and ( sc_mem_m_chg_loan_det.document_no = sc_mem_m_chang_request.document_no )      
+    and ( sc_mem_m_membership_registered.membership_no = sc_mem_m_chang_request.membership_no )    
+    and ( sc_mem_m_chg_loan_det.drop_status &lt;&gt; sc_mem_m_chg_loan_det.drop_status_last)
+    and ( sc_mem_m_chang_request.approve_status = '1' )
+
+/*WHERE*/
+
+order by sc_mem_m_chg_loan_det.membership_no asc
+</sql>
+  <sub />
+</root>

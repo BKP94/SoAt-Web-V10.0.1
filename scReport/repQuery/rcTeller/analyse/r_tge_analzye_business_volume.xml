@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root procedure=" pka_rep_mis.sp_business_volume({confirm_year_1})">
+  <arg>
+    <confirm_year align="center" special="year" text="ปี" table="sc_rep_mis_business_volume" type="integer2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select  pka_com_function.fp_get_thaidate(confirm_date , 'MONTH') as confirm_month
+      ,sc_rep_mis_business_volume.confirm_year
+      ,sc_rep_mis_business_volume.confirm_date
+      ,sc_rep_mis_business_volume.seq_no
+      ,sc_rep_mis_business_volume.count_mem
+      ,sc_rep_mis_business_volume.share_bal
+      ,sc_rep_mis_business_volume.dep_saving
+      ,sc_rep_mis_business_volume.dep_fixed
+      ,sc_rep_mis_business_volume.loan_all
+      ,sc_rep_mis_business_volume.profit_accu
+      ,sc_rep_mis_business_volume.loan_emer
+      ,sc_rep_mis_business_volume.loan_norm
+      ,sc_rep_mis_business_volume.loan_spec
+      ,sc_rep_mis_business_volume.income
+      ,sc_rep_mis_business_volume.expenses
+      ,sc_rep_mis_business_volume.profit
+      ,sc_rep_mis_business_volume.reward
+from    sc_rep_mis_business_volume
+where   1 = 1
+/*WHERE*/
+order by confirm_date</sql>
+  <sub />
+</root>

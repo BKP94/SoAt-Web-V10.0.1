@@ -1,0 +1,83 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+  </arg>
+  <combo />
+  <sql> SELECT sc_lon_m_contract.membership_no,   
+        (select coop_name from sc_cnt_m_coop) as coop_name,
+         sc_lon_m_contract.loan_contract_no,   
+         sc_lon_m_contract.loan_type,   
+         sc_lon_m_contract.loan_approve_amount,   
+         sc_lon_m_contract.begining_of_contract,   
+	   sc_lon_m_contract.loan_requestment_no ,
+         pka_com_function.fp_get_member_name(sc_lon_m_contract.membership_no) as memname,   
+         sc_lon_m_contract.loan_installment_amount,          
+         sc_mem_m_member_work_info.group_position,    
+         sc_lon_m_contract.loan_objective_code,   
+         sc_mem_m_membership_registered.id_card,   
+         sc_lon_m_ucf_loan_obj.loan_objective_description  
+--, pkb_repyear.fp_loan_sum_int( sc_lon_m_contract.loan_contract_no ,  to_date( '01/01/' || to_char( sc_acc_m_account_year.account_year )  ,'dd/mm/yyyy' )  ,to_date( '31/12/' || to_char( sc_acc_m_account_year.account_year )  ,'dd/mm/yyyy' )   )  as year_total_interest
+
+,pka_lon_intsrv.fp_intrate_table_loantype( sc_lon_m_contract.loan_type) as loan_int_rate
+
+,sc_acc_m_account_year.account_year
+,sc_acc_m_account_year.beginning_of_account
+,sc_acc_m_account_year.ending_of_account
+
+,sc_mem_m_ucf_member_group.member_group_no
+,sc_mem_m_ucf_member_group.member_group_name
+
+
+,sc_cnt_m_coop.coop_registered_no
+,sc_cnt_m_coop.coop_name 
+,sc_cnt_m_coop.manager_name
+,sc_cnt_m_coop.address 
+,sc_cnt_m_coop.tumbol_name 
+,pka_com_function.fp_get_district_name(  sc_cnt_m_coop.province_code , sc_cnt_m_coop.district_code   ) as coop_district_name
+,pka_com_function.fp_get_province_name( sc_cnt_m_coop.province_code  ) as coop_province_name
+,sc_cnt_m_coop.telephone_no
+--,sc_cnt_m_coop.mooban
+,sc_cnt_m_coop.muu
+,sc_cnt_m_coop.soi   
+,sc_cnt_m_coop.road
+,sc_cnt_m_coop.postcode
+
+,PKA_COM_FUNCTION.fp_get_member_address(  sc_mem_m_membership_registered.membership_no ,'0' ) as member_address 
+
+
+,sc_lon_m_contract_coll.ref_own_no
+,sc_lon_m_contract_coll.grt_int_paid
+
+,sc_lon_req_coll_law_head.coll_ref_type
+,sc_lon_req_coll_law_head.coll_type
+
+    FROM sc_lon_m_contract,   
+         sc_mem_m_membership_registered,   
+         sc_lon_m_loan_card,   
+         sc_lon_m_ucf_loan_obj,   
+         sc_mem_m_member_work_info,      
+         sc_mem_m_ucf_member_group  
+,sc_acc_m_account_year
+,sc_cnt_m_coop
+,sc_mem_m_ucf_doc_place
+,sc_lon_m_contract_coll
+,sc_lon_req_coll_law_head
+   WHERE ( sc_lon_m_contract.membership_no = sc_mem_m_membership_registered.membership_no ) and  
+         ( sc_lon_m_contract.loan_contract_no = sc_lon_m_loan_card.loan_contract_no ) and  
+         ( sc_lon_m_contract.loan_type = sc_lon_m_ucf_loan_obj.loan_type ) and  
+         ( sc_lon_m_contract.loan_objective_code = sc_lon_m_ucf_loan_obj.loan_objective_code ) and  
+         ( sc_lon_m_loan_card.membership_no = sc_mem_m_member_work_info.membership_no ) and      
+         ( sc_mem_m_ucf_member_group.member_group_no = sc_mem_m_membership_registered.member_group_no ) and    
+sc_mem_m_ucf_doc_place.item_code = sc_mem_m_membership_registered.doc_place_status and         
+         ( sc_lon_m_ucf_loan_obj.tax_reduce in ( '1' ) )     
+
+--and pkb_repyear.fp_loan_sum_int( sc_lon_m_contract.loan_contract_no ,  to_date( '01/01/' || to_char( sc_acc_m_account_year.account_year )  ,'dd/mm/yyyy' )  ,to_date( '31/12/' || to_char( sc_acc_m_account_year.account_year )  ,'dd/mm/yyyy' )   )  &gt; 0 
+
+and 	sc_lon_m_contract_coll.loan_contract_no = sc_lon_m_contract.loan_contract_no
+and	sc_lon_m_contract_coll.collateral_type_code = '04'
+and	( sc_lon_m_contract_coll.support_coll = '0' or sc_lon_m_contract_coll.support_coll is null ) 
+and	sc_lon_req_coll_law_head.doc_no = sc_lon_m_contract_coll.ref_own_no
+/*WHERE*/
+</sql>
+  <sub />
+</root>

@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root procedure="pka_rep_loan.sp_rep_lon_return({operate_date_1},{day_cal_1})">
+  <arg>
+    <member_group_no align="center" text="หน่วย" table="vr_loan_miss_lon" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+    <operate_date text="วันที่" table="vr_loan_miss_lon" type="date" sqlreplace="1" readonly="0" />
+    <day_cal align="center" default="30" text="ดอกเบี้ยค้างตั้งเเต่" type="integer2" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>     select
+    pka_com_function.fp_get_member_name(vr_loan_miss_lon.membership_no) as member_name
+    ,pka_com_function.fp_get_thaidate( vr_loan_miss_lon.operate_date , 'dd month yyyy') as cut_tdate
+    ,pka_com_function.fp_get_thaidate( vr_loan_miss_lon.last_calcint_date , 'dd month yyyy') as last_calcint_tdate
+    ,pka_com_function.fp_get_thaidate( vr_loan_miss_lon.begining_of_contract , 'dd month yyyy') as begining_of_contract_tdate
+    ,pka_com_function.fp_get_thaidate( vr_loan_miss_lon.last_access_date , 'dd month yyyy') as last_access_tdate
+    ,pka_com_function.fp_get_thaidate( vr_loan_miss_lon.operate_date , 'SD MONTH YYYY') as operate_tdate
+    ,to_number('!day_cal!') as day_cal
+    ,pka_com_function.fp_get_thaidate( '!operate_date!' - '!day_cal!' , 'MON YY')  as month_cal
+
+    ,vr_loan_miss_lon.*
+    from vr_loan_miss_lon
+    where 1=1
+    /*WHERE*/
+
+order by  vr_loan_miss_lon.membership_no
+  </sql>
+  <sub />
+</root>

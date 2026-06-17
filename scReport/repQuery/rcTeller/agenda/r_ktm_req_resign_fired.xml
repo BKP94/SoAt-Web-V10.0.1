@@ -1,0 +1,127 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <resign_date text="วันที่" table="sc_mem_m_resign_requestment" type="date" operator="bt" sqlreplace="1" mustvalue="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT
+    sc_mem_m_resign_requestment.resign_doc_no,
+    PKA_COM_FUNCTION.fp_get_member_name( sc_mem_m_resign_requestment.membership_no ) as member_name,
+    sc_mem_m_resign_requestment.membership_no,
+    sc_mem_m_resign_requestment.resign_date,
+    sc_mem_m_resign_requestment.resign_code,
+    sc_mem_m_resign_requestment.different_shareloan,
+    --88888888.88 as different_shareloan,
+    --888888.88 as fund_mony,
+    nvl((select sum(total_balance) as total_balance from sc_fund_mem where membership_no = sc_mem_m_resign_requestment.membership_no),0) as fund_mony,
+    sc_mem_m_ucf_resign_cause.resign_cause_code,
+    sc_mem_m_ucf_resign_cause.resign_cause_name,
+    sc_mem_m_membership_registered.member_group_no,
+    sc_mem_m_ucf_member_group.member_group_old,
+    --88888888.00 as shr_value
+    sc_mem_m_resign_share.shr_value,
+    '!resign_date_2!' as resign_date_full,
+    --sc_mem_m_share_mem.black_list_count,
+    (select count(item_type) from sc_mem_m_share_holding_detail where membership_no = sc_mem_m_resign_requestment.membership_no and sc_mem_m_share_holding_detail.item_type = 'RM') as black_list_count,
+
+    (select sum(t1.principal_balance) as sum_principal_balance
+    from (SELECT
+    sc_mem_m_resign_loan.loan_contract_no,
+    sc_mem_m_resign_loan.principal_balance,
+    sc_mem_m_resign_loan.interest,
+    sc_mem_m_resign_loan.interest_arrear
+    FROM
+    sc_mem_m_resign_requestment,
+    sc_mem_m_resign_loan,
+    sc_mem_m_ucf_resign_cause
+    WHERE
+    ( sc_mem_m_resign_requestment.resign_doc_no = sc_mem_m_resign_loan.resign_doc_no )
+    and sc_mem_m_ucf_resign_cause.resign_cause_code = sc_mem_m_resign_requestment.resign_code
+    and sc_mem_m_ucf_resign_cause.dead_status = '2'
+    and sc_mem_m_resign_requestment.approve_result &lt;&gt; '0'
+    and sc_mem_m_resign_requestment.resign_date between '!resign_date_1!' and '!resign_date_2!'
+    ) t1) as sum_principal_balance,
+
+    (select sum(t1.interest) as sum_interest
+    from (SELECT
+    sc_mem_m_resign_loan.loan_contract_no,
+    sc_mem_m_resign_loan.principal_balance,
+    sc_mem_m_resign_loan.interest,
+    sc_mem_m_resign_loan.interest_arrear
+    FROM
+    sc_mem_m_resign_requestment,
+    sc_mem_m_resign_loan,
+    sc_mem_m_ucf_resign_cause
+    WHERE
+    ( sc_mem_m_resign_requestment.resign_doc_no = sc_mem_m_resign_loan.resign_doc_no )
+    and sc_mem_m_ucf_resign_cause.resign_cause_code = sc_mem_m_resign_requestment.resign_code
+    and sc_mem_m_ucf_resign_cause.dead_status = '2'
+    and sc_mem_m_resign_requestment.approve_result &lt;&gt; '0'
+    and sc_mem_m_resign_requestment.resign_date between '!resign_date_1!' and '!resign_date_2!'
+    ) t1) as sum_interest
+
+
+    FROM
+    sc_mem_m_resign_requestment,
+    sc_mem_m_ucf_resign_cause,
+    sc_mem_m_membership_registered,
+    sc_mem_m_ucf_member_group,
+    sc_mem_m_resign_share,
+    sc_mem_m_share_mem
+    WHERE 1 = 1
+    and ( sc_mem_m_resign_requestment.resign_code = sc_mem_m_ucf_resign_cause.resign_cause_code )
+    and ( sc_mem_m_resign_requestment.membership_no = sc_mem_m_membership_registered.membership_no )
+    and ( sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no )
+    and ( sc_mem_m_resign_requestment.resign_doc_no = sc_mem_m_resign_share.resign_doc_no )
+    and ( sc_mem_m_membership_registered.membership_no = sc_mem_m_share_mem.membership_no )
+    and ( sc_mem_m_ucf_resign_cause.dead_status = '2' )
+    and sc_mem_m_resign_requestment.approve_result &lt;&gt; '0'
+    --and ( sc_mem_m_resign_requestment.resign_code = '01')
+    --and ( sc_mem_m_resign_requestment.resign_date between '!resign_date_1!' and '!resign_date_2!' )
+    /*WHERE*/
+    order by sc_mem_m_resign_requestment.resign_doc_no
+  </sql>
+  <sub>
+    <r_ktm_req_resign_nest_loan_con_no_with_blacklist>
+      <sql>        SELECT
+        sc_mem_m_resign_loan.resign_doc_no,
+        sc_mem_m_resign_loan.loan_contract_no,
+        pka_com_function.fp_form(sc_mem_m_resign_loan.loan_contract_no ,'#-') as format_loan_contract_no ,
+        sc_mem_m_resign_loan.principal_balance,
+        --88888888.88 as principal_balance,
+        --888888.88 as interest,
+        sc_mem_m_resign_loan.interest,
+        sc_lon_m_contract.begining_of_contract,
+        to_tdate(sc_lon_m_contract.begining_of_contract , 'dd/mm/yyyy') as tdate_begining_of_contract,
+        --sc_lon_m_loan_card.backlist_count,
+        (select count(item_type_code) from sc_lon_m_loan_card_detail where loan_contract_no = sc_lon_m_loan_card.loan_contract_no and item_type_code = 'RM') as backlist_count,
+        sc_mem_m_resign_loan.interest_arrear
+        FROM
+        sc_mem_m_resign_loan,
+        sc_lon_m_contract,
+        sc_lon_m_loan_card
+        WHERE 1 = 1
+        and ( sc_mem_m_resign_loan.loan_contract_no = sc_lon_m_contract.loan_contract_no )
+        and ( sc_lon_m_contract.loan_contract_no = sc_lon_m_loan_card.loan_contract_no )
+        and ( ( sc_mem_m_resign_loan.resign_doc_no = {0} ) )
+      </sql>
+    </r_ktm_req_resign_nest_loan_con_no_with_blacklist>
+    <r_ktm_req_resign_nest_loan_coll>
+      <sql>
+        select
+        sc_mem_m_resign_loan.resign_doc_no,
+        sc_mem_m_resign_loan.loan_contract_no,
+        sc_lon_m_contract_coll.ref_own_no,
+        sc_lon_m_contract_coll.collateral_description
+        from
+        sc_lon_m_contract_coll,
+        sc_mem_m_resign_loan
+        where 1=1
+        and sc_lon_m_contract_coll.loan_contract_no = sc_mem_m_resign_loan.loan_contract_no
+        and sc_lon_m_contract_coll.status = '0'
+        and sc_lon_m_contract_coll.collateral_type_code = '01'
+        and sc_mem_m_resign_loan.resign_doc_no = {0}
+      </sql>
+    </r_ktm_req_resign_nest_loan_coll>
+  </sub>
+</root>

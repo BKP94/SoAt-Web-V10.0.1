@@ -1,0 +1,164 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <op_date text="วันที่ถอน" type="date" column="op_date" operator="bt" sqlwhere="0" sqlreplace="1" nestreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    select PKA_COM_FUNCTION.fp_get_member_name( sc_mem_m_share_withdraw_head.membership_no ) as membername,
+    sc_mem_m_share_withdraw_head.membership_no,
+    sc_mem_m_share_withdraw_head.withdraw_date,
+    PKA_COM_FUNCTION.fp_get_thaidate( sc_mem_m_share_withdraw_head.withdraw_date ) as withdraw_date_tdate ,
+    sc_mem_m_share_withdraw_head.entry_id,
+    sc_mem_m_share_withdraw_head.entry_date,
+    sc_mem_m_share_withdraw_head.withdraw_doc_no,
+    sc_mem_m_share_withdraw_head.withdraw_status ,
+
+    sc_mem_m_share_withdraw_head.money_type_id ,
+    sc_mem_m_share_withdraw_head.bank_id,
+    (select bank_name from sc_acc_m_ucf_bank where bank_id = sc_mem_m_share_withdraw_head.bank_id) as bank_name,
+    sc_mem_m_share_withdraw_head.bank_account_no,
+    pka_com_function.fp_form( sc_mem_m_share_withdraw_head.bank_account_no , 'XXX-X-XXXXXXXXXX' ) as from_bank_account_no,
+
+    sc_mem_m_share_withdraw_det.period,
+    sc_mem_m_share_withdraw_det.share_month,
+    sc_mem_m_share_withdraw_det.share_stock,
+    sc_mem_m_share_withdraw_det.share_withdraw,
+    sc_mem_m_share_withdraw_det.seq_no,
+
+    sc_mem_m_ucf_member_group.member_group_no,
+    sc_mem_m_ucf_member_group.member_group_name,
+    sc_mem_m_ucf_member_group.member_group_control ,
+    sc_mem_m_ucf_member_group.control_id
+    ,PKA_COM_FUNCTION.fp_get_thaidate(sc_mem_m_membership_registered.resignation_approve_date) as resignation_approve_date_tdate
+
+    , nvl( ( 		SELECT sum( sc_com_m_receipt_item.item_amount )
+    FROM sc_com_m_receipt,
+    sc_com_m_receipt_item
+    WHERE ( sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no ) and
+    sc_com_m_receipt.money_type_id = 'TNL'  AND
+    sc_com_m_receipt.receipt_status = '0'  AND
+    sc_com_m_receipt.membership_no =sc_mem_m_share_withdraw_head.membership_no  ) , 0 )  as tnl_amount
+    ,sc_com_m_ucf_money_type.money_type_name
+    ,sc_mem_m_ucf_member_type.mem_type_code
+    ,sc_mem_m_ucf_member_type.mem_type_desc
+    ,to_date(  '!op_date_1!' ) as begin_date
+    ,to_date(  '!op_date_2!' ) as end_date
+    from sc_mem_m_share_withdraw_det,
+    sc_mem_m_share_withdraw_head,
+    sc_mem_m_membership_registered,
+    sc_mem_m_ucf_member_group  ,
+    sc_com_m_branch ,
+    sc_com_m_ucf_money_type
+    ,sc_mem_m_ucf_member_type
+    where 	( sc_mem_m_share_withdraw_head.withdraw_doc_no 	= sc_mem_m_share_withdraw_det.withdraw_doc_no )
+    and        	( sc_mem_m_share_withdraw_head.membership_no 		= sc_mem_m_membership_registered.membership_no )
+    and         	( sc_mem_m_membership_registered.member_group_no 	= sc_mem_m_ucf_member_group.member_group_no )
+    and          ( sc_mem_m_share_withdraw_head.branch_id 			= sc_com_m_branch.branch_id )
+    and		( sc_com_m_ucf_money_type.money_type_id = sc_mem_m_share_withdraw_head.money_type_id )
+    and		( sc_mem_m_ucf_member_type.mem_type_code = sc_mem_m_membership_registered.mem_type )
+    and 		(sc_mem_m_share_withdraw_head.withdraw_status = '0' )
+    and sc_mem_m_share_withdraw_head.withdraw_date between to_date(  '!op_date_1!' ) and  to_date(  '!op_date_2!' )
+    /*WHERE*/
+  </sql>
+  <sub>
+    <r_ktm_share_withdraw_nest_aero>
+      <sql>
+        SELECT sc_com_m_receipt.receipt_no,
+        sc_com_m_receipt_item.seq_no,
+        sc_com_m_receipt_item.description,
+        sc_com_m_receipt_item.principal_amount,
+        sc_com_m_receipt_item.interest_amount,
+        sc_com_m_receipt_item.item_amount
+        FROM sc_com_m_receipt,
+        sc_com_m_receipt_item
+        WHERE ( sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no ) and
+        ( ( sc_com_m_receipt.money_type_id = 'TNL' ) AND
+        ( sc_com_m_receipt.receipt_status = '0' ) AND
+        ( sc_com_m_receipt.membership_no = {0} ) AND
+        ( sc_com_m_receipt_item.item_amount &gt; 0 ) )
+      </sql>
+    </r_ktm_share_withdraw_nest_aero>
+    <r_ktm_share_withdraw_nest>
+      <sql>
+        SELECT tab_data.account_id,
+        tab_data.account_name,
+        tab_data.loan_type,
+        tab_data.loan_type_description,
+        tab_data.principal_amount,
+        tab_data.interest_amount,
+        tab_data.item_amount
+        ,tab_data. loan_type_des
+        from
+        (
+        /* เงินกู้ */
+        SELECT sc_acc_m_account_master.account_id,
+        sc_acc_m_account_master.account_name,
+        sc_lon_m_rule.loan_type,
+        sc_lon_m_rule.loan_type_description,
+        sum( sc_com_m_receipt_item.principal_amount ) as principal_amount,
+        sum( sc_com_m_receipt_item.interest_amount ) as interest_amount,
+        sum( sc_com_m_receipt_item.item_amount) as item_amount  ,
+        sc_com_m_receipt.receipt_date  as receipt_date ,
+        sc_com_m_receipt.money_type_id as money_type_id
+        ,(sc_lon_m_rule.ref_contract_type) as loan_type_des
+        FROM sc_com_m_receipt,
+        sc_com_m_receipt_item,
+        sc_lon_m_rule,
+        sc_acc_m_account_master,
+        sc_com_m_ucf_receipt_item_type
+        WHERE ( sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no ) and
+        ( sc_com_m_receipt_item.loan_type = sc_lon_m_rule.loan_type ) and
+        ( sc_lon_m_rule.account_id = sc_acc_m_account_master.account_id ) and
+        ( sc_com_m_receipt_item.item_type_id = sc_com_m_ucf_receipt_item_type.item_type_id ) and
+        ( sc_com_m_receipt.receipt_status = '0' ) AND
+        ( sc_com_m_ucf_receipt_item_type.group_item = 'LON' ) AND
+        ( sc_com_m_receipt_item.item_amount &lt;&gt; 0 )
+        and sc_com_m_receipt.share_stock = sc_com_m_receipt.recept_amount
+
+        GROUP BY sc_acc_m_account_master.account_id,
+        sc_acc_m_account_master.account_name,
+        sc_lon_m_rule.loan_type,
+        sc_lon_m_rule.loan_type_description   ,
+        sc_com_m_receipt.receipt_date  ,
+        sc_com_m_receipt.money_type_id ,sc_lon_m_rule.ref_contract_type
+
+        union
+
+        SELECT sc_com_m_ucf_receipt_item_type.item_type_id as account_id  ,
+        sc_com_m_ucf_receipt_item_type.item_type_name  as account_name  ,
+        sc_com_m_ucf_receipt_item_type.item_type_id as loan_type  ,
+        sc_com_m_ucf_receipt_item_type.item_type_name  as loan_type_description ,
+        sum( sc_com_m_receipt_item.principal_amount ) as principal_amount,
+        sum( sc_com_m_receipt_item.interest_amount ) as interest_amount,
+        sum( sc_com_m_receipt_item.item_amount) as item_amount  ,
+        sc_com_m_receipt.receipt_date  as receipt_date ,
+        sc_com_m_receipt.money_type_id as money_type_id
+        ,' - ' as loan_type_des
+        FROM sc_com_m_receipt,
+        sc_com_m_receipt_item,
+        sc_com_m_ucf_receipt_item_type
+
+        WHERE ( sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no ) and
+        ( sc_com_m_receipt_item.item_type_id = sc_com_m_ucf_receipt_item_type.item_type_id ) and
+        ( sc_com_m_receipt.receipt_status = '0' ) AND
+        ( sc_com_m_ucf_receipt_item_type.group_item &lt;&gt; 'LON' ) AND
+        ( sc_com_m_receipt_item.item_amount &lt;&gt; 0 )
+        and sc_com_m_receipt.share_stock = sc_com_m_receipt.recept_amount
+
+        GROUP BY sc_com_m_ucf_receipt_item_type.item_type_id,
+        sc_com_m_ucf_receipt_item_type.item_type_name ,
+        sc_com_m_receipt.receipt_date  ,
+        sc_com_m_receipt.money_type_id
+
+        ) tab_data
+        , sc_fin_m_close_day
+        ,sc_com_m_ucf_money_type
+        where sc_fin_m_close_day.journal_date = tab_data.receipt_date
+        and 	sc_com_m_ucf_money_type.money_type_id = tab_data.money_type_id
+        and	sc_fin_m_close_day.journal_date  between '!op_date_1!' and '!op_date_2!'
+        and	sc_com_m_ucf_money_type.money_type_id = 'TNL'
+      </sql>
+    </r_ktm_share_withdraw_nest>
+  </sub>
+</root>

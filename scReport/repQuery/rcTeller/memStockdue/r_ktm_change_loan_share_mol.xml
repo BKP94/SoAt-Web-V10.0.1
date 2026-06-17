@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <operate_date text="วันที่" type="date" column="operate_date" operator="bt" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    select sc_mem_m_chang_request.membership_no
+    ,pka_com_function.fp_get_member_name(sc_mem_m_chang_request.membership_no) mem_name
+    ,sc_mem_m_chang_request.operate_date
+    ,pka_com_function.fp_get_thaidate(sc_mem_m_chang_request.operate_date) operate_date_tdate
+    ,sc_mem_m_chang_request.entry_id
+    ,sc_mem_m_member_work_info.salary_amount
+
+    ,sc_mem_m_chg_share_det.membership_no loan_contract
+    ,'SHR' type_request
+    ,case
+    when sc_mem_m_chg_share_det.shr_value_new &gt; sc_mem_m_chg_share_det.shr_value_old then 'เพิ่มส่งหุ้น '||trim(to_char(sc_mem_m_chg_share_det.shr_value_old,'999,999.00'))
+    when sc_mem_m_chg_share_det.shr_value_new &lt; sc_mem_m_chg_share_det.shr_value_old then 'ลดส่งหุ้น '||trim(to_char(sc_mem_m_chg_share_det.shr_value_old,'999,999.00'))
+    when sc_mem_m_chg_share_det.shr_value_new = sc_mem_m_chg_share_det.shr_value_old  then decode( sc_mem_m_chg_share_det.drop_status_last,'0','ชำระปกติ','1','งดส่ง','ชำระปกติ')
+    end value_old_text
+
+    ,case
+    when sc_mem_m_chg_share_det.shr_value_new  &gt; sc_mem_m_chg_share_det.shr_value_old
+    or sc_mem_m_chg_share_det.shr_value_new  &lt; sc_mem_m_chg_share_det.shr_value_old then trim(to_char(sc_mem_m_chg_share_det.shr_value_new,'999,999.00'))
+    else decode(sc_mem_m_chg_share_det.drop_status,'0','ชำระปกติ','1','งดส่ง','ชำระปกติ')
+    end value_new_text
+
+    ,decode( sc_mem_m_chg_share_det.drop_status_last , '1' , 0 , sc_mem_m_chg_share_det.shr_value_old   ) as value_old
+    ,decode( sc_mem_m_chg_share_det.drop_status , '1' , 0 , sc_mem_m_chg_share_det.shr_value_new  ) as value_new
+    ,sc_mem_m_chang_request.document_no
+    ,nvl( sc_mem_m_chang_request.approve_id , ' ' )  as approve_id
+
+    from sc_mem_m_chang_request
+    ,sc_mem_m_chg_share_det
+    ,sc_mem_m_member_work_info
+
+    where sc_mem_m_member_work_info.membership_no = sc_mem_m_chang_request.membership_no
+    and	sc_mem_m_chg_share_det.document_no = sc_mem_m_chang_request.document_no
+    and	sc_mem_m_chang_request.approve_status &lt;&gt; '3'
+    --and 	sc_mem_m_chang_request.operate_date between to_date('03/02/2020') and to_date('03/02/2020')
+    and 	sc_mem_m_chang_request.operate_date between to_date('!operate_date_1!') and to_date('!operate_date_2!')
+
+    union
+
+    select sc_mem_m_chang_request.membership_no
+    ,pka_com_function.fp_get_member_name(sc_mem_m_chang_request.membership_no) mem_name
+    ,sc_mem_m_chang_request.operate_date
+    ,pka_com_function.fp_get_thaidate(sc_mem_m_chang_request.operate_date) operate_date_tdate
+    ,sc_mem_m_chang_request.entry_id
+    ,sc_mem_m_member_work_info.salary_amount
+
+    ,sc_mem_m_chg_loan_det.loan_contract
+    ,'LON' type_request
+    ,case
+    when sc_mem_m_chg_loan_det.period_payment_new  &gt; sc_mem_m_chg_loan_det.period_payment_old  then 'เพิ่มส่งหนี้ '||trim(to_char(sc_mem_m_chg_loan_det.period_payment_old,'999,999.00'))
+    when sc_mem_m_chg_loan_det.period_payment_new &lt; sc_mem_m_chg_loan_det.period_payment_old then 'ลดส่งหนี้ '||trim(to_char(sc_mem_m_chg_loan_det.period_payment_old,'999,999.00'))
+    when sc_mem_m_chg_loan_det.period_payment_new = sc_mem_m_chg_loan_det.period_payment_old  then
+    decode(sc_mem_m_chg_loan_det.drop_status_last,'0','ชำระปกติ','1','งดต้นและดอก','2','งดต้น','3','งดดอก','ชำระปกติ')
+    end value_old_text
+    ,case
+    when sc_mem_m_chg_loan_det.period_payment_new  &gt; sc_mem_m_chg_loan_det.period_payment_old
+    or sc_mem_m_chg_loan_det.period_payment_new  &lt; sc_mem_m_chg_loan_det.period_payment_old then trim(to_char(sc_mem_m_chg_loan_det.period_payment_new,'999,999.00'))
+    else decode(sc_mem_m_chg_loan_det.drop_status,'0','ชำระปกติ','1','งดต้นและดอก','2','งดต้น','3','งดดอก','ชำระปกติ')
+    end value_new_text
+
+    ,decode( sc_mem_m_chg_loan_det.drop_status_last , '0' , sc_mem_m_chg_loan_det.period_payment_old , 0   ) as value_old
+    ,decode( sc_mem_m_chg_loan_det.drop_status , '0' ,  sc_mem_m_chg_loan_det.period_payment_new  , 0 ) as value_new
+
+    ,sc_mem_m_chang_request.document_no
+    ,nvl( sc_mem_m_chang_request.approve_id , ' ' )  as approve_id
+
+    from sc_mem_m_chang_request
+    ,sc_mem_m_chg_loan_det
+    ,sc_mem_m_member_work_info
+
+    where sc_mem_m_member_work_info.membership_no = sc_mem_m_chang_request.membership_no
+    and	sc_mem_m_chg_loan_det.document_no = sc_mem_m_chang_request.document_no
+    and	sc_mem_m_chang_request.approve_status &lt;&gt; '3'
+    --and 	sc_mem_m_chang_request.operate_date between to_date('03/02/2020') and to_date('03/02/2020')
+    and 	sc_mem_m_chang_request.operate_date between to_date('!operate_date_1!') and to_date('!operate_date_2!')
+    /*where*/
+    order by operate_date,type_request,document_no
+  </sql>
+  <sub />
+</root>

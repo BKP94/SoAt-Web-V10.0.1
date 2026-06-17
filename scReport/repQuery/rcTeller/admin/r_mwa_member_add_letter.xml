@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+  </arg>
+  <combo />
+  <sql>  select sc_cnt_m_coop.address,   
+         pka_com_function.fp_get_sub_district_name(sc_cnt_m_coop.tumbol_name) as tumbol_name,   
+         pka_com_function.fp_get_district_name(sc_cnt_m_coop.province_code ,sc_cnt_m_coop.district_code) as district_name  ,
+         pka_com_function.fp_get_province_name(sc_cnt_m_coop.province_code) as province_name,  
+         sc_cnt_m_coop.postcode,   
+         sc_cnt_m_coop.telephone_no,   
+         sc_cnt_m_coop.fax_no,   
+         sc_cnt_m_coop.coop_name,
+         sc_cnt_m_coop.road
+
+    from sc_cnt_m_coop   
+
+/*WHERE*/</sql>
+  <sub />
+</root>

@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="T080" rep_text="หนังสือยืนยันยอด">
+  <arg>
+    <data_date align="center" text="หุ้น ณ วันที่" type="date" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <membership_no align="center" special="memno" text="ทะเบียน" table="sc_mem_m_membership_registered" readonly="0" />
+    <book_no align="center" default="/2566" text="ที่ สอ.สศ." sqlwhere="0" sqlreplace="1" readonly="0" />
+    <book_date align="center" text="ให้ไว้ ณ วันที่" type="date" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select  trim(sc_cnt_m_coop.coop_name)||' '||'ขอรับรองว่า'||trim(pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no)) as paragraph_1
+,       ' เป็นสมาชิก'||trim(sc_cnt_m_coop.coop_name)||' เลขทะเบียนสมาชิก '||trim(sc_mem_m_membership_registered.membership_no)||' สังกัด' as paragraph_2
+,       trim(pka_com_function.fp_get_group_name_mem(sc_mem_m_membership_registered.membership_no))||' ณ วันที่ '||
+        trim(pka_com_function.fp_get_thaidate('!data_date!','SD MONTH YYYY'))||' มีหุ้น '||
+        REPLACE(to_snumber(pka_com_function.fp_shr_get_balance_atdate( sc_mem_m_membership_registered.membership_no , '!data_date!' )/sc_share_m_constant.share_value_perunit),
+        RIGHT(to_snumber(pka_com_function.fp_shr_get_balance_atdate( sc_mem_m_membership_registered.membership_no , '!data_date!' )/sc_share_m_constant.share_value_perunit),3),null)||
+        ' หุ้น เป็นเงิน '||REPLACE(to_snumber(pka_com_function.fp_shr_get_balance_atdate( sc_mem_m_membership_registered.membership_no , '!data_date!' )),
+        RIGHT(to_snumber(pka_com_function.fp_shr_get_balance_atdate( sc_mem_m_membership_registered.membership_no , '!data_date!' )),3),null)||' บาท' as paragraph_3
+,       ' ('||(pka_com_function.fp_get_moneythai(pka_com_function.fp_shr_get_balance_atdate( sc_mem_m_membership_registered.membership_no ,'!data_date!' ))||') และไม่มีหนี้สินผูกพันกับสหกรณ์') as paragraph_4
+,       sc_mem_m_membership_registered.membership_no
+,       pka_com_function.fp_shr_get_balance_atdate( sc_mem_m_membership_registered.membership_no , '!data_date!' )as share_mem
+,       '!data_date!'as data_date
+,       '!book_no!'as book_no
+,       '!book_date!'as book_date
+,       sc_cnt_m_coop.coop_name
+,       sc_cnt_m_coop.manager_name
+,       (select  nvl(sum(pka_com_function.fp_lon_get_balance_atdate ( sc_lon_m_loan_card.loan_contract_no , '!data_date!' )),0)
+        from     sc_lon_m_loan_card
+        where    sc_lon_m_loan_card.membership_no = sc_mem_m_membership_registered.membership_no
+        )as principal_balance
+        
+from    sc_mem_m_membership_registered
+,       sc_cnt_m_coop
+,       sc_share_m_constant
+where   1=1
+and     pka_com_function.fp_shr_get_balance_atdate( sc_mem_m_membership_registered.membership_no , '!data_date!' ) &gt; 0
+and     ((select  nvl(sum(pka_com_function.fp_lon_get_balance_atdate ( sc_lon_m_loan_card.loan_contract_no , '!data_date!' )),0)
+        from     sc_lon_m_loan_card
+        where    sc_lon_m_loan_card.membership_no = sc_mem_m_membership_registered.membership_no
+        ) = 0)
+--and     sc_mem_m_membership_registered.membership_no = '039660'
+/*WHERE*/
+</sql>
+  <sub>
+  </sub>
+</root>

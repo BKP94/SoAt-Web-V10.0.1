@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+  </arg>
+  <combo />
+  <sql>  SELECT sc_mem_m_membership_registered.id_card,   
+      /*  '103010 เลขประจำตัวประชาชน (Personal Id)' as id_type,   */
+			trim( sc_mem_m_ucf_prename.prename ) as prename	 ,
+			trim( sc_mem_m_membership_registered.member_name ) || '  ' || trim( sc_mem_m_membership_registered.member_surname ) as memname ,   
+( case
+	when sc_mem_m_ucf_member_type.mem_type_code  = '01' then '107110 สมาชิกสามัญ'
+	when sc_mem_m_ucf_member_type.mem_type_code = '02' then '107120 สมาชิกสมทบ'
+	else '107130 สหกรณ์ฯ'
+	end ) as mem_type ,
+         /*trim( sc_dep_m_rule.deposit_group_code )  || '  ' ||   trim( sc_dep_m_rule.deposit_name ) as dep_type ,*/
+
+	( case
+		when  sc_dep_m_rule.deposit_group_code = '01' and sc_dep_m_rule.deposit_type_code = '00' then '106110 เงินรับฝากออมทรัพย์'
+		when	 sc_dep_m_rule.deposit_group_code = '01' and sc_dep_m_rule.deposit_type_code = '02' then '106120 เงินรับฝากออมทรัพย์พิเศษ'
+		when  sc_dep_m_rule.deposit_group_code = '02' then '106130 เงินรับฝากประจำ'
+		when  sc_dep_m_rule.deposit_group_code = '01' and sc_dep_m_rule.deposit_type_code = '01' then '106140 เงินรับฝากออมทรัพย์ ATM'
+		when	 sc_dep_m_rule.deposit_group_code = '01' and sc_dep_m_rule.deposit_type_code = '24' then '106120 เงินรับฝากออมทรัพย์พิเศษ'
+			else	'106140  เงินรับฝากออมทรัพย์โครงการพิเศษ'
+	end )	as dep_type ,
+
+		to_date(sc_dep_m_creditor.deposit_opened_date) as dep_opened_date ,
+
+		(select 	interest_rate*100
+		from		sc_dep_m_int_step_rate
+		where 	deposit_type_code = '00'
+		and	 	effective_date = (select	max(tab_rate.effective_date)
+										from		sc_dep_m_int_step_rate tab_rate
+										where	tab_rate.deposit_type_code = sc_dep_m_int_step_rate.deposit_type_code
+										and		tab_rate.effective_date &lt;= sysdate)
+		) as int_rate ,
+         sc_dep_m_creditor.deposit_balance  
+    FROM  sc_mem_m_membership_registered,   
+         sc_mem_m_ucf_prename,   
+         sc_dep_m_rule,   
+         sc_dep_m_creditor
+ ,sc_mem_m_ucf_member_type
+
+,(	select sum(1)over(order by sum_dep_balance desc  ) as seq_no /*เทียบเท่า comulative sum ถ้าเอา 50 คน ก้อเอา seq_no &lt;= 50  */
+		,membership_no
+		,sum_dep_balance
+	from (
+		select  sc_mem_m_membership_registered.membership_no
+			,sum(sc_dep_m_creditor.deposit_balance) as sum_dep_balance
+		from sc_dep_m_creditor
+			,sc_mem_m_membership_registered
+		where sc_dep_m_creditor.deposit_balance &gt; 0
+		and sc_mem_m_membership_registered.membership_no = sc_dep_m_creditor.membership_no
+		group by sc_mem_m_membership_registered.membership_no
+		order by sum_dep_balance desc /*เรียงหนี้รวม จากมากไปหาน้อย*/
+	) tab1
+) tab2
+   WHERE  ( sc_mem_m_membership_registered.prename_code = sc_mem_m_ucf_prename.prename_code ) and  
+         ( sc_mem_m_ucf_member_type.mem_type_code = sc_mem_m_membership_registered.mem_type ) and 
+         ( sc_dep_m_creditor.deposit_type_code = sc_dep_m_rule.deposit_type_code ) and  
+         ( sc_dep_m_creditor.membership_no = sc_mem_m_membership_registered.membership_no ) and  
+         ( ( sc_dep_m_creditor.deposit_balance &gt; 0 ) )    
+and sc_mem_m_membership_registered.membership_no = tab2.membership_no
+and tab2.seq_no &lt;= 50
+order by seq_no  ,sc_dep_m_creditor.deposit_balance desc
+</sql>
+  <sub />
+</root>

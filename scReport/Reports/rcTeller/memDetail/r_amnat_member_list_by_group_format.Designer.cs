@@ -1,4 +1,4 @@
-namespace scReport.Reports.rcTeller.memDetail
+﻿namespace scReport.Reports.rcTeller.memDetail
 {
     partial class r_amnat_member_list_by_group_format
     {
@@ -7,7 +7,7 @@ namespace scReport.Reports.rcTeller.memDetail
         /// </summary>
         private System.ComponentModel.IContainer components = null;
 
-        /// <summary>
+        /// <summary> 
         /// Clean up any resources being used.
         /// </summary>
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
@@ -73,9 +73,9 @@ namespace scReport.Reports.rcTeller.memDetail
             this.xrLabel18 = new DevExpress.XtraReports.UI.XRLabel();
             this.xrLabel23 = new DevExpress.XtraReports.UI.XRLabel();
             ((System.ComponentModel.ISupportInitialize)(this)).BeginInit();
-            //
+            // 
             // Detail
-            //
+            // 
             this.Detail.Controls.AddRange(new DevExpress.XtraReports.UI.XRControl[] {
             this.xrLabel23,
             this.xrLabel19,
@@ -94,9 +94,9 @@ namespace scReport.Reports.rcTeller.memDetail
             this.Detail.StylePriority.UseFont = false;
             this.Detail.StylePriority.UseTextAlignment = false;
             this.Detail.TextAlignment = DevExpress.XtraPrinting.TextAlignment.MiddleLeft;
-            //
+            // 
             // xrLabel19
-            //
+            // 
             this.xrLabel19.CanGrow = false;
             this.xrLabel19.DataBindings.AddRange(new DevExpress.XtraReports.UI.XRBinding[] {
             new DevExpress.XtraReports.UI.XRBinding("Text", null, "Query.MEMBER_GROUP_CONTROL")});
@@ -108,9 +108,9 @@ namespace scReport.Reports.rcTeller.memDetail
             this.xrLabel19.SizeF = new System.Drawing.SizeF(148.479F, 30F);
             this.xrLabel19.StylePriority.UseFont = false;
             this.xrLabel19.Text = "xrLabel19";
-            //
+            // 
             // xrLabel16
-            //
+            // 
             this.xrLabel16.DataBindings.AddRange(new DevExpress.XtraReports.UI.XRBinding[] {
             new DevExpress.XtraReports.UI.XRBinding("Text", null, "Query.c_address")});
             this.xrLabel16.Dpi = 100F;
@@ -122,9 +122,9 @@ namespace scReport.Reports.rcTeller.memDetail
             this.xrLabel16.StylePriority.UseFont = false;
             this.xrLabel16.Text = "xrLabel16";
             this.xrLabel16.WordWrap = false;
-            //
+            // 
             // xrLabel14
-            //
+            // 
             this.xrLabel14.CanGrow = false;
             this.xrLabel14.DataBindings.AddRange(new DevExpress.XtraReports.UI.XRBinding[] {
             new DevExpress.XtraReports.UI.XRBinding("Text", null, "Query.ID_CARD")});
@@ -138,9 +138,9 @@ namespace scReport.Reports.rcTeller.memDetail
             this.xrLabel14.StylePriority.UseTextAlignment = false;
             this.xrLabel14.Text = "xrLabel14";
             this.xrLabel14.TextAlignment = DevExpress.XtraPrinting.TextAlignment.MiddleCenter;
-            //
+            // 
             // xrLabel13
-            //
+            // 
             this.xrLabel13.CanGrow = false;
             this.xrLabel13.DataBindings.AddRange(new DevExpress.XtraReports.UI.XRBinding[] {
             new DevExpress.XtraReports.UI.XRBinding("Text", null, "Query.MEMBER_NAME")});
@@ -152,9 +152,9 @@ namespace scReport.Reports.rcTeller.memDetail
             this.xrLabel13.SizeF = new System.Drawing.SizeF(159.9572F, 30F);
             this.xrLabel13.StylePriority.UseFont = false;
             this.xrLabel13.Text = "xrLabel13";
-            //
+            // 
             // xrLabel12
-            //
+            // 
             this.xrLabel12.DataBindings.AddRange(new DevExpress.XtraReports.UI.XRBinding[] {
             new DevExpress.XtraReports.UI.XRBinding("Text", null, "Query.MEMBERSHIP_NO")});
             this.xrLabel12.Dpi = 100F;
@@ -167,9 +167,9 @@ namespace scReport.Reports.rcTeller.memDetail
             this.xrLabel12.StylePriority.UseTextAlignment = false;
             this.xrLabel12.Text = "xrLabel12";
             this.xrLabel12.TextAlignment = DevExpress.XtraPrinting.TextAlignment.MiddleCenter;
-            //
+            // 
             // xrLabel11
-            //
+            // 
             this.xrLabel11.CanGrow = false;
             this.xrLabel11.Dpi = 100F;
             this.xrLabel11.Font = new System.Drawing.Font("BrowalliaUPC", 12F);
@@ -185,9 +185,9 @@ namespace scReport.Reports.rcTeller.memDetail
             xrSummary1.Running = DevExpress.XtraReports.UI.SummaryRunning.Group;
             this.xrLabel11.Summary = xrSummary1;
             this.xrLabel11.TextAlignment = DevExpress.XtraPrinting.TextAlignment.MiddleCenter;
-            //
+            // 
             // xrLabel15
-            //
+            // 
             this.xrLabel15.CanGrow = false;
             this.xrLabel15.DataBindings.AddRange(new DevExpress.XtraReports.UI.XRBinding[] {
             new DevExpress.XtraReports.UI.XRBinding("Text", null, "Query.DATE_OF_BIRTH", "{0:dd/MM/yyyy}")});
@@ -201,25 +201,25 @@ namespace scReport.Reports.rcTeller.memDetail
             this.xrLabel15.StylePriority.UseTextAlignment = false;
             this.xrLabel15.Text = "xrLabel15";
             this.xrLabel15.TextAlignment = DevExpress.XtraPrinting.TextAlignment.MiddleCenter;
-            //
+            // 
             // TopMargin
-            //
+            // 
             this.TopMargin.Dpi = 100F;
             this.TopMargin.HeightF = 30F;
             this.TopMargin.Name = "TopMargin";
             this.TopMargin.Padding = new DevExpress.XtraPrinting.PaddingInfo(0, 0, 0, 0, 100F);
             this.TopMargin.TextAlignment = DevExpress.XtraPrinting.TextAlignment.TopLeft;
-            //
+            // 
             // BottomMargin
-            //
+            // 
             this.BottomMargin.Dpi = 100F;
             this.BottomMargin.HeightF = 30F;
             this.BottomMargin.Name = "BottomMargin";
             this.BottomMargin.Padding = new DevExpress.XtraPrinting.PaddingInfo(0, 0, 0, 0, 100F);
             this.BottomMargin.TextAlignment = DevExpress.XtraPrinting.TextAlignment.TopLeft;
-            //
+            // 
             // sqlDataSource1
-            //
+            // 
             this.sqlDataSource1.ConnectionName = "repConnection";
             this.sqlDataSource1.Name = "sqlDataSource1";
             customSqlQuery1.Name = "Query";
@@ -227,9 +227,9 @@ namespace scReport.Reports.rcTeller.memDetail
             this.sqlDataSource1.Queries.AddRange(new DevExpress.DataAccess.Sql.SqlQuery[] {
             customSqlQuery1});
             this.sqlDataSource1.ResultSchemaSerializable = resources.GetString("sqlDataSource1.ResultSchemaSerializable");
-            //
+            // 
             // PageHeader
-            //
+            // 
             this.PageHeader.Controls.AddRange(new DevExpress.XtraReports.UI.XRControl[] {
             this.xrLabel18,
             this.t_header_publish_date,
@@ -246,9 +246,9 @@ namespace scReport.Reports.rcTeller.memDetail
             this.PageHeader.Dpi = 100F;
             this.PageHeader.HeightF = 129.3367F;
             this.PageHeader.Name = "PageHeader";
-            //
+            // 
             // t_header_publish_date
-            //
+            // 
             this.t_header_publish_date.Dpi = 100F;
             this.t_header_publish_date.Font = new System.Drawing.Font("BrowalliaUPC", 14F);
             this.t_header_publish_date.LocationFloat = new DevExpress.Utils.PointFloat(0.8519237F, 0F);
@@ -259,9 +259,9 @@ namespace scReport.Reports.rcTeller.memDetail
             this.t_header_publish_date.StylePriority.UseTextAlignment = false;
             this.t_header_publish_date.Text = "t_header_publish_date";
             this.t_header_publish_date.TextAlignment = DevExpress.XtraPrinting.TextAlignment.TopLeft;
-            //
+            // 
             // xrPageInfo3
-            //
+            // 
             this.xrPageInfo3.Dpi = 100F;
             this.xrPageInfo3.Font = new System.Drawing.Font("BrowalliaUPC", 14F, System.Drawing.FontStyle.Bold);
             this.xrPageInfo3.Format = "หน้า {0}/ {1}";
@@ -271,9 +271,9 @@ namespace scReport.Reports.rcTeller.memDetail
             this.xrPageInfo3.SizeF = new System.Drawing.SizeF(190.4789F, 26.20481F);
             this.xrPageInfo3.StylePriority.UseFont = false;
             this.xrPageInfo3.TextAlignment = DevExpress.XtraPrinting.TextAlignment.TopRight;
-            //
+            // 
             // t_header_1
-            //
+            // 
             this.t_header_1.Dpi = 100F;
             this.t_header_1.Font = new System.Drawing.Font("BrowalliaUPC", 14F, System.Drawing.FontStyle.Bold);
             this.t_header_1.LocationFloat = new DevExpress.Utils.PointFloat(0.8522949F, 26.20481F);
@@ -284,9 +284,9 @@ namespace scReport.Reports.rcTeller.memDetail
             this.t_header_1.StylePriority.UseTextAlignment = false;
             this.t_header_1.Text = "t_header_1 <sc_cnt_m_coop.coop_name>";
             this.t_header_1.TextAlignment = DevExpress.XtraPrinting.TextAlignment.TopCenter;
-            //
+            // 
             // t_header_2
-            //
+            // 
             this.t_header_2.Dpi = 100F;
             this.t_header_2.Font = new System.Drawing.Font("BrowalliaUPC", 14F, System.Drawing.FontStyle.Bold);
             this.t_header_2.LocationFloat = new DevExpress.Utils.PointFloat(1.185338F, 51.20478F);
@@ -297,9 +297,9 @@ namespace scReport.Reports.rcTeller.memDetail
             this.t_header_2.StylePriority.UseTextAlignment = false;
             this.t_header_2.Text = "t_header_2 <si_rep_reps.rep_text>";
             this.t_header_2.TextAlignment = DevExpress.XtraPrinting.TextAlignment.MiddleCenter;
-            //
+            // 
             // xrLabel9
-            //
+            // 
             this.xrLabel9.Borders = DevExpress.XtraPrinting.BorderSide.Bottom;
             this.xrLabel9.CanGrow = false;
             this.xrLabel9.Dpi = 100F;
@@ -313,9 +313,9 @@ namespace scReport.Reports.rcTeller.memDetail
             this.xrLabel9.StylePriority.UseTextAlignment = false;
             this.xrLabel9.Text = "วันเกิด";
             this.xrLabel9.TextAlignment = DevExpress.XtraPrinting.TextAlignment.MiddleCenter;
-            //
+            // 
             // xrLabel6
-            //
+            // 
             this.xrLabel6.Borders = DevExpress.XtraPrinting.BorderSide.Bottom;
             this.xrLabel6.CanGrow = false;
             this.xrLabel6.Dpi = 100F;
@@ -329,9 +329,9 @@ namespace scReport.Reports.rcTeller.memDetail
             this.xrLabel6.StylePriority.UseTextAlignment = false;
             this.xrLabel6.Text = "ชื่อ - นามสกุล";
             this.xrLabel6.TextAlignment = DevExpress.XtraPrinting.TextAlignment.MiddleCenter;
-            //
+            // 
             // xrLabel5
-            //
+            // 
             this.xrLabel5.Borders = DevExpress.XtraPrinting.BorderSide.Bottom;
             this.xrLabel5.CanGrow = false;
             this.xrLabel5.Dpi = 100F;
@@ -345,9 +345,9 @@ namespace scReport.Reports.rcTeller.memDetail
             this.xrLabel5.StylePriority.UseTextAlignment = false;
             this.xrLabel5.Text = "ทะเบียน";
             this.xrLabel5.TextAlignment = DevExpress.XtraPrinting.TextAlignment.MiddleCenter;
-            //
+            // 
             // xrLabel4
-            //
+            // 
             this.xrLabel4.Borders = DevExpress.XtraPrinting.BorderSide.Bottom;
             this.xrLabel4.CanGrow = false;
             this.xrLabel4.Dpi = 100F;
@@ -361,9 +361,9 @@ namespace scReport.Reports.rcTeller.memDetail
             this.xrLabel4.StylePriority.UseTextAlignment = false;
             this.xrLabel4.Text = "ลำดับ";
             this.xrLabel4.TextAlignment = DevExpress.XtraPrinting.TextAlignment.MiddleCenter;
-            //
+            // 
             // xrLabel10
-            //
+            // 
             this.xrLabel10.Borders = DevExpress.XtraPrinting.BorderSide.Bottom;
             this.xrLabel10.CanGrow = false;
             this.xrLabel10.Dpi = 100F;
@@ -377,9 +377,9 @@ namespace scReport.Reports.rcTeller.memDetail
             this.xrLabel10.StylePriority.UseTextAlignment = false;
             this.xrLabel10.Text = "สังกัด";
             this.xrLabel10.TextAlignment = DevExpress.XtraPrinting.TextAlignment.MiddleCenter;
-            //
+            // 
             // xrLabel7
-            //
+            // 
             this.xrLabel7.Borders = DevExpress.XtraPrinting.BorderSide.Bottom;
             this.xrLabel7.CanGrow = false;
             this.xrLabel7.Dpi = 100F;
@@ -393,9 +393,9 @@ namespace scReport.Reports.rcTeller.memDetail
             this.xrLabel7.StylePriority.UseTextAlignment = false;
             this.xrLabel7.Text = "ที่อยู่";
             this.xrLabel7.TextAlignment = DevExpress.XtraPrinting.TextAlignment.MiddleCenter;
-            //
+            // 
             // xrLabel8
-            //
+            // 
             this.xrLabel8.Borders = DevExpress.XtraPrinting.BorderSide.Bottom;
             this.xrLabel8.CanGrow = false;
             this.xrLabel8.Dpi = 100F;
@@ -409,9 +409,9 @@ namespace scReport.Reports.rcTeller.memDetail
             this.xrLabel8.StylePriority.UseTextAlignment = false;
             this.xrLabel8.Text = "เลขบัตรประชาชน";
             this.xrLabel8.TextAlignment = DevExpress.XtraPrinting.TextAlignment.MiddleCenter;
-            //
+            // 
             // GroupHeader1
-            //
+            // 
             this.GroupHeader1.Controls.AddRange(new DevExpress.XtraReports.UI.XRControl[] {
             this.xrLabel1});
             this.GroupHeader1.Dpi = 100F;
@@ -421,9 +421,9 @@ namespace scReport.Reports.rcTeller.memDetail
             this.GroupHeader1.KeepTogether = true;
             this.GroupHeader1.Name = "GroupHeader1";
             this.GroupHeader1.RepeatEveryPage = true;
-            //
+            // 
             // xrLabel1
-            //
+            // 
             this.xrLabel1.CanGrow = false;
             this.xrLabel1.DataBindings.AddRange(new DevExpress.XtraReports.UI.XRBinding[] {
             new DevExpress.XtraReports.UI.XRBinding("Text", null, "Query.c_member_group_no")});
@@ -437,9 +437,9 @@ namespace scReport.Reports.rcTeller.memDetail
             this.xrLabel1.StylePriority.UseTextAlignment = false;
             this.xrLabel1.Text = "xrLabel1";
             this.xrLabel1.TextAlignment = DevExpress.XtraPrinting.TextAlignment.MiddleLeft;
-            //
+            // 
             // GroupFooter1
-            //
+            // 
             this.GroupFooter1.Controls.AddRange(new DevExpress.XtraReports.UI.XRControl[] {
             this.xrLabel21,
             this.xrLabel20,
@@ -450,9 +450,9 @@ namespace scReport.Reports.rcTeller.memDetail
             this.GroupFooter1.KeepTogether = true;
             this.GroupFooter1.Name = "GroupFooter1";
             this.GroupFooter1.StylePriority.UseFont = false;
-            //
+            // 
             // xrLabel21
-            //
+            // 
             this.xrLabel21.BorderDashStyle = DevExpress.XtraPrinting.BorderDashStyle.Dash;
             this.xrLabel21.Borders = DevExpress.XtraPrinting.BorderSide.Top;
             this.xrLabel21.Dpi = 100F;
@@ -462,9 +462,9 @@ namespace scReport.Reports.rcTeller.memDetail
             this.xrLabel21.SizeF = new System.Drawing.SizeF(1107.815F, 4.210762F);
             this.xrLabel21.StylePriority.UseBorderDashStyle = false;
             this.xrLabel21.StylePriority.UseBorders = false;
-            //
+            // 
             // xrLabel20
-            //
+            // 
             this.xrLabel20.CanGrow = false;
             this.xrLabel20.DataBindings.AddRange(new DevExpress.XtraReports.UI.XRBinding[] {
             new DevExpress.XtraReports.UI.XRBinding("Text", null, "Query.MEMBERSHIP_NO")});
@@ -482,9 +482,9 @@ namespace scReport.Reports.rcTeller.memDetail
             xrSummary2.Running = DevExpress.XtraReports.UI.SummaryRunning.Group;
             this.xrLabel20.Summary = xrSummary2;
             this.xrLabel20.TextAlignment = DevExpress.XtraPrinting.TextAlignment.MiddleLeft;
-            //
+            // 
             // xrLabel22
-            //
+            // 
             this.xrLabel22.BorderDashStyle = DevExpress.XtraPrinting.BorderDashStyle.Dash;
             this.xrLabel22.Borders = DevExpress.XtraPrinting.BorderSide.Bottom;
             this.xrLabel22.Dpi = 100F;
@@ -494,15 +494,15 @@ namespace scReport.Reports.rcTeller.memDetail
             this.xrLabel22.SizeF = new System.Drawing.SizeF(1107.815F, 3.609867F);
             this.xrLabel22.StylePriority.UseBorderDashStyle = false;
             this.xrLabel22.StylePriority.UseBorders = false;
-            //
+            // 
             // c_address
-            //
+            // 
             this.c_address.DataMember = "Query";
             this.c_address.Expression = "[ADDRESS_LINE1]+\'\'+[ADDRESS_LINE2]+\'\'+[ADDRESS_LINE3]+\'\'+[ADDRESS_LINE4]";
             this.c_address.Name = "c_address";
-            //
+            // 
             // xrLabel17
-            //
+            // 
             this.xrLabel17.CanGrow = false;
             this.xrLabel17.DataBindings.AddRange(new DevExpress.XtraReports.UI.XRBinding[] {
             new DevExpress.XtraReports.UI.XRBinding("Text", null, "Query.MEMBERSHIP_NO")});
@@ -520,9 +520,9 @@ namespace scReport.Reports.rcTeller.memDetail
             xrSummary3.Running = DevExpress.XtraReports.UI.SummaryRunning.Report;
             this.xrLabel17.Summary = xrSummary3;
             this.xrLabel17.TextAlignment = DevExpress.XtraPrinting.TextAlignment.MiddleLeft;
-            //
+            // 
             // ReportFooter
-            //
+            // 
             this.ReportFooter.Controls.AddRange(new DevExpress.XtraReports.UI.XRControl[] {
             this.xrLabel17,
             this.xrLabel2,
@@ -532,9 +532,9 @@ namespace scReport.Reports.rcTeller.memDetail
             this.ReportFooter.HeightF = 32.10389F;
             this.ReportFooter.Name = "ReportFooter";
             this.ReportFooter.StylePriority.UseFont = false;
-            //
+            // 
             // xrLabel2
-            //
+            // 
             this.xrLabel2.BorderDashStyle = DevExpress.XtraPrinting.BorderDashStyle.Dash;
             this.xrLabel2.Borders = DevExpress.XtraPrinting.BorderSide.None;
             this.xrLabel2.Dpi = 100F;
@@ -544,9 +544,9 @@ namespace scReport.Reports.rcTeller.memDetail
             this.xrLabel2.SizeF = new System.Drawing.SizeF(1107.815F, 3.609867F);
             this.xrLabel2.StylePriority.UseBorderDashStyle = false;
             this.xrLabel2.StylePriority.UseBorders = false;
-            //
+            // 
             // xrLabel3
-            //
+            // 
             this.xrLabel3.BorderDashStyle = DevExpress.XtraPrinting.BorderDashStyle.Dash;
             this.xrLabel3.Borders = DevExpress.XtraPrinting.BorderSide.None;
             this.xrLabel3.Dpi = 100F;
@@ -556,21 +556,21 @@ namespace scReport.Reports.rcTeller.memDetail
             this.xrLabel3.SizeF = new System.Drawing.SizeF(1108.148F, 3.609867F);
             this.xrLabel3.StylePriority.UseBorderDashStyle = false;
             this.xrLabel3.StylePriority.UseBorders = false;
-            //
+            // 
             // c_member_group_no
-            //
+            // 
             this.c_member_group_no.DataMember = "Query";
             this.c_member_group_no.Expression = "\'หน่วยงาน: \'+[MEMBER_GROUP_NO]+\' \'+[MEMBER_GROUP_NAME]";
             this.c_member_group_no.Name = "c_member_group_no";
-            //
+            // 
             // PageFooter
-            //
+            // 
             this.PageFooter.Dpi = 100F;
             this.PageFooter.HeightF = 0F;
             this.PageFooter.Name = "PageFooter";
-            //
+            // 
             // xrLabel18
-            //
+            // 
             this.xrLabel18.Borders = DevExpress.XtraPrinting.BorderSide.Bottom;
             this.xrLabel18.CanGrow = false;
             this.xrLabel18.Dpi = 100F;
@@ -584,9 +584,9 @@ namespace scReport.Reports.rcTeller.memDetail
             this.xrLabel18.StylePriority.UseTextAlignment = false;
             this.xrLabel18.Text = "รหัสพนักงาน";
             this.xrLabel18.TextAlignment = DevExpress.XtraPrinting.TextAlignment.MiddleCenter;
-            //
+            // 
             // xrLabel23
-            //
+            // 
             this.xrLabel23.DataBindings.AddRange(new DevExpress.XtraReports.UI.XRBinding[] {
             new DevExpress.XtraReports.UI.XRBinding("Text", null, "Query.SALARY_ID")});
             this.xrLabel23.Dpi = 100F;
@@ -599,9 +599,9 @@ namespace scReport.Reports.rcTeller.memDetail
             this.xrLabel23.StylePriority.UseTextAlignment = false;
             this.xrLabel23.Text = "xrLabel12";
             this.xrLabel23.TextAlignment = DevExpress.XtraPrinting.TextAlignment.MiddleCenter;
-            //
+            // 
             // r_amnat_member_list_by_group_format
-            //
+            // 
             this.Bands.AddRange(new DevExpress.XtraReports.UI.Band[] {
             this.Detail,
             this.TopMargin,

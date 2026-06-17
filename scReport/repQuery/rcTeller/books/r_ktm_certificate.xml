@@ -1,0 +1,64 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <adtm_bookdate text="วันที่หนังสือ" type="date" column="adtm_bookdate" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <membership_no special="memno" text="ทะเบียน" table="sc_mem_m_membership_registered" column="membership_no" readonly="0" />
+    <as_bookno text="เลขที่หนังสือ" column="as_bookno" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <as_manname text="ชื่อผู้รับรอง" column="as_manname" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <as_position text="ตำแหน่ง" column="as_position" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <sponsor text="รับรองให้" column="sponsor" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    /*ยังไม่มี table sc_rep_certificate*/
+    SELECT sc_cnt_m_coop.coop_name,
+    sc_cnt_m_coop.address,
+    '!as_bookno_1!' as  as_bookno,
+    sc_cnt_m_coop.tumbol_name,
+    sc_cnt_m_coop.district_code,
+    sc_cnt_m_coop.province_code,
+    sc_cnt_m_coop.postcode,
+    sc_cnt_m_coop.telephone_no,
+    sc_cnt_m_coop.fax_no,
+    sc_cnt_m_coop.manager_name,
+    '!adtm_bookdate_1!' as adtm_bookdate,
+    sc_mem_m_membership_registered.membership_no,
+    PKA_COM_FUNCTION.fp_get_member_name( sc_mem_m_membership_registered.membership_no ) as membername,
+    sc_mem_m_ucf_member_group.member_group_no,
+    sc_mem_m_ucf_member_group.member_group_name,
+    '!as_manname_1!' as as_manname,
+    '!as_position_1!' as as_position,
+    '!sponsor_1!' as sponsor
+
+    --    ,( case data_group when 'SHR' then 'ทุนเรือนหุ้น' when 'DEP' then 'เงินฝาก' when 'LON' then 'เงินกู้' else   data_group end ) as c_text
+    --    ,( case data_group when 'SHR' then '' when 'DEP' then trim( dep_name ) when 'LON' then trim( loan_name )  else   data_group  end ) as c_type
+    --    ,( case data_group when 'SHR' then '' when 'DEP' then 'เลขที่ ' ||pka_com_function.fp_form( data_refno , 'XX-XXXXXXXXX' ) when 'LON' then 'เลขที่ ' || pka_com_function.fp_form( data_refno , 'XX-XXXXXXXXX' ) else   data_refno end )  as c_doc_no
+
+    --,sc_rep_certificate.certificate_date,
+    --sc_rep_certificate.data_group,
+    --sc_rep_certificate.data_type,
+    --sc_rep_certificate.data_balance,
+    --sc_rep_certificate.data_refno ,
+    --sc_rep_certificate.data_monthly
+
+    --, decode( sc_rep_certificate.data_group , 'DEP' , ( SELECT sc_dep_m_rule.deposit_name
+    --    																FROM sc_dep_m_rule
+    --   																WHERE sc_dep_m_rule.deposit_type_code =  sc_rep_certificate.data_type ) ) as dep_name
+    --
+    --, decode( sc_rep_certificate.data_group , 'LON' , ( SELECT sc_lon_m_rule.loan_type_description
+    --    																FROM sc_lon_m_rule
+    --   																WHERE sc_lon_m_rule.loan_type =  sc_rep_certificate.data_type ) ) as loan_name
+    --
+    --, decode(  sc_rep_certificate.data_group , 'LON'  , FPB_CAL_INT_CERTIFICATE(  sc_rep_certificate.data_refno  ) , 0 ) as est_int
+
+
+    FROM sc_mem_m_membership_registered,
+    sc_cnt_m_coop,
+    sc_mem_m_ucf_member_group
+    -- , sc_rep_certificate
+    WHERE ( sc_mem_m_ucf_member_group.member_group_no 	= sc_mem_m_membership_registered.member_group_no )
+    -- and  ( sc_mem_m_membership_registered.membership_no 	= sc_rep_certificate.membership_no )
+    /*WHERE*/
+  </sql>
+  <sub />
+</root>

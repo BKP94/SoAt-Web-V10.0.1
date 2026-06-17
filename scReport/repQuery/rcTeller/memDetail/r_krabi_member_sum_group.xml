@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <member_group_no text="หน่วย" table="sc_mem_m_ucf_member_group" operator="bt" nulltext="ดูทั้งหมด ไม่ต้องเลือกนะจ๊ะ" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+    <confirm_date text="ณ วันที่ " table="sc_cls_confirm_mem" type="date" column="confirm_date" readonly="0" />
+    <mem_type_code text="ประเภท" table="sc_mem_m_ucf_member_type" column="mem_type_code" combo="sc_mem_m_ucf_member_type2" readonly="0" />
+  </arg>
+  <combo />
+  <sql> SELECT sc_mem_m_ucf_member_group.member_group_no,   
+         sc_mem_m_ucf_member_group.member_group_name,   
+         count(  sc_cls_confirm_mem.membership_no  ) as c_amount  
+    FROM sc_cls_confirm_mem,   
+         sc_mem_m_ucf_member_group 
+,sc_mem_m_membership_registered
+,sc_mem_m_ucf_member_type
+,sc_cls_confirm_data
+   WHERE ( sc_cls_confirm_mem.member_group_no = sc_mem_m_ucf_member_group.member_group_no ) and        
+         ( ( sc_cls_confirm_mem.member_status_code = '0' ) )   
+and sc_mem_m_membership_registered.membership_no= sc_cls_confirm_mem.membership_no
+and sc_mem_m_ucf_member_type.mem_type_code = sc_cls_confirm_mem.mem_type
+
+
+and sc_cls_confirm_data.confirm_date = sc_cls_confirm_mem.confirm_date
+and sc_cls_confirm_data.membership_no = sc_cls_confirm_mem.membership_no
+and sc_cls_confirm_data.data_group = 'SHR'
+and sc_cls_confirm_data.data_balance &gt; 0 
+
+/*WHERE*/ 
+--and sc_cls_confirm_mem.confirm_date = '31/1/2022'
+GROUP BY sc_mem_m_ucf_member_group.member_group_no,   
+         sc_mem_m_ucf_member_group.member_group_name   
+order by  sc_mem_m_ucf_member_group.member_group_no</sql>
+  <sub />
+</root>

@@ -1,0 +1,84 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <approve_date align="center" text="ที่สมัครระหว่างวันที่" table="sc_mem_m_membership_registered" type="date" operator="bt" sqlreplace="1" mustvalue="1" readonly="0" />
+    <memtype_control align="center" text="ประเภท" table="sc_mem_m_ucf_member_type" column="mem_type_code" combo="mem_type_control" noheader="1" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>SELECT PKA_COM_FUNCTION.fp_get_member_name(sc_mem_m_membership_registered.membership_no) AS memname
+	,sc_mem_m_membership_registered.membership_no
+	,sc_mem_m_membership_registered.member_group_no || ' - ' || sc_mem_m_membership_registered.membership_no AS membership_no_sum
+	,sc_mem_m_membership_registered.approve_date
+	,sc_mem_m_membership_registered.mem_type
+	-- sc_mem_m_ucf_member_type.memtype_control,
+	-- sc_mem_m_ucf_member_type.mem_type_desc,
+	,sc_mem_m_membership_registered.member_name
+	,sc_mem_m_application_form.mobile_number
+	,sc_mem_m_application_form.remark
+	,sc_mem_m_membership_registered.member_surname
+	,PKA_LON_REQSRV.fp_calc_agetext(sc_mem_m_membership_registered.date_of_birth) AS age
+	,pka_com_function.fp_get_thaidate(sc_mem_m_membership_registered.date_of_birth,'dd Month yyyy') date_of_birth
+	,sc_mem_m_membership_registered.sex
+	,sc_mem_m_membership_registered.id_card
+	,sc_mem_m_ucf_member_group.member_group_no
+	,sc_mem_m_ucf_member_group.member_group_name
+	,
+	--   sc_mem_m_ucf_member_group_type.member_group_type,
+	--   sc_mem_m_ucf_member_group_type.member_group_type_name,
+	sc_mem_m_ucf_member_group.member_group_control
+	,pka_com_function.fp_get_group_name(sc_mem_m_ucf_member_group.member_group_control) AS group_control
+	,sc_mem_m_ucf_member_group.control_id
+	,sc_mem_m_member_work_info.group_position
+	,(
+		SELECT description
+		FROM sc_mem_m_ucf_group_position
+		WHERE group_position = sc_mem_m_member_work_info.group_position
+		) AS group_position_desc
+	,sc_mem_m_member_work_info.position_code
+	,sc_mem_m_member_work_info.position_long AS position_name
+	,sc_mem_m_member_work_info.salary_id
+	,nvl(sc_mem_m_member_work_info.salary_amount, 0) AS salary_amount
+	,sc_mem_m_share_mem.share_amount
+	,sc_mem_m_membership_registered.approve_date
+	,sc_mem_m_application_form.approve_id
+	,(
+		SELECT sc_com_m_receipt_item.item_amount
+		FROM sc_com_m_receipt
+			,sc_com_m_receipt_item
+		WHERE (sc_mem_m_membership_registered.membership_no = sc_com_m_receipt.membership_no)
+			AND (sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no)
+			AND sc_com_m_receipt_item.item_type_id = 'MFE'
+			AND sc_com_m_receipt.receipt_status = '0'
+		) AS item_amount
+	,to_date('2025-8-1 0:0:0', 'yyyy-mm-dd hh24:mi:ss') AS approve_date_full
+	,'!memtype_control!' AS memtype_control_full
+    ,PKA_COM_FUNCTION.fp_get_member_name(sc_mem_m_membership_registered.membership_no_ref) as ref_memname
+    ,PKA_COM_FUNCTION.fp_get_district_name(sc_mem_m_ucf_member_group_addr.province_code,sc_mem_m_ucf_member_group_addr.district_code) as district_name
+    ,sc_mem_m_ucf_member_group_addr.district_code
+    ,sc_mem_m_ucf_member_group_addr.province_code
+FROM sc_mem_m_membership_registered
+	,sc_mem_m_member_work_info
+	,sc_mem_m_share_mem
+	,sc_mem_m_ucf_member_group
+	,sc_com_m_branch
+	,sc_mem_m_application_form
+	,sc_mem_m_ucf_member_type
+    ,sc_mem_m_ucf_member_group_addr
+--sc_mem_m_ucf_member_group_type
+WHERE (sc_mem_m_membership_registered.membership_no = sc_mem_m_member_work_info.membership_no)
+	AND (sc_mem_m_ucf_member_group.member_group_no = sc_mem_m_membership_registered.member_group_no)
+	AND (sc_mem_m_membership_registered.membership_no = sc_mem_m_share_mem.membership_no)
+	AND (sc_mem_m_membership_registered.branch_id = sc_com_m_branch.branch_id)
+	AND sc_mem_m_membership_registered.application_form_no = sc_mem_m_application_form.application_form_no
+	AND sc_mem_m_ucf_member_type.mem_type_code = sc_mem_m_membership_registered.mem_type
+    and sc_mem_m_ucf_member_group_addr.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+--   and sc_mem_m_ucf_member_group.member_group_type = sc_mem_m_ucf_member_group_type.member_group_type
+--and to_char(sc_mem_m_membership_registered.approve_date , 'MM') = '07'
+--and to_char(sc_mem_m_membership_registered.approve_date , 'YYYY') = '2020'
+/*---------------------[  ที่สมัครระหว่างวันที่  ]------------------------*/
+--and sc_mem_m_membership_registered.approve_date between to_date('2025-8-1 0:0:0','yyyy-mm-dd hh24:mi:ss') and to_date('2025-8-1 0:0:0','yyyy-mm-dd hh24:mi:ss')
+/*WHERE*/
+ORDER BY sc_mem_m_membership_registered.membership_no
+</sql>
+  <sub />
+</root>

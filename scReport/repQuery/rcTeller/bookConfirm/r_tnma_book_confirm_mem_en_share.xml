@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="T080" rep_text="หนังสือยืนยันยอด">
+  <arg>
+    <data_date align="center" text="วันที่" type="date" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <membership_no align="center" special="memno" text="ทะเบียน" table="sc_mem_m_membership_registered" readonly="0" />
+    <name_en align="center" special="memno" text="ทะเบียน ผู้รับรอง" table="sc_mem_m_membership_registered" column="membership_no" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <sponcor text="ชื่อสปอนเซอร์" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <baht_en text="อัตราแลกเปลี่ยน" type="decimal2" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <currency text="สกุลเงิน" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>select sc_mem_m_membership_registered.membership_no
+    ,pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as fname
+    ,pka_com_function.fp_get_member_name_eng(sc_mem_m_membership_registered.membership_no) as fname_en
+    ,pka_com_function.fp_form_idcard(sc_mem_m_membership_registered.id_card) as id_card
+    ,to_snumber(pka_com_function.fp_get_member_sharestock(sc_mem_m_membership_registered.membership_no)) as sharestock
+    ,F_GET_NUMBER_TO_WORDS(pka_com_function.fp_get_member_sharestock(sc_mem_m_membership_registered.membership_no)) as number_eng
+    ,'!data_date!' as tdate
+    ,pka_com_function.fp_get_member_name_eng('!name_en!') as name_en
+    ,'!sponcor!' as sponcor
+     ,TO_CHAR( round( pka_com_function.fp_get_member_sharestock(sc_mem_m_membership_registered.membership_no) / '!baht_en!' ), 'FM999,999,999,990.00'  ) as baht_en_1
+    ,'!baht_en!' as baht_en_2
+    ,'!currency!'as currency
+    ,sc_mem_m_membership_registered.sex
+
+from sc_mem_m_membership_registered
+where 1=1
+/*WHERE*/
+--and sc_mem_m_membership_registered.membership_no = '051751'</sql>
+  <sub>
+  </sub>
+</root>

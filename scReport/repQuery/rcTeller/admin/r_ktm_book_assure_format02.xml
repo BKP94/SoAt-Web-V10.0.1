@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <member_group_no text="หน่วย" table="sc_mem_m_ucf_member_group" column="member_group_no" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+    <membership_no special="memno" text="ทะเบียน" table="sc_mem_m_membership_registered" column="membership_no" readonly="0" />
+  </arg>
+  <combo />
+  <sql>        SELECT sc_mem_m_ucf_prename.prename,
+        sc_mem_m_membership_registered.member_name,
+        sc_mem_m_membership_registered.member_surname,
+        sc_mem_m_membership_registered.membership_no,
+        sc_mem_m_membership_registered.member_group_no,
+        sc_mem_m_ucf_member_group.member_group_name,
+        pka_com_function.fp_get_thaidate(sysdate , 'SD MONTH YYYY') as sysdate_tdate,
+        (select coop_name from sc_cnt_m_coop) as coop_name,
+        sc_mem_m_share_mem.share_stock
+        FROM sc_mem_m_membership_registered,
+        sc_mem_m_share_mem,
+        sc_mem_m_ucf_member_group,
+        sc_mem_m_ucf_prename
+        WHERE ( sc_mem_m_membership_registered.membership_no = sc_mem_m_share_mem.membership_no ) and
+        ( sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no ) and
+        ( sc_mem_m_membership_registered.prename_code = sc_mem_m_ucf_prename.prename_code )
+        -- (sc_mem_m_membership_registered.member_group_no between :as_bgroup and :as_egroup ) AND
+        --( sc_mem_m_membership_registered.member_status_code = '0' )
+        /*WHERE*/
+        
+    </sql>
+  <sub>
+    <r_ktm_book_assure_format02_nest>
+      <sql>
+          SELECT sc_lon_m_loan_card.principal_balance, sc_lon_m_loan_card.membership_no ,
+          pka_com_function.fp_get_moneythai (sc_lon_m_loan_card.principal_balance) as thai_principal_balance,
+          sc_lon_m_loan_card.loan_contract_no
+          FROM sc_lon_m_loan_card
+          WHERE ( sc_lon_m_loan_card.membership_no = {0} ) AND
+          ( sc_lon_m_loan_card.principal_balance &gt; 0 )
+      </sql>
+    </r_ktm_book_assure_format02_nest>
+    <r_ktm_book_assure_format02_nest2>
+      <sql>
+          SELECT sc_dep_m_creditor.deposit_account_no,  sc_dep_m_creditor.membership_no,
+          pka_com_function.fp_get_moneythai (sc_dep_m_creditor.deposit_account_no) as thai_deposit_account_no,
+          sc_dep_m_creditor.deposit_account_name,
+          sc_dep_m_creditor.deposit_balance
+          FROM sc_dep_m_creditor
+          WHERE ( sc_dep_m_creditor.membership_no = {0} ) AND
+          ( sc_dep_m_creditor.deposit_balance &gt; 0 )
+      </sql>
+    </r_ktm_book_assure_format02_nest2>
+  </sub>
+</root>

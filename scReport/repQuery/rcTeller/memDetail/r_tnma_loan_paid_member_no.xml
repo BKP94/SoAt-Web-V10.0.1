@@ -1,0 +1,81 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <begining_of_contract align="center" text="วันที่" table="sc_lon_m_contract" type="date" operator="bt" readonly="0" comboreplace="0" combowhere="0" />
+    <loan_type text="ประเภทเงินกู้" table="sc_lon_m_contract" combo="sc_lon_m_rule2" readonly="0" comboreplace="0" combowhere="0" />
+    <loan_contract_no text="เลขสัญญา" table="sc_lon_m_contract" operator="bt" readonly="0" comboreplace="0" combowhere="0" />
+    <bank_code text="ธนาคาร" table="sc_lon_m_contract_multi_paid" combo="sc_acc_m_ucf_bank" readonly="0" comboreplace="0" combowhere="0" />
+    <money_type_id text="วิธีการโอน" table="sc_lon_m_contract_multi_paid" column="type_pay_money" combo="sc_com_m_ucf_money_type_pay" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>    select sc_mem_m_ucf_member_group.member_group_control
+    ,pka_com_function.fp_get_group_name(sc_mem_m_ucf_member_group.member_group_control)as member_group_name
+    ,sc_lon_m_contract.membership_no
+    ,pka_com_function.fp_get_member_name(sc_lon_m_contract.membership_no) as membername
+    --,sc_lon_m_rule.loan_type
+    --,sc_lon_m_rule.loan_type_description
+   -- ,count( sc_lon_m_contract.membership_no ) c_count
+    , sc_lon_m_contract.loan_approve_amount
+ ,sc_lon_m_contract.loan_type
+,sc_lon_m_contract.loan_contract_no
+    , nvl(sum((select sum(sc_com_m_receipt_item.item_amount)
+    from sc_com_m_receipt
+    ,sc_com_m_receipt_item
+    where sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no
+    and sc_com_m_receipt.money_type_id = 'CLR'
+    and sc_com_m_receipt_item.item_type_id = 'SL'
+    and sc_com_m_receipt.membership_no = sc_lon_m_contract.membership_no
+    and sc_com_m_receipt.receipt_date =  sc_lon_m_contract.begining_of_contract
+    and sc_com_m_receipt.receipt_status = '0'
+    )),0) as item_amount_sl
+
+
+    , nvl(sum((select sum(sc_com_m_receipt_item.item_amount)
+    from sc_com_m_receipt
+    ,sc_com_m_receipt_item
+    where sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no
+    and sc_com_m_receipt.money_type_id = 'CLR'
+    and sc_com_m_receipt_item.item_type_id = 'PL'
+    and sc_com_m_receipt.membership_no = sc_lon_m_contract.membership_no
+    and sc_com_m_receipt.receipt_date =  sc_lon_m_contract.begining_of_contract
+    and sc_com_m_receipt.receipt_status = '0'
+
+    )),0)- sum( decode( sc_lon_m_loan_request.payint_firstperiod_status , '1' , sc_lon_m_loan_request.interest_first , 0 )) as item_amount_pl
+
+    , nvl(sum((select sum(sc_com_m_receipt_item.item_amount)
+    from sc_com_m_receipt
+    ,sc_com_m_receipt_item
+    where sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no
+    and sc_com_m_receipt.money_type_id = 'CLR'
+    and sc_com_m_receipt_item.item_type_id not in ( 'PL' , 'SL' )
+    and sc_com_m_receipt.membership_no = sc_lon_m_contract.membership_no
+    and sc_com_m_receipt.receipt_date =  sc_lon_m_contract.begining_of_contract
+    and sc_com_m_receipt.receipt_status = '0'
+    )),0)+ sum( decode( sc_lon_m_loan_request.payint_firstperiod_status , '1' , sc_lon_m_loan_request.interest_first , 0 )) as item_amount_oth
+    
+    ,sum( sc_lon_m_contract.real_recieve ) as c_real_recieve
+    --,sum( decode( sc_lon_m_loan_request.payint_firstperiod_status , '1' , sc_lon_m_loan_request.interest_first , 0 )) as c_interest_first
+   -- ,sc_lon_m_contract_multi_paid.bank_code
+    from sc_lon_m_contract
+    ,sc_lon_m_rule
+    ,sc_lon_m_loan_request
+    ,sc_mem_m_ucf_member_group
+    ,sc_lon_m_contract_multi_paid
+
+    where sc_lon_m_contract.loan_type = sc_lon_m_rule.loan_type
+    and sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
+    and sc_lon_m_loan_request.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+    and sc_lon_m_contract.loan_contract_no = sc_lon_m_contract_multi_paid.loan_contract_no
+
+/*WHERE*/
+    group by sc_mem_m_ucf_member_group.member_group_control
+    ,sc_lon_m_contract.membership_no
+    ,sc_lon_m_contract.loan_approve_amount
+    ,sc_lon_m_contract.loan_type
+,sc_lon_m_contract.loan_contract_no
+--    ,sc_lon_m_contract_multi_paid.bank_code
+    order by sc_mem_m_ucf_member_group.member_group_control
+  ,sc_lon_m_contract.loan_type</sql>
+  <sub>
+  </sub>
+</root>

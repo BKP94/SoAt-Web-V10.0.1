@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <date_of_birth text="วันเกิด" table="sc_mem_m_membership_registered" type="date" column="date_of_birth" operator="bt" sqlreplace="1" readonly="0" />
+    <membership_no text="เลขทะเบียน" table="sc_mem_m_membership_registered" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select sum(tab.row_memno)over(order by tab.membership_no , tab.loan_contract_no ) as rowno,  tab.*
+from (  select 	decode(lag(sc_lon_m_loan_card.membership_no,1,null)over(  order by sc_lon_m_loan_card.membership_no , sc_lon_m_loan_card.loan_contract_no ) ,sc_lon_m_loan_card.membership_no ,0,1 ) as row_memno
+,       pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as membername
+,       sc_mem_m_membership_registered.membership_no
+,       pka_com_function.fp_get_group_name(sc_mem_m_membership_registered.member_group_no) as groupname
+,       sc_mem_m_share_mem.share_stock
+,       sc_mem_m_membership_registered.date_of_birth
+,       '!date_of_birth_1!' as date_of_birth_1
+,       '!date_of_birth_2!' as date_of_birth_2
+,       sc_lon_m_loan_card.loan_type
+,       sc_lon_m_loan_card.loan_contract_no
+,       sc_lon_m_loan_card.principal_balance
+,       sc_lon_m_loan_card.year_total_interest
+,       sc_lon_m_loan_card.last_calcint_date
+,       '('||to_snumber((sc_lon_m_int_step_rate.loan_interest_rate * 100))||'%'||')' as loan_interest_rate
+,       pka_com_function.fp_get_thaidate(sysdate) as sys_date
+,       (select tab.loan_contract_no
+        from    sc_lon_m_loan_card tab
+        where   tab.loan_contract_no = sc_lon_m_loan_card.loan_contract_no
+        and     tab.loan_type = '01'
+        )as atm_emer
+,       (select max(sc_atm_ucf_modify_status.modify_desc)
+        from    sc_atm_ucf_modify_status
+        ,       sc_atm_m_chg_loan_det
+        where   sc_atm_ucf_modify_status.modify_status = sc_atm_m_chg_loan_det.chg_status
+        and     sc_atm_m_chg_loan_det.loan_contract_no = sc_lon_m_loan_card.loan_contract_no
+        and     sc_lon_m_loan_card.loan_type = '01'
+        ) as atm_status
+from    sc_mem_m_membership_registered
+,       sc_lon_m_loan_card
+,       sc_lon_m_int_step_rate
+,       sc_mem_m_share_mem
+where   sc_lon_m_loan_card.membership_no = sc_mem_m_membership_registered.membership_no
+and     sc_lon_m_int_step_rate.loan_type = sc_lon_m_loan_card.loan_type
+and     sc_mem_m_share_mem.membership_no = sc_mem_m_membership_registered.membership_no
+and     sc_mem_m_share_mem.share_stock &gt; '0'
+and     sc_lon_m_loan_card.principal_balance &gt; '0'
+--and     sc_mem_m_membership_registered.date_of_birth between '01/10/1961' and '01/10/1962'
+/*WHERE*/
+order by sc_mem_m_membership_registered.membership_no
+) tab
+</sql>
+  <sub />
+</root>

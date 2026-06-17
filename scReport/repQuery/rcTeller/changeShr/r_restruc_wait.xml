@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <effect_date text="วันที่มีผล" table="sc_lon_restruc_head" type="date" column="effect_date" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>SELECT sum(tab.row_memno)over(partition by (tab.member_group_type) order by tab.member_group_type , tab.membership_no  , tab.sort_payment ) as rowno,  tab.*
+from   ( select decode(lag(sc_lon_restruc_head.membership_no,1,null)over(  order by sc_mem_m_ucf_member_group_type.member_group_type , sc_lon_restruc_head.membership_no  ,sc_lon_restruc_det.sort_payment  ),sc_lon_restruc_head.membership_no ,0,1) as row_memno ,
+           sc_lon_restruc_head.document_no ,
+           sc_lon_restruc_head.member_group_no ,
+           sc_lon_restruc_head.membership_no ,
+           sc_lon_restruc_head.effect_date ,
+           sc_lon_restruc_det.loan_contract_no ,
+           sc_lon_restruc_det.sort_payment ,
+           sc_lon_restruc_det.last_period ,
+           sc_lon_restruc_det.balance ,
+           sc_lon_restruc_det.payment_amount_old ,
+           sc_lon_restruc_det.installment_old ,
+           sc_lon_restruc_det.fixed_payment_new ,
+           sc_lon_restruc_det.installment_new ,
+           pka_com_function.fp_get_member_name( sc_lon_restruc_head.membership_no ) as memname,
+           sc_mem_m_ucf_member_group.member_group_name     
+, sc_mem_m_ucf_member_group_type.member_group_type
+, sc_mem_m_ucf_member_group_type.member_group_type_name
+FROM       sc_lon_restruc_head ,
+           sc_lon_restruc_det ,
+           sc_mem_m_ucf_member_group     
+,sc_mem_m_ucf_member_group_type
+WHERE    1=1
+and        sc_mem_m_ucf_member_group_type.member_group_type = sc_mem_m_ucf_member_group     .member_group_type
+and        sc_lon_restruc_head.document_no = sc_lon_restruc_det.document_no  
+and        sc_lon_restruc_head.member_group_no = sc_mem_m_ucf_member_group.member_group_no 
+and        sc_lon_restruc_head.approve_status = '2'  
+and        sc_lon_restruc_head.cancel_status= '0'  
+/*WHERE*/
+--and       sc_lon_restruc_head.membership_no = '051176'
+--and       ( sc_lon_restruc_head.effect_date between '01 ม.ค. 2020' and '31 ม.ค. 2023' ) 
+ORDER BY  sc_mem_m_ucf_member_group_type.member_group_type ASC,
+          sc_lon_restruc_head.membership_no ASC,
+          sc_lon_restruc_det.sort_payment ASC  
+)tab</sql>
+  <sub />
+</root>

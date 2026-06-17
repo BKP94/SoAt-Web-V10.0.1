@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <operate_date text="วันที่คำขอ" table="sc_mem_m_chang_request" type="date" column="operate_date" operator="bt" readonly="0" />
+    <entry_branch text="สาขา" table="sc_mem_m_chang_request" column="entry_branch" combo="sc_com_m_branch" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    select	sc_mem_m_chang_request.operate_date
+    ,pka_com_function.fp_get_thaidate(sc_mem_m_chang_request.operate_date , 'dd/mm/yyyy') as operate_tdate
+    ,sc_mem_m_chang_request.entry_branch
+    ,sc_com_m_branch.branch_name
+    ,sc_mem_m_chang_request.membership_no
+    ,sc_mem_m_chg_share_det.drop_status
+    ,( case sc_mem_m_chg_share_det.drop_status when '0' then '-' when '1' then 'งดส่ง' when '2' then 'เปลี่ยนแปลงชำระ' end ) as drop_status_name
+    ,sc_mem_m_chg_share_det.shr_value_old
+    ,sc_mem_m_chg_share_det.shr_value_new
+    ,decode( substr((sc_mem_m_chg_share_det.shr_value_new  - sc_mem_m_chg_share_det.shr_value_old ),0,1),
+    '-', '('||to_snumber( substr((sc_mem_m_chg_share_det.shr_value_new - sc_mem_m_chg_share_det.shr_value_old ),2,9999))||')',to_snumber((sc_mem_m_chg_share_det.shr_value_new  - sc_mem_m_chg_share_det.shr_value_old ))) as c_ind_da
+
+    ,decode( substr((sc_mem_m_chg_share_det.shr_value_new  - sc_mem_m_chg_share_det.shr_value_old ),0,1),
+    '-', (sc_mem_m_chg_share_det.shr_value_new - sc_mem_m_chg_share_det.shr_value_old ),0 ) as c_ind_del
+
+    ,decode( substr((sc_mem_m_chg_share_det.shr_value_new  - sc_mem_m_chg_share_det.shr_value_old ),0,1),
+    '-',  0 ,(sc_mem_m_chg_share_det.shr_value_new - sc_mem_m_chg_share_det.shr_value_old )) as c_ind_aad
+
+    from sc_mem_m_chang_request
+    ,sc_mem_m_chg_share_det
+    ,sc_com_m_branch
+    where ( sc_mem_m_chg_share_det.document_no = sc_mem_m_chang_request.document_no )
+    and   ( sc_com_m_branch.branch_id = sc_mem_m_chang_request.entry_branch )
+    and	  ( sc_mem_m_chang_request.approve_status &lt;&gt; '0' )
+    /*WHERE*/
+    order by sc_mem_m_chang_request.operate_date
+  </sql>
+  <sub />
+</root>

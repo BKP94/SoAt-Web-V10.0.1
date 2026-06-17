@@ -1,0 +1,194 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <metadata name="sqlDataSource1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>17, 17</value>
+  </metadata>
+  <data name="customSqlQuery1.Sql" xml:space="preserve">
+    <value>  SELECT SC_MEM_M_MEMBERSHIP_REGISTERED.MEMBERSHIP_NO,   
+         (SC_MEM_M_UCF_PRENAME.prename || sc_mem_m_membership_registered.member_name || '  ' ||sc_mem_m_membership_registered.member_surname) as membername,   
+         SC_LON_M_LOAN_CARD.LOAN_CONTRACT_NO,   
+         SC_LON_M_LOAN_CARD.BEGIN_BALANCE,   
+         SC_LON_M_LOAN_CARD.PRINCIPAL_BALANCE,   
+         SC_LON_M_LOAN_CARD.INTEREST_ARREAR,   
+         SC_MEM_M_MEMBERSHIP_REGISTERED.ID_CARD,   
+         SC_LON_M_LOAN_CARD.FIXED_INTEREST_RATE,   
+         SC_LON_UCF_LOAN_CODE.LOAN_CODE_DESC,    
+         pka_com_function.fp_get_thaidate(SC_LON_M_CONTRACT.APPROVE_DATE,'dd/mm/yyyy') as APPROVE_DATE ,
+         SC_MEM_M_UCF_MEMBER_GROUP.MEMBER_GROUP_NAME,   
+         SC_MEM_M_MEMBERSHIP_REGISTERED.MEMBER_GROUP_NO,
+         SC_LON_M_LOAN_CARD.LAST_PERIOD,   
+         SC_LON_M_CONTRACT.PERIOD_PAYMENT_AMOUNT,   
+         SC_LON_M_LOAN_CARD.DROP_PAYMENT_STATUS,   
+         SC_LON_M_LOAN_CARD.FIXED_PAYMENT,   
+         SC_LON_M_CONTRACT.LOAN_PAYMENT_TYPE_CODE  ,
+	   	pka_com_function.fp_get_thaidate(sc_mem_m_membership_registered.resignation_approve_date ,'dd/mm/yyyy') as resignation_approve_date ,
+		SC_MEM_M_UCF_MEMBER_GROUP.group_section , 
+		pka_com_function.fp_get_thaidate(SC_LON_M_LOAN_CARD.entry_date , 'dd/mm/yyyy') as entry_date ,
+		SC_MEM_M_UCF_MEMBER_GROUP.member_group_ref , 
+	   	sc_lon_m_contract.loan_type ,
+		sc_mem_m_membership_registered.id_card ,
+        DECODE(SC_LON_M_CONTRACT.drop_payment_status,
+       '0', 'ปกติ',
+       '1', 'งดทั้งหมด',
+       '2', 'งดต้น',
+       'งดดอก') AS drop_payment_status_name ,
+       DECODE(SC_LON_M_CONTRACT.loan_payment_type_code,
+       '01', 'คงต้น',
+       'คงยอด') AS loan_payment_type_name
+    FROM SC_LON_M_LOAN_CARD,   
+         SC_MEM_M_MEMBERSHIP_REGISTERED,   
+         SC_MEM_M_UCF_MEMBER_GROUP,   
+         SC_MEM_M_UCF_PRENAME,   
+         SC_LON_UCF_LOAN_CODE,   
+         SC_LON_M_CONTRACT  
+   WHERE ( SC_MEM_M_MEMBERSHIP_REGISTERED.PRENAME_CODE = SC_MEM_M_UCF_PRENAME.PRENAME_CODE ) and  
+         ( SC_LON_M_LOAN_CARD.LOAN_CODE = SC_LON_UCF_LOAN_CODE.LOAN_CODE ) and  
+         ( SC_LON_M_CONTRACT.LOAN_CONTRACT_NO = SC_LON_M_LOAN_CARD.LOAN_CONTRACT_NO ) and  
+         ( SC_MEM_M_MEMBERSHIP_REGISTERED.MEMBER_GROUP_NO = SC_MEM_M_UCF_MEMBER_GROUP.MEMBER_GROUP_NO ) and  
+         ( ( SC_LON_M_LOAN_CARD.MEMBERSHIP_NO = sc_mem_m_membership_registered.membership_no ) AND   
+         ( SC_LON_M_LOAN_CARD.contact_status = '1' ) AND  
+         ( SC_LON_M_LOAN_CARD.principal_balance &gt; 0 ) )   </value>
+  </data>
+  <data name="sqlDataSource1.ResultSchemaSerializable" xml:space="preserve">
+    <value>PERhdGFTZXQgTmFtZT0ic3FsRGF0YVNvdXJjZTEiPjxWaWV3IE5hbWU9IlF1ZXJ5Ij48RmllbGQgTmFtZT0iTUVNQkVSU0hJUF9OTyIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJNRU1CRVJOQU1FIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IkxPQU5fQ09OVFJBQ1RfTk8iIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iQkVHSU5fQkFMQU5DRSIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iUFJJTkNJUEFMX0JBTEFOQ0UiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IklOVEVSRVNUX0FSUkVBUiIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iSURfQ0FSRCIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJGSVhFRF9JTlRFUkVTVF9SQVRFIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJMT0FOX0NPREVfREVTQyIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJBUFBST1ZFX0RBVEUiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iTUVNQkVSX0dST1VQX05BTUUiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iTUVNQkVSX0dST1VQX05PIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IkxBU1RfUEVSSU9EIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJQRVJJT0RfUEFZTUVOVF9BTU9VTlQiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IkRST1BfUEFZTUVOVF9TVEFUVVMiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iRklYRURfUEFZTUVOVCIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iTE9BTl9QQVlNRU5UX1RZUEVfQ09ERSIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJSRVNJR05BVElPTl9BUFBST1ZFX0RBVEUiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iR1JPVVBfU0VDVElPTiIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJFTlRSWV9EQVRFIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9Ik1FTUJFUl9HUk9VUF9SRUYiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iTE9BTl9UWVBFIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IklEX0NBUkRfMSIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJEUk9QX1BBWU1FTlRfU1RBVFVTX05BTUUiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iTE9BTl9QQVlNRU5UX1RZUEVfTkFNRSIgVHlwZT0iU3RyaW5nIiAvPjwvVmlldz48L0RhdGFTZXQ+</value>
+  </data>
+  <data name="itemtype.Expression" xml:space="preserve">
+    <value>IIF(TRIM([ITEM_TYPE]) = 'BF', 'ยอดยกมา',
+IIF(TRIM([ITEM_TYPE]) = 'MR', 'ยกเลิกการคืนใบเสร็จ',
+IIF(TRIM([ITEM_TYPE]) = 'MS', 'หุ้นรายเดือน',
+IIF(TRIM([ITEM_TYPE]) = 'PM', 'หุ้นรายเดือน',
+IIF(TRIM([ITEM_TYPE]) = 'RC', 'ยกเลิกใบเสร็จ',
+IIF(TRIM([ITEM_TYPE]) = 'RM', 'คืนใบเสร็จ',
+IIF(TRIM([ITEM_TYPE]) = 'RP', 'ปรับปรุงบัญชี(-)',
+IIF(TRIM([ITEM_TYPE]) = 'RW', 'ยกเลิกการถอนหุ้น',
+IIF(TRIM([ITEM_TYPE]) = 'RX', 'ยกเลิกการซื้อหุ้นพิเศษ',
+IIF(TRIM([ITEM_TYPE]) = 'SB', 'ซื้อหุ้นพิเศษ',
+IIF(TRIM([ITEM_TYPE]) = 'SL', 'ซื้อหุ้นจากการกู้',
+IIF(TRIM([ITEM_TYPE]) = 'SW', 'ถอนหุ้น',
+IIF(TRIM([ITEM_TYPE]) = 'SX', 'ซื้อหุ้น',
+IIF(TRIM([ITEM_TYPE]) = 'TL', 'โอนหุ้นชำระหนี้',
+IIF(TRIM([ITEM_TYPE]) = 'TR', 'ปรับปรุงบัญชี(+)',
+IIF(TRIM([ITEM_TYPE]) = 'WD', 'ถอนหุ้น',
+IIF(TRIM([ITEM_TYPE]) = 'WL', 'ถอนหุ้น',
+IIF(TRIM([ITEM_TYPE]) = 'XR', 'ยกเลิกหุ้นประจำงวด',
+IIF(TRIM([ITEM_TYPE]) = 'XS', 'หุ้นประจำงวด',
+'')))))))))))))))))))</value>
+  </data>
+</root>

@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+  </arg>
+  <combo />
+  <sql>select  sc_mem_m_membership_registered.membership_no
+,       pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as member_name
+,       pka_com_function.fp_get_group_name_mem(sc_mem_m_membership_registered.membership_no) as member_group_name
+,       sc_mem_m_ucf_shareloan_status.description
+,       sc_mem_m_ucf_shareloan_status.shareloan_code 
+,       sc_mem_m_share_mem.share_amount
+,       sc_mem_m_share_mem.share_stock
+,       sc_mem_m_share_mem.pending_amt
+,       (sc_mem_m_share_mem.share_stock + sc_mem_m_share_mem.pending_amt) as share_stock_pending
+,       ((sc_mem_m_share_mem.share_stock + sc_mem_m_share_mem.pending_amt)*0.8) as share_stock_pending_80
+,       nvl(pka_com_function.fp_lon_get_balance_atnow(sc_mem_m_membership_registered.membership_no),0) as loan_bal
+,       sysdate
+from    sc_mem_m_membership_registered
+,       sc_mem_m_share_mem
+,       sc_mem_m_ucf_shareloan_status
+where   sc_mem_m_membership_registered.membership_no = sc_mem_m_share_mem.membership_no
+and     sc_mem_m_ucf_shareloan_status.shareloan_code = sc_mem_m_membership_registered.shareloan_code
+and     sc_mem_m_share_mem.drop_status = '0'
+and     sc_mem_m_membership_registered.member_status_code = '0'
+and     (sc_mem_m_share_mem.share_stock + sc_mem_m_share_mem.pending_amt) &gt;= '2000000'
+--and     sc_mem_m_membership_registered.membership_no = '049898'
+/*WHERE*/
+order by sc_mem_m_membership_registered.membership_no</sql>
+  <sub />
+</root>

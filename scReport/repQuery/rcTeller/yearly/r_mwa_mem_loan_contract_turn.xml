@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <membership_no align="center" special="memno" text="ทะเบียน" table="vr_lon_m_atm_loan" column="membership_no" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select 
+vr_lon_m_atm_loan.membership_no --ทะเบียน
+,pka_com_function.fp_get_member_name(vr_lon_m_atm_loan.membership_no) as memname --ชื่อ-สกุล
+,vr_lon_m_atm_loan.loan_contract_no --เลขที่สัญญา
+,vr_lon_m_atm_loan.loan_approve_amount --วงเงิน
+,pka_com_function.fp_get_thaidate(vr_lon_m_atm_loan.retire_date, 'DD/MM/YYYY') as retire_date --วันที่เกษียณ
+,pka_com_function.fp_get_thaidate(vr_lon_m_atm_loan.date_of_birth, 'DD/MM/YYYY') as date_of_birth --วันเกิด
+,pka_com_function.fp_get_thaidate(vr_lon_m_atm_loan.date_of_birth, 'DD') as day_of_birth 
+,pka_com_function.fp_get_thaidate(vr_lon_m_atm_loan.date_of_birth, 'MM') as month_of_birth 
+,pka_com_function.fp_get_thaidate(vr_lon_m_atm_loan.date_of_birth, 'YYYY') as year_of_birth 
+,vr_lon_m_atm_loan.retire_age --อายุเกษียณ(ปี)
+,vr_lon_m_atm_loan.mem_age --อายุสมาชิก
+,vr_lon_m_atm_loan.install_max_retire --อายุงานคงเหลือ(งวด)
+,vr_lon_m_atm_loan.loan_installment_amount --จำนวนงวด
+
+from vr_lon_m_atm_loan
+where 1 = 1</sql>
+  <sub />
+</root>

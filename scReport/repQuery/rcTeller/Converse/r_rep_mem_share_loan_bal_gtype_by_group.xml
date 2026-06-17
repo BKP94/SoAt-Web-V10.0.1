@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <balance_date text="ข้อมูล ณ วันที่" table="sc_rep_mem_share_loan_bal" type="date" readonly="0" />
+    <member_group_no text="หน่วย" table="sc_mem_m_ucf_member_group" column="member_group_no" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    SELECT
+    --sc_rep_mem_share_loan_bal.client_id,
+    sc_rep_mem_share_loan_bal.seq_no,
+    sc_rep_mem_share_loan_bal.membership_no,
+    sc_rep_mem_share_loan_bal.member_group_no,
+    sc_rep_mem_share_loan_bal.share_balance,
+    sc_rep_mem_share_loan_bal.share_period,
+    sc_rep_mem_share_loan_bal.share_installment,
+    sc_rep_mem_share_loan_bal.emer_contract,
+    sc_rep_mem_share_loan_bal.emer_loantype,
+    sc_rep_mem_share_loan_bal.emer_balance,
+    sc_rep_mem_share_loan_bal.emer_period,
+    sc_rep_mem_share_loan_bal.emer_installment,
+    sc_rep_mem_share_loan_bal.norm_contract,
+    sc_rep_mem_share_loan_bal.norm_loantype,
+    sc_rep_mem_share_loan_bal.norm_balance,
+    sc_rep_mem_share_loan_bal.norm_period,
+    sc_rep_mem_share_loan_bal.norm_installment,
+    sc_rep_mem_share_loan_bal.spec_contract,
+    sc_rep_mem_share_loan_bal.spec_loantype,
+    sc_rep_mem_share_loan_bal.spec_balance,
+    sc_rep_mem_share_loan_bal.spec_period,
+    sc_rep_mem_share_loan_bal.spec_installment,
+    sc_rep_mem_share_loan_bal.salary_amount,
+    sc_mem_m_ucf_member_group.member_group_name,
+    sc_mem_m_ucf_member_group.member_group_control,
+    pka_com_function.fp_get_group_name( sc_mem_m_ucf_member_group.member_group_control ) as grp_con_name,
+    sc_rep_mem_share_loan_bal.emer_intarr,
+    sc_rep_mem_share_loan_bal.norm_intarr,
+    sc_rep_mem_share_loan_bal.spec_intarr,
+    sc_rep_mem_share_loan_bal.balance_date,
+    sc_rep_mem_share_loan_bal.intarr_date,
+    sc_mem_m_ucf_member_group.member_group_type,
+    sc_rep_mem_share_loan_bal.member_status_code,
+    nvl( sc_rep_mem_share_loan_bal.fund_amount , 0 ) as  fund_amount,
+    ( select count(  distinct count_rep.membership_no )
+    from sc_rep_mem_share_loan_bal count_rep
+    where 	count_rep.member_group_no = sc_rep_mem_share_loan_bal.member_group_no
+    ) as c_count_mem
+    FROM sc_rep_mem_share_loan_bal,
+    sc_mem_m_ucf_member_group
+    WHERE  ( trim( sc_rep_mem_share_loan_bal.member_group_no ) = trim( sc_mem_m_ucf_member_group.member_group_no  ) )
+    --and   ( ( sc_rep_mem_share_loan_bal.client_id = '000' ))
+    /*WHERE*/
+    --and ( sc_mem_m_ucf_member_group.member_group_no between '012001' and '01201' ) )
+
+    order by sc_rep_mem_share_loan_bal.member_status_code,
+    sc_mem_m_ucf_member_group.member_group_type,
+    sc_mem_m_ucf_member_group.member_group_control,
+    sc_rep_mem_share_loan_bal.member_group_no,
+    sc_rep_mem_share_loan_bal.membership_no,
+    sc_rep_mem_share_loan_bal.seq_no
+  </sql>
+  <sub />
+</root>

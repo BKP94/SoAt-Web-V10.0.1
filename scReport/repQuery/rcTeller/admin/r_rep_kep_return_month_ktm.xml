@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root procedure="PKA_REP_KEP.sp_process_kep_return({adt_book_date_1},{last_year_1},{last_month_1})">
+  <arg>
+    <last_year special="year" text="ปี" table="sc_rep_kep_return_month" type="integer2" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <last_month special="month" text="เดือน" table="sc_rep_kep_return_month" type="integer2" combo="monthThLong" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <adt_book_date text="วันที่หนังสือทวง" table="sc_rep_kep_return_month" type="date" column="book_date" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    select sc_rep_kep_return_month.membership_no
+    ,pka_com_function.fp_get_member_name( sc_rep_kep_return_month.membership_no )	as membername
+    ,sc_fin_ucf_keeping_group.member_group_keeping
+    ,sc_mem_m_ucf_member_group.member_group_name
+    ,sc_mem_m_ucf_member_group.member_group_no
+    ,sc_rep_kep_return_month.membership_no
+    ,sc_rep_kep_return_month.count_month
+    ,sc_rep_kep_return_month.last_month
+    ,sc_rep_kep_return_month.last_year + 543 as last_year
+
+    from 	sc_mem_m_membership_registered
+    ,sc_mem_m_ucf_member_group
+    ,sc_fin_ucf_keeping_group
+    ,sc_rep_kep_return_month
+    where	( sc_mem_m_membership_registered.membership_no = sc_rep_kep_return_month.membership_no )
+    and ( sc_mem_m_ucf_member_group.member_group_no = sc_mem_m_membership_registered.member_group_no )
+    and ( sc_fin_ucf_keeping_group.member_group_keeping = sc_mem_m_ucf_member_group.keeping_fingroup )
+    and ( sc_rep_kep_return_month.membership_no	=	sc_mem_m_membership_registered.membership_no )
+    /*WHERE*/
+    order by sc_mem_m_ucf_member_group.member_group_no ,
+    sc_rep_kep_return_month.membership_no
+  </sql>
+  <sub />
+</root>

@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <loan_type align="center" text="ประเภทเงินกู้" table="sc_lon_m_rule" combo="sc_lon_m_rule2" readonly="0" />
+    <begining_of_contract align="center" text="วันที่" table="sc_lon_m_contract" type="date" operator="bt" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_lon_m_contract.loan_contract_no,
+    sc_lon_m_contract.membership_no,
+    sc_lon_m_contract.loan_type,
+    sc_mem_m_membership_registered.present_address,
+    sc_lon_m_contract.loan_approve_amount,
+    sc_lon_m_rule.loan_type_description,
+    prename||member_name ||'   '|| member_surname as member_surname,
+    pka_com_function.fp_get_thaidate( sc_lon_m_loan_card.last_access_date , 'dd/mm/yyyy') as last_access_date,
+    pka_com_function.fp_get_thaidate( sc_lon_m_loan_card.last_calcint_date , 'dd/mm/yyyy') as last_calcint_date,
+    sc_lon_m_loan_card.principal_balance,
+    pka_com_function.fp_get_thaidate( sc_lon_m_contract.begining_of_contract , 'dd/mm/yyyy') as begining_of_contract,
+    sc_mem_m_share_mem.share_stock,
+    pka_com_function.fp_get_thaidate( '!begining_of_contract_1!' , 'SD MONTH YYYY') as s_tdate ,
+    pka_com_function.fp_get_thaidate( '!begining_of_contract_2!' , 'SD MONTH YYYY') as e_tdate
+
+    FROM sc_lon_m_contract,
+    sc_mem_m_share_mem,
+    sc_mem_m_membership_registered,
+    sc_mem_m_ucf_prename,
+    sc_lon_m_rule,
+    sc_lon_m_loan_card
+
+    WHERE  ( sc_mem_m_share_mem.membership_no = sc_mem_m_membership_registered.membership_no )
+    and   ( sc_lon_m_contract.membership_no = sc_mem_m_membership_registered.membership_no )
+    and   ( sc_mem_m_membership_registered.prename_code = sc_mem_m_ucf_prename.prename_code )
+    and   ( sc_lon_m_rule.loan_type = sc_lon_m_contract.loan_type )
+    and   ( sc_lon_m_loan_card.loan_contract_no = sc_lon_m_contract.loan_contract_no )
+    and   (  sc_lon_m_loan_card.principal_balance &gt; 0 ) 
+
+   /*WHERE*/
+
+   --and   ( sc_lon_m_contract.begining_of_contract between '01/05/2024' and '20/05/2024') 
+   --and   ( sc_lon_m_contract.loan_type = '' )    
+    order by sc_lon_m_contract.begining_of_contract
+
+  </sql>
+  <sub />
+</root>

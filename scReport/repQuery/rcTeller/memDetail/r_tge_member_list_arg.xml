@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <membership_no align="center" special="memno" text="ทะเบียน" table="sc_mem_m_membership_registered" readonly="0" />
+    <age_mem_text align="center" text="ระยะเวลาการเป็นสมาชิก" operator="bt" sqlwhere="0" sqlreplace="1" mustvalue="1" readonly="0" />
+    <mem_type align="center" text="สถานะของสมาชิก" table="sc_mem_m_membership_registered" combo="sc_mem_m_ucf_member_type2" readonly="0" />
+    <age_life_text align="center" text="อายุของสมาชิก" operator="bt" sqlwhere="0" sqlreplace="1" mustvalue="1" readonly="0" />
+    <sex align="center" text="เพศของสมาชิก" table="sc_mem_m_membership_registered" combo="sex" readonly="0" />
+    <salary_amount align="center" text="เงินเดือน" table="sc_mem_m_member_work_info" type="decimal2" operator="bt" readonly="0" />
+    <period_recrieve text="งวดหุ้นสมาชิก" table="sc_mem_m_share_mem" type="decimal2" column="period_recrieve" readonly="0" />
+  </arg>
+  <combo />
+  <sql>SELECT  sc_mem_m_membership_registered.membership_no,   
+         sc_mem_m_membership_registered.member_group_no, 
+         sc_mem_m_ucf_member_group.member_group_name,   
+         pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no)  as member_name,
+         pka_com_function.fp_get_group_name(sc_mem_m_ucf_member_group.member_group_control )as member_group_control,
+         sc_mem_m_membership_registered.date_of_birth,
+         pka_com_function.fp_form_idcard (sc_mem_m_membership_registered.id_card)as id_card,
+         pka_com_function.fp_get_member_address_letter(  sc_mem_m_membership_registered.membership_no , '0' , 1 ) as address_line1,   
+         pka_com_function.fp_get_member_address_letter(  sc_mem_m_membership_registered.membership_no , '0' , 2 ) as address_line2,   
+         pka_com_function.fp_get_member_address_letter(  sc_mem_m_membership_registered.membership_no , '0' , 3 ) as address_line3,   
+         pka_com_function.fp_get_member_address_letter(  sc_mem_m_membership_registered.membership_no , '0' , 4 ) as address_line4      
+         
+         ,pka_lon_reqsrv.fp_calc_agetext(pka_lon_reqsrv.fp_calc_install_m_age(sc_mem_m_membership_registered.membership_no)) as age_mem_text /*อายุการเป็นสมาชิก*/
+         ,pka_lon_reqsrv.fp_calc_agetext_m_live(sc_mem_m_membership_registered.membership_no) as age_life_text /*อายุ*/
+         
+         ,sc_mem_m_member_work_info.salary_amount
+         ,sc_mem_m_share_mem.period_recrieve
+         
+FROM     sc_mem_m_membership_registered,   
+         sc_mem_m_ucf_member_group ,
+         sc_mem_m_member_work_info,
+         sc_mem_m_share_mem
+WHERE ( sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no )   
+and   ( sc_mem_m_member_work_info.membership_no = sc_mem_m_membership_registered.membership_no )
+and   ( sc_mem_m_share_mem.membership_no = sc_mem_m_membership_registered.membership_no )
+and   ( sc_mem_m_membership_registered.member_status_code = '0' )  
+and substr(pka_lon_reqsrv.fp_calc_agetext(pka_lon_reqsrv.fp_calc_install_m_age(sc_mem_m_membership_registered.membership_no)),0,2) between '!age_mem_text_1!' and '!age_mem_text_2!'
+and substr(pka_lon_reqsrv.fp_calc_agetext_m_live(sc_mem_m_membership_registered.membership_no),0,2) between '!age_life_text_1!' and '!age_life_text_2!'
+/*WHERE*/
+--and sc_mem_m_membership_registered.membership_no = '000019'
+--and sc_mem_m_membership_registered.mem_type = '01'
+--and sc_mem_m_membership_registered.sex = 'F'
+--and sc_mem_m_member_work_info.salary_amount between '' and ''
+ORDER BY sc_mem_m_ucf_member_group.member_group_control ASC,   
+         sc_mem_m_membership_registered.member_group_no ASC,   
+         sc_mem_m_membership_registered.membership_no </sql>
+  <sub />
+</root>

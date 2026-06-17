@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <membership_no special="memno" text="ทะเบียน" table="sc_mem_m_membership_registered" column="membership_no" readonly="0" />
+    <name control="ASPxCheckBox" text="ผู้จัดการ" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <assis control="ASPxCheckBox" text="พี่อิ๊ว" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <kirana control="ASPxCheckBox" text="พี่เอ๋" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <rutta control="ASPxCheckBox" text="พี่อิ๊ด" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    SELECT sc_mem_m_membership_registered.eng_name,
+    pka_com_function.fp_get_thaidate(sysdate , 'SD')||' '||pka_com_function.fp_get_month_name( to_number( to_char( sysdate , 'mm')) , 'LE' )||' '||to_char(sysdate,'yyyy')  as sysdate_tdate ,
+    sc_mem_m_membership_registered.membership_no,
+    ( case '!name_1!' when '1' then 'LADDAWAN   BORDEERAT' end )|| ( case '!assis_1!' when '1' then 'MRS. CHUTIMA   PUMBUPA' end )|| ( case '!kirana_1!' when '1' then 'Mr. REUNGDECH   PAIRBUMRUNG' end )||( case '!rutta_1!' when '1' then 'MRS.RAVEEWAN   CHODOK' end ) as name,
+    ( case '!name_1!' when '1' then 'MANAGER' else 'ASSISTANT  MANAGER' end ) as position,
+    sc_mem_m_share_mem.share_stock,
+    sc_mem_m_ucf_prename.prename_code
+    FROM sc_mem_m_membership_registered,
+    sc_mem_m_share_mem,
+    sc_mem_m_ucf_prename
+    WHERE ( sc_mem_m_membership_registered.membership_no = sc_mem_m_share_mem.membership_no )
+    and   ( sc_mem_m_membership_registered.prename_code = sc_mem_m_ucf_prename.prename_code )
+    AND   (  sc_mem_m_membership_registered.member_status_code = '0'  )
+    /*WHERE*/
+    --and   ( sc_mem_m_membership_registered.membership_no = '030739' )
+  </sql>
+  <sub>
+    <r_ktm_member_book_assure_eng_sutip_nest>
+      <sql>
+        SELECT sc_dep_m_creditor.deposit_account_no,
+        pka_com_function.fp_form( sc_dep_m_creditor.deposit_account_no , 'XX-XXXXXXXXXX' ) as from_acc_no,
+        sc_dep_m_creditor.deposit_account_name,
+        sc_dep_m_creditor.deposit_balance
+        FROM sc_dep_m_creditor
+        WHERE ( sc_dep_m_creditor.membership_no = {0} ) AND
+        ( sc_dep_m_creditor.deposit_balance &gt; 0 )
+        order by sc_dep_m_creditor.deposit_account_no
+      </sql>
+    </r_ktm_member_book_assure_eng_sutip_nest>
+    <r_ktm_member_book_assure_eng_sutip_nest_loan>
+      <sql>
+        SELECT sc_lon_m_loan_card.principal_balance,
+        sc_lon_m_loan_card.loan_contract_no
+        FROM sc_lon_m_loan_card
+        WHERE ( sc_lon_m_loan_card.membership_no = {0} ) AND
+        ( sc_lon_m_loan_card.principal_balance &gt; 0 )
+      </sql>
+    </r_ktm_member_book_assure_eng_sutip_nest_loan>
+  </sub>
+</root>

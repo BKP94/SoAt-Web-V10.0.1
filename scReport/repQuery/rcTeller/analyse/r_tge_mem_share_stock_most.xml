@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <confirm_date text="วันที่" table="sc_cls_confirm_data" type="date" column="confirm_date" readonly="0" />
+  </arg>
+  <combo />
+  <sql>SELECT  to_char( rownum )
+,       data_balance
+,       data_monthly
+,       confirm_date
+,       membership_no
+,       pka_com_function.fp_get_member_name( membership_no ) as member_name
+,       pka_com_function.fp_get_group_name_mem( membership_no ) as member_group
+FROM (
+SELECT sc_cls_confirm_data.data_balance
+,     sc_cls_confirm_data.data_monthly
+,     sc_cls_confirm_data.confirm_date
+,     sc_mem_m_membership_registered.membership_no 
+,     sysdate
+FROM  sc_mem_m_membership_registered 
+,     sc_mem_m_share_mem     
+,     sc_cls_confirm_data
+WHERE sc_mem_m_membership_registered.membership_no = sc_mem_m_share_mem.membership_no
+AND   sc_cls_confirm_data.membership_no = sc_mem_m_membership_registered.membership_no
+AND   sc_mem_m_share_mem.drop_status = '0'
+AND   sc_mem_m_membership_registered.member_status_code = '0'
+AND   sc_mem_m_membership_registered.mem_type = '01'
+AND   sc_cls_confirm_data.data_group = 'SHR'
+--AND   sc_cls_confirm_data.confirm_date = '20/07/2023'
+/*WHERE*/
+ORDER BY sc_cls_confirm_data.data_balance DESC
+) tab
+WHERE to_char( rownum ) &lt; = 10</sql>
+  <sub />
+</root>

@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <date text="วันที่" type="date" operator="bt" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <member_group_no text="หน่วย" table="sc_mem_m_membership_registered" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>select  sc_mem_m_membership_registered.member_group_no
+,   sc_lon_m_loan_card.membership_no 
+,  pka_com_function.fp_get_member_name (sc_lon_m_loan_card.membership_no ) as mem_name
+,   sc_lon_m_loan_card.loan_type
+,   sc_lon_m_loan_card.loan_contract_no 
+,   sc_lon_m_loan_card_detail.loan_payment_date 
+,   sc_lon_m_loan_card_detail.item_type_code
+,   sc_lon_m_loan_card_detail.principal_balance
+,  ('!date_2!'-TO_DATE(sc_lon_m_loan_card_detail.loan_payment_date,'DD/MM/YYYY')) as date_cal
+,   pka_com_function.fp_get_thaidate('!date_1!')as last_cal
+,   pka_com_function.fp_get_thaidate('!date_2!')as balance_date
+
+,  (select  sc_lon_m_int_step_rate.loan_interest_rate
+      from   sc_lon_m_int_step_rate  
+  Where     sc_lon_m_int_step_rate.loan_type = sc_lon_m_rule.loan_type
+  and  sc_lon_m_int_step_rate.effective_date =(Select   Max( rate.effective_date ) 
+                from   sc_lon_m_int_step_rate  rate
+                where   rate.effective_date  &lt;= sc_lon_m_loan_card_detail.loan_payment_date
+                and     rate.loan_type = sc_lon_m_int_step_rate.loan_type   
+                   )
+  ) as loan_interest_rate
+
+,        pka_lon_intsrv.fp_calint(sc_lon_m_loan_card.loan_contract_no, '!date_2!' , sc_lon_m_loan_card_detail.principal_balance , sc_lon_m_loan_card_detail.loan_payment_date ,  'PL' ) as int_calc
+
+from sc_lon_m_loan_card
+,  sc_lon_m_loan_card_detail
+,  sc_lon_m_rule
+,  sc_mem_m_membership_registered
+
+where sc_lon_m_rule.loan_type = sc_lon_m_loan_card.loan_type
+and  sc_lon_m_loan_card.loan_contract_no = sc_lon_m_loan_card_detail.loan_contract_no
+and  sc_lon_m_loan_card.membership_no  = sc_mem_m_membership_registered.membership_no
+and  sc_lon_m_loan_card.principal_balance  &gt; 0
+and sc_lon_m_loan_card_detail.item_type_code = 'PM' 
+and sc_lon_m_loan_card_detail.loan_payment_date between '!date_1!'  and '!date_2!'
+/*WHERE*/
+</sql>
+  <sub>
+  </sub>
+</root>

@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <confirm_date text="ณ วันที่" table="sc_cls_confirm_data" type="date" column="confirm_date" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT (select coop_name from sc_cnt_m_coop) as coop_name
+    ,(select coop_registered_no from sc_cnt_m_coop) as coop_registered_no
+    ,to_number(to_char( sc_cls_confirm_data.confirm_date ,'yyyy'))  + 543 as account_year
+    ,sc_mem_m_membership_registered.membership_no
+    ,sc_mem_m_membership_registered.id_card
+    ,sc_mem_m_ucf_prename.prename
+    ,sc_mem_m_membership_registered.member_name
+    ,sc_mem_m_membership_registered.member_surname
+    ,sc_mem_m_ucf_nationality.nationality_description
+
+
+    ,(sc_cls_confirm_data.data_balance / 10 ) as number_of_shares
+    ,sc_cls_confirm_data.data_monthly  as share_amount
+    ,sc_cls_confirm_data.data_balance as share_stock
+    ,pka_com_function.fp_get_thaidate(sc_mem_m_membership_registered.approve_date , 'DD/MM/YYYY') as approve_tdate
+    ,sc_mem_m_ucf_member_type.mem_type_code
+    ,sc_mem_m_ucf_member_type.mem_type_desc
+    ,decode(sc_mem_m_membership_registered.member_status_code,'3',pka_com_function.fp_get_thaidate(sc_mem_m_membership_registered.resignation_approve_date,'DD/MM/YYYY'),null) as resignation_approve_date
+    ,sc_mem_m_member_address.address_no
+    ,sc_mem_m_member_address.moo
+    ,sc_mem_m_member_address.road
+    ,sc_mem_m_member_address.soi
+    ,sc_mem_m_member_address.tambol
+    ,pka_com_function.fp_get_district_name(sc_mem_m_member_address.province_code,sc_mem_m_member_address.district_code) as district_name
+    ,pka_com_function.fp_get_province_name(sc_mem_m_member_address.province_code) as province_name
+    ,sc_mem_m_member_address.postcode
+    ,sc_mem_m_member_address.telephone  as mobile_number
+    ,sc_mem_m_member_work_info.salary_amount
+    FROM sc_mem_m_membership_registered,
+    sc_mem_m_ucf_member_group,
+    sc_cls_confirm_data,
+    sc_mem_m_member_work_info  ,
+    sc_mem_m_ucf_member_type,
+    sc_mem_m_ucf_nationality ,
+    sc_mem_m_ucf_prename,
+    sc_mem_m_member_address
+    WHERE ( sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no )
+    and   ( sc_mem_m_ucf_prename.prename_code = sc_mem_m_membership_registered.prename_code )
+    and   ( sc_mem_m_membership_registered.membership_no = sc_cls_confirm_data.membership_no )
+    and   ( sc_mem_m_membership_registered.membership_no = sc_mem_m_member_work_info.membership_no )
+    and   ( sc_mem_m_ucf_member_type.mem_type_code = sc_mem_m_membership_registered.mem_type )
+    and   ( sc_mem_m_ucf_nationality.nationality_code = sc_mem_m_membership_registered.nationality_code )
+    and   ( sc_mem_m_member_address.membership_no = sc_mem_m_membership_registered.membership_no ) 
+    and   ( sc_mem_m_member_address.address_type = '1' )
+    and   ( (  sc_cls_confirm_data.data_balance &gt; 0 ) )
+and sc_cls_confirm_data.data_group = 'SHR'
+
+    /*WHERE*/
+--and sc_cls_confirm_data.confirm_date = '31/12/2021'
+order by sc_mem_m_membership_registered.membership_no
+</sql>
+  <sub />
+</root>

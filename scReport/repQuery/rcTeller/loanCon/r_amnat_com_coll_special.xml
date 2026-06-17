@@ -1,0 +1,170 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <loan_contract_no align="center" default="select max(loan_contract_no) from sc_lon_m_contract where loan_type = 'ส' and begining_of_contract &gt;= sysdate - 3" text="เลขสัญญา" table="sc_lon_m_contract" operator="bt" readonly="0" />
+    <begining_of_contract text="วันที่" table="sc_lon_m_contract" type="date" column="begining_of_contract" readonly="0" />
+    <membership_no special="memno" text="ทะเบียน" table="sc_lon_m_contract" readonly="0" />
+    <loan_type text="ประเภทกู้" table="sc_lon_m_rule" combo="sc_lon_m_rule2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>        SELECT  (select coop_name from sc_cnt_m_coop) as coop_name,
+     sc_lon_m_contract.loan_contract_no as loan_contract_no
+    , sc_lon_m_contract.begining_of_contract as begining_of_contract
+    ,extract ( day from ( sc_lon_m_contract.begining_of_contract ) )  as begin_day
+    , pka_com_function.fp_get_thaidate(  sc_lon_m_contract.begining_of_contract  , 'MONTH') as begin_month
+    , extract ( year from ( sc_lon_m_contract.begining_of_contract )  ) + 543 as begin_year
+    , pka_com_function.fp_get_member_name( sc_lon_m_contract.membership_no ) as memname
+    , sc_lon_m_contract.membership_no as membership_no
+    , sc_lon_m_contract.loan_approve_amount as loan_approve_amount
+    , pka_com_function.fp_get_moneythai( sc_lon_m_contract.loan_approve_amount ) as loan_approve_amount_thai
+    , si_security_user.user_name as user_name
+    ,  decode( sc_lon_m_contract.loan_type , 'ส' , sc_cnt_m_coop.assit_manager , sc_cnt_m_coop.manager_name ) as  manager_name
+    , sc_mem_m_ucf_member_group.manager_name as manager_namecoll      
+    FROM sc_lon_m_contract,
+    si_security_user,
+    sc_cnt_m_coop,
+    sc_mem_m_membership_registered,
+    sc_mem_m_ucf_member_group,
+    sc_lon_m_rule
+    WHERE sc_lon_m_contract.appove_officer = si_security_user.user_id
+    AND sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+    AND sc_lon_m_contract.membership_no = sc_mem_m_membership_registered.membership_no
+    AND  sc_lon_m_rule.loan_type = sc_lon_m_contract.loan_type 
+    /*WHERE*/
+   -- AND sc_lon_m_contract.loan_contract_no = 'ส65000231'
+ORDER BY sc_lon_m_contract.loan_contract_no ASC
+  </sql>
+  <sub>
+    <r_amnat_com_coll_loan_nest_haeder>
+      <sql>
+        SELECT sc_lon_m_contract_coll.collateral_no
+        ,sc_lon_m_contract_coll.ref_own_no
+        ,pka_com_function.fp_get_member_name( sc_lon_m_contract_coll.ref_own_no ) as memname_guarantor
+        , sc_lon_m_contract_coll.ref_own_no as membership_no_guarantor
+        , sc_mem_m_ucf_member_group.member_group_name as add_guarantor
+        , sc_mem_m_member_address.telephone as tel_guarantor
+        FROM sc_lon_m_contract_coll
+        , sc_mem_m_membership_registered
+        , sc_mem_m_ucf_member_group
+        , sc_mem_m_member_address
+        WHERE sc_lon_m_contract_coll.ref_own_no = sc_mem_m_membership_registered.membership_no
+        AND sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+        AND sc_mem_m_membership_registered.membership_no = sc_mem_m_member_address.membership_no
+        AND sc_lon_m_contract_coll.collateral_type_code = '01'
+        AND sc_mem_m_member_address.address_type = '0'
+        /*WHERE*/
+        AND sc_lon_m_contract_coll.loan_contract_no = {0}
+        AND sc_lon_m_contract_coll.collateral_no = {1}
+        ORDER BY sc_lon_m_contract_coll.ref_own_no
+      </sql>
+    </r_amnat_com_coll_loan_nest_haeder>
+    <r_amnat_com_coll_loan_nest_guarantor_1>
+      <sql>        select seq_no
+        ,memname_guarantor
+        ,manager_name
+        ,loan_contract_no
+        ,collateral_no
+        from (
+        SELECT rownum as seq_no
+        , sc_lon_m_contract_coll.loan_contract_no
+        , pka_com_function.fp_get_member_name( sc_lon_m_contract_coll.ref_own_no ) as memname_guarantor
+        , sc_mem_m_ucf_member_group.manager_name
+        , sc_lon_m_contract_coll.collateral_no 
+        FROM sc_lon_m_contract_coll
+        , sc_mem_m_membership_registered
+        , sc_mem_m_ucf_member_group
+        WHERE sc_lon_m_contract_coll.ref_own_no = sc_mem_m_membership_registered.membership_no
+        AND sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+        AND sc_lon_m_contract_coll.collateral_type_code = '01'
+        /*WHERE*/
+        AND sc_lon_m_contract_coll.loan_contract_no = {0}
+        ORDER BY sc_lon_m_contract_coll.collateral_no ASC 
+        ) tb
+        where tb.collateral_no &lt;= 3
+        and     tb.collateral_no = {1}</sql>
+    </r_amnat_com_coll_loan_nest_guarantor_1>
+    <r_amnat_com_coll_loan_nest_guarantor_2>
+      <sql>  select seq_no
+        ,ref_own_no
+        ,memname_guarantor
+        ,manager_name
+        ,loan_contract_no
+        ,collateral_no
+        from (
+        SELECT rownum as seq_no
+        , sc_lon_m_contract_coll.loan_contract_no
+        , sc_lon_m_contract_coll.ref_own_no
+        , pka_com_function.fp_get_member_name( sc_lon_m_contract_coll.ref_own_no ) as memname_guarantor
+        , sc_mem_m_ucf_member_group.manager_name
+        , sc_lon_m_contract_coll.collateral_no
+        FROM sc_lon_m_contract_coll
+        , sc_mem_m_membership_registered
+        , sc_mem_m_ucf_member_group
+        WHERE sc_lon_m_contract_coll.ref_own_no = sc_mem_m_membership_registered.membership_no
+        AND sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+        AND sc_lon_m_contract_coll.collateral_type_code = '01'
+        /*WHERE*/
+        AND sc_lon_m_contract_coll.loan_contract_no = {0}
+        ORDER BY sc_lon_m_contract_coll.collateral_no ASC 
+        ) tb  
+        where tb.collateral_no &gt; 3
+        and     tb.collateral_no = {1}</sql>
+    </r_amnat_com_coll_loan_nest_guarantor_2>
+    <r_amnat_com_coll_loan_nest_footer>
+      <sql>
+        SELECT decode( sc_mem_m_membership_registered.marriage_status
+        , '1' , ( select sc_mem_m_ucf_prename.prename || sc_mem_m_member_spouse_info.spouse_name || ' ' || sc_mem_m_member_spouse_info.spouse_surname
+        from sc_mem_m_member_spouse_info
+        ,sc_mem_m_ucf_prename
+        where sc_mem_m_member_spouse_info.prename_code = sc_mem_m_ucf_prename.prename_code
+        and sc_mem_m_member_spouse_info.membership_no = sc_mem_m_membership_registered.membership_no
+        )
+        , sc_mem_m_ucf_marriage_status.marriage_status ) as spouse_name
+
+        , decode( sc_mem_m_membership_registered.marriage_status
+        , '1' , ( select sc_mem_m_ucf_ocupation.occupation_description
+        from sc_mem_m_member_spouse_info
+        ,sc_mem_m_ucf_ocupation
+        where sc_mem_m_member_spouse_info.occupation_code = sc_mem_m_ucf_ocupation.occupation_code
+        and sc_mem_m_member_spouse_info.membership_no = sc_mem_m_membership_registered.membership_no
+        )
+        , sc_mem_m_ucf_marriage_status.marriage_status ) as spouse_occupation
+
+        , decode( sc_mem_m_membership_registered.marriage_status
+        , '1' , ( select salary_amount
+        from sc_mem_m_member_spouse_info
+        where 1=1
+        and sc_mem_m_member_spouse_info.membership_no = sc_mem_m_membership_registered.membership_no
+        )
+        , 0 ) as spouse_salary_amount
+
+        , pka_com_function.fp_get_member_name( sc_lon_m_contract_coll.ref_own_no ) as memname_guarantor
+
+        , sc_lon_m_contract_coll.collateral_no
+        , sc_lon_m_contract_coll.loan_contract_no
+        , sc_lon_m_contract.begining_of_contract
+        , pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract , 'SD') as begin_day
+        , pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract , 'month') as begin_month
+        , pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract , 'YYYY') as begin_year
+
+        FROM sc_lon_m_contract_coll
+        , sc_lon_m_contract
+        , sc_mem_m_membership_registered
+        , sc_mem_m_ucf_member_group
+        , sc_mem_m_member_address
+        , sc_mem_m_ucf_marriage_status
+        WHERE sc_lon_m_contract_coll.ref_own_no = sc_mem_m_membership_registered.membership_no
+        AND sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+        AND sc_mem_m_membership_registered.membership_no = sc_mem_m_member_address.membership_no
+        AND sc_mem_m_ucf_marriage_status.marriage_status_code = sc_mem_m_membership_registered.marriage_status
+        AND sc_lon_m_contract_coll.collateral_type_code = '01'
+        AND sc_mem_m_member_address.address_type = '0'
+        and sc_lon_m_contract.loan_contract_no = sc_lon_m_contract_coll.loan_contract_no
+        /*WHERE*/
+        AND sc_lon_m_contract_coll.loan_contract_no = {0}
+        and sc_lon_m_contract_coll.collateral_no = {1}
+        ORDER BY sc_lon_m_contract_coll.collateral_no ,sc_lon_m_contract_coll.ref_own_no
+      </sql>
+    </r_amnat_com_coll_loan_nest_footer>
+  </sub>
+</root>

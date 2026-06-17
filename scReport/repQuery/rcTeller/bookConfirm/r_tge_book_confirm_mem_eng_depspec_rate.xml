@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="T080" rep_text="หนังสือยืนยันยอด">
+  <arg>
+    <confirm_date align="center" text="เงินฝาก ณ วันที่" table="sc_cls_confirm_data" type="date" column="confirm_date" readonly="0" />
+    <membership_no align="center" special="memno" text="ทะเบียน" table="sc_mem_m_membership_registered" readonly="0" />
+    <book_no align="center" default="/2023" text="Ref." sqlwhere="0" sqlreplace="1" readonly="0" />
+    <book_date align="center" text="ให้ไว้ ณ วันที่" type="date" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <guarantor_of column="guarantor_of" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <currency align="center" text="สกุลเงิน" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <rate_of text="ค่าเงิน" type="decimal2" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    select  'This is to certify that '||trim(pka_com_function.fp_get_member_name_eng(sc_mem_m_membership_registered.membership_no))||' the guarantor/sponsor of' as paragraph_1
+    ,       ' ' ||'!guarantor_of!'||' is a member of our customers, has maintained' as paragraph_2
+    ,       ' Saving Account No. '||trim(sc_cls_confirm_data.data_refno)||' with us since '||trim(pka_com_function.fp_get_month_name(extract (month from sc_dep_m_creditor.deposit_opened_date) ,'LE'))||
+    ' '||trim(extract(day from sc_dep_m_creditor.deposit_opened_date))|| ', '||trim(extract(year from sc_dep_m_creditor.deposit_opened_date))||'. The total balance at' as paragraph_3
+    ,       ' '||trim(pka_com_function.fp_get_month_name(extract (month from sc_cls_confirm_data.confirm_date) ,'LE'))||
+    ' '||trim(extract(day from sc_cls_confirm_data.confirm_date))||', '||trim(extract(year from sc_cls_confirm_data.confirm_date))||', has an amount '||to_snumber(sc_cls_confirm_data.data_balance)||
+    ' in baht currency or '||(to_snumber(sc_cls_confirm_data.data_balance/'!rate_of!'))||' '||'!currency!'||
+    ' at the exchange rate of '||'!rate_of!'||' Baht per '||'!currency!'||'. This amount of shares stated above'as paragraph_4
+    ,       ' can be converted and withdrawn into cash immediately upon request from the member.' as paragraph_5
+    ,       sc_mem_m_membership_registered.membership_no
+    ,       '!book_no!'as book_no
+    ,       '!book_date!'as book_date
+    ,       '!guarantor_of!'as guarantor_of
+    ,       '!currency!'as currency
+    ,       '!rate_of!'as rate_of
+    ,       sc_cnt_m_coop.coop_name
+    ,       pka_com_function.fp_get_thaidate('!book_date!','SD')as day
+    ,       pka_com_function.fp_get_thaidate('!book_date!','MM')as month
+    ,       pka_com_function.fp_get_month_name(pka_com_function.fp_get_thaidate('!book_date!','MM'),'LE')as month_eng
+    ,       pka_com_function.fp_get_thaidate('!book_date!','YYYY')-543 as year
+    ,      (select trim(pka_com_function.fp_get_member_name_eng(membership_no))
+    from   sc_hr_off_member
+    where  sc_hr_off_member.official_position = '008'
+    )as manager_name_eng
+
+
+    from    sc_mem_m_membership_registered
+    ,       sc_cnt_m_coop
+    ,       sc_cls_confirm_data
+    ,       sc_dep_m_creditor
+    where   1=1
+    and     sc_cls_confirm_data.membership_no = sc_mem_m_membership_registered.membership_no
+    and     sc_dep_m_creditor.deposit_account_no = sc_cls_confirm_data.data_refno
+    and     sc_cls_confirm_data.data_group = 'DEP'
+    and     sc_cls_confirm_data.data_type = '40'
+    and     sc_cls_confirm_data.data_balance &gt; 0
+--    and     sc_mem_m_membership_registered.membership_no = '045995'
+    /*WHERE*/
+</sql>
+  <sub>
+  </sub>
+</root>

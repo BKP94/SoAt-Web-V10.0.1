@@ -1,0 +1,113 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <op_date text="วันที่โอน" type="date" operator="bt" sqlwhere="0" sqlreplace="1" nestreplace="1" readonly="0" />
+    <user_name text="ผู้บันทึก" combo="si_security_user2" sqlwhere="0" sqlreplace="1" nestreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    SELECT sc_mem_m_membership_registered.membership_no,
+    sc_mem_m_resign_requestment.entry_id,
+    pka_com_function.fp_get_user_name(sc_mem_m_resign_requestment.entry_id) as user_name,
+    PKA_COM_FUNCTION.fp_get_thaidate( sc_mem_m_resign_requestment.resign_date ) as resign_date ,
+    PKA_COM_FUNCTION.fp_get_member_name( sc_mem_m_resign_requestment.membership_no ) as membername,
+
+    sc_mem_m_ucf_resign_cause.resign_cause_name,
+
+    sc_mem_m_ucf_member_group.member_group_no,
+    sc_mem_m_ucf_member_group.member_group_name,
+    sc_mem_m_ucf_member_group.member_group_control ,
+    sc_mem_m_ucf_member_group.control_id,
+
+    sc_com_m_branch.branch_id,
+    sc_com_m_branch.branch_name,
+    sc_cnt_m_coop.manager_name
+
+    -- ,sc_mem_m_membership_registered.resignation_approve_date
+
+    ,sc_mem_m_ucf_member_type.mem_type_code
+    ,sc_mem_m_ucf_member_type.mem_type_desc
+
+    , nvl( (  SELECT   sum( sc_com_m_receipt.recept_amount )
+    FROM sc_com_m_receipt
+    WHERE 	sc_com_m_receipt.membership_no = sc_mem_m_membership_registered.membership_no
+    AND   	sc_com_m_receipt.money_type_id = 'TNL'
+    AND   	sc_com_m_receipt.receipt_status = '0'  ) , 0 )  as tnl_amount
+
+    , nvl( (  SELECT   sum( sc_mem_m_share_withdraw_det.share_withdraw )
+    FROM sc_mem_m_share_withdraw_head,
+    sc_mem_m_share_withdraw_det
+    WHERE 	sc_mem_m_share_withdraw_head.withdraw_doc_no = sc_mem_m_share_withdraw_det.withdraw_doc_no
+    AND 		sc_mem_m_share_withdraw_head.membership_no = sc_mem_m_membership_registered.membership_no
+    AND   		sc_mem_m_share_withdraw_head.withdraw_status = '0'  ) , 0 )  as wd_amount
+
+    , nvl( (  SELECT   sum( sc_mem_m_share_withdraw_det.share_stock - sc_mem_m_share_withdraw_det.share_withdraw )
+    FROM sc_mem_m_share_withdraw_head,
+    sc_mem_m_share_withdraw_det
+    WHERE 	sc_mem_m_share_withdraw_head.withdraw_doc_no = sc_mem_m_share_withdraw_det.withdraw_doc_no
+    AND 		sc_mem_m_share_withdraw_head.membership_no = sc_mem_m_membership_registered.membership_no
+    AND   		sc_mem_m_share_withdraw_head.withdraw_status = '0'  ) , 0 )  as share_balance
+
+    , nvl (( select sum(sc_com_m_receipt_item.balance )
+    from sc_com_m_receipt ,sc_com_m_receipt_item
+    where sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no
+    and   sc_com_m_receipt.membership_no = sc_mem_m_membership_registered.membership_no
+    and   sc_com_m_receipt.money_type_id = 'TNL'
+    and   	sc_com_m_receipt.receipt_status = '0' ),0 ) as loan_balance
+
+    FROM  sc_mem_m_resign_requestment,
+    sc_mem_m_resign_share,
+    sc_mem_m_ucf_resign_cause,
+    sc_mem_m_ucf_member_group,
+    sc_cnt_m_coop,
+    sc_com_m_branch
+    ,sc_mem_m_membership_registered
+
+    ,sc_mem_m_ucf_member_type
+    WHERE  ( sc_mem_m_resign_share.resign_doc_no = sc_mem_m_resign_requestment.resign_doc_no )
+    and( sc_mem_m_ucf_resign_cause.resign_cause_code = sc_mem_m_resign_requestment.resign_code )
+    and( sc_mem_m_ucf_member_group.member_group_no = sc_mem_m_resign_requestment.member_group_no )
+    and( sc_mem_m_resign_requestment.entry_br = sc_com_m_branch.branch_id )
+    and( sc_mem_m_resign_requestment.cancel_status = '0')
+
+    and		sc_mem_m_membership_registered.membership_no = sc_mem_m_resign_requestment.membership_no
+    and		sc_mem_m_membership_registered.mem_type = sc_mem_m_ucf_member_type.mem_type_code
+    and		sc_mem_m_membership_registered.member_status_code = '3'
+    and		sc_mem_m_resign_requestment.approve_result = '1'
+    and sc_mem_m_membership_registered.mem_type not in ( '02' ) --ไม่เอา สมทบ
+    and		sc_mem_m_membership_registered.resignation_approve_date between to_date('!op_date_1!') and to_date('!op_date_2!')
+    and   sc_mem_m_resign_requestment.entry_id  = '!user_name_1!'
+    /*WHERE*/
+    --and sc_mem_m_resign_requestment.membership_no = '002258'
+  </sql>
+  <sub>
+    <r_ktm_labour_member_app_resign_nest_tnl>
+      <sql>
+        SELECT sc_com_m_receipt.receipt_no,
+        sc_com_m_receipt.entry_id,
+        pka_com_function.fp_get_user_name(sc_com_m_receipt.entry_id) as user_name,
+        sc_com_m_receipt_item.description,
+        sc_com_m_receipt_item.principal_amount,
+        sc_com_m_receipt_item.interest_amount,
+        sc_com_m_receipt_item.loan_type,
+        sc_com_m_receipt_item.item_amount,
+        decode(  sc_com_m_ucf_receipt_item_type.group_item , 'LON' , sc_com_m_receipt_item.loan_type , sc_com_m_ucf_receipt_item_type.item_type_name )  as loan_type_des,
+        sc_com_m_receipt.recept_amount,
+        sc_com_m_ucf_receipt_item_type.group_item,
+        sc_com_m_ucf_receipt_item_type.sort_order,
+        sc_com_m_receipt.calcint_date,
+        sc_com_m_receipt.receipt_date
+        FROM sc_com_m_receipt,
+        sc_com_m_receipt_item,
+        sc_com_m_ucf_receipt_item_type
+        WHERE ( sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no ) and
+        ( sc_com_m_receipt_item.item_type_id = sc_com_m_ucf_receipt_item_type.item_type_id ) and
+        ( ( sc_com_m_receipt.membership_no = {0} ) AND
+        ( sc_com_m_receipt.money_type_id = 'TNL' ) AND
+        ( sc_com_m_receipt.receipt_status = '0' ) )
+        /*where*/
+        and   sc_com_m_receipt.receipt_date between to_date('!op_date_1!') and to_date('!op_date_2!')
+        and   sc_com_m_receipt.entry_id  = '!user_name_1!'</sql>
+    </r_ktm_labour_member_app_resign_nest_tnl>
+  </sub>
+</root>

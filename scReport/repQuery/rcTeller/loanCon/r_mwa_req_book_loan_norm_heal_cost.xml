@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <requestment_date align="center" text="วันที่" table="sc_lon_m_loan_request" type="date" column="requestment_date" readonly="0" />
+    <loan_requestment_no align="center" text="เลขที่สัญญา" table="sc_lon_m_loan_request" column="loan_requestment_no" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select sc_lon_m_loan_request.loan_requestment_no
+,sc_mem_m_membership_registered.membership_no
+,sc_mem_m_membership_registered.member_group_no
+,pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as memname
+,substr(pka_lon_reqsrv.fp_calc_agetext_m_live(sc_mem_m_membership_registered.membership_no),1,2) as age_life_text
+,substr(pka_lon_reqsrv.fp_calc_agetext(pka_lon_reqsrv.fp_calc_install_m_age(sc_mem_m_membership_registered.membership_no)),1,30) as age_mem_text
+,pka_com_function.fp_form_idcard(sc_mem_m_membership_registered.id_card) as id_card
+,sc_mem_m_membership_registered.salary_amount
+,pka_com_function.fp_get_moneythai(sc_mem_m_membership_registered.salary_amount) as salary_amount_thai
+,sc_mem_m_membership_registered.date_of_birth
+,sc_mem_m_membership_registered.marriage_status
+,sc_mem_m_membership_registered.spouse_name
+,pka_com_function.fp_get_thaidate(sc_lon_m_loan_request.requestment_date, 'DD') as requestment_day
+,pka_com_function.fp_get_thaidate(sc_lon_m_loan_request.requestment_date, 'MONTH') as requestment_month
+,pka_com_function.fp_get_thaidate(sc_lon_m_loan_request.requestment_date, 'YYYY') as requestment_year
+,pka_com_function.fp_get_member_address_tel(sc_mem_m_membership_registered.membership_no, '0') as telephone
+
+--ที่อยู่
+,pka_com_function.fp_get_member_address_line(sc_mem_m_membership_registered.membership_no,0) as address_line
+,pka_com_function.fp_get_member_address_tel(sc_mem_m_membership_registered.membership_no,0) as address_tel
+
+,sc_mem_m_ucf_member_group.member_group_name
+,sc_lon_m_loan_request.loan_type
+,sc_mem_m_member_work_info.position_long
+,sc_lon_m_loan_request.loan_request_amount
+,pka_com_function.fp_get_moneythai( sc_lon_m_loan_request.loan_request_amount ) as loan_request_amount_thai
+,sc_lon_m_loan_request.period_payment_amount
+,pka_com_function.fp_get_moneythai(sc_lon_m_loan_request.period_payment_amount) as period_payment_amount_thai
+,sc_lon_m_loan_request.loan_installment_amount
+,pka_lon_intsrv.fp_intrate_table_loantype( sc_lon_m_loan_request.loan_type , sc_lon_m_loan_request.begining_of_contract ) * 100 as lon_int_rate
+,sc_lon_m_loan_request.last_payment_amount
+,pka_com_function.fp_get_moneythai(sc_lon_m_loan_request.last_payment_amount) as last_payment_amount_thai
+,pka_com_function.fp_get_thaidate(sc_lon_m_loan_request.start_keep_date ,'DD MONTH YYYY') as start_keep_date --วันที่เริ่มงวด
+,sc_lon_m_loan_request.loan_requestment_no
+,pka_com_function.fp_get_thaidate(sc_lon_m_loan_request.requestment_date ,'DD MONTH YYYY') as requestment_date
+,sc_cnt_m_coop.coop_name
+,sc_lon_m_loan_request_mpaid.type_pay_money
+,sc_lon_m_loan_request_mpaid.bank_code
+
+,(select sc_acc_m_ucf_bank.bank_name from sc_acc_m_ucf_bank where sc_lon_m_loan_request_mpaid.bank_code = sc_acc_m_ucf_bank.bank_id)as bank_name
+,sc_lon_m_loan_request_mpaid.branch_code
+,(select sc_acc_m_ucf_bank_branch.bank_name from sc_acc_m_ucf_bank_branch where sc_lon_m_loan_request_mpaid.bank_code = sc_acc_m_ucf_bank_branch.bank_id and sc_lon_m_loan_request_mpaid.branch_code = sc_acc_m_ucf_bank_branch.bank_branch_id)as branch_name
+
+,pka_com_function.fp_form(sc_lon_m_loan_request_mpaid.bank_acc_no,'XXX-X-XXXXX-XXXX') as bank_acc_no
+,pka_com_function.fp_get_thaidate(sysdate, 'DD/MM/YYYY') as book_date
+,(select sc_lon_m_ucf_loan_obj.loan_objective_description from sc_lon_m_ucf_loan_obj where sc_lon_m_loan_request.loan_type = sc_lon_m_ucf_loan_obj.loan_type and sc_lon_m_loan_request.loan_objective_code = sc_lon_m_ucf_loan_obj.loan_objective_code and loan_type = 'สป') as loan_objective_description
+
+,(select count(loan_requestment_no) from sc_lon_m_loan_history where sc_lon_m_loan_history.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no and clear_target = '1') as loan_requestment_no_debt
+
+,(select sc_lon_m_req_coll.collateral_type_code from sc_lon_m_req_coll where sc_lon_m_req_coll.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no) as coll_type
+,(select collateral_description from sc_lon_m_req_coll where sc_lon_m_req_coll.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no and seq_no = '1') as coll_name
+,(select sc_lon_m_req_coll.ref_own_no from sc_lon_m_req_coll where sc_lon_m_req_coll.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no and seq_no = '1') as coll_no
+
+from sc_mem_m_membership_registered
+,sc_lon_m_loan_request_mpaid
+,sc_mem_m_ucf_member_group 
+,sc_mem_m_member_work_info
+,sc_lon_m_loan_request
+,sc_cnt_m_coop
+
+where sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no   
+and sc_mem_m_member_work_info.membership_no = sc_mem_m_membership_registered.membership_no
+and sc_lon_m_loan_request_mpaid.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+and sc_lon_m_loan_request.membership_no = sc_mem_m_membership_registered.membership_no 
+and   sc_lon_m_loan_request.loan_type = 'สป'
+
+/*WHERE*/</sql>
+  <sub>
+    <r_mwa_req_book_loan_norm_heal_cost_nest>
+      <sql>select sc_lon_m_loan_history.loan_requestment_no
+,sc_lon_m_loan_history.loan_type--ประเภท
+,sc_lon_m_loan_history.loan_contract_no --สัญญาเงินกู้
+,sc_lon_m_loan_history.principal_of_loan --ยอดคงเหลือ
+,sc_lon_m_loan_history.interest_amount--ดอกเบี้ย
+,sc_lon_m_loan_history.clear_target--หักกลบ
+,sc_lon_m_loan_history.principal_balance_of_loan + sc_lon_m_loan_history.interest_amount as total_clr --รวมหักกลบ
+,sc_lon_m_loan_request_mpaid.paid_amount --คงเหลือรับสุทธิ
+
+from sc_lon_m_loan_history
+,sc_lon_m_loan_request_mpaid
+,sc_lon_m_loan_request
+
+where sc_lon_m_loan_history.loan_requestment_no = sc_lon_m_loan_request_mpaid.loan_requestment_no
+and sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_loan_history.loan_requestment_no
+and clear_target = '1'
+and sc_lon_m_loan_history.loan_requestment_no = {0}</sql>
+    </r_mwa_req_book_loan_norm_heal_cost_nest>
+  </sub>
+</root>

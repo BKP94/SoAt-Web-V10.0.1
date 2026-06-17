@@ -1,0 +1,84 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <requestment_date text="วันที่ขอกู้" table="sc_lon_m_loan_request" type="date" operator="bt" readonly="0" />
+    <entry_date text="ผู้ทำ" table="sc_lon_m_loan_request" column="entry_id" combo="si_security_user2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select  sc_lon_m_loan_request.loan_requestment_no
+,       sc_lon_m_ucf_loan_obj.loan_objective_description
+,       sc_lon_m_loan_request.membership_no
+,       pka_com_function.fp_get_member_name( sc_lon_m_loan_request.membership_no ) as  memname
+,       pka_com_function.fp_get_member_salary( sc_lon_m_loan_request.membership_no ) as  salary
+,       sc_lon_m_loan_request.total_share_value
+,       sc_lon_m_loan_request.total_old_loan + sc_lon_m_loan_request.total_oldint as total_old_loan
+,       sc_lon_m_loan_request.real_receive
+,       sc_lon_m_loan_request.begining_of_contract
+,       sc_lon_m_loan_request.receive_date
+,       pka_com_function.fp_get_thaidate( sc_lon_m_loan_request.requestment_date , 'MONTH  (ตามวัน)' ) as requestment_month_form
+,       pka_com_function.fp_get_thaidate( sc_lon_m_loan_request.requestment_date , 'MONTH' ) as requestment_month
+,       sysdate
+,       sc_lon_m_loan_request.requestment_date
+,       sc_lon_m_loan_request.loan_request_amount
+,       sc_lon_m_loan_request.max_loan_permit
+,       (select nvl(sum(sc_lon_m_loan_history.principal_of_loan),0)
+        from   sc_lon_m_loan_history
+        where  sc_lon_m_loan_history.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+        ) as principal_of_loan
+,       pka_com_function.fp_get_member_group( sc_lon_m_loan_request.membership_no ) as member_group
+,       pka_com_function.fp_get_group_name( pka_com_function.fp_get_member_group ( sc_lon_m_loan_request.membership_no )) as member_group_name
+,       (case when sc_mem_m_ucf_groupmajor.member_group_major = '000020' and  sc_lon_m_loan_request.loan_type = '23' then 'อื่นๆ/บำนาญกทม. '
+        when sc_mem_m_ucf_groupmajor.member_group_major = '000020' and  sc_lon_m_loan_request.loan_type = '24' then 'อื่นๆ/บำนาญกทม.'
+        when sc_mem_m_ucf_groupmajor.member_group_major = '000005' then 'รร. สังกัดสพฐ.'
+        when sc_mem_m_ucf_groupmajor.member_group_major = '000010' then 'กรุงเทพมหานคร'
+        when sc_mem_m_ucf_groupmajor.member_group_major = '000015' then 'ส่วนกลาง'
+        else sc_mem_m_ucf_groupmajor.member_group_major
+        end)as member_group_major_name
+        
+,       (case when sc_mem_m_ucf_groupmajor.member_group_major = '000020' and  sc_lon_m_loan_request.loan_type = '23' then '4'
+        when sc_mem_m_ucf_groupmajor.member_group_major = '000020' and  sc_lon_m_loan_request.loan_type = '24' then '5'
+        when sc_mem_m_ucf_groupmajor.member_group_major = '000005' then '1'
+        when sc_mem_m_ucf_groupmajor.member_group_major = '000010' then '2'
+        when sc_mem_m_ucf_groupmajor.member_group_major = '000015' then '3'
+        else sc_mem_m_ucf_groupmajor.member_group_major
+        end)as member_group_major_code
+        
+,       (case when (case when sc_mem_m_ucf_groupmajor.member_group_major = '000020' and  sc_lon_m_loan_request.loan_type = '23' then 'อื่นๆ/บำนาญกทม. '
+        when sc_mem_m_ucf_groupmajor.member_group_major = '000020' and  sc_lon_m_loan_request.loan_type = '24' then 'อื่นๆ/บำนาญกทม.'
+        when sc_mem_m_ucf_groupmajor.member_group_major = '000005' then 'รร. สังกัดสพฐ.'
+        when sc_mem_m_ucf_groupmajor.member_group_major = '000010' then 'กรุงเทพมหานคร'
+        when sc_mem_m_ucf_groupmajor.member_group_major = '000015' then 'ส่วนกลาง'
+        else sc_mem_m_ucf_groupmajor.member_group_major end) = 'อื่นๆ/บำนาญกทม. ' then 'กู้กองทุนสงเคราะห์'
+        when (case when sc_mem_m_ucf_groupmajor.member_group_major = '000020' and  sc_lon_m_loan_request.loan_type = '23' then 'อื่นๆ/บำนาญกทม. '
+        when sc_mem_m_ucf_groupmajor.member_group_major = '000020' and  sc_lon_m_loan_request.loan_type = '24' then 'อื่นๆ/บำนาญกทม.'
+        when sc_mem_m_ucf_groupmajor.member_group_major = '000005' then 'รร. สังกัดสพฐ.'
+        when sc_mem_m_ucf_groupmajor.member_group_major = '000010' then 'กรุงเทพมหานคร'
+        when sc_mem_m_ucf_groupmajor.member_group_major = '000015' then 'ส่วนกลาง'
+        else sc_mem_m_ucf_groupmajor.member_group_major end) = 'อื่นๆ/บำนาญกทม.' then 'กู้บำนาญ'
+        else null
+        end)as remark
+,       sc_lon_m_loan_request_mpaid.paid_amount
+from    sc_lon_m_loan_request
+,       sc_lon_m_rule
+,       sc_lon_m_ucf_loan_obj
+,       sc_mem_m_ucf_member_group
+,       sc_mem_m_ucf_groupmajor
+,       sc_lon_m_loan_request_mpaid
+where   sc_lon_m_loan_request.loan_type = sc_lon_m_rule.loan_type
+and     sc_lon_m_loan_request.loan_objective_code = sc_lon_m_ucf_loan_obj.loan_objective_code
+and     sc_lon_m_loan_request.loan_type = sc_lon_m_ucf_loan_obj.loan_type
+and     pka_com_function.fp_get_member_group( sc_lon_m_loan_request.membership_no ) = sc_mem_m_ucf_member_group.member_group_no
+and     sc_mem_m_ucf_groupmajor.member_group_major = sc_mem_m_ucf_member_group.member_group_major
+and     sc_lon_m_loan_request.cancel_status = '0'
+and     sc_lon_m_rule.loan_type = '30'
+and     sc_lon_m_loan_request_mpaid.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+and     sc_lon_m_loan_request_mpaid.other_loan_status = '0'
+--and     sc_lon_m_loan_request.loan_requestment_no = '6520000682'
+
+/*WHERE*/
+order by sc_mem_m_ucf_groupmajor.member_group_major
+,         sc_lon_m_rule.loan_type
+,        sc_lon_m_loan_request.requestment_date
+,        sc_lon_m_loan_request.loan_requestment_no</sql>
+  <sub />
+</root>

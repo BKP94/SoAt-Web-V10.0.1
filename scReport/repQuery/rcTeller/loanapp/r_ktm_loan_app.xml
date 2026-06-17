@@ -1,0 +1,125 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <loan_type text="ประเภทเงินกู้" table="sc_lon_m_rule" combo="sc_lon_m_rule2" readonly="0" />
+    <begining_of_contract text="วันที่" table="sc_lon_m_contract" type="date" column="begining_of_contract" operator="bt" readonly="0" />
+    <branch_id text="สาขา" table="sc_com_m_branch" column="branch_id" combo="sc_com_m_branch" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    SELECT PKA_COM_FUNCTION.fp_get_member_name( sc_lon_m_contract.membership_no ) as membername ,
+    sc_lon_m_contract.membership_no ,
+    sc_lon_m_contract.loan_type ,
+    sc_lon_m_contract.loan_requestment_no ,
+    sc_lon_m_contract.begining_of_contract ,
+    to_tdate(sc_lon_m_contract.begining_of_contract) as tdate_begining_contract,
+    sc_lon_m_contract.loan_payment_type_code ,
+    sc_lon_m_contract.loan_approve_amount ,
+    sc_lon_m_contract.loan_installment_amount ,
+    sc_lon_m_contract.period_payment_amount ,
+    sc_lon_m_contract.start_keep_date ,
+
+    sc_lon_m_contract.loan_contract_no ,
+    sc_lon_m_contract.appove_officer ,
+    sc_lon_m_contract.bank_code,
+    sc_lon_m_contract.bank_acc_no ,
+    sc_lon_m_contract.loan_requestment_no ,
+
+    sc_lon_m_loan_request.salary_amount ,
+    sc_lon_m_loan_request.entry_id ,
+    sc_lon_m_loan_request.total_old_loan ,
+    sc_lon_m_loan_request.total_oldint ,
+
+    sc_com_m_branch.branch_id ,
+    sc_com_m_branch.branch_name ,
+    sc_lon_m_ucf_loan_obj.loan_objective_description ,
+    sc_mem_m_ucf_member_group.member_group_no,
+    sc_mem_m_ucf_member_group.member_group_name,
+    sc_mem_m_ucf_member_group.member_group_control ,
+    sc_mem_m_ucf_member_group.control_id,
+    FPA_LON_REQ_REFINANCE_AMT(sc_lon_m_contract.loan_requestment_no) as refinance
+    ,sc_lon_m_contract.rec_rep_status
+    ,sc_lon_m_contract.create_loan_status
+    ,sc_lon_m_loan_request.type_pay_money
+    ,sc_lon_m_loan_request.buy_share
+    ,sc_lon_m_loan_request.fee_amount
+    ,sc_lon_m_rule.ref_contract_no
+    ,FPB_GET_LOAN_TYPE_DESC( sc_lon_m_rule.ref_contract_no ) as loan_type_description
+
+    FROM 	sc_lon_m_loan_request ,
+    sc_mem_m_membership_registered ,
+    sc_mem_m_ucf_member_group ,
+    sc_lon_m_rule ,
+    sc_lon_m_ucf_loan_obj ,
+    sc_lon_m_contract     ,
+    sc_com_m_branch
+    --security_users
+    WHERE 	( sc_mem_m_membership_registered.member_group_no 	= sc_mem_m_ucf_member_group.member_group_no )
+    and          	( sc_lon_m_contract.loan_type 							= sc_lon_m_ucf_loan_obj.loan_type )
+    --and		(sc_lon_m_loan_request.entry_id = security_users.names)
+    and          	( sc_lon_m_contract.loan_objective_code 				= sc_lon_m_ucf_loan_obj.loan_objective_code )
+    and          	( sc_lon_m_contract.loan_requestment_no 				= sc_lon_m_loan_request.loan_requestment_no )
+    and          	( sc_mem_m_membership_registered.membership_no 	= sc_lon_m_contract.membership_no )
+    and          	( sc_lon_m_contract.loan_type 							= sc_lon_m_rule.loan_type )
+    and          	( sc_com_m_branch.branch_id 							= sc_lon_m_contract.branch_id )
+    and		(sc_lon_m_loan_request.approve_status = '2' )
+    --and		(sc_lon_m_contract.rec_rep_status	=	'2')
+
+    /*WHERE*/
+  </sql>
+  <sub>
+    <r_ktm_loan_paid_coll_nest>
+      <sql>
+        SELECT SC_LON_M_CONTRACT_COLL.COLLATERAL_TYPE_CODE,
+        SC_LON_M_CONTRACT_COLL.REF_OWN_NO,
+        SC_LON_M_CONTRACT_COLL.COLLATERAL_DESCRIPTION
+        FROM SC_LON_M_CONTRACT_COLL
+        WHERE ( sc_lon_m_contract_coll.loan_contract_no = {0} ) AND
+        ( sc_lon_m_contract_coll.status = '0' )
+      </sql>
+    </r_ktm_loan_paid_coll_nest>
+
+    <r_ktm_loan_req_old_loan_nest>
+      <sql>
+        SELECT SC_LON_M_LOAN_HISTORY.PRINCIPAL_BALANCE_OF_LOAN,
+        SC_LON_M_LOAN_HISTORY.INTEREST_AMOUNT,
+        SC_LON_M_LOAN_HISTORY.LOAN_CONTRACT_NO,
+        SC_LON_M_CONTRACT.PERIOD_PAYMENT_AMOUNT,
+        SC_LON_M_CONTRACT.LOAN_TYPE,
+        SC_LON_M_RULE.REF_CONTRACT_TYPE
+        FROM SC_LON_M_LOAN_HISTORY,
+        SC_LON_M_CONTRACT,
+        SC_LON_M_RULE
+        WHERE ( SC_LON_M_LOAN_HISTORY.LOAN_CONTRACT_NO = SC_LON_M_CONTRACT.LOAN_CONTRACT_NO ) and
+        ( SC_LON_M_CONTRACT.LOAN_TYPE = SC_LON_M_RULE.LOAN_TYPE ) and
+        ( ( sc_lon_m_loan_history.loan_requestment_no = {0} ) AND
+        ( sc_lon_m_loan_history.clear_target = '0' ) )
+      </sql>
+    </r_ktm_loan_req_old_loan_nest>
+    <r_ktm_loan_paid_mpaid_nest>
+      <sql  >
+        SELECT "SC_LON_M_CONTRACT_MULTI_PAID"."SEQ_NO",
+        ( CASE sc_com_m_ucf_money_type.money_type_id
+        when 'TRB'  then 'โอน ธ.' ||''||pka_com_function.fp_form( sc_lon_m_contract_multi_paid.bank_acc_no , 'XXX-XX-XXXXXXXXXX' )
+        when 'TRD'  then 'โอน สอ.'||''||pka_com_function.fp_form( sc_lon_m_contract_multi_paid.bank_acc_no , 'XXX-XX-XXXXXXXXXX' )
+        else trim(sc_com_m_ucf_money_type.money_type_name) end ) as case_money_type_name ,
+        "SC_COM_M_UCF_MONEY_TYPE"."MONEY_TYPE_ID",
+        "SC_COM_M_UCF_MONEY_TYPE"."MONEY_TYPE_NAME",
+        "SC_LON_M_CONTRACT_MULTI_PAID"."BANK_CODE",
+        "SC_LON_M_CONTRACT_MULTI_PAID"."BANK_ACC_NO",
+        "SC_LON_M_CONTRACT_MULTI_PAID"."PAID_AMOUNT"
+        FROM "SC_LON_M_CONTRACT_MULTI_PAID",
+        "SC_COM_M_UCF_MONEY_TYPE"
+        WHERE ( "SC_COM_M_UCF_MONEY_TYPE"."MONEY_TYPE_ID" = "SC_LON_M_CONTRACT_MULTI_PAID"."TYPE_PAY_MONEY" ) and
+        ( ( sc_lon_m_contract_multi_paid.loan_contract_no = {0}  ) )
+
+      </sql>
+    </r_ktm_loan_paid_mpaid_nest>
+   
+  </sub>
+
+
+    
+   
+ 
+</root>

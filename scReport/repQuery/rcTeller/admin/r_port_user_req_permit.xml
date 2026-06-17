@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <request_date text="วันที่ขอ" table="sc_security_permit_head" type="date" operator="bt" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>select  pka_com_function.fp_get_thaidate( sc_security_permit_head.request_date , 'dd/mm/yyyy' ) as request_tdate
+,       pka_com_function.fp_get_thaidate( sc_security_permit_head.request_date , 'HH24:MI:SS' )  as request_ttime
+,       sc_security_permit_head.request_remark
+,       sc_security_permit_head.request_id
+,       (select branch_name from sc_com_m_branch where branch_id = sc_security_permit_head.request_branch) as request_branch
+,       sc_security_permit_head.permit_id
+,       sc_security_permit_head.permit_result
+from    sc_security_permit_head
+where   1=1
+and     to_tdate(sc_security_permit_head.request_date,'yyyy-mm-dd') between to_tdate('!request_date_1!','yyyy-mm-dd') and to_tdate('!request_date_2!','yyyy-mm-dd')
+/*WHERE*/
+--and     sc_security_permit_head.request_date = '31/05/2024'
+order by sc_security_permit_head.request_date
+,        pka_com_function.fp_get_thaidate( sc_security_permit_head.request_date , 'HH24:MI:SS' ) </sql>
+  <sub />
+</root>

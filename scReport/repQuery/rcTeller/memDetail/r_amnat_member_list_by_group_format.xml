@@ -1,31 +1,32 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <arg>
-    <member_group_no text="หน่วย" operator="bt" table="sc_mem_m_membership_registered" combo="sc_mem_m_ucf_member_group2" />
+    <member_group_no text="หน่วย" table="sc_mem_m_membership_registered" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" />
   </arg>
   <combo />
-  <sql> SELECT  sc_mem_m_membership_registered.membership_no,
-         sc_mem_m_membership_registered.member_group_no,
-         sc_mem_m_ucf_member_group.member_group_name,
+  <sql> SELECT  sc_mem_m_membership_registered.membership_no,   
+         sc_mem_m_membership_registered.member_group_no, 
+         sc_mem_m_ucf_member_group.member_group_name,   
          pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no)  as member_name,
          pka_com_function.fp_get_group_name(sc_mem_m_ucf_member_group.member_group_control )as member_group_control,
          sc_mem_m_membership_registered.date_of_birth,
          pka_com_function.fp_form_idcard (sc_mem_m_membership_registered.id_card)as id_card,
-         pka_com_function.fp_get_member_address_letter(  sc_mem_m_membership_registered.membership_no , '0' , 1 ) as address_line1,
-         pka_com_function.fp_get_member_address_letter(  sc_mem_m_membership_registered.membership_no , '0' , 2 ) as address_line2,
-         pka_com_function.fp_get_member_address_letter(  sc_mem_m_membership_registered.membership_no , '0' , 3 ) as address_line3,
+         pka_com_function.fp_get_member_address_letter(  sc_mem_m_membership_registered.membership_no , '0' , 1 ) as address_line1,   
+         pka_com_function.fp_get_member_address_letter(  sc_mem_m_membership_registered.membership_no , '0' , 2 ) as address_line2,   
+         pka_com_function.fp_get_member_address_letter(  sc_mem_m_membership_registered.membership_no , '0' , 3 ) as address_line3,   
          pka_com_function.fp_get_member_address_letter(  sc_mem_m_membership_registered.membership_no , '0' , 4 ) as address_line4,
          sc_mem_m_member_work_info.salary_id
-FROM     sc_mem_m_membership_registered,
+FROM     sc_mem_m_membership_registered,   
          sc_mem_m_ucf_member_group,
          sc_mem_m_member_work_info
-WHERE   ( sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no )
+WHERE   ( sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no )   
     and ( sc_mem_m_membership_registered.member_status_code = '0' )
     and ( sc_mem_m_member_work_info.membership_no = sc_mem_m_membership_registered.membership_no )
    /*WHERE*/
   --  and sc_mem_m_membership_registered.membership_no = '000617'
-ORDER BY sc_mem_m_ucf_member_group.member_group_control ASC,
-         sc_mem_m_membership_registered.member_group_no ASC,
+ORDER BY sc_mem_m_ucf_member_group.member_group_control ASC,   
+         sc_mem_m_membership_registered.member_group_no ASC,   
          sc_mem_m_membership_registered.membership_no </sql>
   <sub />
+  <mis />
 </root>

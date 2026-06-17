@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <begining_of_contract text="วันที่เริ่มสัญญา" table="sc_lon_m_contract" type="date" column="begining_of_contract" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select  sc_lon_m_contract.loan_contract_no
+,       sc_lon_m_contract.loan_requestment_no
+,       sc_lon_m_contract.begining_of_contract
+,       sc_lon_m_contract.membership_no
+,       sc_lon_m_contract.member_group_no
+,       pka_com_function.fp_get_member_name(sc_lon_m_contract.membership_no)as member_name
+,       decode(sc_lon_m_contract_multi_paid.type_pay_money , 'TRB' ,sc_lon_m_contract_multi_paid.bank_code )as bank_code
+,       decode(sc_lon_m_contract_multi_paid.type_pay_money , 'TRB' ,pka_com_function.fp_form(sc_lon_m_contract_multi_paid.bank_acc_no ,'XXX-X-XXXXX-X'))as bank_acc_no
+,       (select nvl(sum(sc_lon_m_req_fee.amount),0)
+         from   sc_lon_m_req_fee
+         where  sc_lon_m_req_fee.fee_type = '07'
+         and    sc_lon_m_req_fee.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+         ) as amount
+,       (select nvl(sum(sc_lon_m_req_fee.prakan_atm),0)
+         from   sc_lon_m_req_fee
+         where  sc_lon_m_req_fee.fee_type = '07'
+         and    sc_lon_m_req_fee.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+         ) as prakan_atm
+,       fpa_get_crem_memno(sc_lon_m_contract.membership_no)as crem_memno
+from    sc_lon_m_loan_request
+,       sc_lon_m_contract
+,       sc_lon_m_contract_multi_paid
+where   sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
+and     sc_lon_m_contract.loan_contract_no = sc_lon_m_contract_multi_paid.loan_contract_no
+and     (select nvl(sum(sc_lon_m_req_fee.amount),0)
+         from   sc_lon_m_req_fee
+         where  sc_lon_m_req_fee.fee_type = '07'
+         and    sc_lon_m_req_fee.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+         ) &gt; 0
+/*WHERE*/
+--and   sc_lon_m_contract.loan_contract_no = 'ฌ000443/65'
+order by sc_lon_m_contract.begining_of_contract
+,        sc_lon_m_contract.loan_contract_no</sql>
+  <sub />
+</root>

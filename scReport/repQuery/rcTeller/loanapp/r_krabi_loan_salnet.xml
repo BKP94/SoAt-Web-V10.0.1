@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <requestment_date text="วันที่ขอกู้" table="sc_lon_m_loan_request" type="date" column="requestment_date" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    select  sc_lon_m_ucf_req_salnet_type.item_code
+    , sc_lon_m_ucf_req_salnet_type.item_code_desc
+    , count(sc_lon_m_loan_request.loan_requestment_no) as count_requestment_no
+    , sc_lon_m_loan_request.loan_type||' - '||( select sc_lon_m_rule.loan_type_description from  sc_lon_m_rule where sc_lon_m_rule.loan_type = sc_lon_m_loan_request.loan_type ) as loan_type_description
+    , sum(sc_lon_m_loan_request.loan_request_amount) as loan_request_amount
+    from sc_lon_m_loan_request
+    , sc_lon_m_req_salnet_exp
+    ,sc_lon_m_ucf_req_salnet_type
+    where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_salnet_exp.loan_requestment_no
+    and sc_lon_m_req_salnet_exp.item_code = sc_lon_m_ucf_req_salnet_type.item_code
+    and sc_lon_m_req_salnet_exp.item_code in ('01','02','03','04','05','06')
+    /*WHERE*/
+    --and sc_lon_m_loan_request.requestment_date  between '01/05/2021' and '31/05/2021'
+    group by   sc_lon_m_ucf_req_salnet_type.item_code
+    , sc_lon_m_ucf_req_salnet_type.item_code_desc
+    ,sc_lon_m_loan_request.loan_type
+    order by sc_lon_m_loan_request.loan_type
+    , sc_lon_m_ucf_req_salnet_type.item_code
+  </sql>
+  <sub />
+</root>

@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <year_ending align="center" special="year" text="ปี" type="integer2" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <month_ending align="center" special="month" text="เดือน" type="integer2" combo="monthThLong" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select  sc_mem_m_ucf_member_group.member_group_no
+,       sc_mem_m_ucf_member_group.member_group_name
+,       sc_mem_m_membership_registered.membership_no
+,       sc_mem_m_ucf_prename.prename||sc_mem_m_membership_registered.member_name||' '||sc_mem_m_membership_registered.member_surname as member_name
+,       sc_lon_m_contract.loan_contract_no
+,       sc_lon_m_contract.ending_of_contract
+,       (select month_name_thai from sc_cnt_m_month where month_no = '!month_ending!') as month_name_thai
+,       extract(month from sc_lon_m_contract.ending_of_contract) as moth_ending
+,       extract(year from sc_lon_m_contract.ending_of_contract)+543 as year_ending
+,       sc_lon_m_contract.loan_installment_amount
+,       sc_lon_m_loan_card.last_period
+,       sc_lon_m_loan_card.principal_balance
+,       sc_lon_m_rule.loan_type
+,       sc_lon_m_rule.loan_type_description
+,       sysdate
+from    sc_lon_m_loan_card
+,       sc_lon_m_contract
+,       sc_mem_m_membership_registered
+,       sc_mem_m_ucf_member_group
+,       sc_mem_m_ucf_prename
+,       sc_lon_m_rule
+where   sc_lon_m_loan_card.loan_contract_no = sc_lon_m_contract.loan_contract_no
+and     sc_mem_m_membership_registered.membership_no = sc_lon_m_contract.membership_no
+and     sc_mem_m_ucf_member_group.member_group_no = sc_mem_m_membership_registered.member_group_no
+and     sc_mem_m_ucf_prename.prename_code = sc_mem_m_membership_registered.prename_code
+and     sc_lon_m_rule.loan_type = sc_lon_m_contract.loan_type
+and     sc_lon_m_rule.loan_type = '25'
+and     sc_lon_m_loan_card.principal_balance &gt; '0'
+and     sc_lon_m_loan_card.drop_payment_status = '2'
+and     extract(month from sc_lon_m_contract.ending_of_contract) = '!month_ending!'
+and     extract(year from sc_lon_m_contract.ending_of_contract) = '!year_ending!'
+/*WHERE*/
+order by sc_lon_m_rule.loan_type , sc_mem_m_ucf_member_group.member_group_no , sc_mem_m_membership_registered.membership_no</sql>
+  <sub />
+</root>

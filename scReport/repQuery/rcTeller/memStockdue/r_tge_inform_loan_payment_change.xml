@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <membership_no special="memno" text="ทะเบียน" table="sc_mem_m_membership_registered" readonly="0" />
+  </arg>
+  <combo />
+  <sql>SELECT sysdate
+,       sc_mem_m_membership_registered.membership_no
+,       pka_com_function.fp_form_idcard(sc_mem_m_membership_registered.id_card) as id_card
+,       pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as member_name
+,       trim(pka_com_function.fp_get_group_name(sc_mem_m_membership_registered.member_group_no))||' ( '|| trim(sc_mem_m_membership_registered.member_group_no)||' ) ' as  member_group_no
+,       pka_com_function.fp_get_loan_balance_by_mem(sc_mem_m_membership_registered.membership_no)as principal_balance
+,       sc_mem_m_share_mem.share_stock +  sc_mem_m_share_mem.pending_amt  as share_bal 
+
+,      decode ( sc_mem_m_share_mem.drop_status , '1' , 0 , share_amount   ) as period_share
+
+,      (     select nvl( sum( principal_balance - pending_amount  ) , 0 ) 
+        from sc_lon_m_loan_card
+        where principal_balance - pending_amount  &gt; 0    
+        and sc_lon_m_loan_card.membership_no = sc_mem_m_membership_registered.membership_no 
+       ) as loan_bal
+
+,      (     select nvl( sum(     decode ( sc_lon_m_loan_card.drop_payment_status ,  '1', 0  ,  sc_lon_m_contract.period_payment_amount   )       ) , 0 ) 
+        from sc_lon_m_loan_card
+         ,sc_lon_m_contract
+        where 1=1
+        and sc_lon_m_loan_card.loan_contract_no = sc_lon_m_contract.loan_contract_no
+        and principal_balance - pending_amount  &gt; 0    
+        and sc_lon_m_loan_card.membership_no = sc_mem_m_membership_registered.membership_no 
+       ) as loan_period
+       
+,      (select month_name_thai from sc_cnt_m_month where month_no = decode(extract(month from sysdate),'12','1',extract(month from sysdate)+1 )) as month_name 
+
+FROM  sc_mem_m_membership_registered,   
+      sc_mem_m_share_mem  
+WHERE ( sc_mem_m_membership_registered.membership_no = sc_mem_m_share_mem.membership_no )   
+--and   ( ( sc_mem_m_membership_registered.membership_no = '058005' ) )
+/*WHERE*/</sql>
+  <sub />
+</root>

@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <month_of_birth align="center" special="month" text="ประจำเดือน" type="integer2" combo="monthThLong" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <member_group_no text="หน่วย" table="sc_mem_m_ucf_member_group" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select  sc_mem_m_membership_registered.membership_no
+,       sc_mem_m_membership_registered.date_of_birth
+,       sc_mem_m_ucf_prename.prename||sc_mem_m_membership_registered.member_name||' '||sc_mem_m_membership_registered.member_surname as member_name
+,       sc_mem_m_ucf_member_group.member_group_name
+,       sc_mem_m_ucf_member_group.member_group_no
+,       trim(substr(pka_lon_reqsrv.fp_calc_agetext_m_live(sc_mem_m_membership_registered.membership_no),0,3)) as age_mem
+,       sysdate
+,       pka_com_function.fp_get_month_name('!month_of_birth!','LT') as month_of_birth
+from    sc_mem_m_membership_registered
+,       sc_mem_m_ucf_member_group
+,       sc_mem_m_ucf_prename
+where   sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+and     sc_mem_m_ucf_prename.prename_code = sc_mem_m_membership_registered.prename_code
+and     sc_mem_m_membership_registered.member_status_code = '0'
+and     sc_mem_m_membership_registered.mem_type = '01'
+and     extract(month from sc_mem_m_membership_registered.date_of_birth) = '!month_of_birth!'
+--and     sc_mem_m_membership_registered.member_group_no = '010101'
+/*WHERE*/
+order by extract(day from sc_mem_m_membership_registered.date_of_birth)
+,        sc_mem_m_membership_registered.membership_no
+</sql>
+  <sub />
+</root>

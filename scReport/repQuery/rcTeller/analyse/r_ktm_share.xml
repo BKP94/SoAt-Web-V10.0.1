@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root procedure="pka_test.sp_mis_report_share()">
+  <arg />
+  <combo />
+  <sql>select * 
+from SC_REP_ANALYSE_SHARE
+where rpt = 'TEL065010115'
+/*WHERE*/</sql>
+  <sub />
+  <mis>
+    <COL1>
+      <column_text>ตั้งแต่</column_text>
+      <column_type>decimal2</column_type>
+      <column_width>0</column_width>
+    </COL1>
+    <COL2>
+      <column_text>ถึง</column_text>
+      <column_type>decimal2</column_type>
+      <column_width>0</column_width>
+    </COL2>
+  </mis>
+  <mis_default_value>
+    <row>
+      <COL1>0</COL1>
+      <COL2>5000</COL2>
+    </row>
+  </mis_default_value>
+</root>

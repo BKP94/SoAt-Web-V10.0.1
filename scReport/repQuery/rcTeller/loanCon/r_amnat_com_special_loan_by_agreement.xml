@@ -1,0 +1,181 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <membership_no special="memno" default="027447" text="ทะเบียน" table="sc_mem_m_membership_registered" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT (select coop_name from sc_cnt_m_coop) as coop_name,
+    sc_lon_m_loan_request.loan_requestment_no
+    , ( select manager_name from sc_cnt_m_coop ) as manager_name
+    , (select president_name from sc_cnt_m_coop) as president_name
+    ,   sc_lon_m_loan_request.entry_id
+    ,sc_mem_m_member_address.address_no
+    ,sc_mem_m_member_address.moo
+    ,pka_com_function.fp_get_sub_district_name( sc_mem_m_member_address.tambol)as address_tambol
+    ,pka_com_function.fp_get_district_name(  sc_mem_m_member_address.province_code  , sc_mem_m_member_address.district_code ) as mem_distinct
+    ,pka_com_function.fp_get_province_name(  sc_mem_m_member_address.province_code  ) as mem_province
+    ,sc_mem_m_member_address.road
+    ,sc_mem_m_member_address.soi
+    ,sc_lon_m_contract.loan_contract_no
+    , ( select user_name from si_security_user where si_security_user.user_id = sc_lon_m_loan_request.entry_id  )  as user_name
+    , pka_com_function.fp_get_member_name( sc_lon_m_loan_request.membership_no) as memname
+    , pka_com_function.fp_get_moneythai ( sc_lon_m_loan_request.loan_request_amount ) as thai_loan_request_amount
+    , pka_com_function.fp_get_moneythai  ( sc_lon_m_loan_request.period_payment_amount ) as thai_period_payment_amount
+    , pka_com_function.fp_get_moneythai  ( sc_lon_m_loan_request.mem_request_amount ) as thai_mem_request_amount
+    , sc_lon_m_loan_request.requestment_date as loan_requestment_date
+    , pka_com_function.fp_get_thaidate(  sc_lon_m_loan_request.requestment_date , 'SD MONTH YYYY'  )  loan_requestment_date_tdate
+    , sc_lon_m_loan_request.membership_no as membership_no
+    , sc_lon_m_loan_request.member_group_no as member_group_no
+    , ( select nvl(sum (sc_lon_m_contract.period_payment_amount ),0) + nvl(sc_lon_m_loan_request.monthshare,0 )
+    from sc_lon_m_loan_history
+    ,sc_lon_m_loan_card
+    ,sc_lon_m_contract
+    WHERE sc_lon_m_loan_card.loan_contract_no = sc_lon_m_loan_history.loan_contract_no
+    AND sc_lon_m_loan_card.loan_contract_no = sc_lon_m_contract.loan_contract_no
+    and sc_lon_m_loan_history.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+    ) as period_payment_amount_coop
+
+    , ( select decode( sc_lon_m_loan_history.clear_target , '1' ,nvl(sc_lon_m_loan_request.period_payment_amount,0) - nvl(sc_lon_m_contract.period_payment_amount,0)
+    ,0)
+    from sc_lon_m_loan_history
+    ,sc_lon_m_loan_card
+    ,sc_lon_m_contract
+    WHERE sc_lon_m_loan_card.loan_contract_no = sc_lon_m_loan_history.loan_contract_no
+    AND sc_lon_m_loan_card.loan_contract_no = sc_lon_m_contract.loan_contract_no
+    and sc_lon_m_loan_history.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+    and sc_lon_m_loan_history.clear_target = '0'
+    ) as clear_payment_amount
+    ,sc_mem_m_ucf_member_group.member_group_name as member_group_name
+    ,sc_mem_m_ucf_member_group.member_group_control as member_group_control_no
+
+    , pka_com_function.fp_get_group_name( sc_mem_m_ucf_member_group.member_group_control) as member_group_control_name
+
+    , ( select sc_mem_m_ucf_other_code.mem_type_desc
+    from sc_mem_m_ucf_other_code
+    where sc_mem_m_ucf_other_code.mem_type_code =  sc_mem_m_membership_registered.other_code ) as grade
+    , sc_mem_m_ucf_marriage_status.marriage_status as marriage_status
+    , PKA_LON_REQSRV.fp_calc_agetext_m_live( sc_mem_m_membership_registered.membership_no , sc_lon_m_loan_request.begining_of_contract  ) as  AGE_LIFE_TEXT
+    , PKA_LON_REQSRV.fp_calc_agetext_m_age( sc_mem_m_membership_registered.membership_no , sc_lon_m_loan_request.begining_of_contract  ) as  age_mem_text
+    , sc_mem_m_membership_registered.approve_date as approve_date
+
+    , decode( sc_mem_m_membership_registered.marriage_status
+    , '1' , (   select sc_mem_m_ucf_prename.prename || sc_mem_m_member_spouse_info.spouse_name || '  ' || sc_mem_m_member_spouse_info.spouse_surname
+    from sc_mem_m_member_spouse_info
+    ,sc_mem_m_ucf_prename
+    where sc_mem_m_member_spouse_info.prename_code = sc_mem_m_ucf_prename.prename_code
+    and sc_mem_m_member_spouse_info.membership_no = sc_mem_m_membership_registered.membership_no
+    )
+    ,' ' ) as spouse_name
+
+
+    , (   select sc_mem_m_member_spouse_info.salary_amount
+    from sc_mem_m_member_spouse_info
+    where sc_mem_m_member_spouse_info.membership_no = sc_mem_m_membership_registered.membership_no
+    ) as spouse_salary_amount
+
+    , sc_lon_m_loan_request.monthdep as monthdep
+    , sc_lon_m_loan_request.monthloan as monthloan
+    , sc_lon_m_loan_request.monthshare as monthshare
+
+    , sc_lon_m_loan_request.balance_salary as balance_salary
+    , sc_lon_m_loan_request.salary_amount as salary_amount
+    , sc_lon_m_loan_request.total_share_value as share_stock
+    , sc_lon_m_loan_request.monthshare as share_amount
+    , sc_lon_m_loan_request.loan_installment_amount as loan_installment_amount
+    , sc_lon_m_loan_request.req_contract_period as req_contract_period
+    ,nvl(( select sum( item_amount )
+    from sc_lon_m_req_salnet_inc
+    where item_code = '11'
+    and sc_lon_m_req_salnet_inc.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no ),0)  as academic_amount
+
+    ,nvl(( select sum( item_amount )
+    from sc_lon_m_req_salnet_inc
+    where item_code = '12'
+    and sc_lon_m_req_salnet_inc.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no ),0)  as  remuneration_amount
+
+    , sc_lon_m_loan_request.max_loan_permit as max_loan_permit
+    , sc_lon_m_loan_request.mem_request_amount as mem_request_amount
+
+    , ( select max( last_period )
+    from sc_lon_m_loan_history
+    where clear_target = '1'
+    and sc_lon_m_loan_history.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no ) as last_period
+
+    , sc_lon_m_loan_request.period_payment_amount as period_payment_amount
+    , sc_lon_m_loan_request.buy_share as buy_share
+    , sc_lon_m_loan_request.loan_request_amount   as loan_request_amount
+    ,sc_lon_m_rule.loan_type_description as loan_type_description
+
+    ,nvl(( select sum( item_amount )
+    from sc_lon_m_req_salnet_inc
+    where  sc_lon_m_req_salnet_inc.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no ),0) as sum_inc_amount /**/
+
+    ,nvl(( select sum( item_amount )
+    from sc_lon_m_req_salnet_exp
+    where  sc_lon_m_req_salnet_exp.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no ),0) as sum_exp_amount
+
+    ,mem_request_amount - total_old_loan - total_oldint - fee_amount - buy_share as paid_amount
+
+
+    FROM sc_lon_m_loan_request,
+    sc_mem_m_ucf_member_group,
+    sc_mem_m_membership_registered,
+    sc_mem_m_ucf_marriage_status,
+    sc_lon_m_rule,
+    sc_lon_m_contract,
+    sc_mem_m_member_address
+    WHERE sc_mem_m_ucf_member_group.member_group_no = sc_lon_m_loan_request.member_group_no
+    and sc_mem_m_membership_registered.membership_no  = sc_lon_m_loan_request.membership_no
+    and sc_mem_m_ucf_marriage_status.marriage_status_code = sc_mem_m_membership_registered.marriage_status
+    and sc_lon_m_rule.loan_type = sc_lon_m_loan_request.loan_type
+    and sc_mem_m_membership_registered.membership_no = sc_mem_m_member_address.membership_no
+    and sc_mem_m_member_address.address_type = '0'
+    and sc_lon_m_loan_request.loan_requestment_no  = sc_lon_m_contract.loan_requestment_no
+    /*WHERE*/
+    --and sc_lon_m_loan_request.loan_requestment_no = '65พ000013'
+  </sql>
+  <sub>
+    <r_amnat_com_special_loan_by_agreement_nest>
+      <sql>
+        SELECT sc_mem_m_member_address.address_no
+        ,sc_lon_m_loan_request.loan_requestment_no
+        ,sc_mem_m_member_address.moo
+        ,pka_com_function.fp_get_sub_district_name( sc_mem_m_member_address.tambol)as address_tambol
+        ,pka_com_function.fp_get_district_name(  sc_mem_m_member_address.province_code  , sc_mem_m_member_address.district_code ) as mem_distinct
+        ,pka_com_function.fp_get_province_name(  sc_mem_m_member_address.province_code  ) as mem_province
+        ,sc_mem_m_member_address.road
+        ,sc_mem_m_member_address.soi
+        ,sc_lon_m_contract.loan_contract_no
+        , sc_lon_m_loan_request.membership_no as membership_no
+        , pka_com_function.fp_get_member_name( sc_lon_m_loan_request.membership_no) as memname
+        , sc_lon_m_loan_request.member_group_no as member_group_no
+        ,sc_mem_m_ucf_member_group.member_group_name as member_group_name
+        ,sc_mem_m_ucf_member_group.member_group_control as member_group_control_no
+
+        , sc_mem_m_ucf_marriage_status.marriage_status as marriage_status
+        , SUBSTR(PKA_LON_REQSRV.fp_calc_agetext_m_live( sc_mem_m_membership_registered.membership_no , sc_lon_m_loan_request.begining_of_contract ),0,3) as  age_life_text
+        , PKA_LON_REQSRV.fp_calc_agetext_m_age( sc_mem_m_membership_registered.membership_no , sc_lon_m_loan_request.begining_of_contract  ) as  age_mem_text
+        , sc_mem_m_membership_registered.approve_date as approve_date
+
+        FROM sc_lon_m_loan_request,
+        sc_mem_m_ucf_member_group,
+        sc_mem_m_membership_registered,
+        sc_mem_m_ucf_marriage_status,
+        sc_lon_m_rule,
+        sc_lon_m_contract,
+        sc_mem_m_member_address
+
+        WHERE sc_mem_m_ucf_member_group.member_group_no = sc_lon_m_loan_request.member_group_no
+        and sc_mem_m_membership_registered.membership_no  = sc_lon_m_loan_request.membership_no
+        and sc_mem_m_ucf_marriage_status.marriage_status_code = sc_mem_m_membership_registered.marriage_status
+        and sc_lon_m_rule.loan_type = sc_lon_m_loan_request.loan_type
+        and sc_mem_m_membership_registered.membership_no = sc_mem_m_member_address.membership_no
+        and sc_mem_m_member_address.address_type = '0'
+        and sc_lon_m_loan_request.loan_requestment_no  = sc_lon_m_contract.loan_requestment_no
+        /*WHERE*/
+        and sc_lon_m_loan_request.membership_no = {0}
+        and sc_lon_m_loan_request.loan_requestment_no = {1}
+      </sql>
+    </r_amnat_com_special_loan_by_agreement_nest>
+  </sub>
+</root>

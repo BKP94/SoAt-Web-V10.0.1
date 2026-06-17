@@ -1,0 +1,228 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <branch_id align="center" text="สาขา" table="sc_com_m_branch" column="branch_id" combo="sc_com_m_branch" readonly="0" />
+    <begining_of_contract align="center" text="วันที่เริ่มสัญญา" table="sc_lon_m_contract" type="date" column="begining_of_contract" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_acc_m_account_master.account_id,
+    sc_acc_m_account_master.account_name,
+    sc_lon_m_contract.branch_id ,
+    sc_lon_m_contract.begining_of_contract,
+    sc_lon_m_rule.ref_contract_no,
+    ( SELECT  rule.loan_type_description  FROM sc_lon_m_rule rule   WHERE rule.loan_type = sc_lon_m_rule.ref_contract_no ) as loan_type_description,
+
+    sc_lon_m_contract.loan_contract_no,
+    sc_lon_m_contract.membership_no,
+    sc_lon_m_ucf_loan_payment_type.loan_payment_type_desc,
+    sc_lon_m_contract.period_payment_amount,
+    sc_lon_m_contract.loan_installment_amount,
+    sc_lon_m_contract.loan_approve_amount,
+    pka_com_function.fp_get_member_name( sc_lon_m_contract.membership_no )   as memname
+
+    ,(    SELECT sum(  sc_com_m_receipt_item.item_amount  )
+    FROM sc_com_m_receipt,
+    sc_com_m_receipt_item,
+    sc_com_m_ucf_receipt_item_type
+    WHERE ( sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no ) and
+    ( sc_com_m_receipt_item.item_type_id = sc_com_m_ucf_receipt_item_type.item_type_id ) and
+    ( sc_com_m_receipt.loan_contract_no = sc_lon_m_contract.loan_contract_no ) AND
+    ( sc_com_m_receipt.receipt_status = '0' )
+    ) as sum_item_amount
+    ,sc_lon_m_contract.real_recieve
+    /*ให้เงินสดขึ้นก่อน*/
+    ,(case when sc_com_m_ucf_money_type.money_type_id = 'CSH' then '_A'
+    else sc_com_m_ucf_money_type.money_type_id
+    end
+    )as money_type_sort
+    ,sc_com_m_ucf_money_type.money_type_id
+    ,sc_com_m_ucf_money_type.money_type_name
+    ,sc_lon_m_loan_request.total_old_loan
+    ,sc_lon_m_loan_request.total_oldint
+    FROM sc_lon_m_rule,
+    sc_acc_m_account_master,
+    sc_lon_m_contract,
+    sc_lon_m_ucf_loan_payment_type  ,
+    sc_com_m_branch
+    ,sc_lon_m_contract_multi_paid
+    ,sc_com_m_ucf_money_type
+    ,sc_lon_m_loan_request
+    WHERE ( sc_lon_m_rule.account_id = sc_acc_m_account_master.account_id ) and
+    ( sc_lon_m_rule.loan_type = sc_lon_m_contract.loan_type ) and
+    ( sc_lon_m_contract.loan_payment_type_code = sc_lon_m_ucf_loan_payment_type.loan_payment_type_code ) and
+    (sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_contract.loan_requestment_no ) and
+    ( sc_lon_m_contract.create_loan_status = '1' )   and
+    ( sc_com_m_branch.branch_id = sc_lon_m_contract.branch_id )
+    and sc_lon_m_contract_multi_paid.loan_contract_no = sc_lon_m_contract.loan_contract_no
+    and sc_lon_m_contract_multi_paid.type_pay_money = sc_com_m_ucf_money_type.money_type_id
+    and  sc_lon_m_contract_multi_paid.seq_no = 1
+    and  sc_lon_m_rule.invest_status = '0'
+
+    /*WHERE*/
+    --and    sc_acc_m_account_master.account_id  = '115120'
+    --and     sc_com_m_branch.branch_id = '01'
+    --and     sc_lon_m_contract.begining_of_contract =  '03 พ.ย. 2022'
+
+    ORDER BY sc_com_m_branch.branch_id ASC ,
+    sc_lon_m_contract.begining_of_contract ASC ,
+    money_type_sort ASC ,
+    sc_acc_m_account_master.account_id ASC,
+    sc_lon_m_rule.ref_contract_no ASC ,
+    sc_lon_m_contract.loan_contract_no ASC
+  </sql>
+  <sub>
+    <r_tge_loan_create_share_clr>
+      <sql>
+        SELECT sc_com_m_receipt_item.item_type_id,
+        sc_com_m_receipt_item.principal_amount,
+        sc_com_m_receipt_item.interest_amount,
+        sc_com_m_receipt_item.item_amount,
+        sc_com_m_ucf_receipt_item_type.sort_order,
+        sc_com_m_ucf_receipt_item_type.item_type_id,
+        sc_com_m_ucf_receipt_item_type.group_item,
+        decode(  sc_com_m_ucf_receipt_item_type.group_item , 'LON' , sc_com_m_receipt.loan_contract_no ,  sc_com_m_ucf_receipt_item_type.item_type_name  )   as description,
+        sc_com_m_receipt_item.loan_type
+        FROM sc_com_m_receipt,
+        sc_com_m_receipt_item,
+        sc_com_m_ucf_receipt_item_type
+        WHERE ( sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no ) and
+        ( sc_com_m_receipt_item.item_type_id = sc_com_m_ucf_receipt_item_type.item_type_id ) and
+        ( ( sc_com_m_receipt.loan_contract_no = {0}) AND
+        ( sc_com_m_receipt.receipt_status = '0' ) )
+        /*WHERE*/
+        ORDER BY sc_com_m_ucf_receipt_item_type.sort_order ASC,
+        sc_com_m_receipt_item.item_type_id ASC,
+        sc_com_m_receipt_item.loan_type ASC
+      </sql>
+    </r_tge_loan_create_share_clr>
+    <r_tge_loan_create_clr_sum>
+      <sql>        SELECT tab_data.item_type_name
+        ,tab_data.money_type_id
+        ,tab_data.item_type_id
+        ,sum(tab_data.principal_amount) as principal_amount
+        ,sum(tab_data.interest_amount) as interest_amount
+        ,sum(tab_data.item_amount) as item_amount
+
+        from
+        (
+        /* LOAN*/
+        SELECT sc_com_m_receipt.branch_id,
+        sc_com_m_receipt.receipt_date,
+        sc_lon_m_rule.account_id,
+        sc_com_m_ucf_receipt_item_type.group_item ,
+        sc_com_m_receipt_item.loan_type as item_type_id ,
+       
+     -- (  select old.loan_type_description from sc_lon_m_rule old where old.loan_type = sc_com_m_receipt_item.loan_type  )  as item_type_name  ,
+
+        decode( sc_com_m_receipt_item.loan_code 
+      , '0' ,(  select old.loan_type_description from sc_lon_m_rule old where old.loan_type = sc_com_m_receipt_item.loan_type  ) 
+      ,   ( select  loan_code_desc from sc_lon_m_ucf_loan_code where loan_code =  sc_com_m_receipt_item.loan_code ) ) as item_type_name   ,
+
+       sc_lon_m_contract_multi_paid.type_pay_money  as money_type_id  ,
+        sum( sc_com_m_receipt_item.principal_amount  ) as principal_amount ,
+        sum( sc_com_m_receipt_item.interest_amount ) as interest_amount ,
+        sum( sc_com_m_receipt_item.item_amount ) as item_amount
+
+        FROM sc_com_m_receipt,
+        sc_com_m_receipt_item,
+        sc_lon_m_contract,
+        sc_lon_m_rule,
+        sc_com_m_ucf_receipt_item_type
+        ,sc_lon_m_contract_multi_paid
+        WHERE ( sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no ) and
+        ( sc_com_m_receipt.loan_contract_no = sc_lon_m_contract.loan_contract_no ) and
+        ( sc_lon_m_contract.loan_type = sc_lon_m_rule.loan_type ) and
+        ( sc_com_m_receipt_item.item_type_id = sc_com_m_ucf_receipt_item_type.item_type_id ) and
+        ( sc_com_m_receipt.receipt_status = '0' ) AND
+        ( sc_lon_m_contract.create_loan_status = '1' ) AND
+        ( sc_com_m_ucf_receipt_item_type.group_item = 'LON' )
+        and sc_lon_m_contract_multi_paid.loan_contract_no = sc_lon_m_contract.loan_contract_no
+        and  sc_lon_m_contract_multi_paid.seq_no = 1
+        and  sc_lon_m_rule.invest_status = '0'
+        and  sc_com_m_receipt.receipt_date = {1}
+        and sc_lon_m_contract_multi_paid.type_pay_money = {2}
+
+        GROUP BY sc_com_m_receipt.branch_id,
+        sc_com_m_receipt.receipt_date,
+        sc_lon_m_rule.account_id,
+        sc_com_m_ucf_receipt_item_type.group_item ,
+        sc_com_m_receipt_item.loan_type,
+        sc_lon_m_contract_multi_paid.type_pay_money
+       ,sc_com_m_receipt_item.loan_code
+
+        union all
+
+        SELECT sc_com_m_receipt.branch_id,
+        sc_com_m_receipt.receipt_date,
+        sc_lon_m_rule.account_id,
+        sc_com_m_ucf_receipt_item_type.group_item ,
+        sc_com_m_ucf_receipt_item_type.item_type_id as item_type_id ,
+        sc_com_m_ucf_receipt_item_type.item_type_name   as item_type_name ,
+        sc_lon_m_contract_multi_paid.type_pay_money as money_type_id  ,
+        sum( sc_com_m_receipt_item.principal_amount  ) as principal_amount ,
+        sum( sc_com_m_receipt_item.interest_amount ) as interest_amount ,
+        sum( sc_com_m_receipt_item.item_amount ) as item_amount
+
+        FROM sc_com_m_receipt,
+        sc_com_m_receipt_item,
+        sc_lon_m_contract,
+        sc_lon_m_rule,
+        sc_com_m_ucf_receipt_item_type
+        ,sc_lon_m_contract_multi_paid
+        WHERE ( sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no ) and
+        ( sc_com_m_receipt.loan_contract_no = sc_lon_m_contract.loan_contract_no ) and
+        ( sc_lon_m_contract.loan_type = sc_lon_m_rule.loan_type ) and
+        ( sc_com_m_receipt_item.item_type_id = sc_com_m_ucf_receipt_item_type.item_type_id ) and
+        (  sc_com_m_receipt.receipt_status = '0' ) AND
+        ( sc_lon_m_contract.create_loan_status = '1' ) AND
+        ( sc_com_m_ucf_receipt_item_type.group_item &lt;&gt; 'LON' )
+        and sc_lon_m_contract_multi_paid.loan_contract_no = sc_lon_m_contract.loan_contract_no
+        and  sc_lon_m_contract_multi_paid.seq_no = 1
+        and  sc_lon_m_rule.invest_status = '0'
+        and  sc_com_m_receipt.receipt_date = {1}
+        and sc_lon_m_contract_multi_paid.type_pay_money = {2}
+        GROUP BY sc_com_m_receipt.branch_id,
+        sc_com_m_receipt.receipt_date,
+        sc_lon_m_rule.account_id,
+        sc_com_m_ucf_receipt_item_type.group_item ,
+        sc_com_m_ucf_receipt_item_type.item_type_id ,
+        sc_com_m_ucf_receipt_item_type.item_type_name   ,
+        sc_lon_m_contract_multi_paid.type_pay_money
+
+        ) tab_data
+        , sc_fin_m_close_day
+        ,sc_acc_m_account_master
+        ,sc_com_m_ucf_money_type
+
+        where 1=1
+        and    sc_fin_m_close_day.journal_date = tab_data.receipt_date
+        and     sc_acc_m_account_master.account_id = tab_data.account_id
+        and    sc_fin_m_close_day.branch_fin  = {0}
+        and    sc_fin_m_close_day.journal_date  = {1}
+        and    sc_com_m_ucf_money_type.money_type_id = {2}
+        /*WHERE*/
+        GROUP BY tab_data.group_item
+        ,tab_data.money_type_id
+        ,tab_data.item_type_name
+        ,tab_data.item_type_id
+        order by tab_data.group_item desc
+        ,tab_data.item_type_id
+      </sql>
+    </r_tge_loan_create_clr_sum>
+    <r_tge_loan_create_share_mpaid>
+      <sql>
+        SELECT sc_lon_m_contract_multi_paid.seq_no,
+        sc_com_m_ucf_money_type.money_type_id,
+        sc_com_m_ucf_money_type.money_type_name,
+        sc_lon_m_contract_multi_paid.paid_amount,
+        decode(  sc_com_m_ucf_money_type.account_type ,  'FBK' , pka_com_function.fp_form( sc_lon_m_contract_multi_paid.bank_acc_no ,'XXX-XXXXXX-XXXXXX')   ,  'DEP' , pka_com_function.fp_form( sc_lon_m_contract_multi_paid.bank_acc_no ,'XX-XXXXXXXXXXXXX') , '' ) as bank_acc_no
+        FROM sc_lon_m_contract_multi_paid,
+        sc_com_m_ucf_money_type
+        WHERE ( sc_lon_m_contract_multi_paid.type_pay_money = sc_com_m_ucf_money_type.money_type_id ) and
+        ( ( sc_lon_m_contract_multi_paid.loan_contract_no = {0}) )
+        /*WHERE*/
+        ORDER BY sc_lon_m_contract_multi_paid.seq_no ASC
+      </sql>
+    </r_tge_loan_create_share_mpaid>
+  </sub>
+</root>

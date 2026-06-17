@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <membership_no special="memno" text="ทะเบียน" table="sc_mem_m_membership_registered" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select  sc_mem_m_membership_registered.member_group_no
+,sc_mem_m_ucf_member_group.member_group_name
+,sc_dep_m_creditor.membership_no
+, pka_com_function.fp_get_member_name( sc_dep_m_creditor.membership_no  ) as memname
+,(select  member_status_name from  sc_mem_m_ucf_member_status where  member_status_code = sc_mem_m_membership_registered.member_status_code)as member_status
+,(select  deposit_name from  sc_dep_m_rule where deposit_type_code = sc_dep_m_creditor.deposit_type_code)as deposit_type_name
+,sc_dep_m_creditor.deposit_account_no
+,(select  ref_contract_no from sc_lon_m_rule where  loan_type = sc_dep_m_creditor.loan_type_coll)as loan_type_coll
+,sc_dep_m_creditor.deposit_balance
+,sc_mem_m_share_mem.share_stock
+
+,nvl( (   select max( begining_of_contract ) 
+	from sc_lon_m_contract
+	where 1=1
+      and loan_type in(  '20' ,'30' )      
+     and membership_no  = sc_dep_m_creditor.membership_no  ) , null ) as loan_begining_of_contract
+
+,nvl( (   select sum( principal_balance ) 
+	from sc_lon_m_loan_card 
+	where 1=1
+      and loan_type in(  '20' ,'30' ) 
+     and principal_balance &gt; 0 
+     and membership_no  = sc_dep_m_creditor.membership_no  ) , 0) as loan_bal 
+,PKA_LON_REQFEE.fp_tge_calc_replace_share_return( sc_dep_m_creditor.membership_no , sc_dep_m_creditor.loan_type_coll  ) as return_dep
+from sc_dep_m_creditor
+,sc_mem_m_share_mem
+,sc_mem_m_membership_registered
+,sc_mem_m_ucf_member_group
+where 1=1
+and sc_mem_m_ucf_member_group.member_group_no = sc_mem_m_membership_registered.member_group_no
+and sc_dep_m_creditor.membership_no = sc_mem_m_membership_registered.membership_no
+and sc_dep_m_creditor.membership_no = sc_mem_m_share_mem.membership_no
+and sc_dep_m_creditor.close_status = '0'
+and sc_dep_m_creditor.deposit_type_code &lt;&gt; '60'
+and sc_dep_m_creditor.deposit_balance &gt; 0 
+
+and loan_type_coll in (  select loan_type  from  sc_lon_m_rule_fee  where loan_fee_type  = '15')
+/*WHERE*/
+order by  sc_mem_m_membership_registered.member_group_no
+,sc_dep_m_creditor.membership_no</sql>
+  <sub />
+</root>

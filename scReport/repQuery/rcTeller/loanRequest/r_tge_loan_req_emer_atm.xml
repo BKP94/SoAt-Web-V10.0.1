@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <requestment_date text="วันที่ขอกู้" table="sc_lon_m_loan_request" type="date" readonly="0" />
+    <begining_of_contract text="วันที่รับเงิน" table="sc_lon_m_loan_request" type="date" column="begining_of_contract" readonly="0" />
+    <loan_type text="ประเภทเงินกู้" table="sc_lon_m_rule" combo="sc_lon_m_rule2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select  sc_lon_m_loan_request.loan_requestment_no
+,       sc_lon_m_ucf_loan_obj.loan_objective_description
+,       sc_lon_m_loan_request.membership_no
+,       pka_com_function.fp_get_member_name( sc_lon_m_loan_request.membership_no ) as  memname
+,       pka_com_function.fp_get_member_salary( sc_lon_m_loan_request.membership_no ) as  salary
+,       sc_lon_m_loan_request.total_share_value
+,       sc_lon_m_loan_request.total_old_loan
+,       sc_lon_m_loan_request.real_receive
+,       sc_lon_m_loan_request.begining_of_contract
+,       pka_com_function.fp_get_thaidate( sc_lon_m_loan_request.requestment_date , 'MONTH  (ตามวัน)' ) as requestment_month_form
+,       pka_com_function.fp_get_thaidate( sc_lon_m_loan_request.requestment_date , 'MONTH' ) as requestment_month
+,       sysdate
+,       sc_lon_m_loan_request.requestment_date
+,       sc_lon_m_loan_request.loan_request_amount
+,       sc_lon_m_loan_request.max_loan_permit
+,       (select nvl(sum(sc_lon_m_loan_history.principal_of_loan),0)
+        from   sc_lon_m_loan_history
+        where  sc_lon_m_loan_history.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+        ) as principal_of_loan
+,       (case when sc_lon_m_rule.loan_type in ('33','34','35') then 'กู้สามัญวิทยะฐานะ'
+        when sc_lon_m_rule.loan_type = '02' then 'กู้ฉุกเฉินปันผล'
+        when sc_lon_m_rule.loan_type = '23' then 'กู้สวัสดิการกองทุนสงเคราะห์สมาชิกถึงแก่กรรม'
+        when sc_lon_m_rule.loan_type = '24' then 'กู้สามัญ 25 เท่าของเงินบำนาญ/บำเหน็จ'
+        when sc_lon_m_rule.loan_type = '25' then 'กู้สามัญสินเชื่อส่วนบุคคล'
+        when sc_lon_m_rule.loan_type = '30' then 'กู้รวมหนี้สถาบันการเงิน'
+        when sc_lon_m_rule.loan_type = '61' then 'กู้พิเศษเพื่อที่อยู่อาศัยบ้านหลังแรก'
+        else substr(sc_lon_m_rule.loan_type_description,9)
+        end)as loan_type_description
+,       pka_com_function.fp_get_member_group( sc_lon_m_loan_request.membership_no ) as member_group
+,       pka_com_function.fp_get_group_name( pka_com_function.fp_get_member_group ( sc_lon_m_loan_request.membership_no )) as member_group_name
+,       sc_lon_m_contract.loan_contract_no
+,       sc_lon_m_contract.loan_approve_amount
+from    sc_lon_m_loan_request
+,       sc_lon_m_contract
+,       sc_lon_m_rule
+,       sc_lon_m_ucf_loan_obj
+where   sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
+and     sc_lon_m_rule.loan_type = sc_lon_m_loan_request.loan_type
+and     sc_lon_m_ucf_loan_obj.loan_objective_code = sc_lon_m_loan_request.loan_objective_code
+and     sc_lon_m_ucf_loan_obj.loan_type = sc_lon_m_loan_request.loan_type
+and     sc_lon_m_loan_request.cancel_status = '0'
+and     sc_lon_m_loan_request.loan_type = '01'
+
+/*WHERE*/
+order by sc_lon_m_loan_request.membership_no
+,        sc_lon_m_loan_request.loan_requestment_no
+</sql>
+  <sub />
+</root>

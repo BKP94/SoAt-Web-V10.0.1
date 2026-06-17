@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<root>
+  <arg>
+    <approve_date text="วันที่" table="sc_lon_m_coll_change_head" type="date" column="approve_date" operator="bt" readonly="0" />
+  </arg>
+  <sql>
+    select  	sc_lon_m_coll_change_head.membership_no ,
+    sc_lon_m_coll_change_head.approve_date,
+    PKA_COM_FUNCTION.fp_get_member_name( sc_lon_m_coll_change_head.membership_no ) as membername ,
+    sc_lon_m_coll_change_head.loan_contract_no ,
+    sc_lon_m_coll_change_head.change_date ,
+    PKA_COM_FUNCTION.fp_get_thaidate( sc_lon_m_coll_change_head.change_date ) as change_date_tdate ,
+    sc_lon_m_coll_change_head.change_doc_no   ,
+    sc_lon_m_coll_change_head.principal_balance ,
+    sc_lon_m_coll_change_head.entry_id ,
+    sc_lon_m_coll_change_head.remark ,
+    sc_lon_m_coll_change_head.change_status ,
+
+    sc_mem_m_share_mem.share_stock ,
+
+    sc_mem_m_ucf_member_group.member_group_no ,
+    sc_mem_m_ucf_member_group.member_group_name ,
+    sc_mem_m_ucf_member_group.member_group_control ,
+    sc_mem_m_ucf_member_group.control_id ,
+
+    sc_lon_m_coll_change_det.old_collateral_refno ,
+    PKA_COM_FUNCTION.fp_get_group_name( PKA_COM_FUNCTION.fp_get_member_group( sc_lon_m_coll_change_det.old_collateral_refno )   ) as old_member_group_name ,
+    sc_lon_m_coll_change_det.old_collateral_description ,
+    sc_lon_m_coll_change_det.old_collateral_type ,
+    ( case  trim(old_collateral_type) when '03' then 'เงินฝากค้ำประกัน' when '02' then 'หุ้นค้ำประกัน' else (trim( old_collateral_description )) end) as c_old_collateral_type,
+    ( case  trim(new_collateral_type) when '03' then 'เงินฝากค้ำประกัน' when '02' then 'หุ้นค้ำประกัน' else (trim( new_collateral_description )) end) as c_new_collateral_description,
+    sc_lon_m_coll_change_det.old_collateral_amount ,
+    sc_lon_m_coll_change_det.new_collateral_refno ,
+    PKA_COM_FUNCTION.fp_get_group_name( PKA_COM_FUNCTION.fp_get_member_group( sc_lon_m_coll_change_det.new_collateral_refno )   ) as new_member_group_name ,
+    sc_lon_m_coll_change_det.new_collateral_description ,
+    sc_lon_m_coll_change_det.new_collateral_type ,
+    sc_lon_m_coll_change_det.new_collateral_amount ,
+    sc_lon_m_coll_change_det.operate_type ,
+    sc_lon_m_coll_change_det.seq_no
+    from sc_lon_m_coll_change_det ,
+    sc_lon_m_coll_change_head ,
+    sc_mem_m_membership_registered ,
+    sc_mem_m_share_mem ,
+    sc_mem_m_ucf_member_group
+    where ( sc_lon_m_coll_change_head.change_doc_no 			= 	sc_lon_m_coll_change_det.change_doc_no )
+    and	( sc_lon_m_coll_change_head.membership_no 			= 	sc_mem_m_membership_registered.membership_no )
+    and	( sc_mem_m_membership_registered.membership_no 	= 	sc_mem_m_share_mem.membership_no )
+    and	( sc_mem_m_membership_registered.member_group_no 	= 	sc_mem_m_ucf_member_group.member_group_no )
+    and sc_lon_m_coll_change_det.operate_type in ('CG','DL')
+    /*WHERE*/
+    --and sc_lon_m_coll_change_head.approve_date between '01/01/2017' and '15/05/2017'
+    order by sc_lon_m_coll_change_head.loan_contract_no
+    ,sc_lon_m_coll_change_head.change_doc_no
+    ,sc_lon_m_coll_change_det.seq_no
+  </sql>
+</root>

@@ -1,0 +1,15 @@
+<root>
+  <arg>
+    <account_year align="center" special="year" text="ปี" table="vr_bon_mcn" type="integer2" column="account_year" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>select  vr_bon_mcn.*
+,       pka_com_function.fp_get_member_name( membership_no ) as member_name
+from    vr_bon_mcn
+where   1=1
+/*WHERE*/
+order by membership_no</sql>
+  <sub>
+  </sub>
+  <mis />
+</root>

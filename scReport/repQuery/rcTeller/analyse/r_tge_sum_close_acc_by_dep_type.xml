@@ -1,0 +1,112 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <opdate text="วันที่" type="date" column="opdate" operator="bt" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select *
+    from ( SELECT sc_dep_t_deposit_slip.deposit_slip_no
+    ,1 as seq_no
+    ,sc_dep_t_deposit_slip.working_day
+    ,sc_dep_t_deposit_slip.deposit_by_cash_balance as c_amount
+    ,'' as c_dep
+    ,sc_dep_t_deposit_slip.officer_id
+
+    ,sc_dep_m_rule.deposit_type_code
+    ,sc_dep_m_rule.deposit_name
+
+   ,pka_dep.fp_get_print_code(sc_dep_t_deposit_slip.deposit_slip_no , sc_dep_t_deposit_slip.op_item_type )  as print_code
+    ,sc_dep_m_ucf_dep_item_type.sign_flag
+
+    ,sc_dep_m_creditor.deposit_account_no
+    ,pka_com_function.fp_form( sc_dep_m_creditor.deposit_account_no , 'XX-XXXXXXXXXXXX' ) as from_deposit_account_no
+    ,sc_dep_m_creditor.deposit_account_name
+    ,sc_dep_m_creditor.membership_no
+
+    ,si_security_user.user_name
+    ,sc_dep_t_deposit_slip.op_receive_int
+    ,sc_dep_t_deposit_slip.op_tax
+    ,sc_dep_t_deposit_slip.fee_amount
+  ,sc_dep_t_deposit_slip.op_money_real
+    FROM sc_dep_t_deposit_slip
+    ,sc_dep_m_creditor
+    ,sc_dep_m_rule
+    ,sc_dep_m_ucf_dep_item_type
+    ,si_security_user
+    --,sc_fin_vourcher_head
+    WHERE ( sc_dep_t_deposit_slip.account_no = sc_dep_m_creditor.deposit_account_no )
+    and ( sc_dep_m_creditor.deposit_type_code = sc_dep_m_rule.deposit_type_code )
+    and (sc_dep_t_deposit_slip.op_item_type = sc_dep_m_ucf_dep_item_type.deposit_item_type )
+    and ( sc_dep_t_deposit_slip.officer_id = si_security_user.user_id )
+  --  and ( sc_dep_t_deposit_slip.deposit_slip_no not in (   select deposit_slip_no
+ --   from  sc_dep_t_dwt_detail      )        )
+    --and ( sc_dep_t_deposit_slip.fin_status = '1' )
+    --and  ( sc_dep_t_deposit_slip.cancel_status = '0' )
+    --and ( sc_dep_t_deposit_slip.vourcher_no   = sc_fin_vourcher_head.vourcher_no )
+    --and sc_dep_m_rule.insure_status  = '0'
+
+    --and ( sc_dep_m_ucf_dep_item_type.print_code not in ('INT' , 'INC' , 'TAX' ) )
+
+    and    ( sc_dep_t_deposit_slip.deposit_slip_type =   'CCA'    )
+    and    ( sc_dep_t_deposit_slip.cancel_status =   '0' )
+    and    ( sc_dep_t_deposit_slip.working_day between '!opdate_1!' and '!opdate_2!'   )
+    /*WHERE*/
+    
+    union
+
+    SELECT   sc_dep_m_creditor_item.refer_to_deposit_doc_no as deposit_slip_no
+    ,1 as seq_no
+    ,sc_dep_m_creditor_item.working_day
+    ,sc_dep_m_creditor_item.deposit_balance  as c_amount
+    ,'' as c_dep
+    ,sc_dep_m_creditor_item.officer_id
+
+    ,sc_dep_m_rule.deposit_type_code
+    ,sc_dep_m_rule.deposit_name
+
+    ,pka_dep.fp_get_print_code(sc_dep_m_creditor_item.refer_to_deposit_doc_no , sc_dep_m_creditor_item.item_type )  as print_code
+    ,sc_dep_m_ucf_dep_item_type.sign_flag
+
+    ,sc_dep_m_creditor.deposit_account_no
+    ,pka_com_function.fp_form( sc_dep_m_creditor.deposit_account_no , 'XX-XXXXXXXXXXXX' ) as from_deposit_account_no
+    ,sc_dep_m_creditor.deposit_account_name
+    ,sc_dep_m_creditor.membership_no
+
+    ,si_security_user.user_name
+    ,sc_dep_m_creditor_item.old_acc_int as op_receive_int
+    ,0 as op_tax
+    ,0 as fee_amount
+  ,0 as  op_money_real
+    FROM sc_dep_m_creditor_item
+    ,sc_dep_m_ucf_dep_item_type
+    ,sc_dep_m_creditor
+    ,sc_dep_m_rule
+    ,si_security_user
+
+    WHERE ( sc_dep_m_creditor_item.deposit_account_no = sc_dep_m_creditor.deposit_account_no )
+    and ( sc_dep_m_creditor.deposit_type_code = sc_dep_m_rule.deposit_type_code )
+    and ( sc_dep_m_creditor_item.item_type = sc_dep_m_ucf_dep_item_type.deposit_item_type )
+    and ( sc_dep_m_creditor_item.officer_id = si_security_user.user_id )
+--    and ( ( sc_dep_m_creditor_item.item_type = 'CCA' ) or ( sc_dep_m_creditor_item.item_type = 'WTL'  and sc_dep_m_creditor.deposit_balance = 0  ) )    --in( 'WTL' ,'C/C' ) 
+    and ( ( sc_dep_m_creditor_item.item_type = 'CCA' ) or ( sc_dep_m_creditor_item.item_type = 'WTL' 
+                                                            and sc_dep_m_creditor_item.refer_to_deposit_doc_no in( select loan_contract_no from sc_lon_m_contract 
+                                                            where begining_of_contract = sc_dep_m_creditor_item.working_day 
+                                                            and sc_lon_m_contract.loan_type in( '4' , '8' ) ) 
+                                                          ) )
+    and ( sc_dep_m_creditor_item.working_day between '!opdate_1!' and '!opdate_2!' )
+    and ( sc_dep_m_creditor_item.refer_to_deposit_doc_no not in (   select deposit_slip_no
+    from  sc_dep_t_deposit_slip      )        )
+    /*WHERE*/
+    
+    )tab
+    where 1 = 1
+--   and tab.deposit_account_no = '50005830'
+    order by tab.deposit_type_code
+    ,tab.officer_id
+    ,tab.working_day
+    ,tab.sign_flag
+    ,tab.deposit_account_no
+    ,tab.deposit_slip_no
+    ,tab.seq_no</sql>
+  <sub />
+</root>

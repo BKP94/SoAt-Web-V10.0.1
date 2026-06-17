@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <member_group_no text="หน่วยงาน" table="sc_mem_m_ucf_member_group" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+    <operate_date text="วันที่เปลี่ยน" table="sc_amnat_grade_edit" type="date" operator="bt" readonly="0" />
+    <chg_code text="เหตุผล" table="sc_amnat_grade_ucf_chg" combo="sc_amnat_grade_ucf_chg2" noheader="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>SELECT sc_amnat_grade_edit.seq_no    
+,sc_amnat_grade_edit.entry_id
+,sc_amnat_grade_edit.operate_date
+,sc_amnat_grade_edit.pre_grade
+,sc_amnat_grade_edit.remark
+,sc_amnat_grade_ucf_chg.chg_desc
+,sc_amnat_grade_ucf_chg.chg_code
+,sc_amnat_grade_edit.membership_no
+,pka_com_function.fp_get_member_name( sc_mem_m_membership_registered.membership_no ) as member_name
+,sc_amnat_grade_edit.grade
+,sc_mem_m_membership_registered.member_group_no  
+,sc_mem_m_ucf_member_group.member_group_name
+FROM sc_amnat_grade_edit
+,sc_amnat_grade_ucf_chg
+,sc_mem_m_membership_registered  
+,sc_mem_m_ucf_member_group
+WHERE  sc_mem_m_membership_registered.member_group_no   = sc_mem_m_ucf_member_group.member_group_no
+and sc_amnat_grade_edit.chg_code = sc_amnat_grade_ucf_chg.chg_code
+and sc_amnat_grade_edit.membership_no = sc_mem_m_membership_registered.membership_no 
+/*WHERE*/
+order by sc_mem_m_ucf_member_group.member_group_no
+,sc_amnat_grade_edit.membership_no 
+,sc_amnat_grade_edit.seq_no </sql>
+  <sub />
+</root>

@@ -1,0 +1,132 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="T080" rep_text="หนังสือยืนยันยอด">
+  <arg>
+    <resignation_approve_date align="center" text="วันที่ลาออก" table="sc_mem_m_membership_registered" type="date" operator="bt" readonly="0" comboreplace="0" combowhere="0" />
+    <member_group_no align="center" text="หน่วย" table="sc_mem_m_membership_registered" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" comboreplace="0" combowhere="0" />
+    <membership_no special="memno" text="ทะเบียน" table="sc_mem_m_membership_registered" readonly="0" comboreplace="0" combowhere="0" />
+    <book_no default="02.05012/2568" text="อ้างถึงหนังสือ" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <book_date text="ลงวันที่" type="date" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <balance_date text="วันที่ข้อมูล" type="date" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <res_no default="67" text="มติชุดที่" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <resset_no default="55/67" text="มติครั้งที่" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <res_date text="วันที่มติ" type="date" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <as_text default="ฝ่ายทะเบียนหุ้นหนี้ โทร " text="หมายเหตุ" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    
+  </arg>
+  <combo />
+  <sql>
+    select sc_mem_m_membership_registered.membership_no
+    ,   sc_mem_m_membership_registered.member_group_no
+    ,   pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no)as member_name
+    ,   sc_mem_m_membership_registered.resign_doc_no
+    ,   pka_com_function.fp_get_thaidate(sc_mem_m_membership_registered.resignation_approve_date,'sd Month yyyy')as resignation_approve_date
+    ,   '!book_no!'as book_no
+    ,   pka_com_function.fp_get_thaidate('!book_date!','sd Month yyyy')as book_date
+    ,   pka_com_function.fp_get_thaidate('!balance_date!','sd Month yyyy')as balance_date
+    ,   '!res_no!'as res_no
+    ,   '!resset_no!'as resset_no
+    ,   '!as_text!'as as_text
+    ,   pka_com_function.fp_get_thaidate('!res_date!','sd Month yyyy')as res_date
+    ,   pka_com_function.fp_get_thaidate(sysdate,'sd Month yyyy')as sys_date
+
+    ,   to_snumber((select sc_mem_m_resign_share.shr_value
+    from sc_mem_m_resign_share
+    where sc_mem_m_resign_share.resign_doc_no = sc_mem_m_membership_registered.resign_doc_no))as shr_value
+
+    ,   to_snumber((select sum(sc_mem_m_resign_loan.principal_balance)
+    from sc_mem_m_resign_loan
+    where sc_mem_m_resign_loan.resign_doc_no = sc_mem_m_membership_registered.resign_doc_no))as loan_bal
+
+    ,   to_snumber((select sum(sc_mem_m_resign_loan.interest_arrear + sc_mem_m_resign_loan.interest)
+    from sc_mem_m_resign_loan
+    where sc_mem_m_resign_loan.resign_doc_no = sc_mem_m_membership_registered.resign_doc_no))as int_bal
+
+    ,   sc_lon_m_contract.loan_contract_no
+    ,   pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract,'sd Month yyyy')as begining_of_contract
+    ,   to_snumber(sc_lon_m_contract.loan_approve_amount)
+    ,   to_snumber(pka_com_function.fp_lon_get_balance_atdate(sc_lon_m_contract.loan_contract_no,to_date('!balance_date!','dd/mm/yyyy')))as bal_at_date
+    ,   to_snumber(pka_com_function.fp_lon_get_balance_atdate(sc_mem_m_membership_registered.membership_no,to_date('!balance_date!','dd/mm/yyyy')))as shr_at_date
+    ,   to_snumber(sc_mem_m_resign_loan.principal_balance)
+
+    ,   nvl((select to_snumber(sum(sc_com_m_receipt_item.item_amount))
+    from sc_com_m_receipt
+    ,   sc_com_m_receipt_item
+    where 1=1
+    and sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no
+    and sc_com_m_receipt.money_type_id = 'TNL'
+    and sc_com_m_receipt_item.item_type_id = 'IS'
+    and sc_com_m_receipt.membership_no = sc_mem_m_membership_registered.membership_no
+    and sc_com_m_receipt.receipt_date = sc_mem_m_membership_registered.resignation_approve_date),0)as is_bal
+
+    ,   nvl((select sum(sc_com_m_receipt_item.item_amount)
+    from sc_com_m_receipt
+    ,   sc_com_m_receipt_item
+    where 1=1
+    and sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no
+    and sc_com_m_receipt.money_type_id = 'TNL'
+    and sc_com_m_receipt_item.item_type_id = 'IS'
+    and sc_com_m_receipt.membership_no = sc_mem_m_membership_registered.membership_no
+    and sc_com_m_receipt.receipt_date = sc_mem_m_membership_registered.resignation_approve_date),0)as is_bal2
+
+    ,   to_snumber(nvl((select sum(sc_com_m_receipt_item.balance)
+    from sc_com_m_receipt
+    ,   sc_com_m_receipt_item
+    where 1=1
+    and sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no
+    and sc_com_m_receipt.money_type_id = 'TNL'
+    and sc_com_m_receipt_item.item_type_id = 'PL'
+    and sc_com_m_receipt.membership_no = sc_mem_m_membership_registered.membership_no
+    and sc_com_m_receipt_item.description = sc_lon_m_contract.loan_contract_no
+    and sc_com_m_receipt.receipt_date = sc_mem_m_membership_registered.resignation_approve_date),0))as prin_bal_clr
+
+    ,   ('	ตามหนังสือที่อ้างถึง สหกรณ์ฯ ได้ประกาศให้ท่านเป็นผู้ผิดนัดการส่งเงินงวดชำระหนี้ส่งผลให้ท่านถูกระงับการใช้สิทธิในการกู้รวมถึงไม่ได้รับเงินเฉลี่ยคืนสำหรับปีนั้น ๆ  หรืออาจถูกให้ออกจากสหกรณ์ ตามข้อบังคับของสหกรณ์ ทั้งนี้ สหกรณ์ฯ ได้แจ้งให้ท่านมาติดต่อฝ่ายทะเบียนหุ้นและหนี้ เพื่อดำเนินการชำระหนี้'||'หรือทำความตกลงเกี่ยวกับการชำระหนี้ให้กับสหกรณ์ฯ ภายในวันที่ ' ||    pka_com_function.fp_get_thaidate('!balance_date!','sd Month yyyy') || ' หากพ้นกำหนดแล้ว สหกรณ์มีความจำเป็นที่จะดำเนินการตามระเบียบ  ข้อบังคับ  และกฎหมายต่อไป  ความละเอียดแจ้งแล้วนั้น')as para_1
+    ,   ('	บัดนี้ ได้ล่วงเลยกำหนดระยะเวลาดังกล่าวแล้ว ท่านยังคงเพิกเฉยไม่มาติดต่อดำเนินการชำระหนี้หรือทำข้อตกลงเกี่ยวกับการชำระหนี้ต่อสหกรณ์ฯ โดยมติที่ประชุมคณะกรรมการดำเนินการสหกรณ์ ชุดที่ '||'!res_no!'||' ครั้งที่ '||'!resset_no!'||' ลงวันที่ '||pka_com_function.fp_get_thaidate(to_date('!res_date!'),'sd Month yyyy')||' มีมติให้ท่านพ้นจากการเป็นสมาชิกตามระเบียบและข้อบังคับของสหกรณ์ ซึ่ง ณ วันที่ '||pka_com_function.fp_get_thaidate(to_date('!balance_date!'),'sd Month yyyy')||' ท่านมีทุนเรือนหุ้นและหนี้คงเหลือ ดังนี้' )as para_2
+    ,   ('	สหกรณ์ฯ จึงขอแจ้งมายังท่านเพื่อทราบ และภายในวันที่ '||pka_com_function.fp_get_thaidate(sc_mem_m_membership_registered.resignation_approve_date,'sd Month yyyy')||' สหกรณ์ฯ ดำเนินการนำทุนเรือนหุ้นหักชำระหนี้คงเหลือเรียบร้อยแล้ว และยังคงมีหนี้คงเหลือเป็นต้นเงิน จำนวน ')as para_3
+    ,   ('	อนึ่ง  หากท่านมีความประสงค์จะสมัครเป็นสมาชิกใหม่  สหกรณ์ฯ  มีการช่วยเหลือสมาชิกโดยมีประกาศรับสมัครสมาชิกเข้าใหม่  กรณีแก้ไขปัญหาหนี้ค้างชำระเพื่อบรรเทาความเดือนร้อนทางการเงินและให้มีคุณภาพชีวิตที่ดีขึ้น ขอให้ท่านโปรดมาติดต่อฝ่ายติดตามหนี้ ในวันและเวลาทำการของสหกรณ์ฯ (09.00 - 16.00 น.)')as para_4
+    ,   ('	ตามที่ '||pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no)||' ได้กู้เงินไปจากสหกรณ์ฯ จำนวน '||to_snumber(sc_lon_m_contract.loan_approve_amount)||' บาท '||'ตามหนังสือสัญญา'||sc_lon_m_rule.loan_type_description||' เลขที่ '||sc_lon_m_contract.loan_contract_no||' ลงฉบับวันที่ '||pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract,'sd Month yyyy')||' โดยมีท่านผูกพันตนเข้าเป็นผู้ค้ำประกันการชำระหนี้เงินกู้ดังกล่าว ตามหนังสือค้ำประกันเงินกู้ ฉบับวันที่ '||pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract,'sd Month yyyy')||' ความละเอียดตามที่ทราบแล้วนั้น')as para_5
+    ,   ('	เนื่องจาก '||pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no)||' ได้ผิดนัดชำระหนี้ และถูกประกาศเป็นผู้ผิดนัดชำระหนี้ โดยมติที่ประชุมคณะกรรมการดำเนินการสหกรณ์  ชุดที่  '||'!res_no!'||'  ครั้งที่  '||'!resset_no!'||'  ลงวันที่  '||pka_com_function.fp_get_thaidate('!res_date!','sd Month yyyy')||'  มีมติให้ '||pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no)||' ได้พ้นสภาพการเป็นสมาชิกสหกรณ์ฯ แล้วเมื่อวันที่ '||pka_com_function.fp_get_thaidate(sc_mem_m_membership_registered.resignation_approve_date,'sd Month yyyy')||' ทำให้หนี้ตามหนังสือเงินกู้ดังกล่าวถึงกำหนดชำระโดยสิ้นเชิงพร้อมดอกเบี้ยทันที ต้นเงินคงเหลือ ณ วันที่ '||pka_com_function.fp_get_thaidate(sc_mem_m_membership_registered.resignation_approve_date,'sd Month yyyy')||' จำนวน '||nvl((select sum(sc_com_m_receipt_item.balance)
+    from sc_com_m_receipt
+    ,   sc_com_m_receipt_item
+    where 1=1
+    and sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no
+    and sc_com_m_receipt.money_type_id = 'TNL'
+    and sc_com_m_receipt_item.item_type_id = 'PL'
+    and sc_com_m_receipt.membership_no = sc_mem_m_membership_registered.membership_no
+    and sc_com_m_receipt_item.description = sc_lon_m_contract.loan_contract_no
+    and sc_com_m_receipt.receipt_date = sc_mem_m_membership_registered.resignation_approve_date),0))as para_6
+
+    ,   ('	ฉะนั้น โดยหนังสือฉบับนี้ สหกรณ์ฯ จึงขอแจ้งมายังท่านในฐานะผู้ค้ำประกันทราบถึงเหตุดังกล่าว และสหกรณ์ฯมีความจำเป็นที่จะต้องดำเนินการตามกฎหมายต่อไป อนึ่ง หากท่านมีข้อสงสัยหรือจะชำระหนี้แทน '||pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no)||' โปรดติดต่อฝ่ายทะเบียนหุ้นและหนี้')as para_7
+    ,   sc_lon_m_rule.loan_type_description
+    from sc_mem_m_membership_registered
+    ,   sc_mem_m_resign_loan
+    ,   sc_lon_m_contract
+    ,   sc_lon_m_rule
+    --,   sc_lon_m_contract_coll
+    where 1=1
+    and sc_mem_m_membership_registered.resign_doc_no = sc_mem_m_resign_loan.resign_doc_no
+    and sc_lon_m_contract.loan_type = sc_lon_m_rule.loan_type
+    and sc_mem_m_resign_loan.loan_contract_no = sc_lon_m_contract.loan_contract_no
+    --and sc_mem_m_resign_loan.loan_contract_no = sc_lon_m_contract_coll.loan_contract_no
+    and sc_mem_m_membership_registered.member_status_code = '3'
+    --and sc_mem_m_membership_registered.resignation_approve_date between to_date('01/08/2025','dd/mm/yyyy') and to_date('31/08/2025','dd/mm/yyyy')
+    /*WHERE*/
+    order by sc_mem_m_membership_registered.member_group_no
+    ,   sc_mem_m_membership_registered.membership_no
+    ,   sc_lon_m_contract.loan_contract_no
+  </sql>
+  <sub>
+    <r_tnma_book_confirm_mem_resign_nest>
+      <sql>
+        select sc_lon_m_contract_coll.ref_own_no
+        ,   pka_com_function.fp_get_member_group(sc_lon_m_contract_coll.ref_own_no)as member_group_no
+        ,   sc_lon_m_contract_coll.collateral_description
+        from sc_lon_m_contract_coll
+        where 1=1
+        and sc_lon_m_contract_coll.loan_contract_no = {0}
+        and collateral_type_code in ('01','12','13')
+        and status = '0'
+        order by sc_lon_m_contract_coll.collateral_no
+      </sql>
+    </r_tnma_book_confirm_mem_resign_nest>
+  </sub>
+</root>

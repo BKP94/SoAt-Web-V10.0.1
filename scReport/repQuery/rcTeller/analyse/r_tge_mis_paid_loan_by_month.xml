@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root procedure="PKA_REP_MIS.sp_paid_loan_by_month({year_1})">
+  <arg>
+    <year special="year" text="ปี" type="integer2" column="year" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select   sc_rep_mis_paid_loan_by_month.count_01
+           ,sc_rep_mis_paid_loan_by_month.amout_01
+           ,sc_rep_mis_paid_loan_by_month.count_02
+           ,sc_rep_mis_paid_loan_by_month.amout_02
+           ,sc_rep_mis_paid_loan_by_month.count_03
+           ,sc_rep_mis_paid_loan_by_month.amout_03
+           ,sc_rep_mis_paid_loan_by_month.count_04
+           ,sc_rep_mis_paid_loan_by_month.amout_04
+           ,sc_rep_mis_paid_loan_by_month.count_05
+           ,sc_rep_mis_paid_loan_by_month.amout_05
+           ,sc_rep_mis_paid_loan_by_month.count_06
+           ,sc_rep_mis_paid_loan_by_month.amout_06
+           ,sc_rep_mis_paid_loan_by_month.count_07
+           ,sc_rep_mis_paid_loan_by_month.amout_07
+           ,sc_rep_mis_paid_loan_by_month.count_08
+           ,sc_rep_mis_paid_loan_by_month.amout_08
+           ,sc_rep_mis_paid_loan_by_month.count_09
+           ,sc_rep_mis_paid_loan_by_month.amout_09
+           ,sc_rep_mis_paid_loan_by_month.count_10
+           ,sc_rep_mis_paid_loan_by_month.amout_10
+           ,sc_rep_mis_paid_loan_by_month.count_11
+           ,sc_rep_mis_paid_loan_by_month.amout_11
+           ,sc_rep_mis_paid_loan_by_month.count_12
+           ,sc_rep_mis_paid_loan_by_month.amout_12
+            ,FPB_GET_LOAN_TYPE_REF(  sc_rep_mis_paid_loan_by_month.loan_type ) as loan_type
+           ,FPB_GET_LOAN_TYPE_DESC( FPB_GET_LOAN_TYPE_REF(  sc_rep_mis_paid_loan_by_month.loan_type ))  as loan_type_description
+           ,'!year_1!' as year
+from sc_rep_mis_paid_loan_by_month
+where  1=1
+order by sc_rep_mis_paid_loan_by_month.loan_type</sql>
+  <sub />
+</root>

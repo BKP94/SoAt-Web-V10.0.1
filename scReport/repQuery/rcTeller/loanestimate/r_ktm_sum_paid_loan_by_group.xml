@@ -1,0 +1,153 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <journal_date text="วันที่" table="sc_fin_m_close_day" type="date" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    /*----------------- จ่ายเงินกู้งวดแรก + รับเงินกู้งวดสอง + เงินกู้ ATM -----------------------*/
+    SELECT tab_data.begining_of_contract
+    ,tab_data.loan_type
+    ,tab_data.loan_type_description
+    ,tab_data.paid_first_amount
+    ,tab_data.real_recieve
+    ,tab_data.c_count
+    ,tab_data.principal_amount
+    ,tab_data.interest_amount
+    ,tab_data.item_amount
+    ,tab_data.member_group_no
+    ,tab_data.member_group_name
+    from (
+    /*------------- จ่ายเงินกู้งวดแรก ---------------------------*/
+    SELECT sc_lon_m_contract.begining_of_contract  as begining_of_contract
+    ,sc_lon_m_rule.loan_type as loan_type
+    ,sc_lon_m_rule.loan_type_description
+    ,sum( nvl( sc_lon_m_contract.paid_first_amount ,0 ) ) as paid_first_amount
+    ,sum( decode( nvl( sc_lon_m_contract_multi_paid.type_pay_money ,0 ) ,'ATM' ,0 ,sc_lon_m_contract.real_recieve ) ) as real_recieve
+    ,count(1 ) as c_count
+    ,sum(  (  	SELECT  nvl(  sum(  sc_com_m_receipt_item.principal_amount  )  ,0 )
+    FROM 	sc_com_m_receipt,
+    sc_com_m_receipt_item
+    WHERE ( sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no ) and
+    ( sc_com_m_receipt.loan_contract_no = sc_lon_m_contract.loan_contract_no ) AND
+    ( sc_com_m_receipt.money_type_id = 'CLR' ) AND
+    ( sc_com_m_receipt.receipt_status = '0' ) )
+    )  as principal_amount
+    ,sum(  (  	SELECT  nvl(  sum(  sc_com_m_receipt_item.interest_amount  )  , 0 )
+    FROM 	sc_com_m_receipt,
+    sc_com_m_receipt_item
+    WHERE ( sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no ) and
+    ( sc_com_m_receipt.loan_contract_no = sc_lon_m_contract.loan_contract_no ) AND
+    ( sc_com_m_receipt.money_type_id = 'CLR' ) AND
+    ( sc_com_m_receipt.receipt_status = '0' ) )
+    ) as interest_amount
+    ,sum(  (  	SELECT  nvl(  sum(  sc_com_m_receipt_item.item_amount  )  , 0 )
+    FROM 	sc_com_m_receipt,
+    sc_com_m_receipt_item
+    WHERE ( sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no ) and
+    ( sc_com_m_receipt.loan_contract_no = sc_lon_m_contract.loan_contract_no ) AND
+    ( sc_com_m_receipt.money_type_id = 'CLR' ) AND
+    ( sc_com_m_receipt.receipt_status = '0' )  )
+    ) as item_amount
+    ,sc_mem_m_ucf_member_group.member_group_no
+    ,sc_mem_m_ucf_member_group.member_group_name
+
+    FROM sc_lon_m_loan_request
+    ,sc_lon_m_rule
+    ,sc_lon_m_contract
+    ,sc_lon_m_contract_multi_paid
+    ,sc_lon_m_loan_card
+    ,sc_acc_m_account_master
+    ,sc_mem_m_membership_registered
+    ,sc_mem_m_ucf_member_group
+    WHERE ( sc_lon_m_rule.loan_type = sc_lon_m_loan_request.loan_type )
+    and         ( sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_contract.loan_requestment_no )
+    and         ( sc_lon_m_loan_card.loan_contract_no = sc_lon_m_contract.loan_contract_no )
+    and         ( sc_lon_m_rule.account_id = sc_acc_m_account_master.account_id )
+    and		 (  sc_lon_m_loan_card.membership_no = sc_mem_m_membership_registered.membership_no )
+    and		 ( sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no )
+    and 		( sc_lon_m_rule.atm_status = '0'     )
+    and		sc_lon_m_contract_multi_paid.loan_contract_no = sc_lon_m_contract.loan_contract_no
+    GROUP BY sc_lon_m_contract.begining_of_contract
+    ,sc_lon_m_rule.loan_type
+    ,sc_mem_m_ucf_member_group.member_group_no
+    ,sc_mem_m_ucf_member_group.member_group_name
+    ,sc_lon_m_rule.loan_type_description
+
+    union
+
+    /*----------------- รับเงินกู้งวดสอง -----------------------*/
+    SELECT sc_lon_m_loan_paid.operate_date as begining_of_contract
+    ,sc_lon_m_rule.loan_type as loan_type
+    ,sc_lon_m_rule.loan_type_description
+    ,sum( sc_lon_m_loan_paid.loan_paid_amount ) as paid_first_amount
+    ,sum( sc_lon_m_loan_paid.loan_paid_amount ) as real_recieve
+    ,count(1 ) as c_count
+    , 0 as principal_amount
+    , 0 as interest_amount
+    ,0 as item_amount
+    ,sc_mem_m_ucf_member_group.member_group_no
+    ,sc_mem_m_ucf_member_group.member_group_name
+    FROM sc_lon_m_loan_paid,
+    sc_lon_m_rule,
+    sc_lon_m_contract,
+    sc_acc_m_account_master
+    ,sc_mem_m_membership_registered
+    ,sc_mem_m_ucf_member_group
+
+    where  sc_lon_m_loan_paid.loan_contract_no = sc_lon_m_contract.loan_contract_no
+    and sc_lon_m_contract.loan_type = sc_lon_m_rule.loan_type
+    and sc_lon_m_rule.account_id = sc_acc_m_account_master.account_id
+    and  sc_lon_m_loan_paid.loan_paid_amount &gt; 0
+    and sc_lon_m_loan_paid.fin_status = '1'
+    and		 (  sc_lon_m_contract.membership_no = sc_mem_m_membership_registered.membership_no )
+    and		 ( sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no )
+    group by
+    sc_lon_m_loan_paid.operate_date
+    ,sc_lon_m_rule.loan_type
+    ,sc_mem_m_ucf_member_group.member_group_no
+    ,sc_mem_m_ucf_member_group.member_group_name
+    ,sc_lon_m_rule.loan_type_description
+
+    union
+    /*----------------- ATM -----------------------*/
+    SELECT sc_atm_recv_msg.effect_date as begining_of_contract
+    ,sc_lon_m_rule.loan_type as loan_type
+    ,sc_lon_m_rule.loan_type_description
+    ,sum(  decode( revers_state , '1' , -sc_atm_recv_msg.trans_amount ,sc_atm_recv_msg.trans_amount ) )  as paid_first_amount
+    ,sum(  decode( revers_state , '1' , -sc_atm_recv_msg.trans_amount , sc_atm_recv_msg.trans_amount ) )  as real_recieve
+    ,sum(  decode( revers_state , '1' , -1, 1 ) ) as c_count
+    , 0 as principal_amount
+    ,0 as interest_amount
+    ,0 as item_amount
+    ,sc_mem_m_ucf_member_group.member_group_no
+    ,sc_mem_m_ucf_member_group.member_group_name
+    FROM sc_atm_recv_msg
+    ,sc_lon_m_rule
+    ,sc_lon_m_contract
+    ,sc_acc_m_account_master
+    ,sc_mem_m_membership_registered
+    ,sc_mem_m_ucf_member_group
+    where  sc_atm_recv_msg.ref_contract = sc_lon_m_contract.loan_contract_no
+    and sc_lon_m_contract.loan_type = sc_lon_m_rule.loan_type
+    and sc_lon_m_rule.account_id = sc_acc_m_account_master.account_id
+    and	sc_atm_recv_msg.trans_amount &gt; 0
+    and sc_atm_recv_msg.trans_type = '01'
+    and sc_atm_recv_msg.response_code = '0000'
+    and  sc_atm_recv_msg.trans_mode = '002'
+    and		 (  sc_lon_m_contract.membership_no = sc_mem_m_membership_registered.membership_no )
+    and		 ( sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no )
+    group by
+    sc_atm_recv_msg.effect_date
+    ,sc_lon_m_rule.loan_type
+    ,sc_mem_m_ucf_member_group.member_group_no
+    ,sc_mem_m_ucf_member_group.member_group_name
+    ,sc_lon_m_rule.loan_type_description
+    ) tab_data
+    ,sc_fin_m_close_day
+    where tab_data.begining_of_contract = sc_fin_m_close_day.journal_date
+    /*WHERE*/
+    order by sc_fin_m_close_day.journal_date
+  </sql>
+  <sub />
+</root>

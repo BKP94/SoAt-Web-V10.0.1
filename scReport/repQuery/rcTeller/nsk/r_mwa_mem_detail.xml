@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <adtm_date text="ณ วันที่" type="date" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <member_group_no text="หน่วย" table="sc_mem_m_membership_registered" column="member_group_no" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    select sc_mem_m_membership_registered.membership_no
+    ,sc_mem_m_membership_registered.prename_code
+    ,(select prename from sc_mem_m_ucf_prename where sc_mem_m_ucf_prename.prename_code = sc_mem_m_membership_registered.prename_code ) as prename
+    ,sc_mem_m_membership_registered.member_name
+    ,sc_mem_m_membership_registered.member_surname
+    ,sc_mem_m_membership_registered.mem_type
+    ,(select mem_type_desc from sc_mem_m_ucf_member_type where sc_mem_m_ucf_member_type.mem_type_code = sc_mem_m_membership_registered.mem_type) as mem_type_desc
+
+    , sc_mem_m_member_address.address_no
+    , sc_mem_m_member_address.moo
+    , sc_mem_m_member_address.road
+    , sc_mem_m_member_address.soi
+    , sc_mem_m_member_address.tambol
+    , pka_com_function.fp_get_district_name( sc_mem_m_member_address.province_code , sc_mem_m_member_address.district_code ) as district_name
+    , pka_com_function.fp_get_province_name( sc_mem_m_member_address.province_code ) as province_name
+    , sc_mem_m_member_address.postcode
+    , sc_mem_m_member_address.telephone
+
+    ,pka_com_function.fp_form_idcard (sc_mem_m_membership_registered.id_card) as id_card
+    ,pka_com_function.fp_get_thaidate(sc_mem_m_membership_registered.approve_date , 'DD/MM/YYYY') as approve_tdate
+    ,sc_mem_m_share_mem.share_amount
+    ,pka_com_function.fp_shr_get_balance_atdate(sc_mem_m_membership_registered.membership_no , '!adtm_date_1!' ) as  share_stock
+    ,sc_mem_m_member_work_info.salary_amount
+
+    ,pka_lon_reqsrv.fp_calc_agetext_m_live(sc_mem_m_membership_registered.membership_no) as age_life_text
+    ,PKA_COM_FUNCTION.fp_get_thaidate(sc_mem_m_membership_registered.date_of_birth ) as date_of_birth
+    ,'!adtm_date_1!' as adtm_date
+
+    from sc_mem_m_membership_registered
+    ,sc_mem_m_member_address
+    ,sc_mem_m_share_mem
+    ,sc_mem_m_member_work_info
+
+    where sc_mem_m_member_address.membership_no = sc_mem_m_membership_registered.membership_no
+    and sc_mem_m_membership_registered.membership_no = sc_mem_m_share_mem.membership_no
+    and sc_mem_m_membership_registered.membership_no = sc_mem_m_member_work_info.membership_no
+    and sc_mem_m_membership_registered.member_status_code = '0'
+    and sc_mem_m_member_address.address_type = '1'
+    /*WHERE*/
+    order by sc_mem_m_membership_registered.membership_no asc
+  </sql>
+  <sub />
+</root>

@@ -1,0 +1,83 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <operate_date text="วันที่บันทึก" table="sc_mem_m_resign_requestment" type="date" operator="bt" readonly="0" />
+    <approve_result text="สถานะ" table="sc_mem_m_resign_requestment" column="approve_result" combo="approve_result" readonly="0" />
+    <resign_cause_name text="เหตุผล" table="sc_mem_m_ucf_resign_cause" column="resign_cause_code" combo="sc_mem_m_ucf_resign_cause2" readonly="0" />
+    <membership_no align="center" special="memno" text="ทะเบียน" table="sc_mem_m_resign_requestment" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo>
+    <approve_result>
+      2=รออนุมัติ/1=อนุมัติ/0=ไม่อนุมัติ
+    </approve_result>
+  </combo>
+  <sql>    SELECT sc_mem_m_resign_requestment.resign_doc_no,
+    sc_mem_m_resign_requestment.membership_no,
+    sc_mem_m_resign_requestment.different_shareloan,
+    sc_mem_m_resign_requestment.resign_date  ,
+    PKA_COM_FUNCTION.fp_get_thaidate( sc_mem_m_resign_requestment.resign_date ) as resign_date_tdate ,
+    PKA_COM_FUNCTION.fp_get_member_name( sc_mem_m_resign_requestment.membership_no ) as membername,
+    sc_mem_m_resign_requestment.approve_result ,
+
+    sc_mem_m_resign_share.shr_qty,
+    sc_mem_m_resign_share.shr_value,
+    sc_mem_m_ucf_resign_cause.resign_cause_code,
+    sc_mem_m_ucf_resign_cause.resign_cause_name,
+
+    sc_mem_m_ucf_member_group.member_group_no,
+    sc_mem_m_ucf_member_group.member_group_name,
+    sc_mem_m_ucf_member_group.member_group_control ,
+    sc_mem_m_ucf_member_group.control_id,
+
+    sc_com_m_branch.branch_id,
+    sc_com_m_branch.branch_name
+
+    , (   		SELECT nvl(sum( sc_mem_m_resign_loan.principal_balance ),0)
+    FROM 	sc_mem_m_resign_loan
+    WHERE	( sc_mem_m_resign_loan.resign_doc_no =  sc_mem_m_resign_requestment.resign_doc_no )  ) as loan_bal
+     , (   		SELECT nvl(sum( sc_mem_m_resign_loan.interest ),0)
+    FROM 	sc_mem_m_resign_loan
+    WHERE	( sc_mem_m_resign_loan.resign_doc_no =  sc_mem_m_resign_requestment.resign_doc_no )  ) as loan_interest
+     , (   		SELECT nvl(sum( sc_mem_m_resign_loan.interest_arrear ),0)
+    FROM 	sc_mem_m_resign_loan
+    WHERE	( sc_mem_m_resign_loan.resign_doc_no =  sc_mem_m_resign_requestment.resign_doc_no )  ) as loan_interest_arrear
+    , (   		SELECT nvl(sum( sc_mem_m_resign_dep.deposit_balance ),0)
+    FROM 	sc_mem_m_resign_dep
+    WHERE	( sc_mem_m_resign_dep.resign_doc_no =  sc_mem_m_resign_requestment.resign_doc_no )    ) as dep_bal
+
+    ,		sc_mem_m_resign_requestment.approve_id
+
+
+    FROM  sc_mem_m_resign_requestment,
+    sc_mem_m_resign_share,
+    sc_mem_m_ucf_resign_cause,
+    sc_mem_m_ucf_member_group,
+    sc_com_m_branch
+
+
+    WHERE  ( sc_mem_m_resign_share.resign_doc_no = sc_mem_m_resign_requestment.resign_doc_no ) and
+    ( sc_mem_m_ucf_resign_cause.resign_cause_code = sc_mem_m_resign_requestment.resign_code )
+    and         ( sc_mem_m_ucf_member_group.member_group_no = sc_mem_m_resign_requestment.member_group_no )
+    and         ( sc_mem_m_resign_requestment.entry_br = sc_com_m_branch.branch_id )
+    and		(sc_mem_m_resign_requestment.cancel_status = '0')
+    /*WHERE*/
+    order by sc_mem_m_resign_requestment.resign_date
+    ,sc_mem_m_ucf_member_group.member_group_no
+    ,sc_mem_m_resign_requestment.membership_no</sql>
+  <sub>
+    <r_ktm_aero_member_req_resign_nest_coll>
+      <sql>
+        select sc_lon_m_contract_coll.ref_own_no
+        ,sc_lon_m_contract_coll.collateral_description as membername
+        from sc_lon_m_contract_coll
+        ,sc_lon_m_loan_card
+        where (sc_lon_m_contract_coll.loan_contract_no = sc_lon_m_loan_card.loan_contract_no)
+        and (sc_lon_m_contract_coll.status = '0')
+        and (sc_lon_m_loan_card.principal_balance &gt; 0)
+        and sc_lon_m_contract_coll.collateral_type_code = '01'
+        and sc_lon_m_loan_card.membership_no = {0}
+      </sql>
+    </r_ktm_aero_member_req_resign_nest_coll>
+  </sub>
+  <mis />
+</root>

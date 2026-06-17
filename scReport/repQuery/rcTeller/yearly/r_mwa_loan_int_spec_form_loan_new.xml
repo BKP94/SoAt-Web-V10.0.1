@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <loan_contract_no align="center" text="เลขที่สัญญา" table="sc_lon_m_contract" column="loan_contract_no" readonly="0" />
+  </arg>
+  <combo>
+  </combo>
+  <sql>SELECT (select coop_name from sc_cnt_m_coop ) as coop_name,
+    (select prename from sc_mem_m_ucf_prename where prename_code = sc_mem_m_membership_registered.prename_code)||sc_mem_m_membership_registered.member_name||' '||sc_mem_m_membership_registered.member_surname as member_name,
+    sc_lon_m_loan_card.year_total_interest,
+    sc_lon_m_contract.begining_of_contract,
+    pka_com_function.fp_get_thaidate( sc_lon_m_contract.begining_of_contract , 'DAYที่ SD MONTH YYYY') as begining_of_contract_thai,
+    sc_lon_m_contract.loan_contract_no,   
+    sc_lon_m_contract.loan_installment_amount,   
+    sc_lon_m_contract.loan_objective_code,   
+    sc_lon_m_ucf_loan_obj.loan_objective_description,    
+    PKA_COM_FUNCTION.fp_get_member_address_line(sc_mem_m_membership_registered.membership_no,'0') as address_pres,
+    sc_lon_m_contract.remark,
+    pka_com_function.fp_get_thaidate( sc_lon_m_contract.begining_of_contract , 'YYYY') as year_date,
+         
+    sc_lon_m_contract.loan_approve_amount, 
+    pka_com_function.fp_get_moneythai (sc_lon_m_contract.loan_approve_amount) as thai_loan_approve_amount ,
+    sc_mem_m_membership_registered.membership_no,   
+    sc_mem_m_membership_registered.member_group_no,   
+    sc_mem_m_membership_registered.id_card,
+    substr(sc_mem_m_membership_registered.id_card,1,1) as c_id_card_1,
+    substr(sc_mem_m_membership_registered.id_card,2,1) as c_id_card_2,
+    substr(sc_mem_m_membership_registered.id_card,3,1) as c_id_card_3,
+    substr(sc_mem_m_membership_registered.id_card,4,1) as c_id_card_4,
+    substr(sc_mem_m_membership_registered.id_card,5,1) as c_id_card_5,
+    substr(sc_mem_m_membership_registered.id_card,6,1) as c_id_card_6,
+    substr(sc_mem_m_membership_registered.id_card,7,1) as c_id_card_7,
+    substr(sc_mem_m_membership_registered.id_card,8,1) as c_id_card_8,
+    substr(sc_mem_m_membership_registered.id_card,9,1) as c_id_card_9,
+    substr(sc_mem_m_membership_registered.id_card,10,1) as c_id_card_10,
+    substr(sc_mem_m_membership_registered.id_card,11,1) as c_id_card_11,
+    substr(sc_mem_m_membership_registered.id_card,12,1) as c_id_card_12,
+    substr(sc_mem_m_membership_registered.id_card,13,1) as c_id_card_13,
+    
+    sc_lon_m_contract.loan_type
+    
+    --โฉนดกับที่อยู่
+    ,(select sc_lon_m_contract_coll.ref_own_no 
+        from sc_lon_m_contract_coll 
+        where sc_lon_m_contract.loan_contract_no = sc_lon_m_contract_coll.loan_contract_no 
+        and sc_lon_m_contract_coll.status = '0'
+        and sc_lon_m_contract_coll.collateral_type_code	= '04'
+        ) as coll_ref_own_no
+        
+    ,(select sc_lon_m_contract_coll.remark 
+        from sc_lon_m_contract_coll 
+        where sc_lon_m_contract.loan_contract_no = sc_lon_m_contract_coll.loan_contract_no 
+        and sc_lon_m_contract_coll.status = '0'
+        and sc_lon_m_contract_coll.collateral_type_code	= '04'
+        ) as coll_remark
+        
+    
+FROM sc_mem_m_membership_registered, 
+     sc_lon_m_contract,
+     sc_lon_m_ucf_loan_obj,
+     sc_lon_m_loan_card
+         
+where ( sc_lon_m_ucf_loan_obj.loan_objective_code = sc_lon_m_contract.loan_objective_code ) 
+and ( sc_lon_m_ucf_loan_obj.loan_type = sc_lon_m_contract.loan_type ) 
+and ( sc_mem_m_membership_registered.membership_no = sc_lon_m_contract.membership_no ) 
+and ( sc_lon_m_loan_card.loan_contract_no = sc_lon_m_contract.loan_contract_no )
+and (sc_lon_m_contract.loan_type in('พค','พบ'))
+
+/*WHERE*/
+
+--and  sc_lon_m_contract.loan_contract_no = 'พค00000267'</sql>
+  <sub>
+  </sub>
+</root>

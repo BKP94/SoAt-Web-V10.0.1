@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <entry_date text="วันที่" table="sc_mem_edit_bank" type="date" column="entry_date" operator="bt" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT
+    sc_mem_m_membership_registered.member_group_no,
+    sc_mem_m_membership_registered.membership_no,
+    sc_mem_m_ucf_member_group.member_group_type,
+    sc_mem_edit_bank.pre_bank_id as bf_bank_id,
+    pka_com_function.fp_form(sc_mem_edit_bank.pre_bank_acc_no,'XXX-X-XXXXX-X') as bf_bank_acc_no,
+    sc_mem_edit_bank.pre_atm_lon as bf_atm_lon,
+    sc_mem_edit_bank.bank_id as af_bank_id,
+    pka_com_function.fp_form(sc_mem_edit_bank.bank_acc_no,'XXX-X-XXXXX-X') as af_bank_acc_no,
+    sc_mem_edit_bank.atm_lon as af_atm_lon,
+    sc_mem_edit_bank.entry_id as edit_id,
+    pka_com_function.fp_get_thaidate(sc_mem_edit_bank.entry_date , 'dd/mm/yyyy hh24:mi:ss') as entry_date,
+    pka_com_function.fp_get_member_name( sc_mem_m_membership_registered.membership_no ) as memname,
+    sc_mem_m_ucf_member_group.member_group_name,
+    pka_com_function.fp_get_thaidate(sysdate , 'dd/mm/yyyy') as sysdate_tdate
+
+    FROM sc_mem_m_membership_registered ,
+    sc_mem_m_ucf_member_group,
+    sc_mem_edit_bank
+
+    WHERE trim(sc_mem_m_membership_registered.member_group_no) = trim(sc_mem_m_ucf_member_group.member_group_no)
+    and  trim(sc_mem_m_membership_registered.membership_no) = trim(sc_mem_edit_bank.membership_no)
+    and  to_date(sc_mem_edit_bank.entry_date) between '!entry_date_1!' and '!entry_date_2!'
+
+    /*WHERE*/
+    order by sc_mem_m_membership_registered.membership_no</sql>
+  <sub />
+</root>

@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <apply_date align="center" text="วันที่" table="sc_mem_m_application_form" type="date" operator="bt" sqlreplace="1" mustvalue="1" readonly="0" />
+    <memtype_control align="center" text="ประเภท" table="sc_mem_m_ucf_member_type" combo="mem_type_control" noheader="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    select sc_mem_m_ucf_prename.prename || sc_mem_m_application_form.member_name || '  ' || sc_mem_m_application_form.member_surname as memname,
+    sc_mem_m_application_form.mem_type,
+    sc_mem_m_ucf_member_type.memtype_control,
+    PKA_COM_FUNCTION.fp_get_thaidate( sc_mem_m_app_work_info.working_date ) as working_date_tdate  ,
+    sc_mem_m_application_form.hum_id,
+    pka_com_function.fp_form(sc_mem_m_application_form.hum_id ,'###-#-#####-####') as format_hum_id ,
+    sc_mem_m_application_form.application_form_no,
+    sc_mem_m_application_form.apply_date,
+    pka_com_function.fp_get_thaidate( sc_mem_m_application_form.apply_date ) as apply_date_tdate,
+    pka_lon_reqsrv.fp_calc_agetext( sc_mem_m_application_form.date_of_birth ) as age,
+    PKA_COM_FUNCTION.fp_get_thaidate( sc_mem_m_application_form.date_of_birth ) as date_of_birth_tdate,
+    DECODE(sc_mem_m_application_form.sex,'M','ชาย','หญิง') as sex,
+    sc_mem_m_application_form.approve_status,
+    FPA_TEL_GET_MEMNO_BY_APPNO(sc_mem_m_application_form.application_form_no) as c_membership_no,
+    --FPA_TEL_GET_BANK_NO_BY_APPNO(sc_mem_m_application_form.application_form_no)as c_bank_acc_no ,
+    sc_mem_m_app_work_info.salary_amount,
+    sc_mem_m_app_work_info.group_position,
+    (select description from sc_mem_m_ucf_group_position where group_position = sc_mem_m_app_work_info.group_position) as group_position_desc,
+    sc_mem_m_app_work_info.working_date,
+    sc_mem_m_app_work_info.salary_id ,
+    sc_mem_m_app_share.share_monthly ,
+    pka_mem.fp_desc_position(sc_mem_m_app_work_info .position_long) as position_name ,
+    sc_mem_m_ucf_member_group.member_group_no,
+    sc_mem_m_ucf_member_group.member_group_name,
+    sc_mem_m_ucf_member_group.member_group_control,
+    sc_mem_m_ucf_member_group.control_id,
+    PKA_COM_FUNCTION.fp_get_thaidate( '!apply_date_2!' , 'MONTH YYYY' ) as apply_date_full
+    --to_char('!apply_date_2!' , 'MM') as apply_month,
+    --to_char('!apply_date_2!' , 'YYYY') as apply_year,
+    --pka_com_function.fp_get_month_name(to_char('!apply_date_2!' , 'MM')) as thai_month
+
+    from sc_mem_m_application_form ,
+    sc_mem_m_app_work_info ,
+    sc_mem_m_ucf_prename  ,
+    sc_mem_m_app_share   ,
+    sc_mem_m_ucf_member_group ,
+    sc_mem_m_ucf_member_type
+
+    where sc_mem_m_app_work_info.application_form_no = sc_mem_m_application_form.application_form_no
+    and sc_mem_m_ucf_prename.prename_code = sc_mem_m_application_form.prename_code
+    and sc_mem_m_app_share.application_form_no = sc_mem_m_application_form.application_form_no
+    and sc_mem_m_ucf_member_group.member_group_no = sc_mem_m_application_form.member_group_no
+    and sc_mem_m_ucf_member_type.mem_type_code = sc_mem_m_application_form.mem_type
+
+    --and to_char(sc_mem_m_application_form.apply_date , 'MM') = '!month!'
+    --and to_char(sc_mem_m_application_form.apply_date , 'YYYY') = '!year!'
+    /*WHERE*/
+    order by sc_mem_m_application_form.application_form_no
+    --and sc_mem_m_application_form.application_form_no = '6300023'</sql>
+  <sub />
+  <mis />
+</root>

@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <resignation_approve_date text="วันที่อนุมัติ" table="sc_mem_m_membership_registered" type="date" column="resignation_approve_date" operator="bt" readonly="0" />
+    <as_dateofmeeting text="วันที่ประชุม" column="as_dateofmeeting" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <as_commit_det text="รายละเอียดการประชุม" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <as_begin_date text="รับค่าหุ้นได้วันที่" column="as_begin_date" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <as_bookno text="เลขที่หนังสือ" column="as_bookno" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_mem_m_membership_registered.membership_no,
+    sc_mem_m_ucf_prename.prename,
+    sc_mem_m_membership_registered.member_name,
+    sc_mem_m_membership_registered.member_surname,
+    sc_mem_m_membership_registered.approve_date,
+    sc_mem_m_ucf_member_group.member_group_name,
+    sc_cnt_m_coop.coop_name,
+    sc_cnt_m_coop.manager_name,
+    sc_cnt_m_coop.address,
+    sc_cnt_m_coop.tumbol_name,
+    sc_cnt_m_coop.telephone_no,
+    sc_cnt_m_coop.postcode,
+    sc_cnt_m_coop.fax_no,
+    sc_mem_m_ucf_province.province_name,
+    sc_mem_m_ucf_district.district_name,
+    pka_com_function.fp_get_thaidate(sysdate , 'SD MONTH YYYY') as sysdate_tdate,
+    PKA_COM_FUNCTION.fp_get_member_address_pres(sc_mem_m_membership_registered.membership_no) as mem_address,
+    '!as_bookno!' as  as_bookno,
+    '!as_board_group!' as  as_board_group,
+    '!as_timeofmeeting!' as  as_timeofmeeting,
+    '!as_dateofmeeting!' as  as_dateofmeeting,
+    '!as_guarantor!' as  as_guarantor,
+    '!manager_name_1!' as manager_name,
+    '!position_name_1!' as position_name,
+    '!as_commit_det!' as as_commit_det,
+    '!as_begin_date!' as as_begin_date,
+    sc_mem_m_membership_registered.resignation_approve_date
+
+    FROM sc_mem_m_membership_registered,
+    sc_mem_m_ucf_prename,
+    sc_mem_m_ucf_member_group,
+    sc_cnt_m_coop,
+    sc_mem_m_ucf_province,
+    sc_mem_m_ucf_district
+
+    WHERE (( sc_mem_m_membership_registered.prename_code = sc_mem_m_ucf_prename.prename_code ) AND
+    ( sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no ) AND
+    sc_mem_m_ucf_province.province_code = sc_cnt_m_coop.province_code AND
+    sc_mem_m_ucf_district.district_code = sc_cnt_m_coop.district_code AND
+    sc_mem_m_ucf_district.province_code = sc_mem_m_ucf_province.province_code)
+
+    /*WHERE*/
+
+  </sql>
+  <sub />
+</root>

@@ -1,0 +1,77 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <resign_date text="วันที่" table="sc_mem_m_requestment_resign" type="date" operator="bt" nestreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_mem_m_requestment_resign.resign_doc_no,
+    pka_com_function.fp_get_member_name (sc_mem_m_requestment_resign.membership_no) as member_name,
+    sc_mem_m_requestment_resign.membership_no,
+    sc_mem_m_requestment_resign.resign_date,
+    sc_mem_m_requestment_resign.resign_code,
+    sc_mem_m_requestment_resign.different_shareloan,
+    --         sc_mem_m_requestment_resign.fund_mony,
+    sc_mem_m_resign.mem_resign,
+    sc_mem_m_membership_registered.member_group_no,
+    sc_mem_m_ucf_member_group.member_group_old,
+    sc_mem_m_shr_resign.shr_value
+    FROM sc_mem_m_requestment_resign,
+    sc_mem_m_resign,
+    sc_mem_m_membership_registered,
+    sc_mem_m_ucf_member_group,
+    sc_mem_m_shr_resign
+    WHERE ( sc_mem_m_requestment_resign.resign_code = sc_mem_m_resign.resign_code )
+    and   ( sc_mem_m_requestment_resign.membership_no = sc_mem_m_membership_registered.membership_no )
+    and   ( sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no )
+    and   ( sc_mem_m_requestment_resign.resign_doc_no = sc_mem_m_shr_resign.resign_doc_no )
+    and   ( sc_mem_m_requestment_resign.approve_result &lt;&gt; '0' )
+    and   ( sc_mem_m_requestment_resign.resign_code in ( '01'  ))
+    /*WHERE*/
+    --   and   ( ( sc_mem_m_requestment_resign.resign_date between '01/01/2018' and '01/02/2018' ) )
+  </sql>
+  <sub>
+    <r_bysite_ktm_req_resign_01_nest_req_resign>
+      <sql>
+        SELECT sc_mem_m_loan_resign.contract_no,
+        pka_com_function.fp_form (sc_mem_m_loan_resign.contract_no ,'#-###########') as format_con_no,
+        sc_mem_m_loan_resign.principal_balance,
+        sc_mem_m_loan_resign.interest,
+        sc_lon_m_contract.begining_of_contract,
+        sc_lon_m_loan_card.backlist_count,
+        sc_mem_m_loan_resign.interest_arrear
+        FROM sc_mem_m_loan_resign,
+        sc_lon_m_contract,
+        sc_lon_m_loan_card
+        WHERE ( sc_mem_m_loan_resign.contract_no = sc_lon_m_contract.loan_contract_no )
+        and   ( sc_lon_m_contract.loan_contract_no = sc_lon_m_loan_card.loan_contract_no )
+        and   ( ( sc_mem_m_loan_resign.resign_doc_no = {0} ))
+      </sql>
+    </r_bysite_ktm_req_resign_01_nest_req_resign>
+    <r_bysite_ktm_req_resign_01_nest_req_resign_sum>
+      <sql>
+        SELECT sc_mem_m_loan_resign.contract_no,
+        sc_mem_m_loan_resign.principal_balance,
+        sc_mem_m_loan_resign.interest,
+        sc_mem_m_loan_resign.interest_arrear
+        FROM sc_mem_m_requestment_resign,
+        sc_mem_m_loan_resign
+        WHERE ( sc_mem_m_requestment_resign.resign_doc_no = sc_mem_m_loan_resign.resign_doc_no )
+        and   ( ( sc_mem_m_requestment_resign.resign_date between '!resign_date_1!' and '!resign_date_2!' )
+        and   ( sc_mem_m_requestment_resign.approve_result &lt;&gt; '0' )
+        and   ( sc_mem_m_requestment_resign.resign_code in ( '01' ) ) )
+      </sql>
+    </r_bysite_ktm_req_resign_01_nest_req_resign_sum>
+    <r_bysite_ktm_req_resign_01_nest_req_resign_coll>
+      <sql>
+        SELECT sc_lon_m_contract_coll.ref_own_no,
+        sc_lon_m_contract_coll.collateral_description
+        FROM sc_mem_m_loan_resign,
+        sc_lon_m_contract_coll
+        WHERE ( sc_mem_m_loan_resign.contract_no = sc_lon_m_contract_coll.loan_contract_no )
+        and   ( ( sc_mem_m_loan_resign.resign_doc_no = {0} )
+        and   ( sc_lon_m_contract_coll.status = '0' )
+        and   ( sc_lon_m_contract_coll.collateral_type_code = '01' ) )
+      </sql>
+    </r_bysite_ktm_req_resign_01_nest_req_resign_coll>
+  </sub>
+</root>

@@ -1,0 +1,157 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <approve_date text="วันที่" table="sc_mem_m_membership_registered" type="date" operator="bt" sqlwhere="0" nestreplace="1" readonly="0" />
+    <membership_no special="memno" text="ทะเบียน" table="sc_mem_m_membership_registered" column="membership_no" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_mem_m_membership_registered.member_group_no,
+    pka_com_function.fp_get_group_name(sc_mem_m_membership_registered.member_group_no) as member_group_name,
+    sc_mem_m_membership_registered.approve_date,
+    sc_mem_m_membership_registered.resignation_approve_date,
+    sc_mem_m_membership_registered.membership_no,
+    pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as  member_name,
+    sc_mem_m_ucf_position.position_name,
+    pka_lon_reqsrv.fp_calc_agetext(sc_mem_m_membership_registered.date_of_birth) as age,
+    sc_mem_m_membership_registered.date_of_birth,
+    sc_mem_m_membership_registered.salary_amount,
+    sc_mem_m_membership_registered.marriage_status,
+    case sc_mem_m_membership_registered.marriage_status when '0' then 'โสด' when '1' then 'สมรส' when '2' then 'ม่าย' when '3' then 'หย่าร้าง' end as marriage_name,
+    ( select (select sc_mem_m_member_spouse_info.spouse_name||' '||sc_mem_m_member_spouse_info.spouse_surname from sc_mem_m_ucf_prename where prename_code = sc_mem_m_membership_registered.prename_code ) from sc_mem_m_member_spouse_info where membership_no = sc_mem_m_membership_registered.membership_no ) as spouse_name,
+    sc_mem_m_ucf_member_type.mem_type_code,
+    sc_mem_m_ucf_member_type.mem_type_desc,
+    sc_mem_m_membership_registered.present_address||' ถ.'||sc_mem_m_membership_registered.present_road||' ต.'||sc_mem_m_membership_registered.present_tambol
+    ||' อ.'||pka_com_function.fp_get_district_name(sc_mem_m_membership_registered.present_province_code,sc_mem_m_membership_registered.present_district_code)
+    ||' จ.'||pka_com_function.fp_get_province_name(sc_mem_m_membership_registered.present_province_code)||' '||sc_mem_m_membership_registered.present_postcode as mem_address,
+    sc_mem_m_membership_registered.total_loan_int
+    FROM sc_mem_m_membership_registered,
+    sc_mem_m_ucf_position,
+    sc_mem_m_ucf_member_type
+    WHERE ( sc_mem_m_membership_registered.position_code = sc_mem_m_ucf_position.position_code )
+    and   ( sc_mem_m_ucf_member_type.mem_type_code = sc_mem_m_membership_registered.mem_type )
+    /*WHERE*/
+    --   and   ( ( sc_mem_m_membership_registered.membership_no = '016133' ) )
+    --   and   ( sc_mem_m_membership_registered.approve_date between '01/01/2005' and '21/10/2018')
+  </sql>
+  <sub>
+    <r_member_record_by_mem_nest_share>
+      <sql>
+        select sc_mem_m_share_holding_detail.period,
+        sc_mem_m_share_holding_detail.operate_date,
+        sc_mem_m_share_holding_detail.share_value,
+        sc_mem_m_share_holding_detail.share_stock,
+        sc_mem_m_share_holding_detail.seq_no,
+        sc_mem_m_share_holding_detail.item_type
+        from sc_mem_m_share_holding_detail
+        where (sc_mem_m_share_holding_detail.membership_no = {0})  and
+        (sc_mem_m_share_holding_detail.operate_date   between  '!approve_date_1!'  and  '!approve_date_2!')
+      </sql>
+    </r_member_record_by_mem_nest_share>
+    <r_member_record_by_mem_nest_emer>
+      <sql>
+        select sc_lon_m_rule.loan_group_code,
+        sc_lon_m_loan_card_detail.loan_payment_date,
+        sc_lon_m_loan_card_detail.principal_balance,
+        sc_lon_m_loan_card_detail.payment_amount,
+        sc_lon_m_loan_card_detail.interest_amout,
+        sc_lon_m_loan_card_detail.item_type_code,
+        sc_lon_m_loan_card_detail.seq_no,
+        sc_lon_m_contract.loan_type,
+        sc_lon_m_loan_card_detail.period,
+        sc_lon_m_contract.loan_approve_amount,
+        sc_lon_m_loan_card_detail.loan_contract_no,
+        sc_lon_m_contract.begining_of_contract
+        from sc_lon_m_contract,
+        sc_lon_m_loan_card_detail,
+        sc_lon_m_rule
+        where ( sc_lon_m_contract.loan_contract_no = sc_lon_m_loan_card_detail.loan_contract_no ) and
+        ( sc_lon_m_rule.loan_type = sc_lon_m_contract.loan_type ) and           ( sc_lon_m_rule.loan_group_code = '01' )  and
+        (  sc_lon_m_contract.membership_no = {0} ) and
+        (sc_lon_m_loan_card_detail.loan_payment_date	between  '!approve_date_1!'  and  '!approve_date_2!')
+      </sql>
+    </r_member_record_by_mem_nest_emer>
+    <r_member_record_by_mem_nest_ordinary>
+      <sql>select sc_lon_m_rule.loan_group_code,
+        sc_lon_m_loan_card_detail.loan_payment_date,
+        sc_lon_m_loan_card_detail.principal_balance,
+        sc_lon_m_loan_card_detail.interest_amout,
+        sc_lon_m_loan_card_detail.payment_amount,
+        sc_lon_m_loan_card_detail.period,
+        sc_lon_m_loan_card_detail.seq_no,
+        sc_lon_m_loan_card_detail.item_type_code,
+        sc_lon_m_contract.loan_type,
+        sc_lon_m_contract.loan_approve_amount,
+        sc_lon_m_loan_card_detail.loan_contract_no,
+        sc_lon_m_contract.begining_of_contract
+        from sc_lon_m_contract,
+        sc_lon_m_loan_card_detail,
+        sc_lon_m_rule
+        where ( sc_lon_m_contract.loan_contract_no = sc_lon_m_loan_card_detail.loan_contract_no ) and
+        ( sc_lon_m_rule.loan_type = sc_lon_m_contract.loan_type ) and
+        ( sc_lon_m_rule.loan_group_code &lt;&gt; '01' )      and (sc_lon_m_loan_card_detail.status &lt;&gt; '1' ) and
+        (  sc_lon_m_contract.membership_no = {0} ) and
+        (sc_lon_m_loan_card_detail.loan_payment_date	between  '!approve_date_1!'  and  '!approve_date_2!')</sql>
+    </r_member_record_by_mem_nest_ordinary>
+    <r_member_record_by_mem_nest_coll>
+      <sql>
+        select 	sc_lon_m_contract_coll.loan_contract_no,
+        sc_lon_m_contract_coll.ref_own_no,
+        sc_mem_m_membership_registered.member_group_no,
+        sc_mem_m_ucf_prename.prename,
+        sc_mem_m_membership_registered.member_name,
+        sc_mem_m_membership_registered.member_surname,
+        sc_mem_m_membership_registered.membership_no
+
+        from 		sc_lon_m_contract_coll,
+        sc_mem_m_membership_registered,
+        sc_mem_m_ucf_prename,
+        sc_lon_m_loan_card
+
+        where 	( sc_mem_m_ucf_prename.prename_code  = sc_mem_m_membership_registered.prename_code)
+        and  	(  sc_mem_m_membership_registered.membership_no = sc_lon_m_loan_card.membership_no)
+        and  	(  sc_lon_m_loan_card.loan_contract_no  =sc_lon_m_contract_coll.loan_contract_no)
+        and  	( 		( sc_lon_m_contract_coll.ref_own_no = {0} )
+        and    ( sc_lon_m_contract_coll.status = '0')
+        and	( sc_lon_m_loan_card.principal_balance &gt; 0 )
+        )
+      </sql>
+    </r_member_record_by_mem_nest_coll>
+    <r_member_record_by_mem_nest_concem>
+      <sql>
+        SELECT 	sc_lon_m_contract_coll.loan_contract_no,
+        sc_lon_m_contract_coll.ref_own_no,
+        sc_lon_m_contract_coll.collateral_description,
+        sc_lon_m_contract_coll.collateral_type_code
+
+        FROM 		sc_lon_m_contract_coll,
+        sc_lon_m_loan_card
+
+        WHERE 	( sc_lon_m_contract_coll.loan_contract_no = sc_lon_m_loan_card.loan_contract_no )
+        and  		( 		( sc_lon_m_loan_card.membership_no = {0} )
+        AND  	( sc_lon_m_contract_coll.status = '0' )
+        AND  	( sc_lon_m_loan_card.principal_balance &gt; 0 )
+        )
+      </sql>
+    </r_member_record_by_mem_nest_concem>
+    <r_member_record_by_mem_nest_record_return>
+      <sql>
+        SELECT sc_mem_receipt_return_month.receipt_no,
+        sc_mem_receipt_return_month.seq_no,
+        sc_mem_receipt_return_month.share_amount,
+        sc_mem_receipt_return_month.emer_amt,
+        sc_mem_receipt_return_month.emer_int,
+        sc_mem_receipt_return_month.norm_amt,
+        sc_mem_receipt_return_month.norm_int,
+        sc_mem_receipt_return_month.spec_amt,
+        sc_mem_receipt_return_month.spec_int,
+        sc_mem_receipt_return_month.etc_amt,
+        sc_mem_receipt_return_month.ret_date,
+        sc_mem_receipt_return_month.remark,
+        sc_mem_receipt_return_month.year,
+        sc_mem_receipt_return_month.month
+        FROM sc_mem_receipt_return_month
+        WHERE sc_mem_receipt_return_month.membership_no = {0}
+      </sql>
+    </r_member_record_by_mem_nest_record_return>
+  </sub>
+</root>

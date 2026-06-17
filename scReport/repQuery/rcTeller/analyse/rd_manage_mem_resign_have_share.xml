@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+  </arg>
+  <combo />
+  <sql>select  		sc_mem_m_membership_registered.membership_no,
+			PKA_COM_FUNCTION.fp_get_member_name( sc_mem_m_membership_registered.membership_no ) as membername ,
+
+			sc_mem_m_ucf_member_group.member_group_no,   
+			sc_mem_m_ucf_member_group.member_group_name,   
+			sc_mem_m_ucf_member_group.member_group_control ,
+			sc_mem_m_ucf_member_group.control_id ,
+
+			sc_mem_m_share_mem.share_stock ,
+
+			
+			sc_mem_m_ucf_member_type.mem_type_desc     ,
+			sc_mem_m_membership_registered.resignation_approve_date ,
+			PKA_COM_FUNCTION.fp_get_thaidate( sc_mem_m_membership_registered.resignation_approve_date ) as resignation_approve_date_tdate 
+from 		sc_mem_m_ucf_member_group ,
+			sc_mem_m_membership_registered ,
+			sc_mem_m_share_mem ,		
+			sc_mem_m_ucf_member_type     
+where 	
+			( sc_mem_m_membership_registered.member_group_no 		= sc_mem_m_ucf_member_group.member_group_no ) and   			
+			( sc_mem_m_membership_registered.membership_no 		= sc_mem_m_share_mem.membership_no ) and    
+			( sc_mem_m_membership_registered.mem_type 				= sc_mem_m_ucf_member_type.mem_type_code ) and  
+			( sc_mem_m_membership_registered.member_status_code 	&lt;&gt; '0' 	) 
+and sc_mem_m_share_mem.share_stock &gt; 0 
+
+/*WHERE*/
+
+</sql>
+  <sub />
+</root>

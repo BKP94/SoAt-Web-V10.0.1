@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="T025" rep_text="-&gt; รายงานเคลื่อนไหวหุ้น">
+  <arg>
+    <membership_no special="memno" text="เลขทะเบียน" table="sc_mem_m_membership_registered" readonly="0" />
+    <operate_date text="วันที่" table="sc_mem_m_share_holding_detail" type="date" column="operate_date" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    select sc_mem_m_share_holding_detail.operate_date,
+    sc_mem_m_share_holding_detail.membership_no,
+    (select prename from sc_mem_m_ucf_prename where prename_code = sc_mem_m_membership_registered.prename_code)||sc_mem_m_membership_registered.member_name||' '||sc_mem_m_membership_registered.member_surname  as member_name,
+    sc_mem_m_share_holding_detail.doc_no,
+    sc_mem_m_share_holding_detail.item_type,
+    sc_mem_m_share_holding_detail.period,
+    sc_mem_m_share_holding_detail.share_amount,
+    sc_mem_m_share_holding_detail.share_value,
+    sc_mem_m_share_holding_detail.share_stock,
+    --    sc_mem_m_share_holding_detail.cancel_status,
+    (case sc_mem_m_share_holding_detail.cancel_status
+    when '0' then 'ปกติ'
+    when '1' then 'ยกเลิก' end) as cancel_status,
+    sc_mem_m_ucf_share_item_type.sign_flag,
+    sc_mem_m_share_mem.share_stock as sharestock
+    from sc_mem_m_share_holding_detail,
+    sc_mem_m_ucf_share_item_type,
+    sc_mem_m_membership_registered,
+    sc_mem_m_share_mem
+    where ( sc_mem_m_share_holding_detail.item_type  = sc_mem_m_ucf_share_item_type.item_type)
+    and  ( sc_mem_m_share_holding_detail.membership_no = sc_mem_m_membership_registered.membership_no )
+    and sc_mem_m_share_mem.membership_no = sc_mem_m_membership_registered.membership_no
+    /*and  ( ( sc_mem_m_share_holding_detail.membership_no = '038318' ) )*/
+    /*WHERE*/
+    order by sc_mem_m_share_holding_detail.seq_no
+  </sql>
+  <sub />
+  <mis />
+</root>

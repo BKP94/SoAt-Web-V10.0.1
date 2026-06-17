@@ -1,0 +1,269 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <branch_id text="สาขา" table="sc_com_m_branch" column="branch_id" combo="sc_com_m_branch" readonly="0" />
+    <begining_of_contract text="วันที่" table="sc_lon_m_contract" type="date" column="begining_of_contract" operator="bt" readonly="0" />
+    <ref_contract_no text="ประเภทเงินกู้" table="sc_lon_m_rule" combo="sc_lon_m_rule2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT PKA_COM_FUNCTION.fp_get_member_name( sc_lon_m_contract.membership_no ) as membername ,
+    sc_lon_m_contract.membership_no ,
+    sc_lon_m_loan_request.crem_amount,
+    sc_mem_m_ucf_member_group.member_group_type,
+    ( select nvl(sum(fund_new),0)
+    from sc_lon_m_req_fund_new
+    where sc_lon_m_req_fund_new.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
+    ) as fund_new
+
+    , (  select nvl(sum(fund_real),0)
+    from sc_lon_m_req_fund_ret
+    where sc_lon_m_req_fund_ret.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
+    and fund_ret &gt; 0
+    ) as fund_ret
+
+
+    , (  select nvl(sum(fund_real),0)
+    from sc_lon_m_req_fund_ret
+    where sc_lon_m_req_fund_ret.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
+    and fund_ret &gt; 0
+    and deposit_account_no = 'NEW'
+    ) as fund_ret_old
+
+    , (  select nvl(sum(fund_real),0)
+    from sc_lon_m_req_fund_ret
+    where sc_lon_m_req_fund_ret.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
+    and fund_ret &gt; 0
+    and deposit_account_no &lt;&gt; 'NEW'
+    ) as fund_ret_50
+
+    , (  select nvl(sum(fund_int),0)
+    from sc_lon_m_req_fund_ret
+    where sc_lon_m_req_fund_ret.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
+    and fund_ret &gt; 0
+    and deposit_account_no &lt;&gt; 'NEW'
+    ) as fund_int_50
+
+    , FPB_GET_LOAN_TYPE_REF(  sc_lon_m_contract.loan_type ) as loan_type ,
+    FPB_GET_LOAN_TYPE_DESC( FPB_GET_LOAN_TYPE_REF(  sc_lon_m_contract.loan_type ))  as loan_type_description ,
+
+    sc_lon_m_contract.loan_requestment_no ,
+    sc_lon_m_contract.begining_of_contract ,
+    to_tdate(sc_lon_m_contract.begining_of_contract , 'dd month')||' '||'พ.ศ.'||to_tdate(sc_lon_m_contract.begining_of_contract , 'yyyy') as thia_begining_of_contract,
+    sc_lon_m_contract.loan_payment_type_code ,
+    sc_lon_m_contract.loan_approve_amount ,
+    sc_lon_m_contract.loan_installment_amount ,
+    sc_lon_m_contract.period_payment_amount ,
+    sc_lon_m_contract.start_keep_date ,
+    sc_lon_m_contract.real_recieve ,
+    sc_lon_m_contract.loan_contract_no ,
+    sc_lon_m_contract.appove_officer ,
+    sc_lon_m_contract.rec_rep_status,
+
+    sc_lon_m_contract_multi_paid.type_pay_money,
+    sc_lon_m_contract_multi_paid.bank_acc_no ,
+    sc_lon_m_contract_multi_paid.paid_amount ,
+
+    sc_lon_m_loan_request.salary_amount ,
+    sc_lon_m_loan_request.entry_id ,
+
+    sc_com_m_branch.branch_id ,
+    sc_com_m_branch.branch_name ,
+
+
+    sc_mem_m_ucf_member_group.member_group_no,
+    sc_mem_m_ucf_member_group.member_group_name,
+    sc_mem_m_ucf_member_group.member_group_control ,
+    sc_mem_m_ucf_member_group.control_id
+
+    ,sc_com_m_ucf_money_type.sort_order
+    ,sc_com_m_ucf_money_type.money_type_id
+    ,sc_com_m_ucf_money_type.money_type_name
+    ,sc_lon_m_contract.paid_loan_id
+
+    ,(   SELECT   sum( sc_com_m_receipt_item.principal_amount )
+    FROM  sc_com_m_receipt,
+    sc_com_m_receipt_item
+    WHERE ( sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no ) and
+    ( sc_com_m_receipt.loan_contract_no = sc_lon_m_contract.loan_contract_no ) AND
+    ( sc_com_m_receipt.money_type_id in( 'CLR' , 'TRL' ) ) AND
+    ( sc_com_m_receipt_item.item_type_id = 'PL' ) AND
+    ( sc_com_m_receipt.receipt_status = '0' )
+    ) as principal_amount
+
+    ,(   SELECT   sum( sc_com_m_receipt_item.interest_amount )
+    FROM  sc_com_m_receipt,
+    sc_com_m_receipt_item
+    WHERE ( sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no ) and
+    ( sc_com_m_receipt.loan_contract_no = sc_lon_m_contract.loan_contract_no ) AND
+    ( sc_com_m_receipt.money_type_id in( 'CLR' , 'TRL' ) ) AND
+    ( sc_com_m_receipt_item.item_type_id = 'PL' ) AND
+    ( sc_com_m_receipt.receipt_status = '0' )
+    ) as interest_amount
+ 
+    ,si_security_user.user_name as paid_name
+    ,sc_lon_m_rule.account_id
+    , ( select sc_acc_m_account_master.account_name from sc_acc_m_account_master where sc_acc_m_account_master.account_id = sc_lon_m_rule.account_id ) as account_name
+    , (   SELECT 	sum( sc_fin_cheque_print.print_amount_total )
+        FROM 	sc_fin_cheque_print
+        WHERE 	trim( sc_fin_cheque_print.paid_info2 ) = sc_lon_m_contract.loan_contract_no
+    ) as print_amount_total
+
+    FROM  sc_lon_m_loan_request ,
+    sc_mem_m_membership_registered ,
+    sc_mem_m_ucf_member_group ,
+    sc_lon_m_rule ,
+    sc_lon_m_contract     ,
+    sc_com_m_branch  ,
+    sc_com_m_ucf_money_type
+    ,si_security_user
+    ,sc_lon_m_contract_multi_paid
+    WHERE  ( sc_mem_m_membership_registered.member_group_no  = sc_mem_m_ucf_member_group.member_group_no )
+    and           ( sc_lon_m_contract.loan_requestment_no     = sc_lon_m_loan_request.loan_requestment_no )
+    and           ( sc_mem_m_membership_registered.membership_no  = sc_lon_m_contract.membership_no )
+    and           ( sc_lon_m_contract.loan_type        = sc_lon_m_rule.loan_type )
+    and           ( sc_com_m_branch.branch_id        = sc_lon_m_contract.paid_loan_br )
+    and  sc_com_m_ucf_money_type.money_type_id =  sc_lon_m_contract_multi_paid.type_pay_money
+    and  si_security_user.user_id  =     sc_lon_m_contract.paid_loan_id
+    and	 sc_lon_m_contract_multi_paid.type_pay_money = 'CSH'
+    and  sc_lon_m_contract.rec_rep_status = '1'
+    and  sc_lon_m_contract_multi_paid.loan_contract_no = sc_lon_m_contract.loan_contract_no
+
+    /*WHERE*/
+    order by sc_mem_m_ucf_member_group.member_group_type,
+    sc_lon_m_contract_multi_paid.bank_acc_no,
+    sc_lon_m_contract.loan_contract_no
+
+  </sql>
+  <sub>
+    <r_ktm_loan_paid_cash_n_nest>
+      <sql>
+        SELECT tab_data.account_id,
+        tab_data.account_name,
+
+        tab_data.principal_amount,
+        tab_data.interest_amount,
+        tab_data.item_amount,
+        tab_data.loan_type
+        from
+        (
+        /* เงินกู้ */
+        SELECT sc_acc_m_account_master.account_id,
+        sc_acc_m_account_master.account_name,
+        sc_lon_m_contract.loan_type,
+        sum( sc_com_m_receipt_item.principal_amount ) as principal_amount,
+        sum( sc_com_m_receipt_item.interest_amount ) as interest_amount,
+        sum( sc_com_m_receipt_item.item_amount) as item_amount  ,
+        sc_com_m_receipt.receipt_date as receipt_date ,
+        sc_com_m_ucf_money_type.money_type_id as money_type_id
+        ,sc_com_m_receipt.branch_id as branch_id
+        FROM sc_com_m_receipt,
+        sc_com_m_receipt_item,
+        sc_lon_m_rule,
+        sc_acc_m_account_master,
+        sc_com_m_ucf_receipt_item_type
+        ,sc_lon_m_contract
+        ,sc_com_m_ucf_money_type
+        ,sc_lon_m_contract_multi_paid
+        WHERE ( sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no ) and
+        ( sc_com_m_receipt_item.loan_type = sc_lon_m_rule.loan_type ) and
+        ( sc_lon_m_rule.account_id = sc_acc_m_account_master.account_id ) and
+        ( sc_com_m_receipt_item.item_type_id = sc_com_m_ucf_receipt_item_type.item_type_id ) and
+        ( sc_com_m_receipt.receipt_status = '0' ) AND
+        ( sc_com_m_ucf_receipt_item_type.group_item = 'LON' ) AND
+        ( sc_com_m_receipt_item.item_amount &lt;&gt; 0 )
+        and	 sc_lon_m_contract.loan_contract_no  = sc_com_m_receipt.loan_contract_no
+
+        --and	sc_com_m_ucf_money_type.money_type_id = sc_lon_m_contract.type_pay_money
+        and 	sc_com_m_ucf_money_type.money_type_id = sc_lon_m_contract_multi_paid.type_pay_money
+        and		sc_lon_m_contract_multi_paid.loan_contract_no = sc_lon_m_contract.loan_contract_no
+        GROUP BY sc_acc_m_account_master.account_id,
+        sc_acc_m_account_master.account_name,
+        sc_com_m_receipt.receipt_date  ,
+        sc_com_m_ucf_money_type.money_type_id
+        ,sc_com_m_receipt.branch_id
+        ,sc_lon_m_contract.loan_type
+        union
+
+        SELECT          sc_com_m_ucf_receipt_item_type.item_type_id as account_id  ,
+        sc_com_m_ucf_receipt_item_type.item_type_name  as account_name   ,
+        '' as loan_type,
+        sum( sc_com_m_receipt_item.principal_amount ) as principal_amount,
+        sum( sc_com_m_receipt_item.interest_amount ) as interest_amount,
+        sum( sc_com_m_receipt_item.item_amount) as item_amount  ,
+        sc_com_m_receipt.receipt_date as receipt_date ,
+        sc_com_m_ucf_money_type.money_type_id as money_type_id
+        ,sc_com_m_receipt.branch_id as branch_id
+        FROM sc_com_m_receipt,
+        sc_com_m_receipt_item,
+        sc_com_m_ucf_receipt_item_type
+        ,sc_lon_m_contract
+        ,sc_com_m_ucf_money_type
+        ,sc_lon_m_contract_multi_paid
+        WHERE ( sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no ) and
+        ( sc_com_m_receipt_item.item_type_id = sc_com_m_ucf_receipt_item_type.item_type_id ) and
+        ( sc_com_m_receipt.receipt_status = '0' ) AND
+        ( sc_com_m_ucf_receipt_item_type.group_item &lt;&gt; 'LON' ) AND
+        ( sc_com_m_receipt_item.item_amount &lt;&gt; 0 )
+        and	 sc_lon_m_contract.loan_contract_no  = sc_com_m_receipt.loan_contract_no
+        and 	sc_com_m_ucf_money_type.money_type_id = sc_lon_m_contract_multi_paid.type_pay_money
+        and		sc_lon_m_contract_multi_paid.loan_contract_no = sc_lon_m_contract.loan_contract_no
+        and sc_lon_m_contract.loan_contract_no not in (  select sc_transbank_detail.c_reference
+        from sc_transbank_detail
+        where sc_transbank_detail.trandate  = sc_lon_m_contract.begining_of_contract
+        and sc_transbank_detail.seq_tran = '1'
+        )
+
+        GROUP BY sc_com_m_ucf_receipt_item_type.item_type_id,
+        sc_com_m_ucf_receipt_item_type.item_type_name ,
+        sc_com_m_receipt.receipt_date  ,
+        sc_com_m_ucf_money_type.money_type_id
+        ,sc_com_m_receipt.branch_id
+
+        ) tab_data
+        , sc_fin_m_close_day
+        ,sc_com_m_ucf_money_type
+        ,sc_com_m_branch
+        where sc_fin_m_close_day.journal_date = tab_data.receipt_date
+        and 	sc_com_m_ucf_money_type.money_type_id = tab_data.money_type_id
+        and	sc_fin_m_close_day.journal_date  = {0}
+        and	sc_com_m_ucf_money_type.money_type_id in ( 'CSH' )
+
+        and	sc_com_m_branch.branch_id = sc_fin_m_close_day.branch_fin
+        and 	sc_com_m_branch.branch_id = tab_data.branch_id
+        and 	sc_com_m_branch.branch_id = {1}
+        and  tab_data.loan_type = {2}
+      </sql>
+    </r_ktm_loan_paid_cash_n_nest>
+    <r_ktm_loan_paid_cash_n_nest_nest_loan_old>
+      <sql>        SELECT sc_com_m_receipt.receipt_no,
+        sc_com_m_receipt_item.description,
+        sc_com_m_receipt_item.principal_amount ,
+        sc_com_m_receipt_item.interest_amount,
+        sc_com_m_receipt_item.loan_type,
+        sc_com_m_receipt_item.item_amount,
+        decode(  sc_com_m_ucf_receipt_item_type.group_item , 'LON' , sc_com_m_receipt_item.loan_type , sc_com_m_ucf_receipt_item_type.item_type_name )  as loan_type_des,
+        sc_com_m_receipt.recept_amount,
+        sc_com_m_ucf_receipt_item_type.group_item,
+        sc_com_m_ucf_receipt_item_type.sort_order
+        FROM sc_com_m_receipt,
+        sc_com_m_receipt_item,
+        sc_com_m_ucf_receipt_item_type
+        WHERE ( sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no ) and
+        ( sc_com_m_receipt_item.item_type_id = sc_com_m_ucf_receipt_item_type.item_type_id ) and
+        ( ( sc_com_m_receipt.loan_contract_no = {0} ) AND
+        ( sc_com_m_receipt.money_type_id in( 'CLR' , 'TRL' ) ) AND
+        ( sc_com_m_receipt_item.item_type_id = 'PL' ) AND
+        ( sc_com_m_receipt.receipt_status = '0' ) )
+      </sql>
+    </r_ktm_loan_paid_cash_n_nest_nest_loan_old>
+    <r_ktm_loan_paid_cash_n_nest_paid>
+      <sql>
+        SELECT 	trim( sc_fin_cheque_print.cheque_no ) as cheque_no ,
+        sc_fin_cheque_print.print_amount_total
+        FROM 	sc_fin_cheque_print
+        WHERE 	trim( sc_fin_cheque_print.paid_info2 ) = {0}
+        order by sc_fin_cheque_print.cheque_no
+      </sql>
+    </r_ktm_loan_paid_cash_n_nest_paid>
+  </sub>
+</root>

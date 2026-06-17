@@ -1,0 +1,88 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <resign_date text="วันที่" table="sc_mem_m_resign_requestment" type="date" column="resign_date" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>SELECT (select prename from sc_mem_m_ucf_prename where prename_code = sc_mem_m_membership_registered.prename_code)||sc_mem_m_membership_registered.member_name||' '||sc_mem_m_membership_registered.member_surname as member_name,
+         sc_mem_m_membership_registered.membership_no,   
+         sc_mem_m_ucf_member_group.member_group_name,
+         substr(pka_lon_reqsrv.fp_calc_agetext(pka_lon_reqsrv.fp_calc_install_m_age(sc_mem_m_membership_registered.membership_no)),1,30) as age_mem_text,
+         pka_com_function.fp_get_thaidate( sc_mem_m_membership_registered.approve_date , 'SD MONTH YYYY') as approve_tdate,   
+         sc_mem_m_share_mem.period_recrieve,   
+         sc_mem_m_share_mem.share_stock,   
+         pka_com_function.fp_get_thaidate( sc_mem_m_resign_requestment.resign_date , 'dd/mm/yyyy') as resign_tdate,   
+         sc_mem_m_resign_requestment.resign_doc_no,   
+         sc_mem_m_resign_requestment.approve_result,   
+         sc_mem_m_resign_requestment.remark,   
+         pka_com_function.fp_get_thaidate( sc_mem_m_resign_requestment.approve_date , 'SD MONTH YYYY') as resign_approve_tdate,   
+         sc_mem_m_resign_requestment.different_shareloan  
+ 
+         ,nvl(( select sum(sc_mem_m_resign_loan.principal_balance)
+            from sc_mem_m_resign_loan
+            where sc_mem_m_resign_loan.resign_doc_no = sc_mem_m_resign_requestment.resign_doc_no
+           ),0) as principal_balance
+           
+         ,nvl(( select sum(sc_mem_m_resign_loncoll.coll_amount)
+            from sc_mem_m_resign_loncoll
+            where sc_mem_m_resign_loncoll.resign_doc_no = sc_mem_m_resign_requestment.resign_doc_no
+           ),0) as coll_amount
+           
+FROM sc_mem_m_resign_requestment,     
+         sc_mem_m_membership_registered,   
+         sc_mem_m_ucf_member_group,   
+         sc_mem_m_share_mem  
+WHERE ( sc_mem_m_resign_requestment.membership_no = sc_mem_m_membership_registered.membership_no ) 
+and   ( sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no ) 
+and   ( sc_mem_m_membership_registered.membership_no = sc_mem_m_share_mem.membership_no ) 
+and   ( sc_mem_m_resign_requestment.approve_result = '1' ) 
+and   ( sc_mem_m_resign_requestment.resign_code not in ('1004','1005','1008','1006'))  
+/*WHERE*/
+--and   ( sc_mem_m_resign_requestment.resign_date between '01/01/2024' and '30/07/2024' ) 
+order by sc_mem_m_membership_registered.membership_no</sql>
+  <sub>
+    <r_mwa_member_req_resign_app_nest_loan>
+      <sql>SELECT sc_mem_m_resign_loan.seq_no,   
+         sc_mem_m_resign_loan.loan_contract_no,   
+         sc_mem_m_resign_loan.principal_balance,   
+         sc_mem_m_resign_loan.interest,   
+         sc_mem_m_resign_loan.interest_arrear,   
+         '' as c_collateral,   
+         sc_mem_m_resign_loan.resign_doc_no,   
+         sc_mem_m_resign_loan.calint_from,   
+         '        ' as calint_from_tdate
+         
+         ,'มีหนี้เงินกู้'||( case left(loan_contract_no ,1) 
+                      when 'ส' then 'สามัญ' 
+                      when 'พ' then 'พิเศษ'
+                      when 'ฉ' then 'ฉุกเฉิน'
+                      else '' end) as c_loan_group
+                      
+         ,pkb_amnat.fp_get_memcoll_str(sc_mem_m_resign_requestment.membership_no) as coll_name
+         ,sc_mem_m_resign_requestment.membership_no
+                      
+FROM sc_mem_m_resign_loan
+    ,sc_mem_m_resign_requestment
+WHERE sc_mem_m_resign_requestment.resign_doc_no = sc_mem_m_resign_loan.resign_doc_no
+and   sc_mem_m_resign_loan.resign_doc_no = {0}</sql>
+    </r_mwa_member_req_resign_app_nest_loan>
+    <r_mwa_member_req_resign_app_nest_resign_loncoll>
+      <sql>select sc_mem_m_resign_loncoll.contract_mem_name 
+    ,sc_mem_m_resign_loncoll.contract_memno
+    ,sc_mem_m_resign_loncoll.coll_amount
+    ,PKB_MWA.fp_get_resign_loncoll_str(sc_mem_m_resign_loncoll.resign_doc_no) as resign_coll
+from sc_mem_m_resign_loncoll
+where sc_mem_m_resign_loncoll.resign_doc_no = {0}</sql>
+    </r_mwa_member_req_resign_app_nest_resign_loncoll>
+    <r_mwa_member_req_resign_app_nest_text>
+      <sql>SELECT 'ไม่มีหนี้สิน' as text
+FROM dual
+where 1=1</sql>
+    </r_mwa_member_req_resign_app_nest_text>
+    <r_mwa_member_req_resign_app_nest_text_resige>
+      <sql>SELECT 'ไม่ได้ค้ำประกันเงินกู้รายใด' as text
+FROM dual
+where 1=1</sql>
+    </r_mwa_member_req_resign_app_nest_text_resige>
+  </sub>
+</root>

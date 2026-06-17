@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="T050" rep_text="รายงานสมาชิกปัจจุบัน">
+  <arg>
+    <member_group_no text="หน่วย" table="sc_mem_m_ucf_member_group" column="member_group_control" operator="bt" nulltext="ดูทั้งหมด ไม่ต้องเลือกนะจ๊ะ" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    select sc_mem_m_ucf_member_group.member_group_no
+    ,sc_mem_m_ucf_member_group.member_group_name
+    ,sc_mem_m_ucf_member_group.member_group_control
+    ,sc_mem_m_ucf_member_group.member_group_control||'  '||pka_com_function.fp_get_group_name(sc_mem_m_ucf_member_group.member_group_control) as group_control
+    from sc_mem_m_ucf_member_group
+    where 1=1
+    /*WHERE*/
+    order by sc_mem_m_ucf_member_group.member_group_no
+  </sql>
+  <sub />
+</root>

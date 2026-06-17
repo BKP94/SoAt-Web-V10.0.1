@@ -1,0 +1,62 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <member_group_no text="หน่วย" table="sc_mem_m_ucf_member_group" column="member_group_no" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+    <operate_date text="วันที่" table="sc_mem_m_chang_request" type="date" column="operate_date" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    SELECT sc_mem_m_chg_share_det.membership_no,
+    sc_mem_m_chg_share_det.document_no,
+    sc_mem_m_chg_share_det.shr_qty_old,
+    sc_mem_m_chg_share_det.shr_value_old,
+    sc_mem_m_chg_share_det.shr_qty_new,
+    sc_mem_m_chg_share_det.shr_value_new,
+    sc_mem_m_chg_share_det.period,
+    sc_mem_m_chg_share_det.drop_status,
+    sc_mem_m_chg_share_det.effactive_date,
+    sc_mem_m_chg_share_det.remark,
+    sc_mem_m_chg_share_det.period_compomise,
+    sc_mem_m_share_mem.share_stock,
+    sc_mem_m_membership_registered.salary_amount,
+    sc_mem_m_ucf_member_group_a.member_group_no,
+    sc_mem_m_ucf_member_group_a.member_group_control,
+    sc_mem_m_ucf_member_group_a.member_group_name,
+    sc_mem_m_ucf_member_group_b.member_group_name,
+    sc_mem_m_ucf_prename.prename,
+    sc_mem_m_membership_registered.member_name,
+    sc_mem_m_membership_registered.member_surname,
+    sc_mem_m_share_mem.period_recrieve,
+    sc_mem_m_chang_request.operate_date,
+    sc_mem_m_chang_request.approve_date,
+    sc_mem_m_chang_request.approve_status,
+
+    case sc_mem_m_chang_request.cancel_status
+    when '1' then 'ยกเลิก'
+    else
+    (case sc_mem_m_chang_request.approve_status
+    when '1' then 'อนุมัติ'
+    when '2' then 'ยังไม่อนุมัติ'
+    end)end as status
+
+    FROM sc_mem_m_chg_share_det,
+    sc_mem_m_membership_registered,
+    sc_mem_m_share_mem,
+    sc_mem_m_ucf_member_group sc_mem_m_ucf_member_group_a,
+    sc_mem_m_ucf_member_group sc_mem_m_ucf_member_group_b,
+    sc_mem_m_ucf_prename,
+    sc_mem_m_chang_request
+
+    WHERE ( sc_mem_m_membership_registered.membership_no = sc_mem_m_share_mem.membership_no ) and
+    ( sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group_a.member_group_no ) and
+    ( sc_mem_m_ucf_member_group_a.member_group_control = sc_mem_m_ucf_member_group_b.member_group_no ) and
+    ( sc_mem_m_ucf_prename.prename_code = sc_mem_m_membership_registered.prename_code ) and
+    ( sc_mem_m_chg_share_det.document_no = sc_mem_m_chang_request.document_no ) and
+    ( sc_mem_m_membership_registered.membership_no = sc_mem_m_chang_request.membership_no ) and
+    sc_mem_m_chg_share_det.drop_status = '2'
+    /*WHERE*/
+    order by sc_mem_m_chg_share_det.document_no ASC
+
+  </sql>
+  <sub />
+</root>

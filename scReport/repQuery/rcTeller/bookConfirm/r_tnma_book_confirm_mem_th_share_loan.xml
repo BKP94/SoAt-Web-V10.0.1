@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="T080" rep_text="หนังสือยืนยันยอด">
+  <arg>
+    <data_date align="center" text="วันที่" type="date" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <date_edit align="center" text="ณ วันที่" type="date" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <membership_no align="center" special="memno" text="ทะเบียน" table="sc_mem_m_membership_registered" readonly="0" />
+    <user_1 align="center" special="memno" text="ทะเบียน จนท.ผู้ตรวจสอบ" table="sc_mem_m_membership_registered" column="membership_no" sqlwhere="0" sqlreplace="1" mustvalue="1" readonly="0" comboreplace="0" combowhere="0" />
+    <user_2 align="center" special="memno" text="ทะเบียน หัวหน้าฝ่าย" table="sc_mem_m_membership_registered" column="membership_no" sqlwhere="0" sqlreplace="1" mustvalue="1" readonly="0" comboreplace="0" combowhere="0" />
+    <text_1 text="หมายเหตุ" sqlwhere="0" sqlreplace="1" mustvalue="1" readonly="0" comboreplace="0" combowhere="0" />
+    <text_2 text="เหตุผลการขอหนังสือรับรอง" sqlwhere="0" sqlreplace="1" mustvalue="1" readonly="0" comboreplace="0" combowhere="0" />
+    <position default="ผู้จัดการ" text="ตำแหน่ง" sqlwhere="0" sqlreplace="1" mustvalue="1" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>select  sc_mem_m_membership_registered.membership_no
+    ,   pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as fname
+    ,   pka_com_function.fp_form_idcard(sc_mem_m_membership_registered.id_card) as id_card
+    ,   '!text_1!' as text_1
+    ,   '!text_2!' as text_2
+    ,   to_snumber(pka_com_function.fp_get_member_sharestock(sc_mem_m_membership_registered.membership_no)) as sharestock
+    ,   sc_mem_m_membership_registered.member_group_no
+    ,   pka_com_function.fp_get_group_name(sc_mem_m_membership_registered.member_group_no) as member_group_name
+    ,   pka_com_function.fp_get_member_name('!user_1!') as user_1
+    ,   pka_com_function.fp_get_member_name('!user_2!') as user_2
+    ,   pka_com_function.fp_get_thaidate('!data_date!','dd Month yyyy') as thaidate
+    ,    pka_com_function.fp_get_thaidate('!date_edit!','dd Month yyyy') as dateedit
+    ,   '!position!' as position
+
+    ,   (   select  COUNT( sc_lon_m_loan_card.loan_contract_no )
+            from    sc_lon_m_loan_card
+                ,   sc_lon_m_contract
+            where   sc_lon_m_loan_card.loan_contract_no = sc_lon_m_contract.loan_contract_no
+            and     sc_lon_m_loan_card.principal_balance &gt; 0
+            and     sc_lon_m_loan_card.membership_no = sc_mem_m_membership_registered.membership_no
+        ) AS count_contract_no
+    
+    ,   (   select  TO_SNUMBER( SUM( sc_lon_m_contract.loan_request_amount ) )
+            from    sc_lon_m_loan_card
+                ,   sc_lon_m_contract
+            where   sc_lon_m_loan_card.loan_contract_no = sc_lon_m_contract.loan_contract_no
+            and     sc_lon_m_loan_card.principal_balance &gt; 0
+            and     sc_lon_m_loan_card.membership_no = sc_mem_m_membership_registered.membership_no
+        ) AS loan_request_amount
+    
+    ,   (   select  TO_SNUMBER( SUM( sc_lon_m_loan_card.principal_balance ) )
+            from    sc_lon_m_loan_card
+                ,   sc_lon_m_contract
+            where   sc_lon_m_loan_card.loan_contract_no = sc_lon_m_contract.loan_contract_no
+            and     sc_lon_m_loan_card.principal_balance &gt; 0
+            and     sc_lon_m_loan_card.membership_no = sc_mem_m_membership_registered.membership_no
+        ) AS principal_balance
+        
+    ,   (   select  TO_SNUMBER( SUM( sc_lon_m_contract.period_payment_amount ) )
+            from    sc_lon_m_loan_card
+                ,   sc_lon_m_contract
+            where   sc_lon_m_loan_card.loan_contract_no = sc_lon_m_contract.loan_contract_no
+            and     sc_lon_m_loan_card.principal_balance &gt; 0
+            and     sc_lon_m_loan_card.membership_no = sc_mem_m_membership_registered.membership_no
+        ) AS period_payment_amount
+        
+from sc_mem_m_membership_registered
+where 1=1
+/*WHERE*/
+</sql>
+  <sub>
+    <r_tnma_book_confirm_mem_th_share_loan_nest>
+      <sql>select  sc_lon_m_loan_card.loan_contract_no
+    ,   to_snumber(sc_lon_m_contract.loan_request_amount) as loan_request_amount
+    ,   to_snumber(sc_lon_m_loan_card.principal_balance) as principal_balance
+    ,   to_snumber(sc_lon_m_contract.period_payment_amount) as period_payment_amount
+    
+from    sc_lon_m_loan_card
+    ,   sc_lon_m_contract
+    
+where   sc_lon_m_loan_card.loan_contract_no = sc_lon_m_contract.loan_contract_no
+and     sc_lon_m_loan_card.principal_balance &gt; 0
+and     sc_lon_m_loan_card.membership_no = {0}</sql>
+    </r_tnma_book_confirm_mem_th_share_loan_nest>
+  </sub>
+</root>

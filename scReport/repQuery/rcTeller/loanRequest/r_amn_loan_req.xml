@@ -1,0 +1,88 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <aeg>
+  </aeg>
+  <arg>
+    <requestment_date align="center" text="วันที่ขอกู้" table="sc_lon_m_loan_request" type="date" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql> SELECT sc_lon_m_loan_request.req_contract_period as req_contract_period,
+         sc_lon_m_loan_request.membership_no,   
+         pka_com_function.fp_get_member_name( sc_lon_m_loan_request.membership_no) as memname,   
+         sc_mem_m_membership_registered.member_group_no,   
+ sc_mem_m_membership_registered.position_code ,
+         sc_mem_m_ucf_member_group_a.member_group_name,   
+         sc_mem_m_ucf_member_group_a.member_group_control,   
+         sc_mem_m_ucf_member_group_b.member_group_name as member_group_con_name ,   
+         sc_lon_m_loan_request.salary_amount,   
+         sc_lon_m_loan_request.total_share_value,     
+         sc_lon_m_loan_request.mem_request_amount,   
+         sc_lon_m_loan_request.remark,   
+         sc_lon_m_loan_request.total_old_loan,   
+         sc_lon_m_loan_request.total_oldint,   
+         sc_lon_m_loan_request.buy_share,   
+         sc_lon_m_loan_request.bank_acc_no,   
+         sc_lon_m_loan_request.loan_requestment_no,   
+         sc_lon_m_rule.loan_type_description,   
+         sc_mem_m_membership_registered.shareloan_code,   
+         sc_mem_m_membership_registered.debtor_code,   
+         sc_mem_m_membership_registered.other_code,   
+         sc_lon_m_loan_request.flag_status,   
+         sc_lon_m_loan_request.max_loan_permit as max_loan_permit,
+         sc_lon_m_loan_request.interest_first,   
+         sc_lon_m_loan_request.period_payment_amount,   
+         sc_lon_m_loan_request.loan_installment_amount,   
+         sc_lon_m_loan_request.salary_net_req,   
+         sc_lon_m_loan_request.loan_objective_code,   
+        sc_lon_m_loan_request.loan_request_amount   as loan_request_amount,
+         nvl(( select sum( item_amount )
+        from sc_lon_m_req_salnet_inc
+        where item_code = '11'
+        and sc_lon_m_req_salnet_inc.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no ),0)  as academic_amount,
+        nvl(( select sum( item_amount )
+        from sc_lon_m_req_salnet_inc
+        where item_code = '12'
+        and sc_lon_m_req_salnet_inc.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no ),0)  as  remuneration_amount,
+     sc_mem_m_membership_registered.grade,
+    nvl(sc_lon_m_loan_request.balance_salary,0) as balance_salary,
+    PKA_LON_REQSRV.fp_calc_agetext_m_age( sc_mem_m_membership_registered.membership_no , sc_lon_m_loan_request.begining_of_contract  ) as  age_mem_text,
+    mem_request_amount - total_old_loan - total_oldint - fee_amount - buy_share as paid_amount /*รับจริง*/
+    FROM sc_lon_m_loan_request,   
+         sc_mem_m_membership_registered,   
+         sc_mem_m_ucf_prename,   
+         sc_mem_m_ucf_member_group sc_mem_m_ucf_member_group_a,   
+         sc_mem_m_ucf_member_group sc_mem_m_ucf_member_group_b,   
+         sc_lon_m_rule  
+   WHERE ( sc_lon_m_loan_request.membership_no = sc_mem_m_membership_registered.membership_no ) and  
+         ( sc_mem_m_membership_registered.prename_code = sc_mem_m_ucf_prename.prename_code ) and  
+         ( sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group_a.member_group_no ) and  
+         ( sc_mem_m_ucf_member_group_a.member_group_control = sc_mem_m_ucf_member_group_b.member_group_no ) and
+         ( sc_lon_m_loan_request.loan_type = sc_lon_m_rule.loan_type ) and
+        (  sc_lon_m_loan_request.loan_type = 'ส' )  and
+        ( sc_lon_m_loan_request.cancel_status = '0')
+/*WHERE*/
+    -- and (  sc_lon_m_loan_request.requestment_date  = to_date('18/02/2022' ,'dd/mm/yyyy'  ))
+   -- and ( sc_lon_m_loan_request.membership_no = '007405')</sql>
+  <sub>
+    <r_amn_loan_req_nest>
+      <sql> SELECT sc_lon_m_loan_history.principal_of_loan,   
+         sc_lon_m_loan_history.interest_amount,   
+         sc_lon_m_loan_history.last_period,   
+         sc_lon_m_loan_history.principal_balance_of_loan 
+    FROM sc_lon_m_loan_history 
+    where sc_lon_m_loan_history.loan_requestment_no = {0}</sql>
+    </r_amn_loan_req_nest>
+    <r_amn_loan_req_nest_1>
+      <sql>        select  sc_lon_m_loan_request.loan_requestment_no,
+        sc_lon_m_ucf_fee.fee_name,
+        sc_lon_m_req_fee.amount,
+        sc_lon_m_req_fee.prakan_atm
+        from sc_lon_m_req_fee,
+        sc_lon_m_loan_request,
+        sc_lon_m_ucf_fee
+        where sc_lon_m_req_fee.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+        and sc_lon_m_ucf_fee.fee_type = sc_lon_m_req_fee.fee_type
+        and sc_lon_m_loan_request.loan_requestment_no = {0}</sql>
+    </r_amn_loan_req_nest_1>
+  </sub>
+</root>

@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <working_year align="center" special="year" text="ปี" type="integer2" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>SELECT  to_snumber(decode(sc_dep_m_ucf_dep_item_type.sign_flag,1,sc_dep_m_creditor_item.deposit_balance,null)) as deposit_amount
+,       to_snumber(decode(sc_dep_m_ucf_dep_item_type.sign_flag,-1,sc_dep_m_creditor_item.deposit_balance,null)) as withdraw_amount
+,       sc_dep_m_creditor_item.total_balance
+,       sc_dep_m_creditor_item.working_day
+,       sc_cnt_m_month.month_no
+,       sc_cnt_m_month.month_name_thai
+,       '!working_year!' + 543 as working_year
+,       sc_dep_m_rule.deposit_type_code
+,       sc_dep_m_rule.deposit_name
+,       sysdate     
+FROM    sc_dep_m_creditor_item
+,       sc_dep_m_ucf_dep_item_type
+,       sc_dep_m_creditor
+,       sc_dep_m_rule
+,       sc_cnt_m_month
+WHERE   sc_dep_m_creditor_item.item_type = sc_dep_m_ucf_dep_item_type.deposit_item_type 
+and     sc_dep_m_creditor_item.deposit_account_no = sc_dep_m_creditor.deposit_account_no 
+and     sc_dep_m_rule.deposit_type_code = sc_dep_m_creditor.deposit_type_code 
+and     sc_cnt_m_month.month_no = extract(month from sc_dep_m_creditor_item.working_day)
+and     extract(year from sc_dep_m_creditor_item.working_day) = '!working_year!'
+/*WHERE*/</sql>
+  <sub />
+</root>

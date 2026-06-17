@@ -1,0 +1,275 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <metadata name="sqlDataSource1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>17, 17</value>
+  </metadata>
+  <data name="customSqlQuery1.Sql" xml:space="preserve">
+    <value>select sc_lon_m_loan_request.membership_no
+,sc_lon_m_loan_request.loan_requestment_no
+,sc_lon_m_loan_request.loan_type
+,pka_com_function.fp_get_member_name(sc_lon_m_loan_request.membership_no) as memname
+,pka_com_function.fp_get_member_group(sc_lon_m_loan_request.membership_no) as member_group_no
+
+,pka_com_function.fp_get_group_name(pka_com_function.fp_get_member_group(sc_lon_m_loan_request.membership_no)) as member_group_name
+
+
+
+,sc_mem_m_ucf_group_position.description
+,nvl(sc_mem_m_member_work_info.position_long,'ไม่ได้ระบุ') position_long
+
+,sc_mem_m_membership_registered.date_of_birth
+,sc_lon_m_loan_request.requestment_date
+,trunc(pka_lon_reqsrv.fp_calc_install_m_live(sc_mem_m_membership_registered.date_of_birth,sc_lon_m_loan_request.requestment_date)/12) as age
+, pka_lon_reqsrv.fp_calc_agetext_m_live(sc_mem_m_membership_registered.membership_no) as age_1
+
+,sc_lon_m_loan_request.salary_amount
+,sc_lon_m_loan_request.max_loan_permit
+,sc_lon_m_loan_request.mem_request_amount
+,sc_lon_m_loan_request.loan_request_amount
+,sc_mem_m_membership_registered.mem_type
+,sc_lon_m_loan_request.loan_installment_amount
+,sc_lon_m_loan_request.period_payment_amount
+
+,sc_lon_m_loan_request.period_share
+, sc_cnt_m_coop.coop_name
+,pka_lon_reqsrv.fp_calc_agetext_m_age( sc_mem_m_membership_registered.membership_no,sc_lon_m_loan_request.requestment_date) as agetext_member 
+
+, sc_lon_m_loan_request.total_share_value
+, sc_lon_m_loan_request.monthdep
+,sc_lon_m_loan_request.monthshare
+,sc_lon_m_loan_request.monthloan
+,sc_lon_m_loan_request.other_amount
+,sc_lon_m_loan_request.interest_first
+,sc_lon_m_loan_request.total_old_loan
+,sc_lon_m_loan_request.total_oldint
+,sc_lon_m_loan_request.fee_amount
+,pka_com_function.fp_get_thaidate(sc_lon_m_loan_request.requestment_date,'MONTH') as begin_month_thai
+
+,sc_lon_m_rule.loan_type_description
+,sc_mem_m_ucf_member_type.mem_type_code
+,sc_mem_m_ucf_member_type.mem_type_desc
+,sc_mem_m_member_address.telephone
+,sc_lon_m_ucf_loan_obj.loan_objective_description
+,sc_lon_m_loan_request.buy_share
+
+,sc_lon_m_loan_request.bank_code  
+,sc_lon_m_loan_request.bank_acc_no
+,sc_com_m_ucf_money_type.money_type_id
+,sc_com_m_ucf_money_type.money_type_name
+, sc_mem_m_member_work_info.group_position
+,'' as norm_authen
+
+,'' as norm_level_salary
+
+/*หนี้สามัญ ยกเว้น หนี้รับโอนฐานะผู้ค้ำ*/
+,nvl( ( select sum( sc_lon_m_loan_card.principal_balance - sc_lon_m_loan_card.pending_amount )
+from sc_lon_m_loan_card
+,sc_lon_m_rule
+where sc_lon_m_loan_card.membership_no = sc_mem_m_membership_registered.membership_no
+and sc_lon_m_rule.loan_type = sc_lon_m_loan_card.loan_type
+and sc_lon_m_rule.loan_group_code = '02' 
+and sc_lon_m_rule.loan_type  not in ( 'รอ','รท' )
+ ), 0 ) as norm_all_balance
+
+/*หนี้รับโอนฐานะผู้ค้ำ*/
+,nvl( ( select sum( sc_lon_m_loan_card.principal_balance - sc_lon_m_loan_card.pending_amount )
+from sc_lon_m_loan_card
+,sc_lon_m_rule
+where sc_lon_m_loan_card.membership_no = sc_mem_m_membership_registered.membership_no
+and sc_lon_m_rule.loan_type = sc_lon_m_loan_card.loan_type
+and sc_lon_m_rule.loan_group_code = '02' 
+and sc_lon_m_rule.loan_type  in ( 'รอ','รท' )
+ ), 0 ) as loan_coll
+
+/*หนี้สามัญบุคคลค้ำ*/
+,nvl( ( select sum( sc_lon_m_loan_card.principal_balance - sc_lon_m_loan_card.pending_amount )
+from sc_lon_m_loan_card
+,sc_lon_m_rule
+where sc_lon_m_loan_card.membership_no = sc_mem_m_membership_registered.membership_no
+and sc_lon_m_rule.loan_type = sc_lon_m_loan_card.loan_type
+and sc_lon_m_rule.loan_group_code = '02' 
+and sc_lon_m_rule.loan_type not in ( 'ทพ','สพ','รอ','รท')
+ ) , 0 ) as norm_balance
+
+
+,nvl( ( select sum( sc_lon_m_loan_card.principal_balance - sc_lon_m_loan_card.pending_amount )
+from sc_lon_m_loan_card
+,sc_lon_m_rule
+where sc_lon_m_loan_card.membership_no = sc_mem_m_membership_registered.membership_no
+and sc_lon_m_rule.loan_type = sc_lon_m_loan_card.loan_type
+and sc_lon_m_rule.loan_group_code = '01'
+and sc_lon_m_rule.atm_status &lt;&gt; '1' 
+ ) , 0 )  as emer_balance
+
+,nvl( ( select sum( sc_lon_m_loan_card.principal_balance- sc_lon_m_loan_card.pending_amount  )
+from sc_lon_m_loan_card
+,sc_lon_m_rule
+where sc_lon_m_loan_card.membership_no = sc_mem_m_membership_registered.membership_no
+and sc_lon_m_rule.loan_type = sc_lon_m_loan_card.loan_type
+and sc_lon_m_rule.loan_group_code = '01'
+and sc_lon_m_rule.atm_status = '1' 
+ ) , 0 ) as od_balance
+
+,nvl( (  select sum( sc_lon_m_loan_history.loan_approve_amount   )
+from sc_lon_m_loan_history,   
+sc_lon_m_loan_card,   
+sc_lon_m_rule  
+where sc_lon_m_loan_history.loan_contract_no = sc_lon_m_loan_card.loan_contract_no
+and        sc_lon_m_loan_card.loan_type = sc_lon_m_rule.loan_type   
+and         sc_lon_m_loan_history.loan_requestment_no =  sc_lon_m_loan_request.loan_requestment_no
+and         sc_lon_m_rule.atm_status = '1'    
+) , 0 )  od_old_approve
+
+, (select pka_com_function.fp_get_thaidate(pka_srv_datetime.fp_RelativeMonth(sc_lon_m_contract.begining_of_contract,12))
+  from   sc_lon_m_loan_history
+  , sc_lon_m_contract
+ ,sc_atm_lon_card
+  where  sc_lon_m_loan_history.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no 
+  and sc_lon_m_loan_history.loan_contract_no =sc_lon_m_contract.loan_contract_no
+  and sc_atm_lon_card.loan_contract_no =sc_lon_m_contract.loan_contract_no
+
+)   as begin_dt
+
+
+
+,sc_mem_m_share_mem.share_stock
+,sc_mem_m_share_mem.period_recrieve
+
+,sc_lon_m_loan_request.begining_of_contract
+,sc_lon_m_loan_request.telephone
+from sc_lon_m_loan_request  
+, sc_mem_m_membership_registered
+, sc_mem_m_share_mem
+, sc_lon_m_ucf_loan_obj
+, sc_mem_m_ucf_group_position 
+, sc_mem_m_member_work_info
+,sc_cnt_m_coop
+,sc_lon_m_rule
+,sc_mem_m_ucf_member_type
+,sc_mem_m_member_address
+,sc_com_m_ucf_money_type
+,sc_mem_m_ucf_member_group
+where  1 = 2
+</value>
+  </data>
+  <data name="sqlDataSource1.ResultSchemaSerializable" xml:space="preserve">
+    <value>PERhdGFTZXQgTmFtZT0ic3FsRGF0YVNvdXJjZTEiPjxWaWV3IE5hbWU9IlF1ZXJ5Ij48RmllbGQgTmFtZT0iTUVNQkVSU0hJUF9OTyIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJMT0FOX1JFUVVFU1RNRU5UX05PIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IkxPQU5fVFlQRSIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJNRU1OQU1FIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9Ik1FTUJFUl9HUk9VUF9OTyIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJNRU1CRVJfR1JPVVBfTkFNRSIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJERVNDUklQVElPTiIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJQT1NJVElPTl9MT05HIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IkRBVEVfT0ZfQklSVEgiIFR5cGU9IkRhdGVUaW1lIiAvPjxGaWVsZCBOYW1lPSJSRVFVRVNUTUVOVF9EQVRFIiBUeXBlPSJEYXRlVGltZSIgLz48RmllbGQgTmFtZT0iQUdFIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJBR0VfMSIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJTQUxBUllfQU1PVU5UIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJNQVhfTE9BTl9QRVJNSVQiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9Ik1FTV9SRVFVRVNUX0FNT1VOVCIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iTE9BTl9SRVFVRVNUX0FNT1VOVCIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iTUVNX1RZUEUiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iTE9BTl9JTlNUQUxMTUVOVF9BTU9VTlQiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IlBFUklPRF9QQVlNRU5UX0FNT1VOVCIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iUEVSSU9EX1NIQVJFIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJDT09QX05BTUUiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iQUdFVEVYVF9NRU1CRVIiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iVE9UQUxfU0hBUkVfVkFMVUUiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9Ik1PTlRIREVQIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJNT05USFNIQVJFIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJNT05USExPQU4iIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9Ik9USEVSX0FNT1VOVCIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iSU5URVJFU1RfRklSU1QiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IlRPVEFMX09MRF9MT0FOIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJUT1RBTF9PTERJTlQiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IkZFRV9BTU9VTlQiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IkJFR0lOX01PTlRIX1RIQUkiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iTE9BTl9UWVBFX0RFU0NSSVBUSU9OIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9Ik1FTV9UWVBFX0NPREUiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iTUVNX1RZUEVfREVTQyIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJURUxFUEhPTkUiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iTE9BTl9PQkpFQ1RJVkVfREVTQ1JJUFRJT04iIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iQlVZX1NIQVJFIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJCQU5LX0NPREUiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iQkFOS19BQ0NfTk8iIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iTU9ORVlfVFlQRV9JRCIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJNT05FWV9UWVBFX05BTUUiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iR1JPVVBfUE9TSVRJT04iIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iTk9STV9BVVRIRU4iIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iTk9STV9MRVZFTF9TQUxBUlkiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iTk9STV9BTExfQkFMQU5DRSIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iTE9BTl9DT0xMIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJOT1JNX0JBTEFOQ0UiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IkVNRVJfQkFMQU5DRSIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iT0RfQkFMQU5DRSIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iT0RfT0xEX0FQUFJPVkUiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IkJFR0lOX0RUIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IlNIQVJFX1NUT0NLIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJQRVJJT0RfUkVDUklFVkUiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IkJFR0lOSU5HX09GX0NPTlRSQUNUIiBUeXBlPSJEYXRlVGltZSIgLz48L1ZpZXc+PC9EYXRhU2V0Pg==</value>
+  </data>
+</root>

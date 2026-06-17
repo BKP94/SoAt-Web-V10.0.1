@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <membership_no special="memno" text="ทะเบียน" table="sc_mem_m_membership_registered" column="membership_no" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    select sc_mem_m_share_mem.membership_no,
+    ((select prename from sc_mem_m_ucf_prename where sc_mem_m_ucf_prename.prename_code = sc_mem_m_membership_registered.prename_code)
+    ||sc_mem_m_membership_registered.member_name||' '||sc_mem_m_membership_registered.member_surname)as member_name,
+    sc_mem_m_membership_registered.member_group_no,
+    (sc_mem_m_membership_registered.member_group_no||' : '||
+    (select member_group_name from sc_mem_m_ucf_member_group where member_group_no = sc_mem_m_membership_registered.member_group_no ))as member_group_name,
+    sc_mem_m_share_mem.share_qty,
+    sc_mem_m_share_mem.share_amount,
+    sc_mem_m_share_mem.period_recrieve,
+    sc_mem_m_share_mem.pending_amt,
+    sc_mem_m_share_mem.drop_status,
+    sc_mem_m_share_mem.share_stock,
+    sc_mem_m_share_mem.begin_balance,
+    sc_mem_m_share_mem.share_coll_amount,
+    sc_mem_m_share_mem.keep_from_deposit,
+    sc_mem_m_share_mem.deposit_account_no,
+    sc_mem_m_share_mem.amount_from_deposit
+    from    sc_mem_m_share_mem ,
+    sc_mem_m_membership_registered
+    WHERE (sc_mem_m_membership_registered.membership_no = sc_mem_m_share_mem.membership_no )
+    /*WHERE*/
+    --and sc_mem_m_share_mem.membership_no = '000102'
+    --and sc_mem_m_membership_registered.member_group_no between '016008' and '016008'
+    --and   sc_mem_m_share_mem.drop_status = '0'
+  </sql>
+  <sub>
+    <r_ktm_share_del_det_nest>
+      <sql>
+        select  sc_mem_m_share_holding_detail.membership_no ,
+        sc_mem_m_share_holding_detail.seq_no ,
+        sc_mem_m_share_holding_detail.operate_date ,
+        sc_mem_m_share_holding_detail.doc_no ,
+        sc_mem_m_share_holding_detail.item_type ,
+        (select sc_mem_m_ucf_share_item_type.item_type_description from sc_mem_m_ucf_share_item_type where item_type = sc_mem_m_share_holding_detail.item_type) as item_type_description,
+        sc_mem_m_share_holding_detail.period ,
+        sc_mem_m_share_holding_detail.share_amount ,
+        sc_mem_m_share_holding_detail.share_value ,
+        sc_mem_m_share_holding_detail.share_stock ,
+        sc_mem_m_share_holding_detail.cancel_status ,
+        (select sign_flag from sc_mem_m_ucf_share_item_type where item_type = sc_mem_m_share_holding_detail.item_type) as sign_flag
+        from sc_mem_m_share_holding_detail
+        where sc_mem_m_share_holding_detail.membership_no = {0}
+        --sc_mem_m_share_holding_detail.membership_no = '000102'
+        /*WHERE*/
+        order by operate_date,seq_no
+      </sql>
+    </r_ktm_share_del_det_nest>
+  </sub>
+</root>

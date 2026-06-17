@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <sysdate default="select null from dual" text="วันที่" type="date" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <as_letter text="เลขที่" column="as_letter" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <membership_no special="memno" text="ทะเบียน" table="sc_mem_m_membership_registered" column="membership_no" readonly="0" />
+    <as_name default="นางรวีวรรณ  ช่อดอก" text="ผู้ช่วยฯ" combo="sc_cnt_m_committee_list3" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+ 
+  <sql>
+    SELECT pka_com_function.fp_get_thaidate('!sysdate_1!' , 'SD MONTH YYYY') as sysdate_tdate
+    ,sc_mem_m_resign_loncoll.contract_memno
+    ,sc_mem_m_resign_loncoll.contract_mem_name as membername
+    ,sc_mem_m_resign_loncoll.loan_contract_no
+    ,sc_mem_m_resign_requestment.membership_no
+    ,'!as_letter_1!' as as_letter
+    ,'!as_name_1!' as as_name
+    ,(select coop_name from sc_cnt_m_coop ) as coop_name
+
+    ,sc_lon_m_loan_card.principal_balance
+    ,pka_com_function.fp_get_moneythai (sc_lon_m_loan_card.principal_balance) as thai_principal_balance
+    ,sc_mem_m_resign_requestment.approve_date
+    ,sc_mem_m_membership_registered.member_group_no
+
+    FROM sc_mem_m_resign_requestment,
+    sc_mem_m_resign_loncoll,
+    sc_lon_m_loan_card,
+    sc_mem_m_membership_registered
+    WHERE ( sc_mem_m_resign_requestment.resign_doc_no = sc_mem_m_resign_loncoll.resign_doc_no )
+    and   ( sc_mem_m_resign_loncoll.loan_contract_no = sc_lon_m_loan_card.loan_contract_no )
+    and   ( sc_mem_m_resign_loncoll.contract_memno = sc_mem_m_membership_registered.membership_no )
+    and   ( sc_mem_m_resign_requestment.approve_result = '1' )
+    and   ( sc_lon_m_loan_card.principal_balance &gt; 0 )
+    and sc_lon_m_loan_card.loan_contract_no in ( 	select sc_lon_m_contract_coll.loan_contract_no
+    from 	sc_lon_m_contract_coll
+    where sc_lon_m_contract_coll.loan_contract_no = sc_lon_m_loan_card.loan_contract_no
+    and 	sc_lon_m_contract_coll.status = '0'
+    and	  sc_lon_m_contract_coll.collateral_type_code = '01'
+    and	  sc_lon_m_contract_coll.ref_own_no = sc_mem_m_resign_requestment.membership_no
+    )
+
+    /*WHERE*/
+    --and sc_mem_m_membership_registered.membership_no = '085480'
+    ORDER BY sc_mem_m_membership_registered.member_group_no ASC,
+    sc_mem_m_resign_loncoll.contract_memno ASC,
+    sc_mem_m_resign_loncoll.loan_contract_no ASC
+  </sql>
+  <sub>
+    <r_ktm_book_trans_loan_list_1_nest_coll>
+      <sql>
+        SELECT sc_lon_m_contract_coll.ref_own_no,
+        sc_lon_m_contract_coll.collateral_description,
+        sc_lon_m_contract_coll.loan_contract_no,
+        decode( sc_mem_m_membership_registered.member_status_code , '0'
+        ,pka_com_function.fp_get_thaidate( sc_mem_m_membership_registered.resignation_approve_date , 'DD/MM/YYYY'  )) as resignation_approve_date
+        ,pka_com_function.fp_get_group_name(sc_mem_m_membership_registered.member_group_no) as group_name_coll
+        ,sc_mem_m_membership_registered.member_group_no as group_no_coll
+        ,(select sc_lon_m_contract.begining_of_contract from sc_lon_m_contract where loan_contract_no = sc_lon_m_contract_coll.loan_contract_no ) as begining_of_contract
+        ,(select sum(sc_lon_m_loan_card.principal_balance) from sc_lon_m_loan_card where loan_contract_no = sc_lon_m_contract_coll.loan_contract_no ) as principal_balance
+        ,(select pka_com_function.fp_get_moneythai (sum(sc_lon_m_loan_card.principal_balance)) from sc_lon_m_loan_card where loan_contract_no = sc_lon_m_contract_coll.loan_contract_no ) as thai_principal_balance
+
+        FROM sc_lon_m_contract_coll,
+        sc_mem_m_membership_registered
+        WHERE ( sc_lon_m_contract_coll.ref_own_no = sc_mem_m_membership_registered.membership_no )
+        and   ( ( sc_lon_m_contract_coll.loan_contract_no = {0} )
+        and   ( sc_lon_m_contract_coll.ref_own_no = {1} )
+        AND   ( sc_lon_m_contract_coll.status = '0' )
+        AND   ( sc_lon_m_contract_coll.collateral_type_code = '01' ) )
+        and   sc_mem_m_membership_registered.member_status_code = '3'
+        ORDER BY sc_lon_m_contract_coll.ref_own_no ASC
+      </sql>
+    </r_ktm_book_trans_loan_list_1_nest_coll>
+  </sub>
+</root>

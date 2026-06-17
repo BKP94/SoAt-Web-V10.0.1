@@ -1,0 +1,228 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <metadata name="sqlDataSource1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>17, 17</value>
+  </metadata>
+  <data name="customSqlQuery1.Sql" xml:space="preserve">
+    <value>SELECT
+    sc_mem_m_ucf_member_group.member_group_control,
+    pka_com_function.fp_get_group_name(sc_mem_m_ucf_member_group.member_group_control) AS group_name,
+
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ก' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_1_ก,
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ก' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_1_ก,
+
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ข' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_2_ข,
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ข' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_2_ข,
+
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ฉก' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_3_ฉก,
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ฉก' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_3_ฉก,
+
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ท' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_4_ท,
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ท' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_4_ท,
+
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ผ' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_5_ผ,
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ผ' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_5_ผ,
+
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'พ' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_6_พ,
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'พ' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_6_พ,
+
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ร' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_7_ร,
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ร' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_7_ร,
+
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ว' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_8_ว,
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ว' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_8_ว,
+
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ส' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_9_ส,
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ส' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_9_ส,
+
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สก' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_10_สก,
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สก' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_10_สก,
+
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สข' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_11_สข,
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สข' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_11_สข,
+
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สค' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_12_สค,
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สค' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_12_สค,
+
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สง' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_13_สง,
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สง' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_13_สง,
+
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สจ' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_14_สจ,
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สจ' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_14_สจ,
+
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สช' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_15_สช,
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สช' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_15_สช,
+
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สฐ' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_16_สฐ,
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สฐ' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_16_สฐ,
+
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สน' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_17_สน,
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สน' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_17_สน,
+
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สบ' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_18_สบ,
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สบ' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_18_สบ,
+
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สป' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_19_สป,
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สป' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_19_สป,
+
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สพ' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_20_สพ,
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สพ' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_20_สพ,
+
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สร' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_21_สร,
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สร' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_21_สร,
+
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สส' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_22_สส,
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สส' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_22_สส,
+
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สห' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_23_สห,
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สห' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_23_สห,
+
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สอ' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_24_สอ,
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สอ' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_24_สอ,
+
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ป' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_25_ป,
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ป' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_25_ป,
+
+NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL'  THEN sc_com_m_receipt_item.principal_amount END),0) AS sum_prin,
+    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL'  THEN sc_com_m_receipt_item.interest_amount END),0) AS sum_int
+
+    FROM sc_com_m_receipt
+    JOIN sc_mem_m_ucf_member_group
+    ON sc_com_m_receipt.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+    JOIN sc_lon_m_contract
+    ON sc_com_m_receipt.loan_contract_no = sc_lon_m_contract.loan_contract_no
+    JOIN sc_lon_m_rule
+    ON sc_lon_m_contract.loan_type = sc_lon_m_rule.loan_type
+    LEFT JOIN sc_com_m_receipt_item
+    ON sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+
+    WHERE sc_com_m_receipt.money_type_id IN ('CLR','TRL')
+    AND sc_com_m_receipt.receipt_status = '0'
+    /*WHERE*/
+    --AND sc_lon_m_rule.loan_type = 'ส'
+    --AND sc_com_m_receipt.receipt_date BETWEEN TO_DATE('01/09/2025','dd/mm/yyyy') AND TO_DATE('30/09/2025','dd/mm/yyyy')
+
+    GROUP BY sc_mem_m_ucf_member_group.member_group_control
+    ORDER BY sc_mem_m_ucf_member_group.member_group_control</value>
+  </data>
+  <data name="sqlDataSource1.ResultSchemaSerializable" xml:space="preserve">
+    <value>PERhdGFTZXQgTmFtZT0ic3FsRGF0YVNvdXJjZTEiPjxWaWV3IE5hbWU9IlF1ZXJ5Ij48RmllbGQgTmFtZT0iTUVNQkVSX0dST1VQX0NPTlRST0wiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iR1JPVVBfTkFNRSIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJQUklOXzFf4LiBIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJJTlRfMV/guIEiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IlBSSU5fMl/guIIiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IklOVF8yX+C4giIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iUFJJTl8zX+C4ieC4gSIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iSU5UXzNf4LiJ4LiBIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJQUklOXzRf4LiXIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJJTlRfNF/guJciIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IlBSSU5fNV/guJwiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IklOVF81X+C4nCIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iUFJJTl82X+C4niIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iSU5UXzZf4LieIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJQUklOXzdf4LijIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJJTlRfN1/guKMiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IlBSSU5fOF/guKciIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IklOVF84X+C4pyIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iUFJJTl85X+C4qiIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iSU5UXzlf4LiqIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJQUklOXzEwX+C4quC4gSIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iSU5UXzEwX+C4quC4gSIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iUFJJTl8xMV/guKrguIIiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IklOVF8xMV/guKrguIIiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IlBSSU5fMTJf4Liq4LiEIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJJTlRfMTJf4Liq4LiEIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJQUklOXzEzX+C4quC4hyIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iSU5UXzEzX+C4quC4hyIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iUFJJTl8xNF/guKrguIgiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IklOVF8xNF/guKrguIgiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IlBSSU5fMTVf4Liq4LiKIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJJTlRfMTVf4Liq4LiKIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJQUklOXzE2X+C4quC4kCIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iSU5UXzE2X+C4quC4kCIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iUFJJTl8xN1/guKrguJkiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IklOVF8xN1/guKrguJkiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IlBSSU5fMThf4Liq4LiaIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJJTlRfMThf4Liq4LiaIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJQUklOXzE5X+C4quC4myIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iSU5UXzE5X+C4quC4myIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iUFJJTl8yMF/guKrguJ4iIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IklOVF8yMF/guKrguJ4iIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IlBSSU5fMjFf4Liq4LijIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJJTlRfMjFf4Liq4LijIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJQUklOXzIyX+C4quC4qiIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iSU5UXzIyX+C4quC4qiIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iUFJJTl8yM1/guKrguKsiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IklOVF8yM1/guKrguKsiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IlBSSU5fMjRf4Liq4LitIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJJTlRfMjRf4Liq4LitIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJQUklOXzI1X+C4myIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iSU5UXzI1X+C4myIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iU1VNX1BSSU4iIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IlNVTV9JTlQiIFR5cGU9IkRlY2ltYWwiIC8+PC9WaWV3PjwvRGF0YVNldD4=</value>
+  </data>
+</root>

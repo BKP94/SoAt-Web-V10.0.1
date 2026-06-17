@@ -1,0 +1,64 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <op_date text="วันที่โอน" type="date" column="op_date" operator="bt" sqlwhere="0" sqlreplace="1" nestreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    select PKA_COM_FUNCTION.fp_get_member_name( sc_mem_m_membership_registered.membership_no ) as membername,
+    sc_mem_m_membership_registered.membership_no,
+
+    sc_mem_m_ucf_member_group.member_group_no,
+    sc_mem_m_ucf_member_group.member_group_name,
+    sc_mem_m_ucf_member_group.member_group_control ,
+    sc_mem_m_ucf_member_group.control_id
+
+    ,PKA_COM_FUNCTION.fp_get_thaidate(sc_mem_m_membership_registered.resignation_approve_date) as resignation_approve_date_tdate
+
+    ,sc_com_m_ucf_money_type.money_type_id
+    ,sc_com_m_ucf_money_type.money_type_name
+    ,sc_com_m_receipt.receipt_date
+    ,PKA_COM_FUNCTION.fp_get_thaidate( sc_com_m_receipt.receipt_date ) as receipt_date_tdate
+    ,sc_com_m_receipt.share_stock
+    ,sc_com_m_receipt.recept_amount
+    ,sc_mem_m_ucf_member_type.mem_type_code
+    ,sc_mem_m_ucf_member_type.mem_type_desc
+    ,to_date(  '!op_date_1!' ) as begin_date
+    ,to_date(  '!op_date_2!' ) as end_date
+    from sc_mem_m_membership_registered,
+    sc_mem_m_ucf_member_group
+
+    , sc_com_m_ucf_money_type
+    , sc_com_m_receipt
+    ,sc_mem_m_ucf_member_type
+    where  	( sc_com_m_receipt.membership_no 		= sc_mem_m_membership_registered.membership_no )
+    and         	( sc_mem_m_membership_registered.member_group_no 	= sc_mem_m_ucf_member_group.member_group_no )
+    and		( sc_com_m_ucf_money_type.money_type_id = sc_com_m_receipt.money_type_id )
+    and		( sc_mem_m_ucf_member_type.mem_type_code = sc_mem_m_membership_registered.mem_type )
+    and sc_com_m_receipt.membership_no = sc_mem_m_membership_registered.membership_no
+    and sc_com_m_receipt.money_type_id = 'TNL'
+    and sc_com_m_receipt.receipt_status = '0'
+    and sc_com_m_receipt.share_stock = sc_com_m_receipt.recept_amount
+    and sc_com_m_receipt.receipt_date between to_date(  '!op_date_1!' ) and  to_date(  '!op_date_2!' )
+    /*WHERE*/
+  </sql>
+  <sub>
+    <r_tnma_labour_share_withdraw_zero_nest_ae>
+      <sql>
+        SELECT sc_com_m_receipt.receipt_no,
+        sc_com_m_receipt_item.seq_no,
+        sc_com_m_receipt_item.description,
+        sc_com_m_receipt_item.principal_amount,
+        sc_com_m_receipt_item.interest_amount,
+        sc_com_m_receipt_item.item_amount,
+        sc_com_m_receipt_item.balance
+        FROM sc_com_m_receipt,
+        sc_com_m_receipt_item
+        WHERE ( sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no ) and
+        ( ( sc_com_m_receipt.money_type_id = 'TNL' ) AND
+        ( sc_com_m_receipt.receipt_status = '0' ) AND
+        ( sc_com_m_receipt.membership_no = {0} ) AND
+        ( sc_com_m_receipt_item.item_amount &gt; 0 ) )
+      </sql>
+    </r_tnma_labour_share_withdraw_zero_nest_ae>
+  </sub>
+</root>

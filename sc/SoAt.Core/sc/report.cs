@@ -386,6 +386,17 @@ namespace sc
             try { return Activator.CreateInstance(t) as XtraReport; }
             catch { return null; }
         }
+
+        // แปลง report instance → vs_path สำหรับ rcReport lookup (ตัด prefix namespace ของ stack ใหม่)
+        //   legacy: namespace ของรายงาน == vs_path เป๊ะ → ToString()/FullName ใช้เป็น path ตรงได้
+        //   ใหม่: ทุกรายงานอยู่ใต้ "scReport.Reports." → ตัด prefix นี้ออกได้ vs_path เดิม
+        //   (ดู tryResolveType comment เรื่อง namespace prefix — deviation เดียวกัน)
+        static string repVsPath(XtraReport r)
+        {
+            var full = r.GetType().FullName ?? r.GetType().Name;
+            var prefix = REPORTS_ROOT_NS + ".";
+            return full.StartsWith(prefix) ? full.Substring(prefix.Length) : full;
+        }
         static string? getReportNest(string vs_path, string nestName)
         {
             //nestName = receipt_kfn-detail
@@ -641,6 +652,52 @@ namespace sc
                     csb.Host, csb.Port, csb.Database, csb.Username, csb.Password);
         }
 
+        // ลบ SQL comment ออกจาก query ก่อนยัดลง DevExpress CustomSqlQuery
+        //   เหตุ: DevExpress.DataAccess.Sql parser validate custom SQL ว่าเป็น SELECT ล้วน
+        //         แต่ semantic parser ของมันสะดุด comment `--` (และ block `/* */` ที่หลงเหลือ)
+        //         → โยน CustomSqlQueryValidationException "A custom SQL query should contain
+        //         only SELECT statements." แม้ SQL รันบน PostgreSQL ได้ปกติ
+        //   comment เป็น inert (ไม่กระทบความหมาย) → ตัดทิ้งได้โดยคง legacy fidelity ของ XML
+        //   ตัดแบบ respect single-quote literal (กันค่า/ข้อความไทยใน '...' โดนแตะ); ตอน bind
+        //   placeholder /*WHERE*/ ถูก sqlWhere() replace ไปก่อนแล้ว จึงไม่มี block comment เหลือที่ต้องกัน
+        static string stripSqlComments(string? sql)
+        {
+            if (string.IsNullOrEmpty(sql)) return sql ?? "";
+            var sb = new System.Text.StringBuilder(sql.Length);
+            bool inStr = false;
+            for (int i = 0; i < sql.Length; i++)
+            {
+                char c = sql[i];
+                char n = i + 1 < sql.Length ? sql[i + 1] : '\0';
+                if (inStr)
+                {
+                    sb.Append(c);
+                    if (c == '\'')
+                    {
+                        if (n == '\'') { sb.Append(n); i++; } // escaped '' ภายใน literal
+                        else inStr = false;
+                    }
+                    continue;
+                }
+                if (c == '\'') { inStr = true; sb.Append(c); continue; }
+                if (c == '-' && n == '-')               // line comment -- ... ถึงท้ายบรรทัด
+                {
+                    while (i < sql.Length && sql[i] != '\n') i++;
+                    if (i < sql.Length) sb.Append('\n'); // คง newline ไว้ (กันบรรทัดติดกัน)
+                    continue;
+                }
+                if (c == '/' && n == '*')               // block comment /* ... */
+                {
+                    i += 2;
+                    while (i + 1 < sql.Length && !(sql[i] == '*' && sql[i + 1] == '/')) i++;
+                    i++; // ข้าม '/' ตัวปิด (loop จะ i++ อีกครั้งข้าม '*'? ปรับด้านล่าง)
+                    continue;
+                }
+                sb.Append(c);
+            }
+            return sb.ToString();
+        }
+
         // bind SQL ลง SqlDataSource ของ main report (เทียบ legacy popArgument.ascx.cs:481) +
         // ensure repConnection (net10 wiring). ไม่ Fill เอง — ปล่อยให้ DxReportViewer.CreateDocument() fill
         public static void bindReportSql(XtraReport xr, string sql)
@@ -650,7 +707,7 @@ namespace sc
                 && sds.Queries[0] is DevExpress.DataAccess.Sql.CustomSqlQuery q)
             {
                 ensureRepConnection(sds);
-                q.Sql = sql;
+                q.Sql = stripSqlComments(sql);
             }
         }
 
@@ -668,7 +725,7 @@ namespace sc
                     if (customSqlQuery != null)
                     {
                         ensureRepConnection(sqlDataSource!);
-                        customSqlQuery.Sql = sql;
+                        customSqlQuery.Sql = stripSqlComments(sql);
                         sqlDataSource!.Fill();
                     }
                 }
@@ -707,8 +764,11 @@ namespace sc
         public static void dataBind(XtraReport rep, object sender, string? sqlWhere = null, params object[] args)
         {
             var nestReport = (XRSubreport)sender;
-            var nestName = nestReport.ReportSource.ToString()!;
-            nestName = nestName.Substring(nestName.LastIndexOf(".") + 1);
+            // ── DEVIATION (Legacy Fidelity): legacy ใช้ ReportSource.ToString() แล้วตัด substring
+            //   หลังจุดสุดท้ายเพื่อเอาชื่อคลาส nest โดยอาศัยว่า ToString() คืน full type name และ
+            //   namespace == vs_path. DX25 ToString() ของ XtraReport ไม่คืน full type name แล้ว
+            //   → ใช้ GetType().Name ตรง ได้ชื่อคลาส nest ที่ถูกต้องเสมอ (= key ใน <sub> ของ XML)
+            var nestName = nestReport.ReportSource.GetType().Name;
 
             //sql = new sc.db().sqlArgs(sql, vals);
             //var page = (sc.page)HttpContext.Current.Session[sc.att.session.repPage];
@@ -717,7 +777,7 @@ namespace sc
             // หา Query ของ nest จาก reqQuery
             // ระบบ scReport จาก XML
             // ระบบอื่นจาก ตัวรายงาน
-            var sqlNest = sc.app.appName == "scReport" ? getReportNest(rep.ToString()!, nestName)
+            var sqlNest = sc.app.appName == "scReport" ? getReportNest(repVsPath(rep), nestName)
                 : ((nestReport.ReportSource.DataSource as DevExpress.DataAccess.Sql.SqlDataSource)!.Queries[0] as DevExpress.DataAccess.Sql.CustomSqlQuery)!.Sql;
 
             //var sqlNest = getReportNest(rep.ToString(), nestName);

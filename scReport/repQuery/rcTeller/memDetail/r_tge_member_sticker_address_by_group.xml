@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <member_group_no text="หน่วย" table="sc_mem_m_membership_registered" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+    <membership_no special="memno" text="ทะเบียน" table="sc_mem_m_membership_registered" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select  pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as membername
+,       sc_mem_m_membership_registered.membership_no
+,       pka_com_function.fp_get_member_address_letter( sc_mem_m_membership_registered.membership_no , 0 , 1 ) as line_1
+,       pka_com_function.fp_get_member_address_letter( sc_mem_m_membership_registered.membership_no , 0 , 2 ) as line_2
+,       pka_com_function.fp_get_member_address_letter( sc_mem_m_membership_registered.membership_no , 0 , 3 )||' '||pka_com_function.fp_get_member_address_letter( sc_mem_m_membership_registered.membership_no , 0 , 4 ) as line_3
+from    sc_mem_m_membership_registered
+where   1=1
+/*WHERE*/
+order by sc_mem_m_membership_registered.member_group_no 
+,        sc_mem_m_membership_registered.membership_no</sql>
+  <sub />
+</root>

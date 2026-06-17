@@ -1,0 +1,164 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <member_group_on text="หน่วย" table="sc_mem_m_ucf_member_group" column="member_group_no" operator="bt" nulltext="ดูทั้งหมด ไม่ต้องเลือกนะจ๊ะ" combo="sc_mem_m_ucf_member_group7" readonly="0" comboreplace="0" combowhere="0" />
+    <member_status_code text="ประเภทสมาชิก" table="sc_mem_m_membership_registered" combo="member_status_code" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>    select sc_mem_m_ucf_member_group.member_group_control
+    ,   pka_com_function.fp_get_group_name(sc_mem_m_ucf_member_group.member_group_control)as control_name
+    ,   count((select distinct sc_mem_m_share_mem.membership_no
+    from sc_mem_m_share_mem
+    where sc_mem_m_share_mem.membership_no = sc_mem_m_membership_registered.membership_no
+    and sc_mem_m_share_mem.share_stock&gt;0 ))as c_mem
+    ,   sum((select sc_mem_m_share_mem.share_stock
+    from sc_mem_m_share_mem
+    where sc_mem_m_share_mem.membership_no = sc_mem_m_membership_registered.membership_no
+    and sc_mem_m_share_mem.share_stock&gt;0 ))as sum_share
+    ,   count(case when sc_lon_m_rule.loan_type = 'ก' then sc_lon_m_loan_card.loan_contract_no end) as loan_01_ก_contract
+    ,   sum(case when sc_lon_m_rule.loan_type = 'ก' then sc_lon_m_loan_card.principal_balance end) as loan_01_ก_balance
+
+    ,   count(case when sc_lon_m_rule.loan_type = 'ข' then sc_lon_m_loan_card.loan_contract_no end) as loan_02_ข_contract
+    ,   sum(case when sc_lon_m_rule.loan_type = 'ข' then sc_lon_m_loan_card.principal_balance end) as loan_02_ข_balance
+
+    ,   count(case when sc_lon_m_rule.loan_type = 'ฉก' then sc_lon_m_loan_card.loan_contract_no end) as loan_03_ฉก_contract
+    ,   sum(case when sc_lon_m_rule.loan_type = 'ฉก' then sc_lon_m_loan_card.principal_balance end) as loan_03_ฉก_balance
+
+    ,   count(case when sc_lon_m_rule.loan_type = 'ท' then sc_lon_m_loan_card.loan_contract_no end) as loan_04_ท_contract
+    ,   sum(case when sc_lon_m_rule.loan_type = 'ท' then sc_lon_m_loan_card.principal_balance end) as loan_04_ท_balance
+
+    ,   count(case when sc_lon_m_rule.loan_type = 'ป' then sc_lon_m_loan_card.loan_contract_no end) as loan_05_ป_contract
+    ,   sum(case when sc_lon_m_rule.loan_type = 'ป' then sc_lon_m_loan_card.principal_balance end) as loan_05_ป_balance
+
+    ,   count(case when sc_lon_m_rule.loan_type = 'ผ' then sc_lon_m_loan_card.loan_contract_no end) as loan_06_ผ_contract
+    ,   sum(case when sc_lon_m_rule.loan_type = 'ผ' then sc_lon_m_loan_card.principal_balance end) as loan_06_ผ_balance
+
+    ,   count(case when sc_lon_m_rule.loan_type = 'พ' then sc_lon_m_loan_card.loan_contract_no end) as loan_07_พ_contract
+    ,   sum(case when sc_lon_m_rule.loan_type = 'พ' then sc_lon_m_loan_card.principal_balance end) as loan_07_พ_balance
+
+    ,   count(case when sc_lon_m_rule.loan_type = 'ร' then sc_lon_m_loan_card.loan_contract_no end) as loan_08_ร_contract
+    ,   sum(case when sc_lon_m_rule.loan_type = 'ร' then sc_lon_m_loan_card.principal_balance end) as loan_08_ร_balance
+
+    ,   count(case when sc_lon_m_rule.loan_type = 'ว' then sc_lon_m_loan_card.loan_contract_no end) as loan_09_ว_contract
+    ,   sum(case when sc_lon_m_rule.loan_type = 'ว' then sc_lon_m_loan_card.principal_balance end) as loan_09_ว_balance
+
+    ,   count(case when sc_lon_m_rule.loan_type = 'ส' then sc_lon_m_loan_card.loan_contract_no end) as loan_10_ส_contract
+    ,   sum(case when sc_lon_m_rule.loan_type = 'ส' then sc_lon_m_loan_card.principal_balance end) as loan_10_ส_balance
+
+    ,   count(case when sc_lon_m_rule.loan_type = 'สก' then sc_lon_m_loan_card.loan_contract_no end) as loan_11_สก_contract
+    ,   sum(case when sc_lon_m_rule.loan_type = 'สก' then sc_lon_m_loan_card.principal_balance end) as loan_11_สก_balance
+
+    ,   count(case when sc_lon_m_rule.loan_type = 'สข' then sc_lon_m_loan_card.loan_contract_no end) as loan_12_สข_contract
+    ,   sum(case when sc_lon_m_rule.loan_type = 'สข' then sc_lon_m_loan_card.principal_balance end) as loan_12_สข_balance
+
+    ,   count(case when sc_lon_m_rule.loan_type = 'สค' then sc_lon_m_loan_card.loan_contract_no end) as loan_13_สค_contract
+    ,   sum(case when sc_lon_m_rule.loan_type = 'สค' then sc_lon_m_loan_card.principal_balance end) as loan_13_สค_balance
+
+    ,   count(case when sc_lon_m_rule.loan_type = 'สง' then sc_lon_m_loan_card.loan_contract_no end) as loan_14_สง_contract
+    ,   sum(case when sc_lon_m_rule.loan_type = 'สง' then sc_lon_m_loan_card.principal_balance end) as loan_14_สง_balance
+
+    ,   count(case when sc_lon_m_rule.loan_type = 'สจ' then sc_lon_m_loan_card.loan_contract_no end) as loan_15_สจ_contract
+    ,   sum(case when sc_lon_m_rule.loan_type = 'สจ' then sc_lon_m_loan_card.principal_balance end) as loan_15_สจ_balance
+
+    ,   count(case when sc_lon_m_rule.loan_type = 'สช' then sc_lon_m_loan_card.loan_contract_no end) as loan_16_สช_contract
+    ,   sum(case when sc_lon_m_rule.loan_type = 'สช' then sc_lon_m_loan_card.principal_balance end) as loan_16_สช_balance
+
+    ,   count(case when sc_lon_m_rule.loan_type = 'สฐ' then sc_lon_m_loan_card.loan_contract_no end) as loan_17_สฐ_contract
+    ,   sum(case when sc_lon_m_rule.loan_type = 'สฐ' then sc_lon_m_loan_card.principal_balance end) as loan_17_สฐ_balance
+
+    ,   count(case when sc_lon_m_rule.loan_type = 'สน' then sc_lon_m_loan_card.loan_contract_no end) as loan_18_สน_contract
+    ,   sum(case when sc_lon_m_rule.loan_type = 'สน' then sc_lon_m_loan_card.principal_balance end) as loan_18_สน_balance
+
+    ,   count(case when sc_lon_m_rule.loan_type = 'สบ' then sc_lon_m_loan_card.loan_contract_no end) as loan_19_สบ_contract
+    ,   sum(case when sc_lon_m_rule.loan_type = 'สบ' then sc_lon_m_loan_card.principal_balance end) as loan_19_สบ_balance
+
+    ,   count(case when sc_lon_m_rule.loan_type = 'สป' then sc_lon_m_loan_card.loan_contract_no end) as loan_20_สป_contract
+    ,   sum(case when sc_lon_m_rule.loan_type = 'สป' then sc_lon_m_loan_card.principal_balance end) as loan_20_สป_balance
+
+    ,   count(case when sc_lon_m_rule.loan_type = 'สพ' then sc_lon_m_loan_card.loan_contract_no end) as loan_21_สพ_contract
+    ,   sum(case when sc_lon_m_rule.loan_type = 'สพ' then sc_lon_m_loan_card.principal_balance end) as loan_21_สพ_balance
+
+    ,   count(case when sc_lon_m_rule.loan_type = 'สร' then sc_lon_m_loan_card.loan_contract_no end) as loan_22_สร_contract
+    ,   sum(case when sc_lon_m_rule.loan_type = 'สร' then sc_lon_m_loan_card.principal_balance end) as loan_22_สร_balance
+
+    ,   count(case when sc_lon_m_rule.loan_type = 'สส' then sc_lon_m_loan_card.loan_contract_no end) as loan_23_สส_contract
+    ,   sum(case when sc_lon_m_rule.loan_type = 'สส' then sc_lon_m_loan_card.principal_balance end) as loan_23_สส_balance
+
+    ,   count(case when sc_lon_m_rule.loan_type = 'สห' then sc_lon_m_loan_card.loan_contract_no end) as loan_24_สห_contract
+    ,   sum(case when sc_lon_m_rule.loan_type = 'สห' then sc_lon_m_loan_card.principal_balance end) as loan_24_สห_balance
+
+    ,   count(case when sc_lon_m_rule.loan_type = 'สอ' then sc_lon_m_loan_card.loan_contract_no end) as loan_24_สอ_contract
+    ,   sum(case when sc_lon_m_rule.loan_type = 'สอ' then sc_lon_m_loan_card.principal_balance end) as loan_24_สอ_balance
+
+    ,   count(sc_lon_m_loan_card.loan_contract_no)as c_contract_no
+    ,   sum(sc_lon_m_loan_card.principal_balance)as sum_balance
+    from sc_lon_m_loan_card
+    ,   sc_lon_m_rule
+    ,   sc_mem_m_membership_registered
+    ,   sc_mem_m_ucf_member_group
+    where (sc_lon_m_loan_card.loan_type = sc_lon_m_rule.loan_type)
+    and (sc_lon_m_loan_card.membership_no = sc_mem_m_membership_registered.membership_no)
+    and (sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no)
+    and ((sc_lon_m_loan_card.principal_balance &gt; 0))
+/*WHERE*/
+    group by sc_mem_m_ucf_member_group.member_group_control
+    ,   pka_com_function.fp_get_group_name(sc_mem_m_ucf_member_group.member_group_control)
+    order by sc_mem_m_ucf_member_group.member_group_control
+    ,   pka_com_function.fp_get_group_name(sc_mem_m_ucf_member_group.member_group_control)
+  </sql>
+  <sub>
+    <r_krabi_sum_sh_loan_balance_nest_norm>
+      <sql>        SELECT	sum(sc_rep_mem_share_loan_year.norm_balance)  as c_norm,
+        sc_lon_m_rule.loan_type ||' '|| sc_lon_m_rule.loan_type_description as loan_type_description
+        FROM sc_rep_mem_share_loan_year,
+        sc_mem_m_ucf_member_group,
+        sc_lon_m_rule
+        WHERE ( sc_rep_mem_share_loan_year.member_group_no = sc_mem_m_ucf_member_group.member_group_no )
+        and   ( sc_rep_mem_share_loan_year.norm_loantype = sc_lon_m_rule.loan_type )
+        --and  (  sc_mem_m_ucf_member_group.member_group_control = {0}  )
+        and   ( sc_rep_mem_share_loan_year.client_id = '000' )
+        and ( sc_rep_mem_share_loan_year.norm_balance &gt; 0 )
+        and sc_rep_mem_share_loan_year.balance_date = '!balance_date_1!'
+        and sc_mem_m_ucf_member_group.member_group_control between '!member_group_control_1!' and '!member_group_control_2!'
+and sc_rep_mem_share_loan_year.member_status_code = '!member_status_code_1!'
+        GROUP BY   sc_lon_m_rule.loan_type ||' '|| sc_lon_m_rule.loan_type_description
+        order by  sc_lon_m_rule.loan_type ||' '|| sc_lon_m_rule.loan_type_description
+      </sql>
+    </r_krabi_sum_sh_loan_balance_nest_norm>
+    <r_krabi_sum_sh_loan_balance_nest_emer>
+      <sql>        SELECT	sum(sc_rep_mem_share_loan_year.emer_balance)  as c_emer,
+        sc_lon_m_rule.loan_type ||' '|| sc_lon_m_rule.loan_type_description as loan_type_description
+        FROM sc_rep_mem_share_loan_year,
+        sc_mem_m_ucf_member_group,
+        sc_lon_m_rule
+        WHERE ( sc_rep_mem_share_loan_year.member_group_no = sc_mem_m_ucf_member_group.member_group_no )
+        and   ( sc_rep_mem_share_loan_year.emer_loantype = sc_lon_m_rule.loan_type )
+        --and    (  sc_mem_m_ucf_member_group.member_group_control = {0}  )
+        and   ( sc_rep_mem_share_loan_year.emer_balance  &gt;  0 )
+        and    ( sc_rep_mem_share_loan_year.client_id = '000' )
+        and sc_rep_mem_share_loan_year.balance_date = '!balance_date_1!'
+        and sc_mem_m_ucf_member_group.member_group_control between '!member_group_control_1!' and '!member_group_control_2!'
+and sc_rep_mem_share_loan_year.member_status_code = '!member_status_code_1!'
+        GROUP BY   sc_lon_m_rule.loan_type ||' '|| sc_lon_m_rule.loan_type_description
+        order by  sc_lon_m_rule.loan_type ||' '|| sc_lon_m_rule.loan_type_description
+      </sql>
+    </r_krabi_sum_sh_loan_balance_nest_emer>
+    <r_krabi_sum_sh_loan_balance_nest_spec>
+      <sql>        SELECT	sum(sc_rep_mem_share_loan_year.spec_balance)  as c_spec,
+        sc_lon_m_rule.loan_type ||' '|| sc_lon_m_rule.loan_type_description as loan_type_description
+        FROM sc_rep_mem_share_loan_year,
+        sc_mem_m_ucf_member_group,
+        sc_lon_m_rule
+        WHERE ( sc_rep_mem_share_loan_year.member_group_no = sc_mem_m_ucf_member_group.member_group_no )
+        and   ( sc_rep_mem_share_loan_year.spec_loantype = sc_lon_m_rule.loan_type )
+        --and   (  sc_mem_m_ucf_member_group.member_group_control = {0} )
+        and   	( sc_rep_mem_share_loan_year.spec_balance  &gt;  0 )
+        and sc_rep_mem_share_loan_year.balance_date = '!balance_date_1!'
+        and sc_mem_m_ucf_member_group.member_group_control between '!member_group_control_1!' and '!member_group_control_2!'
+and sc_rep_mem_share_loan_year.member_status_code = '!member_status_code_1!'
+        GROUP BY   sc_lon_m_rule.loan_type ||' '|| sc_lon_m_rule.loan_type_description
+        order by  sc_lon_m_rule.loan_type ||' '|| sc_lon_m_rule.loan_type_description
+      </sql>
+    </r_krabi_sum_sh_loan_balance_nest_spec>
+  </sub>
+</root>

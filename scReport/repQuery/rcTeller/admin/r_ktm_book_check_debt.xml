@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <membership_no special="memno" text="ทะเบียน" table="sc_mem_m_membership_registered" readonly="0" />
+    <sysdate default="select null from dual" text="วันที่" type="date" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <as_letter text="เลขที่เอกสาร" default="กท 4101/6729 " column="as_letter" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <as_to default="ผู้อำนวยการเขตดุสิต" text="เรียน" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <refer default="เรื่องตรวจสอบหนี้สิน" text="อ้างอิง" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <as_book default="หนังสือสำนักงานเขตป้อมปราบศัตรูพ่าย ที่ กท  4601/1813" text="ตามหนังสือ" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <sysdate_2 default="select null from dual" text="ลงวันที่" type="date" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <as_position default="เจ้าหนักงานธุรการปฎิบัติงาน" text="ตำแหน่ง" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <as_department default="ทะเบียนสำนักงานเขตดุสิต" text="ฝ่าย" column="department" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <as_name default="นางรวีวรรณ  ช่อดอก" text="ผู้ช่วยฯ" combo="sc_cnt_m_committee_list3" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    select
+    pka_com_function.fp_get_thaidate('!sysdate_1!' , 'SD MONTH YYYY') as sysdate_tdate
+    ,pka_com_function.fp_get_thaidate('!sysdate_2!' , 'SD MONTH YYYY') as sysdate_tdate2
+    ,'!as_to!' as_to
+    ,'!as_book!' as_book
+    ,'!as_position!' as_position
+    ,'!as_department!' as_department
+    ,'!as_department!' as_department
+    ,'!as_department!' as_department
+    ,'!as_name_2!' as as_name2
+    ,'!as_letter!' as as_letter
+    ,'!as_name_1!'as as_name
+    ,(select coop_name from sc_cnt_m_coop ) as coop_name
+    ,'!refer_1!' as refer
+
+    from sc_mem_m_membership_registered
+    where 1 = 1
+    /*WHERE*/
+  </sql>
+  <sub />
+</root>

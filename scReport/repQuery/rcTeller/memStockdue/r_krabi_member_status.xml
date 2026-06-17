@@ -1,0 +1,76 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <membership_no align="center" special="memno" text="ทะเบียน" table="sc_mem_m_membership_registered" nulltext="ดูทั้งหมด ไม่ต้องคีย์" readonly="0" />
+  </arg>
+  <combo />
+  <sql>SELECT 	sc_mem_m_membership_registered.membership_no,   
+		PKA_COM_FUNCTION.fp_get_member_name( sc_mem_m_membership_registered.membership_no ) as membername ,
+		sc_mem_m_membership_registered.drop_loanemer_status,   
+		sc_mem_m_membership_registered.drop_loanspec_status,   
+		sc_mem_m_membership_registered.drop_loannormal_status,   
+		sc_mem_m_membership_registered.collactelral_status,   
+		sc_mem_m_membership_registered.debtor_code,   
+                sc_mem_m_membership_registered.share_sequester,
+                sc_mem_m_membership_registered.force_keeping,
+                sc_mem_m_membership_registered.crem_status,
+                sc_mem_m_membership_registered.represent_status,
+                sc_mem_m_membership_registered.committee_status,
+                sc_mem_m_membership_registered.official_status,
+                sc_mem_m_membership_registered.agent_status,
+                sc_mem_m_membership_registered.inspector_status,
+               sc_mem_m_membership_registered.coll_resign,
+    
+                ( SELECT  sc_mem_m_ucf_debtor.debtor_desc  
+                  FROM    sc_mem_m_ucf_debtor 
+                 where   sc_mem_m_ucf_debtor.debtor_desc  = sc_mem_m_membership_registered.debtor_code) as debtor_desc  ,
+		sc_mem_m_membership_registered.adj_payroll,   
+		sc_mem_m_membership_registered.att_loan_permit,   
+		sc_mem_m_membership_registered.drop_divident,   
+		sc_mem_m_membership_registered.drop_average,   
+		sc_mem_m_membership_registered.other_code,   
+		 ( SELECT sc_mem_m_ucf_other_code.mem_type_desc  
+                 FROM sc_mem_m_ucf_other_code
+                  where sc_mem_m_ucf_other_code.mem_type_code = sc_mem_m_membership_registered.other_code) as mem_type_desc ,
+    
+		sc_mem_m_membership_registered.shareloan_code,   
+                (select sc_mem_m_ucf_shareloan_status.description  
+                 from sc_mem_m_ucf_shareloan_status 
+                 where sc_mem_m_ucf_shareloan_status.shareloan_code = sc_mem_m_membership_registered.shareloan_code) as description ,
+		sc_mem_m_membership_registered.other_saving_member   ,
+                ( SELECT sc_mem_m_ucf_othersaving.saving_name  
+                FROM sc_mem_m_ucf_othersaving
+                where sc_mem_m_ucf_othersaving.other_saving_member = sc_mem_m_membership_registered.other_saving_member) as saving_name ,
+		sc_mem_m_ucf_member_group.member_group_no,   
+		sc_mem_m_ucf_member_group.member_group_name,   
+		sc_mem_m_ucf_member_group.member_group_control,   
+		sc_mem_m_ucf_member_group.control_id
+
+FROM 	sc_mem_m_membership_registered,   
+         	sc_mem_m_ucf_member_group  
+WHERE 	( 	sc_mem_m_ucf_member_group.member_group_no 			= sc_mem_m_membership_registered.member_group_no ) 
+AND         	(  	sc_mem_m_membership_registered.member_status_code 	= '0' ) 
+AND		( 	sc_mem_m_membership_registered.drop_loanemer_status 	&lt;&gt; 	'0' 
+OR				sc_mem_m_membership_registered.drop_loanemer_status	&lt;&gt; 	'0' 
+OR				sc_mem_m_membership_registered.drop_loanspec_status	&lt;&gt; 	'0' 
+OR				sc_mem_m_membership_registered.drop_loannormal_status	&lt;&gt; 	'0' 
+OR				sc_mem_m_membership_registered.collactelral_status		&lt;&gt; 	'0' 
+OR				sc_mem_m_membership_registered.debtor_code				&lt;&gt; 	'00' 
+OR				sc_mem_m_membership_registered.adj_payroll				&lt;&gt; 	'0' 
+OR				sc_mem_m_membership_registered.att_loan_permit			&lt;&gt; 	'0' 
+OR				sc_mem_m_membership_registered.drop_divident			&lt;&gt; 	'0' 
+OR				sc_mem_m_membership_registered.drop_average			&lt;&gt; 	'0' 
+OR				sc_mem_m_membership_registered.other_code				&lt;&gt;	'00'
+OR				sc_mem_m_membership_registered.shareloan_code			&lt;&gt;	'00'
+OR				sc_mem_m_membership_registered.other_saving_member  	&lt;&gt;	'0'   
+OR        sc_mem_m_membership_registered.force_keeping &lt;&gt; '0' 
+OR        sc_mem_m_membership_registered.crem_status &lt;&gt; '0' 
+OR        sc_mem_m_membership_registered.represent_status &lt;&gt; '0'
+OR        sc_mem_m_membership_registered.committee_status &lt;&gt; '0'
+OR        sc_mem_m_membership_registered.official_status &lt;&gt; '0'
+OR        sc_mem_m_membership_registered.agent_status &lt;&gt; '0'
+OR        sc_mem_m_membership_registered.inspector_status &lt;&gt; '0' 
+OR        sc_mem_m_membership_registered.coll_resign &lt;&gt; '0' )
+/*WHERE*/ </sql>
+  <sub />
+</root>

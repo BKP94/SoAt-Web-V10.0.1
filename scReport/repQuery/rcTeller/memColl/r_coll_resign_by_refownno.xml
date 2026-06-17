@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <approve_date text="วันที่ลาออก" table="sc_mem_m_resign_requestment" type="date" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>  SELECT sc_mem_m_resign_requestment.membership_no,   
+         sc_mem_m_resign_requestment.approve_date,   
+         sc_mem_m_resign_loncoll.contract_memno,   
+         sc_mem_m_resign_loncoll.loan_contract_no,   
+         sc_mem_m_resign_loncoll.contract_mem_name,   
+         sc_lon_m_loan_card.principal_balance,   
+         pka_com_function.fp_get_member_name(  sc_mem_m_resign_requestment.membership_no  )   as collname,   
+         sc_mem_m_membership_registered.member_group_no,   
+         sc_mem_m_resign_requestment.resign_code,   
+         sc_mem_m_ucf_resign_cause.resign_cause_name  
+    FROM sc_mem_m_resign_requestment,   
+         sc_mem_m_resign_loncoll,   
+         sc_lon_m_loan_card,   
+         sc_mem_m_membership_registered,   
+         sc_mem_m_ucf_resign_cause  
+   WHERE ( sc_mem_m_resign_requestment.resign_doc_no = sc_mem_m_resign_loncoll.resign_doc_no ) and  
+         ( sc_mem_m_resign_loncoll.loan_contract_no = sc_lon_m_loan_card.loan_contract_no ) and  
+         ( sc_mem_m_resign_requestment.membership_no = sc_mem_m_membership_registered.membership_no ) and  
+         ( sc_mem_m_resign_requestment.resign_code = sc_mem_m_ucf_resign_cause.resign_cause_code ) and  
+         ( ( sc_mem_m_resign_requestment.approve_result = '1' ) )
+         /*WHERE*/
+--         AND ( sc_mem_m_resign_requestment.approve_date between '1/6/2020'  and '30/6/2020' ) )   
+ORDER BY sc_mem_m_membership_registered.member_group_no ASC,   
+         sc_mem_m_resign_requestment.membership_no ASC,   
+         sc_mem_m_resign_loncoll.loan_contract_no ASC   
+</sql>
+  <sub />
+</root>

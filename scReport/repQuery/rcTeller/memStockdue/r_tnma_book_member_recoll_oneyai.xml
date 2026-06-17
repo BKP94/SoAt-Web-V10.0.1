@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <membership_no text="เลขทะเบียน" table="sc_lon_m_loan_card" readonly="0" comboreplace="0" combowhere="0" />
+    <letter text="เลขที่เอกสาร" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <book_day text="วันที่หนังสือ" type="date" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>
+    select sc_lon_m_loan_card.membership_no
+    ,'!letter_1!' as letter
+    , PKA_COM_FUNCTION.fp_get_thaidate( '!book_day_1!' , 'SD  MONTH  YYYY' ) as book_day
+    ,   pka_com_function.fp_get_member_name(sc_lon_m_loan_card.membership_no)as mem_name
+    ,  pka_com_function.fp_get_group_name_mem (sc_lon_m_loan_card.membership_no)as group_name
+    ,   pka_com_function.fp_get_member_address_letter(  sc_lon_m_loan_card.membership_no, '0' , 6 ) as address_no
+    ,   pka_com_function.fp_get_member_address_letter(  sc_lon_m_loan_card.membership_no , '0' , 7 ) as mooban
+    ,   pka_com_function.fp_get_member_address_letter(  sc_lon_m_loan_card.membership_no , '0' , 8 ) as moo
+    ,   pka_com_function.fp_get_member_address_letter( sc_lon_m_loan_card.membership_no , '0' , 9 ) as road
+    ,   pka_com_function.fp_get_member_address_letter(  sc_lon_m_loan_card.membership_no , '0' , 10 ) as soi
+    ,   pka_com_function.fp_get_member_address_letter(  sc_lon_m_loan_card.membership_no , '0' , 11 ) as tambol
+    ,   pka_com_function.fp_get_member_address_letter(  sc_lon_m_loan_card.membership_no , '0' , 12 ) as district
+    ,   pka_com_function.fp_get_member_address_letter(  sc_lon_m_loan_card.membership_no , '0' , 13 ) as province
+    ,   pka_com_function.fp_get_member_address_letter(  sc_lon_m_loan_card.membership_no , '0' , 14 ) as postcode
+    ,   pka_com_function.fp_get_member_address_letter(  sc_lon_m_loan_card.membership_no , '0' , 15 ) as telephone
+
+
+    ,sc_lon_m_contract_coll.ref_own_no
+    , pka_com_function.fp_get_member_name(sc_lon_m_contract_coll.ref_own_no)as ref_name
+    ,FP_GET_COLL_MEMNO(sc_lon_m_contract_coll.ref_own_no , sc_lon_m_loan_card.membership_no ) as loantest
+    from sc_lon_m_contract_coll
+    ,sc_lon_m_loan_card
+    ,sc_mem_m_membership_registered
+    where sc_lon_m_loan_card.loan_contract_no = sc_lon_m_contract_coll.loan_contract_no
+    and sc_mem_m_membership_registered.membership_no = sc_lon_m_contract_coll.ref_own_no
+    and sc_mem_m_membership_registered.member_status_code = '3'
+    and sc_mem_m_membership_registered.resign_code = '1081'
+    and sc_lon_m_loan_card.principal_balance &gt; 0
+ /*WHERE*/
+ --and sc_lon_m_loan_card.membership_no = '064467'
+ group by sc_lon_m_loan_card.membership_no
+ ,sc_lon_m_contract_coll.ref_own_no
+ ,FP_GET_COLL_MEMNO(sc_lon_m_contract_coll.ref_own_no , sc_lon_m_loan_card.membership_no )</sql>
+  <sub />
+</root>

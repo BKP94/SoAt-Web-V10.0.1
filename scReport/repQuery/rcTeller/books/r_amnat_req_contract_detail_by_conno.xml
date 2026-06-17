@@ -1,0 +1,171 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <aeg>
+  </aeg>
+  <arg>
+    <begining_of_contract align="center" text="วันที่" table="sc_lon_m_contract" type="date" operator="ge" readonly="0" />
+    <loan_contract_no align="center" default="select max(loan_contract_no) from sc_lon_m_contract where loan_type = 'ส' and begining_of_contract &gt;= sysdate - 3" text="เลขที่สัญญา" table="sc_lon_m_contract" operator="bt" readonly="0" />
+    <membership_no align="center" special="memno" text="ทะเบียน" table="sc_lon_m_contract" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT  sc_lon_m_contract.loan_contract_no ,
+
+    ( select ref_own_no
+    from sc_lon_m_contract_coll
+    where sc_lon_m_contract.loan_contract_no = sc_lon_m_contract_coll.loan_contract_no
+    and 	sc_lon_m_contract_coll.status = '0'
+    and   sc_lon_m_contract_coll.collateral_type_code = '01'
+    and   collateral_no = '1' ) as ref_own_no_1 , /*คนค้ำที่ 1*/
+
+    ( select ref_own_no
+    from sc_lon_m_contract_coll
+    where sc_lon_m_contract.loan_contract_no = sc_lon_m_contract_coll.loan_contract_no
+    and 	sc_lon_m_contract_coll.status = '0'
+    and   sc_lon_m_contract_coll.collateral_type_code = '01'
+    and   collateral_no = '2' ) as ref_own_no_2 , /*คนค้ำที่ 2*/
+
+    ( select ref_own_no
+    from sc_lon_m_contract_coll
+    where sc_lon_m_contract.loan_contract_no = sc_lon_m_contract_coll.loan_contract_no
+    and 	sc_lon_m_contract_coll.status = '0'
+    and   sc_lon_m_contract_coll.collateral_type_code = '01'
+    and   collateral_no = '3' ) as ref_own_no_3 ,/*คนค้ำที่ 3*/
+
+    ( select ref_own_no
+    from sc_lon_m_contract_coll
+    where sc_lon_m_contract.loan_contract_no = sc_lon_m_contract_coll.loan_contract_no
+    and 	sc_lon_m_contract_coll.status = '0'
+    and   sc_lon_m_contract_coll.collateral_type_code = '01'
+    and   collateral_no = '4' ) as ref_own_no_4 ,/*คนค้ำที่ 4*/
+
+    ( select ref_own_no
+    from sc_lon_m_contract_coll
+    where sc_lon_m_contract.loan_contract_no = sc_lon_m_contract_coll.loan_contract_no
+    and 	sc_lon_m_contract_coll.status = '0'
+    and   sc_lon_m_contract_coll.collateral_type_code = '01'
+    and   collateral_no = '5' ) as ref_own_no_5 ,/*คนค้ำที่ 5*/
+
+    pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract , 'SD MONTH YYYY') as begining_of_contract,
+    pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract , 'SD') as begining_of_day,
+    pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract , 'YYYY') as begining_of_year,
+    pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract , 'MONTH') as begining_of_month,
+    sc_lon_m_contract.loan_type ,
+    sc_lon_m_rule.loan_type_description ,
+    sc_lon_m_contract.membership_no   ,
+    sc_lon_m_contract.loan_approve_amount,
+    sc_lon_m_loan_request.max_loan_permit,
+    sc_lon_m_loan_request.total_old_loan,
+    sc_lon_m_loan_request.total_oldint,
+    sc_lon_m_loan_request.buy_share,
+    si_security_user.user_name,
+    sc_lon_m_req_fee.amount
+
+    ,nvl((select sum(principal_of_loan)
+    from sc_lon_m_loan_history,
+    sc_lon_m_contract
+    where sc_lon_m_loan_history.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+    and sc_lon_m_loan_history.loan_contract_no = sc_lon_m_contract.loan_contract_no
+    and sc_lon_m_contract.loan_type = 'ฉ'
+    and sc_lon_m_loan_history.clear_target = '1'),0) as principal_of_loan
+
+    ,nvl((select sum(interest_amount)
+    from sc_lon_m_loan_history,
+    sc_lon_m_contract
+    where sc_lon_m_loan_history.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+    and sc_lon_m_loan_history.loan_contract_no = sc_lon_m_contract.loan_contract_no
+    and sc_lon_m_contract.loan_type = 'ฉ'
+    and sc_lon_m_loan_history.clear_target = '1'),0) as interest_amount
+
+    FROM sc_lon_m_contract ,
+    sc_lon_m_req_fee,
+    si_security_user,
+    sc_lon_m_rule     ,
+    sc_lon_m_loan_request
+    WHERE ( sc_lon_m_loan_request.entry_id = si_security_user.user_id)
+    and   ( sc_lon_m_req_fee.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no)
+    and  	( sc_lon_m_rule.loan_type = sc_lon_m_contract.loan_type )
+    and		(  sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_contract.loan_requestment_no )
+    /*WHERE*/
+    --and		(  sc_lon_m_contract.loan_contract_no between 'ส65000012' and 'ส65000012')
+    --and 	(  sc_lon_m_contract.begining_of_contract &gt;= '18/1/2022' )
+    order by sc_lon_m_contract.begining_of_contract
+    ,sc_lon_m_contract.loan_contract_no
+  </sql>
+  <sub>
+    <r_amnat_req_contract_detail_by_conno_nest>
+      <sql>
+        SELECT sc_lon_m_loan_card.membership_no,
+        pka_com_function.fp_get_member_name(sc_lon_m_loan_card.membership_no)  as coll_name
+        FROM sc_lon_m_contract_coll,
+        sc_lon_m_loan_card
+        WHERE ( sc_lon_m_contract_coll.loan_contract_no = sc_lon_m_loan_card.loan_contract_no ) and
+        ( ( sc_lon_m_contract_coll.ref_own_no = {0} ) AND
+        ( sc_lon_m_contract_coll.collateral_type_code = '01' ) AND
+        ( sc_lon_m_contract_coll.status = '0' ) AND
+        ( sc_lon_m_loan_card.principal_balance &gt; 0 ) AND
+        ( sc_lon_m_loan_card.membership_no &lt;&gt;  {1}) )
+        /*"WHERE*/
+      </sql>
+    </r_amnat_req_contract_detail_by_conno_nest>
+    <r_amnat_req_contract_detail_by_conno_nest_coll_2>
+      <sql>
+        SELECT sc_lon_m_loan_card.membership_no,
+        pka_com_function.fp_get_member_name(sc_lon_m_loan_card.membership_no)  as coll_name
+        FROM sc_lon_m_contract_coll,
+        sc_lon_m_loan_card
+        WHERE ( sc_lon_m_contract_coll.loan_contract_no = sc_lon_m_loan_card.loan_contract_no ) and
+        ( ( sc_lon_m_contract_coll.ref_own_no = {0} ) AND
+        ( sc_lon_m_contract_coll.collateral_type_code = '01' ) AND
+        ( sc_lon_m_contract_coll.status = '0' ) AND
+        ( sc_lon_m_loan_card.principal_balance &gt; 0 ) AND
+        ( sc_lon_m_loan_card.membership_no &lt;&gt;  {1}) )
+        /*"WHERE*/
+      </sql>
+    </r_amnat_req_contract_detail_by_conno_nest_coll_2>
+    <r_amnat_req_contract_detail_by_conno_nest_coll_3>
+      <sql>
+        SELECT sc_lon_m_loan_card.membership_no,
+        pka_com_function.fp_get_member_name(sc_lon_m_loan_card.membership_no)  as coll_name
+        FROM sc_lon_m_contract_coll,
+        sc_lon_m_loan_card
+        WHERE ( sc_lon_m_contract_coll.loan_contract_no = sc_lon_m_loan_card.loan_contract_no ) and
+        ( ( sc_lon_m_contract_coll.ref_own_no = {0} ) AND
+        ( sc_lon_m_contract_coll.collateral_type_code = '01' ) AND
+        ( sc_lon_m_contract_coll.status = '0' ) AND
+        ( sc_lon_m_loan_card.principal_balance &gt; 0 ) AND
+        ( sc_lon_m_loan_card.membership_no &lt;&gt;  {1}) )
+        /*"WHERE*/
+      </sql>
+    </r_amnat_req_contract_detail_by_conno_nest_coll_3>
+    <r_amnat_req_contract_detail_by_conno_nest_coll_4>
+      <sql>
+        SELECT sc_lon_m_loan_card.membership_no,
+        pka_com_function.fp_get_member_name(sc_lon_m_loan_card.membership_no)  as coll_name
+        FROM sc_lon_m_contract_coll,
+        sc_lon_m_loan_card
+        WHERE ( sc_lon_m_contract_coll.loan_contract_no = sc_lon_m_loan_card.loan_contract_no ) and
+        ( ( sc_lon_m_contract_coll.ref_own_no = {0} ) AND
+        ( sc_lon_m_contract_coll.collateral_type_code = '01' ) AND
+        ( sc_lon_m_contract_coll.status = '0' ) AND
+        ( sc_lon_m_loan_card.principal_balance &gt; 0 ) AND
+        ( sc_lon_m_loan_card.membership_no &lt;&gt;  {1}) )
+        /*"WHERE*/
+      </sql>
+    </r_amnat_req_contract_detail_by_conno_nest_coll_4>
+    <r_amnat_req_contract_detail_by_conno_nest_coll_5>
+      <sql>
+        SELECT sc_lon_m_loan_card.membership_no,
+        pka_com_function.fp_get_member_name(sc_lon_m_loan_card.membership_no)  as coll_name
+        FROM sc_lon_m_contract_coll,
+        sc_lon_m_loan_card
+        WHERE ( sc_lon_m_contract_coll.loan_contract_no = sc_lon_m_loan_card.loan_contract_no ) and
+        ( ( sc_lon_m_contract_coll.ref_own_no = {0} ) AND
+        ( sc_lon_m_contract_coll.collateral_type_code = '01' ) AND
+        ( sc_lon_m_contract_coll.status = '0' ) AND
+        ( sc_lon_m_loan_card.principal_balance &gt; 0 ) AND
+        ( sc_lon_m_loan_card.membership_no &lt;&gt;  {1}) )
+        /*"WHERE*/
+      </sql>
+    </r_amnat_req_contract_detail_by_conno_nest_coll_5>
+  </sub>
+</root>

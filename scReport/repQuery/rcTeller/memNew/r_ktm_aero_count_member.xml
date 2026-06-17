@@ -1,0 +1,131 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <op_date text="วันที่" type="date" column="op_date" operator="bt" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <commit_chood text="ชุดที่" column="commit_chood" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <commit_count text="ครั้งที่" column="commit_count" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <commit_date text="วันที่ประชุม" type="date" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    SELECT count( 1 ) as member_01
+
+    ,( SELECT count( 1 )
+    FROM sc_mem_m_membership_registered
+    WHERE mem_type &lt;&gt; '01'  AND
+    member_status_code = '0') as member_02
+
+    ,(   SELECT sum( sc_com_m_receipt_item.item_amount  )
+    FROM sc_com_m_receipt,
+    sc_com_m_receipt_item,
+    sc_com_m_ucf_receipt_item_type
+    WHERE ( sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no ) and
+    ( sc_com_m_ucf_receipt_item_type.item_type_id = sc_com_m_receipt_item.item_type_id ) and
+    (  sc_com_m_receipt.receipt_date between   '!op_date_1!'  and  '!op_date_2!') AND
+    ( sc_com_m_receipt.receipt_status = '0' ) AND
+    ( sc_com_m_ucf_receipt_item_type.group_item = 'SHR' ) AND
+    ( sc_com_m_receipt_item.item_amount &gt; 0 )
+    ) as buy_share
+
+    ,(   SELECT count( 1 )
+    FROM sc_mem_m_application_form
+    WHERE ( sc_mem_m_application_form.apply_date between  '!op_date_1!'  and   '!op_date_2!'  ) AND
+    ( sc_mem_m_application_form.mem_type = '01' ) AND
+    ( sc_mem_m_application_form.cancel_status = '0' ) AND
+    ( sc_mem_m_application_form.approve_status = '2' )
+    ) as new_mem_01
+
+    ,(   SELECT count( 1 )
+    FROM sc_mem_m_application_form
+    WHERE ( sc_mem_m_application_form.apply_date between   '!op_date_1!'  and   '!op_date_2!'  ) AND
+    ( sc_mem_m_application_form.mem_type &lt;&gt; '01' ) AND
+    ( sc_mem_m_application_form.cancel_status = '0' ) AND
+    ( sc_mem_m_application_form.approve_status = '2' )
+    ) as new_mem_02
+
+    ,(  SELECT count( 1 )
+    FROM sc_mem_m_resign_requestment,
+    sc_mem_m_membership_registered
+    WHERE ( sc_mem_m_membership_registered.membership_no = sc_mem_m_resign_requestment.membership_no ) and
+    ( sc_mem_m_resign_requestment.resign_date between   '!op_date_1!'  and   '!op_date_2!'  ) AND
+    ( sc_mem_m_membership_registered.mem_type = '01' ) AND
+    ( sc_mem_m_resign_requestment.cancel_status = '0' ) AND
+    ( sc_mem_m_resign_requestment.approve_result = '2' )   AND
+    ( sc_mem_m_resign_requestment.resign_code &lt;&gt; '01' )
+    ) as resign_mem_01
+
+    ,(  SELECT count( 1 )
+    FROM sc_mem_m_resign_requestment,
+    sc_mem_m_membership_registered
+    WHERE ( sc_mem_m_membership_registered.membership_no = sc_mem_m_resign_requestment.membership_no ) and
+    ( sc_mem_m_resign_requestment.resign_date between   '!op_date_1!'  and   '!op_date_2!' ) AND
+    ( sc_mem_m_membership_registered.mem_type = '01' ) AND
+    ( sc_mem_m_resign_requestment.cancel_status = '0' ) AND
+    ( sc_mem_m_resign_requestment.approve_result = '2' ) AND
+    ( sc_mem_m_resign_requestment.resign_code = '01' )
+    ) as resign_mem_01_dead
+
+    ,(  SELECT count( 1 )
+    FROM sc_mem_m_resign_requestment,
+    sc_mem_m_membership_registered
+    WHERE ( sc_mem_m_membership_registered.membership_no = sc_mem_m_resign_requestment.membership_no ) and
+    ( sc_mem_m_resign_requestment.resign_date between    '!op_date_1!'  and   '!op_date_2!' ) AND
+    ( sc_mem_m_membership_registered.mem_type &lt;&gt; '01' ) AND
+    ( sc_mem_m_resign_requestment.cancel_status = '0' ) AND
+    ( sc_mem_m_resign_requestment.approve_result = '2' )   AND
+    ( sc_mem_m_resign_requestment.resign_code &lt;&gt; '01' )
+    ) as resign_mem_02
+
+    ,(  SELECT count( 1 )
+    FROM sc_mem_m_resign_requestment,
+    sc_mem_m_membership_registered
+    WHERE ( sc_mem_m_membership_registered.membership_no = sc_mem_m_resign_requestment.membership_no ) and
+    ( sc_mem_m_resign_requestment.resign_date between    '!op_date_1!'  and  '!op_date_2!'  ) AND
+    ( sc_mem_m_membership_registered.mem_type &lt;&gt; '01' ) AND
+    ( sc_mem_m_resign_requestment.cancel_status = '0' ) AND
+    ( sc_mem_m_resign_requestment.approve_result = '2' ) AND
+    ( sc_mem_m_resign_requestment.resign_code = '01' )
+    ) as resign_mem_02_dead
+
+
+    , ( SELECT count( 1 )
+    FROM sc_mem_m_chang_request,
+    sc_mem_m_chg_share_det
+    WHERE ( sc_mem_m_chg_share_det.document_no = sc_mem_m_chang_request.document_no ) and
+    ( sc_mem_m_chang_request.operate_date between   '!op_date_1!'  and  '!op_date_2!' ) AND
+    ( sc_mem_m_chang_request.approve_status = '2' ) AND
+    ( sc_mem_m_chg_share_det.drop_status = '2'  )    AND
+    (  sc_mem_m_chg_share_det.shr_value_new &gt;= sc_mem_m_chg_share_det.shr_value_old )
+    ) as share_incre
+
+    , ( SELECT count( 1 )
+    FROM sc_mem_m_chang_request,
+    sc_mem_m_chg_share_det
+    WHERE ( sc_mem_m_chg_share_det.document_no = sc_mem_m_chang_request.document_no ) and
+    ( sc_mem_m_chang_request.operate_date between   '!op_date_1!'  and   '!op_date_2!'  ) AND
+    ( sc_mem_m_chang_request.approve_status = '2' ) AND
+    ( sc_mem_m_chg_share_det.drop_status = '2'  )    AND
+    (  sc_mem_m_chg_share_det.shr_value_new &lt; sc_mem_m_chg_share_det.shr_value_old )
+    ) as share_decre
+
+    , ( SELECT count( 1 )
+    FROM sc_mem_m_chang_request,
+    sc_mem_m_chg_share_det
+    WHERE ( sc_mem_m_chg_share_det.document_no = sc_mem_m_chang_request.document_no ) and
+    ( sc_mem_m_chang_request.operate_date between    '!op_date_1!'  and   '!op_date_2!'  ) AND
+    ( sc_mem_m_chang_request.approve_status = '2' ) AND
+    ( sc_mem_m_chg_share_det.drop_status = '1'  )
+    ) as share_drop
+
+    , '!op_date_1!'  as bdate
+    , pka_com_function.fp_get_thaidate ( '!op_date_2!' , 'MONTH YYYY' ) as edate
+    , to_char( '!commit_chood_1!' ) as commit_chood
+    , to_char( '!commit_count_1!' ) as commit_count
+    , pka_com_function.fp_get_thaidate('!commit_date_1!', 'SD MONTH YYYY') as commit_date
+    FROM sc_mem_m_membership_registered
+    WHERE mem_type = '01'  AND
+    member_status_code = '0'
+    GROUP BY mem_type
+  </sql>
+  <sub />
+</root>

@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <member_group_no text="หน่วย" table="sc_mem_m_membership_registered" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+    <begining_of_contract text="วันที่" table="sc_lon_m_contract" type="date" column="begining_of_contract" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    select
+    sc_lon_m_contract.loan_contract_no as loan_contract_no_full,
+    SUBSTR(sc_lon_m_contract.loan_contract_no, 4, 6) as loan_contract_no,
+    sc_mem_m_membership_registered.membership_no,
+    (select prename from sc_mem_m_ucf_prename where prename_code = sc_mem_m_membership_registered.prename_code)
+    ||''||sc_mem_m_membership_registered.member_name||'  '||sc_mem_m_membership_registered.member_surname as member_name,
+    sc_mem_m_membership_registered.member_group_no,
+    (select member_group_name from sc_mem_m_ucf_member_group where member_group_no = sc_mem_m_membership_registered.member_group_no) as member_group_name,
+    (select manager_name from  sc_mem_m_ucf_member_group where member_group_no = sc_mem_m_membership_registered.member_group_no) as manager_name,
+    SUBSTR((select member_group_control from sc_mem_m_ucf_member_group where member_group_no = sc_mem_m_membership_registered.member_group_no), 1, 3) as member_group_control
+    from
+    sc_lon_m_contract,
+    sc_mem_m_membership_registered
+    where
+    sc_lon_m_contract.membership_no = sc_mem_m_membership_registered.membership_no
+    /*WHERE*/
+    order by
+    sc_mem_m_membership_registered.member_group_no,sc_lon_m_contract.loan_contract_no
+    --and sc_mem_m_membership_registered.membership_no = '083287'
+  </sql>
+  <sub>
+  </sub>
+</root>

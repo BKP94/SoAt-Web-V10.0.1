@@ -1,0 +1,275 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <metadata name="sqlDataSource1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>17, 17</value>
+  </metadata>
+  <data name="customSqlQuery1.Sql" xml:space="preserve">
+    <value>select sum(tab.row_memno)over(order by tab.member_group_no , tab.membership_no ) as rowno,  tab.*
+from (  SELECT 	decode(lag(sc_mem_m_ucf_member_group.member_group_no,1,null)over( order by sc_mem_m_ucf_member_group.member_group_no , sc_cls_confirm_mem.membership_no ) ,sc_mem_m_ucf_member_group.member_group_no ,0,1 ) as row_memno
+,       sc_mem_m_ucf_member_group.member_group_no
+,       sc_mem_m_ucf_member_group.member_group_name
+,       sc_mem_m_membership_registered.membership_no
+,       trim(sc_mem_m_ucf_prename.prename)||trim(sc_mem_m_membership_registered.member_name)||' '||trim(sc_mem_m_membership_registered.member_surname) as member_name
+,       sc_cls_confirm_data.data_balance as share_stock
+,       (select month_name_thai from sc_cnt_m_month where month_no = extract(month from sc_cls_confirm_data.confirm_date)) as confirm_month_thai
+,       extract(year from sc_cls_confirm_data.confirm_date)+543 as confirm_year
+,       sc_cls_confirm_data.confirm_date
+,       (select nvl(sum(data_balance),0)
+        from    sc_cls_confirm_data tab
+        where   membership_no = sc_cls_confirm_data.membership_no
+        and     confirm_date = sc_cls_confirm_data.confirm_date
+        and     data_group = 'LON'
+        and     data_balance &gt; '0'
+        ) as sum_all_loan
+,       (select nvl(count(distinct membership_no),0)
+        from    sc_cls_confirm_data tab
+        where   membership_no = sc_cls_confirm_data.membership_no
+        and     confirm_date = sc_cls_confirm_data.confirm_date
+        and     data_group = 'LON'
+        and     data_balance &gt; '0'
+        ) as count_all_loan
+,       (select nvl(sum(data_balance),0)
+        from    sc_cls_confirm_data tab
+        where   membership_no = sc_cls_confirm_data.membership_no
+        and     confirm_date = sc_cls_confirm_data.confirm_date
+        and     data_group = 'DEP'
+        and     data_type = '00'
+        and     data_balance &gt; '0'
+        ) as sum_dep_00
+,       (select nvl(count(data_refno),0)
+        from    sc_cls_confirm_data tab
+        where   membership_no = sc_cls_confirm_data.membership_no
+        and     confirm_date = sc_cls_confirm_data.confirm_date
+        and     data_group = 'DEP'
+        and     data_type = '00'
+        and     data_balance &gt; '0'
+        ) as count_dep_00
+,       (select nvl(sum(data_balance),0)
+        from    sc_cls_confirm_data tab
+        where   membership_no = sc_cls_confirm_data.membership_no
+        and     confirm_date = sc_cls_confirm_data.confirm_date
+        and     data_group = 'DEP'
+        and     data_type = '12'
+        and     data_balance &gt; '0'
+        ) as sum_dep_12
+,       (select nvl(count(data_refno),0)
+        from    sc_cls_confirm_data tab
+        where   membership_no = sc_cls_confirm_data.membership_no
+        and     confirm_date = sc_cls_confirm_data.confirm_date
+        and     data_group = 'DEP'
+        and     data_type = '12'
+        and     data_balance &gt; '0'
+        ) as count_dep_12
+,       (select nvl(sum(data_balance),0)
+        from    sc_cls_confirm_data tab
+        where   membership_no = sc_cls_confirm_data.membership_no
+        and     confirm_date = sc_cls_confirm_data.confirm_date
+        and     data_group = 'DEP'
+        and     data_type = '40'
+        and     data_balance &gt; '0'
+        ) as sum_dep_40
+,       (select nvl(count(data_refno),0)
+        from    sc_cls_confirm_data tab
+        where   membership_no = sc_cls_confirm_data.membership_no
+        and     confirm_date = sc_cls_confirm_data.confirm_date
+        and     data_group = 'DEP'
+        and     data_type = '40'
+        and     data_balance &gt; '0'
+        ) as count_dep_40
+,       (select nvl(sum(data_balance),0)
+        from    sc_cls_confirm_data tab
+        where   membership_no = sc_cls_confirm_data.membership_no
+        and     confirm_date = sc_cls_confirm_data.confirm_date
+        and     data_group = 'DEP'
+        and     data_type = '50'
+        and     data_balance &gt; '0'
+        ) as sum_dep_50
+,       (select nvl(count(data_refno),0)
+        from    sc_cls_confirm_data tab
+        where   membership_no = sc_cls_confirm_data.membership_no
+        and     confirm_date = sc_cls_confirm_data.confirm_date
+        and     data_group = 'DEP'
+        and     data_type = '50'
+        and     data_balance &gt; '0'
+        ) as count_dep_50
+,       (select nvl(sum(data_balance),0)
+        from    sc_cls_confirm_data tab
+        where   membership_no = sc_cls_confirm_data.membership_no
+        and     confirm_date = sc_cls_confirm_data.confirm_date
+        and     data_group = 'DEP'
+        and     data_type = '60'
+        and     data_balance &gt; '0'
+        ) as sum_dep_60
+,       (select nvl(count(data_refno),0)
+        from    sc_cls_confirm_data tab
+        where   membership_no = sc_cls_confirm_data.membership_no
+        and     confirm_date = sc_cls_confirm_data.confirm_date
+        and     data_group = 'DEP'
+        and     data_type = '60'
+        and     data_balance &gt; '0'
+        ) as count_dep_60
+,       (select nvl(sum(data_balance),0)
+        from    sc_cls_confirm_data tab
+        where   membership_no = sc_cls_confirm_data.membership_no
+        and     confirm_date = sc_cls_confirm_data.confirm_date
+        and     data_group = 'DEP'
+        and     data_type = '61'
+        and     data_balance &gt; '0'
+        ) as sum_dep_61
+,       (select nvl(count(data_refno),0)
+        from    sc_cls_confirm_data tab
+        where   membership_no = sc_cls_confirm_data.membership_no
+        and     confirm_date = sc_cls_confirm_data.confirm_date
+        and     data_group = 'DEP'
+        and     data_type = '61'
+        and     data_balance &gt; '0'
+        ) as count_dep_61
+,       (select nvl(sum(data_balance),0)
+        from    sc_cls_confirm_data tab
+        where   membership_no = sc_cls_confirm_data.membership_no
+        and     confirm_date = sc_cls_confirm_data.confirm_date
+        and     data_group = 'DEP'
+        and     data_type = '62'
+        and     data_balance &gt; '0'
+        ) as sum_dep_62
+,       (select nvl(count(data_refno),0)
+        from    sc_cls_confirm_data tab
+        where   membership_no = sc_cls_confirm_data.membership_no
+        and     confirm_date = sc_cls_confirm_data.confirm_date
+        and     data_group = 'DEP'
+        and     data_type = '62'
+        and     data_balance &gt; '0'
+        ) as count_dep_62
+from    sc_cls_confirm_mem
+,       sc_cls_confirm_data
+,       sc_mem_m_membership_registered
+,       sc_mem_m_ucf_member_group
+,       sc_mem_m_ucf_prename
+where   1=2
+--and     sc_cls_confirm_data.confirm_date = '31/07/2023'
+--and     sc_mem_m_ucf_member_group.member_group_no = '040900'
+/*WHERE*/
+order by sc_mem_m_ucf_member_group.member_group_no
+)tab</value>
+  </data>
+  <data name="sqlDataSource1.ResultSchemaSerializable" xml:space="preserve">
+    <value>PERhdGFTZXQgTmFtZT0ic3FsRGF0YVNvdXJjZTEiPjxWaWV3IE5hbWU9IlF1ZXJ5Ij48RmllbGQgTmFtZT0iUk9XTk8iIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IlJPV19NRU1OTyIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iTUVNQkVSX0dST1VQX05PIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9Ik1FTUJFUl9HUk9VUF9OQU1FIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9Ik1FTUJFUlNISVBfTk8iIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iTUVNQkVSX05BTUUiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iU0hBUkVfU1RPQ0siIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IkNPTkZJUk1fTU9OVEhfVEhBSSIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJDT05GSVJNX1lFQVIiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IkNPTkZJUk1fREFURSIgVHlwZT0iRGF0ZVRpbWUiIC8+PEZpZWxkIE5hbWU9IlNVTV9BTExfTE9BTiIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iQ09VTlRfQUxMX0xPQU4iIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IlNVTV9ERVBfMDAiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IkNPVU5UX0RFUF8wMCIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iU1VNX0RFUF8xMiIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iQ09VTlRfREVQXzEyIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJTVU1fREVQXzQwIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJDT1VOVF9ERVBfNDAiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IlNVTV9ERVBfNTAiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IkNPVU5UX0RFUF81MCIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iU1VNX0RFUF82MCIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iQ09VTlRfREVQXzYwIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJTVU1fREVQXzYxIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJDT1VOVF9ERVBfNjEiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IlNVTV9ERVBfNjIiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IkNPVU5UX0RFUF82MiIgVHlwZT0iRGVjaW1hbCIgLz48L1ZpZXc+PC9EYXRhU2V0Pg==</value>
+  </data>
+</root>

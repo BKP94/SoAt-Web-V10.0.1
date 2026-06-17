@@ -1,0 +1,81 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <year special="year" text="ปี" type="integer" sqlwhere="0" sqlreplace="1" />
+    <month special="month" text="เดือน" type="integer" combo="monthThLong" sqlwhere="0" sqlreplace="1" />
+  </arg>
+  <combo />
+  <sql>SELECT sc_lon_m_contract.begining_of_contract 
+      ,pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract , 'dd') as day
+     
+     ,count(decode(sc_lon_m_rule.loan_type,'21',sc_lon_m_contract.membership_no,'22',sc_lon_m_contract.membership_no,'42',sc_lon_m_contract.membership_no)) as c_count_mem
+      ,nvl(sum(decode(sc_lon_m_rule.loan_type,'21',sc_lon_m_contract.loan_approve_amount,'22',sc_lon_m_contract.loan_approve_amount,'42',sc_lon_m_contract.loan_approve_amount)),0) as c_loan_approve_amount
+      
+      ,( select sum(  sc_com_m_receipt_item.item_amount  ) 
+         from sc_com_m_receipt,   
+             sc_com_m_receipt_item,   
+             sc_com_m_ucf_receipt_item_type,
+             sc_lon_m_contract,
+             sc_lon_m_rule
+        where ( sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no ) 
+        and   ( sc_com_m_receipt_item.item_type_id = sc_com_m_ucf_receipt_item_type.item_type_id ) 
+        and   (sc_lon_m_contract.loan_contract_no = sc_com_m_receipt.loan_contract_no)
+        and   (sc_lon_m_rule.loan_type = sc_lon_m_contract.loan_type)
+        and   ( sc_lon_m_rule.loan_type in ('21','22','42'))
+        and   (sc_com_m_receipt.receipt_status = '0')
+        and   to_number(to_char(  sc_com_m_receipt.receipt_date  ,'yyyy')) = '!year_1!'
+        and   to_number(to_char(  sc_com_m_receipt.receipt_date  ,'mm')) =  '!month_1!'
+        )  as c_total_clr_sum
+        
+      ,nvl(sum(decode(sc_lon_m_rule.loan_type,'21',sc_lon_m_contract.real_recieve,'22',sc_lon_m_contract.real_recieve,'42',sc_lon_m_contract.real_recieve)),0) as c_paid_amount
+      
+      ,count(decode(sc_lon_m_rule.loan_type,'25',sc_lon_m_contract.membership_no)) as c_count_mem_25
+      ,nvl(sum(decode(sc_lon_m_rule.loan_type,'25',sc_lon_m_contract.loan_approve_amount)),0) as c_paid_amount_25
+      
+      ,'!year_1!' +543 as req_year
+      ,pka_com_function.fp_get_month_name('!month_1!','LT') as req_month_name
+FROM sc_lon_m_rule,   
+     sc_acc_m_account_master,   
+     sc_lon_m_contract,   
+     sc_com_m_branch
+    ,sc_lon_m_contract_multi_paid
+    ,sc_com_m_ucf_money_type
+    ,sc_lon_m_loan_request
+WHERE ( sc_lon_m_rule.account_id = sc_acc_m_account_master.account_id ) 
+and   ( sc_lon_m_rule.loan_type = sc_lon_m_contract.loan_type ) 
+and   (sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_contract.loan_requestment_no ) 
+and   ( sc_lon_m_contract.create_loan_status = '1' )   
+and   ( sc_com_m_branch.branch_id = sc_lon_m_contract.branch_id ) 
+and   sc_lon_m_contract_multi_paid.loan_contract_no = sc_lon_m_contract.loan_contract_no
+and   sc_lon_m_contract_multi_paid.type_pay_money = sc_com_m_ucf_money_type.money_type_id
+and   sc_lon_m_contract_multi_paid.seq_no = 1
+and   sc_lon_m_rule.invest_status = '0'
+and   sc_lon_m_rule.loan_type in ('21','22','42','25')
+/*WHERE*/
+and   to_number(to_char(  sc_lon_m_contract.begining_of_contract  ,'yyyy')) = '!year_1!'
+and   to_number(to_char(  sc_lon_m_contract.begining_of_contract  ,'mm')) =  '!month_1!'
+GROUP BY sc_lon_m_contract.begining_of_contract
+ORDER BY sc_lon_m_contract.begining_of_contract ASC </sql>
+  <sub>
+    <r_tge_loan_app_sum_nest>
+      <sql>
+        SELECT  sum(sc_com_m_receipt_item.item_amount) as c_total_clr
+        FROM sc_com_m_receipt,
+        sc_com_m_receipt_item,
+        sc_com_m_ucf_receipt_item_type ,
+        sc_lon_m_contract,
+        sc_lon_m_rule
+        WHERE ( sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no )
+        and   ( sc_com_m_receipt_item.item_type_id = sc_com_m_ucf_receipt_item_type.item_type_id )
+        and   ( ( sc_com_m_receipt.receipt_date = {0})
+        and   ( sc_com_m_receipt.receipt_status = '0' ) )
+        and   (sc_lon_m_rule.ref_contract_no = 'ส')
+        and   (sc_lon_m_contract.loan_contract_no = sc_com_m_receipt.loan_contract_no)
+        and   (sc_lon_m_rule.loan_type = sc_lon_m_contract.loan_type)
+        /*WHERE*/
+        GROUP BY sc_com_m_receipt.receipt_date
+        ORDER BY sc_com_m_receipt.receipt_date asc
+      </sql>
+    </r_tge_loan_app_sum_nest>
+  </sub>
+</root>

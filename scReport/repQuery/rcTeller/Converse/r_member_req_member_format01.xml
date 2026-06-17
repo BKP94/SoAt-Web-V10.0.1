@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <apply_date text="วันที่" table="sc_mem_m_application_form" type="date" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    select sc_mem_m_application_form.application_form_no,
+    sc_mem_m_application_form.member_group_no,
+    sc_mem_m_application_form.apply_date,
+    sc_mem_m_application_form.member_name,
+    sc_mem_m_application_form.member_surname,
+    sc_mem_m_application_form.sex,
+    sc_mem_m_application_form.date_of_birth,
+    sc_mem_m_application_form.age,
+    sc_mem_m_application_form.salary_amount,
+    sc_mem_m_ucf_prename.prename,
+    sc_mem_m_share_app.share_qty,
+    sc_mem_m_share_app.recrieve_share,
+    sc_mem_m_share_app.share_amount,
+    sc_mem_m_ucf_member_group.member_group_name,
+    sc_mem_m_ucf_application_type.appl_type_name,
+    sc_mem_m_ucf_position.position_name  ,
+    sc_mem_ucf_group_position.description ,
+    sc_mem_ucf_group_position.group_position ,
+    sc_mem_ucf_group_position.grooup_contract
+    from sc_mem_m_application_form,
+    sc_mem_m_share_app,
+    sc_mem_m_ucf_prename,
+    sc_mem_m_ucf_member_group,
+    sc_mem_m_ucf_application_type,
+    sc_mem_m_ucf_position  ,
+    sc_mem_ucf_group_position
+    where ( sc_mem_m_application_form.application_form_no = sc_mem_m_share_app.application_form_no )
+    and   ( sc_mem_m_application_form.prename_code = sc_mem_m_ucf_prename.prename_code )
+    and   ( sc_mem_m_application_form.member_group_no = sc_mem_m_ucf_member_group.member_group_no )
+    and   ( sc_mem_m_application_form.appl_type_code = sc_mem_m_ucf_application_type.appl_type_code )
+   --and  (sc_mem_ucf_group_position.group_position = sc_mem_m_application_form.group_position)
+  --and   ( sc_mem_m_application_form.position_code = sc_mem_m_ucf_position.position_code )
+    and   (sc_mem_m_application_form.mem_type  =  '01')
+   /*WHERE*/
+   --and  ( sc_mem_m_application_form.apply_date between '01/01/2019' and '18/09/2019' )
+  </sql>
+  <sub />
+</root>

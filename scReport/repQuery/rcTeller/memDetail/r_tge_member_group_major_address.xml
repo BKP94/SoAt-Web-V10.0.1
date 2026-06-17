@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <member_group_major text="สังกัด" table="sc_mem_m_ucf_groupmajor" combo="sc_mem_m_ucf_groupmajor2" readonly="0" />
+    <member_group_no text="หน่วย" table="sc_mem_m_ucf_member_group" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select  pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as membername
+,       sc_mem_m_membership_registered.membership_no
+,       pka_com_function.fp_get_member_address_pres(sc_mem_m_membership_registered.membership_no) as member_address
+,       sc_mem_m_ucf_groupmajor.member_group_major
+,       sc_mem_m_ucf_groupmajor.group_major_name
+,       sc_mem_m_ucf_member_group.member_group_no
+,       sc_mem_m_ucf_member_group.member_group_name
+from    sc_mem_m_membership_registered
+,       sc_mem_m_ucf_groupmajor
+,       sc_mem_m_ucf_member_group
+where   sc_mem_m_ucf_groupmajor.member_group_major = sc_mem_m_ucf_member_group.member_group_major
+and     sc_mem_m_ucf_member_group.member_group_no = sc_mem_m_membership_registered.member_group_no
+and     sc_mem_m_membership_registered.member_status_code = '0'
+and     sc_mem_m_membership_registered.mem_type = '01'
+--and     sc_mem_m_ucf_groupmajor.member_group_major = '000005'
+/*WHERE*/
+</sql>
+  <sub />
+</root>

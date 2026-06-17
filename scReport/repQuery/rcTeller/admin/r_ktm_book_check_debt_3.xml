@@ -1,0 +1,65 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <membership_no special="memno" text="ทะเบียน" table="sc_mem_m_membership_registered" sqlreplace="1" readonly="0" />
+    <sysdate text="วันที่" type="date" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <as_letter text="เลขที่เอกสาร" default="กท 4101/6729 " column="as_letter" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <as_to default="ผู้อำนวยการเขตดุสิต" text="เรียน" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <as_book default="สำนักงานเขตดุสิต ที่ กท  4602/4881" text="ตามหนังสือ" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <sysdate_2 default="select null from dual" text="ลงวันที่" type="date" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <group_position default="ข้าราชการกรุงเทพมหานครสามัญ" text="กลุ่มตำแหน่ง" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <as_position default="เจ้าพนักงานธุรการชำนาญงาน" text="ตำแหน่ง" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <as_department default="ฝ่ายรักษาความสะอาดและสวนสาธารณะ สำนักงานเขตดุสิต" text="ฝ่าย" column="department" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <as_name default="นางรวีวรรณ  ช่อดอก" text="ผู้ช่วยฯ" combo="sc_cnt_m_committee_list3" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    select sc_mem_m_membership_registered.membership_no
+    ,(select count(membership_no)
+    from sc_lon_m_contract_coll ,sc_lon_m_loan_card
+    where sc_lon_m_contract_coll.loan_contract_no 	= 	sc_lon_m_loan_card.loan_contract_no
+    and	( sc_lon_m_contract_coll.ref_own_no 	= 	'!membership_no!' )
+    and	( sc_lon_m_loan_card.principal_balance 		> 	0	 )
+    and	( sc_lon_m_contract_coll.status  = 	'0'	)
+    and	( sc_lon_m_contract_coll.collateral_type_code	 = 	'01'	)
+    ) as count_mem_coll
+    ,sc_mem_m_membership_registered.member_group_no
+    ,to_snumber ( pka_com_function.fp_get_member_sharestock(sc_mem_m_membership_registered.membership_no)) as share_stock
+    ,to_snumber ( pka_com_function.fp_lon_get_balance_atdate(sc_mem_m_membership_registered.membership_no,'2',sysdate)) as balance_norn
+    ,to_snumber ( pka_com_function.fp_lon_get_balance_atdate(sc_mem_m_membership_registered.membership_no,'9',sysdate)) as balance_emer
+    ,substr(sc_mem_m_membership_registered.member_group_no,0,3)||'-'||substr(sc_mem_m_membership_registered.member_group_no,4,6)||'-'||sc_mem_m_membership_registered.membership_no as memno
+    ,(select prename from sc_mem_m_ucf_prename where prename_code = sc_mem_m_membership_registered.prename_code)||sc_mem_m_membership_registered.member_name||' '||sc_mem_m_membership_registered.member_surname as member_name
+    ,pka_com_function.fp_get_thaidate('!sysdate_1!' , 'SD MONTH YYYY') as sysdate_tdate
+    ,pka_com_function.fp_get_thaidate('!sysdate_2!' , 'SD MONTH YYYY') as sysdate_tdate2
+    ,'!as_to!' as_to
+    ,'!as_book!' as_book
+    ,'!as_position!' as_position
+    ,'!as_department!' as_department
+    ,'!as_letter!' as as_letter
+    ,'!as_name_1!' as as_name
+    ,(select coop_name from sc_cnt_m_coop ) as coop_name
+    ,'!group_position!' as group_position
+
+    from sc_mem_m_membership_registered
+
+    where 1=1
+    /*WHERE*/
+  </sql>
+  <sub>
+    <r_ktm_book_check_debt_3_nest_coll>
+      <sql>
+        select	PKA_COM_FUNCTION.fp_get_member_name( sc_lon_m_loan_card.membership_no )||' เลขทะเบียน '||PKA_COM_FUNCTION.fp_form (PKA_COM_FUNCTION.fp_get_member_group (sc_lon_m_loan_card.membership_no),'XXX-XXX')||'-'||sc_lon_m_loan_card.membership_no as coll
+        from	sc_lon_m_contract_coll ,
+        sc_lon_m_loan_card
+        where	( sc_lon_m_contract_coll.loan_contract_no 	= 	sc_lon_m_loan_card.loan_contract_no )
+        and	( sc_lon_m_contract_coll.REF_OWN_NO = {0})
+        and	( sc_lon_m_loan_card.principal_balance 	> 0	 )
+        and	( sc_lon_m_contract_coll.status  = 	'0'	)
+        and	( sc_lon_m_contract_coll.collateral_type_code	 = 	'01'	)
+        /*WHERE*/
+        order by sc_lon_m_loan_card.membership_no
+      </sql>
+    </r_ktm_book_check_debt_3_nest_coll>
+  
+</sub>
+</root>

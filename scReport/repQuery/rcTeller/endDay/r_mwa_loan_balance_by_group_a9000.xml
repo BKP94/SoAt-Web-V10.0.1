@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+  </arg>
+  <combo />
+  <sql>select   ( case type_01  when '01' then 'กลุ่มเงินกู้ ฉุกเฉิน' when '02' then 'กลุ่มเงินกู้ สามัญ' 
+                         when 'T01' then ' ' else 'กลุ่มเงินกู้ พิเศษ' end  ) as type_01_des ,tab.*
+from (
+select sc_lon_m_rule.loan_type,
+         sc_lon_m_rule.loan_type_description,
+         sc_lon_m_loan_card.principal_balance,
+         sc_lon_m_rule.loan_group_code,
+         sc_lon_m_loan_card.loan_contract_no,
+         pka_com_function.fp_get_thaidate(sysdate , 'DD/MM/YYYY') as sysdate_tdate,
+         
+	(	CASE
+		  	WHEN  sc_lon_m_rule.loan_type = 'อส'  THEN 'T01'
+		  	WHEN  sc_lon_m_rule.loan_type = 'ธน'  THEN 'T01'
+			ELSE
+			sc_lon_m_rule.loan_group_code
+		END
+	) 	AS	type_01
+  
+  ,( select 	count(sc_mem_m_share_mem.membership_no)  
+    from  sc_mem_m_share_mem,
+          sc_mem_m_membership_registered
+    where	(sc_mem_m_share_mem.membership_no = sc_mem_m_membership_registered.membership_no) 
+    and   (sc_mem_m_share_mem.share_stock &lt;&gt; 0) 
+    and   (sc_mem_m_share_mem.membership_no &lt; '70000') 
+    and   (member_status_code  = '0')
+    ) as count_mem_share_normal
+    
+  ,(select 	sum(sc_mem_m_share_mem.share_stock)   
+    from 	sc_mem_m_share_mem,
+          sc_mem_m_membership_registered
+    Where ( sc_mem_m_membership_registered.membership_no = sc_mem_m_share_mem.membership_no ) 
+    and   (sc_mem_m_membership_registered.member_status_code  = '0') 
+    and   (sc_mem_m_share_mem.membership_no &lt; '70000')
+    )  as sumshare_mem_code_0
+    
+from sc_lon_m_loan_card,
+         sc_lon_m_rule,
+         sc_mem_m_membership_registered,
+         sc_lon_m_contract
+where ( sc_lon_m_contract.loan_type = sc_lon_m_rule.loan_type ) 
+and   ( sc_lon_m_contract.loan_contract_no = sc_lon_m_loan_card.loan_contract_no ) 
+and   ( sc_lon_m_contract.membership_no = sc_mem_m_membership_registered.membership_no ) 
+and   ( ( sc_lon_m_loan_card.principal_balance &gt; 0 ) 
+and   ( sc_mem_m_membership_registered.member_group_no in ( 'a9000'  )) )
+)tab</sql>
+  <sub />
+</root>

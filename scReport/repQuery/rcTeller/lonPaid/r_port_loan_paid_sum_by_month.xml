@@ -1,0 +1,46 @@
+<root procedure="pka_rep_mis.sp_paid_loan_by_day_in_month({rep_year_1},{rep_month_1})">
+  <arg>
+    <rep_year align="center" default="select extract(year from sysdate)+543 from dual where 1=1" text="ปี" table="vr_tel_loan_by_day" nestwhere="1" readonly="0" comboreplace="0" combowhere="0" />
+    <rep_month align="center" special="month" text="เดือน" table="vr_tel_loan_by_day" combo="monthThLong" nestwhere="1" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>select  sc_lon_m_rule.loan_type_description
+,       vr_tel_loan_by_day.*
+,       (day1 + day2 + day3 + day4 + day5 + day6 + day7 + day8 + day9 + day10 + day11 + day12 + day13 + day14 + day15 + day16 + day17 + day18 + day19 + day20 + day21 + day22 + day23 + day24 + day25 + day26 + day27 + day28 + day29 + day30 + nvl(day31,0)) as count_con
+,       (select month_name_thai from sc_cnt_m_month where month_no = vr_tel_loan_by_day.rep_month) as rep_month_thai
+from    vr_tel_loan_by_day
+,       sc_lon_m_rule
+where   1=1
+and     vr_tel_loan_by_day.loan_type = sc_lon_m_rule.loan_type
+and     vr_tel_loan_by_day.total_loan &gt; 0
+/*WHERE*/
+--and     vr_tel_loan_by_day.rep_year = '2567'
+--and     vr_tel_loan_by_day.rep_month = '4'
+order by vr_tel_loan_by_day.loan_type</sql>
+  <sub>
+    <r_port_loan_paid_sum_by_month_nest>
+      <sql>select  sc_lon_m_rule.loan_type_description
+,       vr_tel_loan_by_day.loan_type
+,       vr_tel_loan_by_day.rep_year
+,       vr_tel_loan_by_day.rep_month
+,       vr_tel_loan_by_day.total_loan
+,       vr_tel_loan_by_day.total_contract
+,       vr_tel_loan_by_day.total_paid
+,       vr_tel_loan_by_day.dr_amount
+,       vr_tel_loan_by_day.cr_amount
+,       vr_tel_loan_by_day.dr_amount + vr_tel_loan_by_day.cr_amount as sum_amount
+,       (day1 + day2 + day3 + day4 + day5 + day6 + day7 + day8 + day9 + day10 + day11 + day12 + day13 + day14 + day15 + day16 + day17 + day18 + day19 + day20 + day21 + day22 + day23 + day24 + day25 + day26 + day27 + day28 + day29 + day30 + nvl(day31,0)) as count_con
+from    vr_tel_loan_by_day
+,       sc_lon_m_rule
+where   1=1
+and     vr_tel_loan_by_day.loan_type = sc_lon_m_rule.loan_type
+and     vr_tel_loan_by_day.total_loan &gt; 0
+and     vr_tel_loan_by_day.rep_year = {0}
+and     vr_tel_loan_by_day.rep_month = {1}
+/*WHERE*/
+--and     vr_tel_loan_by_day.rep_year = '2567'
+--and     vr_tel_loan_by_day.rep_month = '4'
+order by vr_tel_loan_by_day.loan_type</sql>
+    </r_port_loan_paid_sum_by_month_nest>
+  </sub>
+</root>

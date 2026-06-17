@@ -1,0 +1,206 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <confirm_date align="center" text="วันที่" table="sc_cls_confirm_data" type="date" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select  *
+from    (
+select  sc_lon_m_rule.account_id
+,       (select account_name
+        from    sc_acc_m_account_master
+        where   account_id =  sc_lon_m_rule.account_id
+        ) as account_name
+,       sc_cls_confirm_data.confirm_date
+,       count(sc_cls_confirm_data.data_refno) as count_mem
+,       sum(sc_cls_confirm_data.data_balance) as sum_balance
+from    sc_cls_confirm_mem
+,       sc_mem_m_membership_registered
+,       sc_cls_confirm_data
+,       sc_lon_m_rule
+where   sc_mem_m_membership_registered.membership_no = sc_cls_confirm_mem.membership_no
+and     sc_cls_confirm_data.confirm_date = sc_cls_confirm_mem.confirm_date
+and     sc_cls_confirm_data.membership_no = sc_cls_confirm_mem.membership_no
+and     sc_lon_m_rule.loan_type = sc_cls_confirm_data.data_type
+and     sc_cls_confirm_mem.member_status_code = '0'  
+and     sc_mem_m_membership_registered.mem_type = '01'
+and     sc_cls_confirm_data.data_group = 'LON'
+and     sc_cls_confirm_data.data_balance &gt; '0'
+and     sc_lon_m_rule.account_id not in '115120'
+--and     sc_cls_confirm_data.confirm_date = '31/07/2023'
+/*WHERE*/
+group by sc_lon_m_rule.account_id
+,        sc_cls_confirm_data.confirm_date
+order by sc_lon_m_rule.account_id
+)
+
+union
+
+select  *
+from    (
+select  sc_lon_m_rule.account_id
+,       (select account_name
+        from    sc_acc_m_account_master
+        where   account_id =  sc_lon_m_rule.account_id
+        )||' (คนค้ำประกัน)' as account_name
+,       sc_cls_confirm_data.confirm_date
+,       count(sc_cls_confirm_data.data_refno) as count_mem
+,       sum(sc_cls_confirm_data.data_balance) as sum_balance
+from    sc_cls_confirm_mem
+,       sc_mem_m_membership_registered
+,       sc_cls_confirm_data
+,       sc_lon_m_rule
+where   sc_mem_m_membership_registered.membership_no = sc_cls_confirm_mem.membership_no
+and     sc_cls_confirm_data.confirm_date = sc_cls_confirm_mem.confirm_date
+and     sc_cls_confirm_data.membership_no = sc_cls_confirm_mem.membership_no
+and     sc_lon_m_rule.loan_type = sc_cls_confirm_data.data_type
+and     sc_cls_confirm_mem.member_status_code = '0'  
+and     sc_mem_m_membership_registered.mem_type = '01'
+and     sc_cls_confirm_data.data_group = 'LON'
+and     sc_cls_confirm_data.data_balance &gt; '0'
+and     sc_lon_m_rule.account_id = '115120'
+and     sc_lon_m_rule.loan_type not in ('21','25')
+--and     sc_cls_confirm_data.confirm_date = '31/07/2023'
+/*WHERE*/
+group by sc_lon_m_rule.account_id
+,        sc_cls_confirm_data.confirm_date
+order by sc_lon_m_rule.account_id
+)
+
+union
+
+select  *
+from    (
+select  sc_lon_m_rule.account_id
+,       (select account_name
+        from    sc_acc_m_account_master
+        where   account_id =  sc_lon_m_rule.account_id
+        )||' (หุ้นค้ำประกัน)' as account_name
+,       sc_cls_confirm_data.confirm_date
+,       count(sc_cls_confirm_data.data_refno) as count_mem
+,       sum(sc_cls_confirm_data.data_balance) as sum_balance
+from    sc_cls_confirm_mem
+,       sc_mem_m_membership_registered
+,       sc_cls_confirm_data
+,       sc_lon_m_rule
+where   sc_mem_m_membership_registered.membership_no = sc_cls_confirm_mem.membership_no
+and     sc_cls_confirm_data.confirm_date = sc_cls_confirm_mem.confirm_date
+and     sc_cls_confirm_data.membership_no = sc_cls_confirm_mem.membership_no
+and     sc_lon_m_rule.loan_type = sc_cls_confirm_data.data_type
+and     sc_cls_confirm_mem.member_status_code = '0'  
+and     sc_mem_m_membership_registered.mem_type = '01'
+and     sc_cls_confirm_data.data_group = 'LON'
+and     sc_cls_confirm_data.data_balance &gt; '0'
+and     sc_lon_m_rule.account_id = '115120'
+and     sc_lon_m_rule.loan_type  in ('21','25')
+--and     sc_cls_confirm_data.confirm_date = '31/07/2023'
+/*WHERE*/
+group by sc_lon_m_rule.account_id
+,        sc_cls_confirm_data.confirm_date
+order by sc_lon_m_rule.account_id
+)
+
+union
+
+select  *
+from    (
+select  '3' as account_id
+,       sc_lon_m_ucf_loan_code.loan_code_desc as account_name
+,       sc_rep_mem_share_loan_bal.balance_date
+,       count(distinct sc_rep_mem_share_loan_bal.membership_no) as count_mem
+,       sum(sc_rep_mem_share_loan_bal.emer_balance) as sum_balance
+from    sc_rep_mem_share_loan_bal
+,       sc_mem_m_membership_registered
+,       sc_lon_m_ucf_loan_code
+where   sc_rep_mem_share_loan_bal.membership_no = sc_mem_m_membership_registered.membership_no
+and     sc_rep_mem_share_loan_bal.emer_loan_code = sc_lon_m_ucf_loan_code.loan_code
+and     sc_rep_mem_share_loan_bal.emer_loan_code = '1'
+and     sc_rep_mem_share_loan_bal.balance_date = '!confirm_date!'
+group by sc_rep_mem_share_loan_bal.balance_date
+,        sc_lon_m_ucf_loan_code.loan_code_desc
+)
+
+union
+
+select  *
+from    (
+select  '01' as account_id
+,       'จำนวนสมาชิกทั้งหมด' as account_name
+,       sc_cls_confirm_data.confirm_date
+,       count(sc_cls_confirm_data.membership_no) as count_mem
+,       sum(sc_cls_confirm_data.data_balance) as sum_balance
+from    sc_cls_confirm_mem
+,       sc_mem_m_membership_registered
+,       sc_cls_confirm_data
+where   sc_mem_m_membership_registered.membership_no = sc_cls_confirm_mem.membership_no
+and     sc_cls_confirm_data.confirm_date = sc_cls_confirm_mem.confirm_date
+and     sc_cls_confirm_data.membership_no = sc_cls_confirm_mem.membership_no
+and     sc_cls_confirm_mem.member_status_code = '0'  
+and     sc_mem_m_membership_registered.mem_type = '01'
+and     sc_cls_confirm_data.data_group = 'SHR'
+and     sc_cls_confirm_data.data_balance &gt; '0'
+--and     sc_cls_confirm_data.confirm_date = '31/07/2023'
+/*WHERE*/
+group by sc_cls_confirm_data.confirm_date
+)
+
+union
+
+select  *
+from    (
+select  '02' as account_id
+,       'สมาชิกที่ไม่ได้กู้' as account_name
+,       sc_cls_confirm_data.confirm_date
+,       count(sc_cls_confirm_data.membership_no) as count_mem
+,       sum(sc_cls_confirm_data.data_balance) as sum_balance
+from    sc_cls_confirm_mem
+,       sc_mem_m_membership_registered
+,       sc_cls_confirm_data
+where   sc_mem_m_membership_registered.membership_no = sc_cls_confirm_mem.membership_no
+and     sc_cls_confirm_data.confirm_date = sc_cls_confirm_mem.confirm_date
+and     sc_cls_confirm_data.membership_no = sc_cls_confirm_mem.membership_no
+and     sc_cls_confirm_data.membership_no not in (select  membership_no
+                                                 from     sc_cls_confirm_data tab
+                                                 where    membership_no = sc_cls_confirm_data.membership_no
+                                                 and      data_group = 'LON'
+                                                 and      data_balance &gt; '0'
+                                                 and      confirm_date = sc_cls_confirm_data.confirm_date
+                                                 )
+and     sc_cls_confirm_mem.member_status_code = '0'  
+and     sc_mem_m_membership_registered.mem_type = '01'
+and     sc_cls_confirm_data.data_group = 'SHR'
+and     sc_cls_confirm_data.data_balance &gt; '0'
+--and     sc_cls_confirm_data.confirm_date = '31/07/2023'
+/*WHERE*/
+group by sc_cls_confirm_data.confirm_date
+)
+
+union
+
+select  *
+from    (
+select  '9' as account_id
+,       'รวมจำนวนทั้งสิ้น (มีหนี้)' account_name
+,       sc_cls_confirm_data.confirm_date
+,       count(sc_cls_confirm_data.data_refno) as count_mem
+,       sum(sc_cls_confirm_data.data_balance) as sum_balance
+from    sc_cls_confirm_mem
+,       sc_mem_m_membership_registered
+,       sc_cls_confirm_data
+,       sc_lon_m_rule
+where   sc_mem_m_membership_registered.membership_no = sc_cls_confirm_mem.membership_no
+and     sc_cls_confirm_data.confirm_date = sc_cls_confirm_mem.confirm_date
+and     sc_cls_confirm_data.membership_no = sc_cls_confirm_mem.membership_no
+and     sc_lon_m_rule.loan_type = sc_cls_confirm_data.data_type
+and     sc_cls_confirm_mem.member_status_code = '0'  
+and     sc_mem_m_membership_registered.mem_type = '01'
+and     sc_cls_confirm_data.data_group = 'LON'
+and     sc_cls_confirm_data.data_balance &gt; '0'
+--and     sc_cls_confirm_data.confirm_date = '31/07/2023'
+/*WHERE*/
+group by sc_cls_confirm_data.confirm_date
+)
+
+--รายงานมี Formatting Rules</sql>
+  <sub />
+</root>

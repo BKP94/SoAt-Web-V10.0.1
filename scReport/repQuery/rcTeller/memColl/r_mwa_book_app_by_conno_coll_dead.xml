@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <book_no align="center" text="ออกที่" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <ref_own_no align="center" text="เลขทะเบียน" table="sc_lon_m_contract_coll" readonly="0" />
+    <Tday align="center" text="วันที่" type="date" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <day align="center" text="ภายใน" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <resign align="center" text="สาเหตุ" combo="resign_combo" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo>
+    <resign_combo>select
+     resign_cause_name as item_code
+    ,resign_cause_code||' - '||resign_cause_name as item_desc
+from sc_mem_m_ucf_resign_cause
+where 1 = 1</resign_combo>
+  </combo>
+  <sql>    SELECT
+    sc_lon_m_contract_coll.ref_own_no,
+    pka_com_function.fp_get_member_name(sc_lon_m_loan_card.membership_no) as member_name,
+    pka_com_function.fp_get_member_name(sc_lon_m_contract_coll.ref_own_no) as coll_member_name,
+    sc_lon_m_contract.loan_type,
+    sc_lon_m_loan_card.principal_balance,
+    sc_lon_m_loan_card.membership_no,
+    sc_lon_m_loan_card.loan_contract_no,
+    sc_lon_m_contract.loan_approve_amount,
+    pka_com_function.fp_get_moneythai(sc_lon_m_contract.loan_approve_amount)as Thai_loan_approve_amount,
+    pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract,'dd MONTH yyyy')as begining_of_contract,
+    pka_com_function.fp_get_thaidate( sysdate , 'YYYY' ) as sysdate_year,
+    pka_com_function.fp_get_thaidate( '!Tday_1!' , 'SD MONTH YYYY') as Tday,
+    '!book_no_1!' as book_no,
+    '!day_1!' as day,
+    '!resign!' as resign,
+    (select sc_cnt_m_coop.manager_name from sc_cnt_m_coop) as manager_name,
+    sc_mem_m_membership_registered.resign_code
+    FROM sc_lon_m_contract_coll,
+    sc_lon_m_contract,
+    sc_lon_m_loan_card  ,
+    sc_mem_m_share_mem	,
+    sc_lon_m_coll_rule,
+    sc_mem_m_membership_registered
+    WHERE ( sc_lon_m_contract.loan_contract_no = sc_lon_m_contract_coll.loan_contract_no )
+    and   ( sc_lon_m_loan_card.loan_contract_no = sc_lon_m_contract.loan_contract_no )
+    and   ( sc_lon_m_loan_card.loan_type = sc_lon_m_coll_rule.loan_type )
+    and   ( sc_mem_m_share_mem.membership_no  = sc_lon_m_contract.membership_no)
+    and   ( sc_lon_m_loan_card.principal_balance &gt; 0   ) 
+and	  ( sc_lon_m_contract_coll.status = '0' OR sc_lon_m_contract_coll.status is null) 
+and   ( sc_mem_m_membership_registered.membership_no = sc_lon_m_contract.membership_no )
+/*WHERE*/
+--and	( sc_lon_m_contract_coll.ref_own_no = '12320' ) </sql>
+  <sub />
+</root>

@@ -1,0 +1,148 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <requestment_date align="center" text="วันที่คำขอกู้" table="sc_lon_m_loan_request" type="date" column="requestment_date" readonly="0" />
+    <loan_requestment_no align="center" text="เลขที่คำขอกู้" table="sc_lon_m_loan_request" readonly="0" />
+    <loan_type align="center" text="ประเภท" table="sc_lon_m_loan_request" column="loan_type" combo="sc_lon_m_rule2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select sc_mem_m_membership_registered.membership_no
+,sc_mem_m_membership_registered.member_group_no 
+,pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as memname
+,pka_lon_reqsrv.fp_calc_agetext_m_live(sc_mem_m_membership_registered.membership_no) as age_life_text
+,pka_com_function.fp_form_idcard(sc_mem_m_membership_registered.id_card) as id_card
+,sc_mem_m_membership_registered.date_of_birth 
+,sc_mem_m_membership_registered.marriage_status 
+
+--ที่อยู่
+,sc_mem_m_member_address.address_no
+,sc_mem_m_member_address.moo
+,sc_mem_m_member_address.soi
+,sc_mem_m_member_address.road
+,pka_com_function.fp_get_sub_district_name(sc_mem_m_member_address.tambol) as tambol
+,pka_com_function.fp_get_district_name(sc_mem_m_member_address.province_code,sc_mem_m_member_address.district_code) as district_name
+,pka_com_function.fp_get_province_name(sc_mem_m_member_address.province_code) as province_name
+,sc_mem_m_member_address.postcode
+,pka_com_function.fp_get_member_address_tel(sc_mem_m_membership_registered.membership_no, '0') as telephone
+
+,sc_mem_m_ucf_member_group.member_group_name
+,sc_lon_m_loan_request.loan_type
+,pka_com_function.fp_get_member_position_long(sc_mem_m_membership_registered.membership_no) as position_long
+,sc_mem_m_ucf_member_type.mem_type_code
+,sc_lon_m_loan_request.loan_request_amount
+,pka_com_function.fp_get_moneythai( sc_lon_m_loan_request.loan_request_amount ) as loan_request_amount_thai
+,sc_lon_m_loan_request.period_payment_amount
+,sc_lon_m_loan_request.loan_installment_amount
+,pka_lon_intsrv.fp_intrate_table_loantype( sc_lon_m_loan_request.loan_type , sc_lon_m_loan_request.begining_of_contract ) * 100 as lon_int_rate
+,sc_lon_m_loan_request.last_payment_amount
+,pka_com_function.fp_get_thaidate(sc_lon_m_loan_request.start_keep_date ,'MONTH YYYY') as start_keep_date --วันที่เริ่มงวด
+,sc_lon_m_loan_request.loan_requestment_no
+
+,(select sc_lon_m_loan_request_mpaid.type_pay_money 
+  from sc_lon_m_loan_request_mpaid 
+  where sc_lon_m_loan_request_mpaid.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+  ) as type_pay_money
+
+,(select pka_com_function.fp_form(sc_lon_m_loan_request_mpaid.bank_acc_no,'XXX-X-XXXXX-X')as bank_acc_no
+  from sc_lon_m_loan_request_mpaid 
+  where sc_lon_m_loan_request_mpaid.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+  ) as bank_acc_no_trb
+  
+  ,(select pka_com_function.fp_form(sc_lon_m_loan_request_mpaid.bank_acc_no,'XX-XXXXX-X')as bank_acc_no
+  from sc_lon_m_loan_request_mpaid 
+  where sc_lon_m_loan_request_mpaid.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+  ) as bank_acc_no_trd
+
+,(select sc_acc_m_ucf_bank.bank_name
+  from sc_lon_m_loan_request_mpaid ,sc_acc_m_ucf_bank
+  where sc_lon_m_loan_request_mpaid.bank_code = sc_acc_m_ucf_bank.bank_id
+  and sc_lon_m_loan_request_mpaid.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+  ) as bank_name
+
+,pka_com_function.fp_get_thaidate(sc_lon_m_loan_request.requestment_date ,'SD MONTH YYYY') as requestment_tdate
+,pka_com_function.fp_get_thaidate(sc_lon_m_loan_request.begining_of_contract ,'SD MONTH YYYY') as begining_of_contract_tdate
+,sc_cnt_m_coop.coop_name
+
+,(select deposit_account_no from sc_lon_m_req_fee where sc_lon_m_req_fee.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no and sc_lon_m_req_fee.fee_type = '20') as deposit_account_no
+
+--ประกัน
+,(select sc_lon_m_req_fee.remark from sc_lon_m_req_fee where sc_lon_m_req_fee.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no and fee_type = '17')as insure_remark --หมายเหตุ
+,sc_lon_m_loan_request_mpaid.other_loan_remark -- กรณี type_pay_money เป็น CHQ, 101 ให้เอาข้อมูลช่องนี้เเสดง
+,to_snumber(sc_lon_m_loan_request_mpaid.paid_amount) as paid_amount --เงินรับจริง
+
+--หลักประกันอสังหาริมทรัพย์
+,(SELECT sc_lon_m_req_coll.ref_own_no
+  FROM sc_lon_m_req_coll
+  where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no
+  and sc_lon_m_req_coll.collateral_type_code = '04'
+  ) as coll_estate_no
+  
+,(SELECT sc_lon_m_req_coll.collateral_description
+  FROM sc_lon_m_req_coll
+  where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no
+  and sc_lon_m_req_coll.collateral_type_code = '04'
+  ) as coll_estate_desc
+
+  --เงินฝาก
+,(select sc_lon_m_req_fee.deposit_account_no from sc_lon_m_req_fee where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_fee.loan_requestment_no and sc_lon_m_req_fee.fee_type = '20') as deposit_account_no --เลขบัญชี(บัญชีเงินฝาก)
+,(select sum(sc_lon_m_req_fee.amount) from sc_lon_m_req_fee where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_fee.loan_requestment_no and sc_lon_m_req_fee.fee_type = '20') as amount --จำนวนเงิน(บัญชีเงินฝาก)
+
+from sc_mem_m_membership_registered
+,sc_mem_m_ucf_member_group 
+,sc_mem_m_member_address
+,sc_mem_m_ucf_member_type
+,sc_lon_m_loan_request
+,sc_lon_m_loan_request_mpaid
+,sc_cnt_m_coop
+
+where   sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no   
+and sc_mem_m_member_address.membership_no = sc_mem_m_membership_registered.membership_no 
+and sc_mem_m_ucf_member_type.mem_type_code = sc_mem_m_membership_registered.mem_type  
+and sc_lon_m_loan_request.membership_no = sc_mem_m_membership_registered.membership_no
+and sc_lon_m_loan_request_mpaid.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+and   sc_mem_m_member_address.address_type ='1'
+
+/*WHERE*/
+
+--and sc_lon_m_loan_request.loan_requestment_no  = '67ปค00029'
+
+--รายงานนี้ มี formating rule ใน nest นะคับ
+
+</sql>
+  <sub>
+    <r_mwa_book_loan_norm_nest>
+      <sql>SELECT seq_no
+,ref_own_no
+,collateral_description
+,coll_id_card
+,collateral_type_code
+,remark
+FROM(select sc_lon_m_req_coll.seq_no
+,decode(sc_lon_m_req_coll.collateral_type_code,'03',pka_com_function.fp_form_depno(sc_lon_m_req_coll.ref_own_no)
+,decode(sc_lon_m_req_coll.collateral_type_code,'08',pka_com_function.fp_form(sc_lon_m_req_coll.ref_own_no,'X-XXXX-XXXXX-XX-X'),sc_lon_m_req_coll.ref_own_no)) as ref_own_no
+,sc_lon_m_req_coll.collateral_description
+,pka_com_function.fp_get_member_id_card(sc_lon_m_req_coll.ref_own_no) as coll_id_card
+,sc_lon_m_req_coll.collateral_type_code
+,sc_lon_m_req_coll.remark
+from sc_lon_m_req_coll,    
+sc_lon_m_loan_request
+where sc_lon_m_loan_request.loan_requestment_no  =  sc_lon_m_req_coll.loan_requestment_no 
+and sc_lon_m_req_coll.collateral_type_code in ('01','02','03','08')
+and	sc_lon_m_req_coll.loan_requestment_no  = {0}
+
+union all 
+
+select 99  as seq_no 
+,'' as ref_own_no
+,''as collateral_description
+,''as coll_id_card
+,''as collateral_type_code
+,''as remark
+from sc_lon_m_rule
+where 1=1
+) tb_coll
+where rownum &lt;=8
+order by seq_no</sql>
+    </r_mwa_book_loan_norm_nest>
+  </sub>
+</root>

@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <begining_of_contract align="center" text="วันที่" table="sc_lon_m_contract" type="date" operator="bt" nestwhere="1" readonly="0" comboreplace="0" combowhere="0" />
+    <loan_type text="ประเภทเงินกู้" table="sc_lon_m_contract" combo="sc_lon_m_rule2" nestwhere="1" readonly="0" comboreplace="0" combowhere="0" />
+    <loan_contract_no text="เลขสัญญา" table="sc_lon_m_contract" operator="bt" nestwhere="1" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>select sc_mem_m_ucf_member_group.member_group_control
+,pka_com_function.fp_get_group_name(sc_mem_m_ucf_member_group.member_group_control) as member_group_control_name
+,sc_lon_m_contract.loan_type
+,(select sc_lon_m_rule.loan_type_description from sc_lon_m_rule where loan_type = sc_lon_m_contract.loan_type) as loan_type_description
+,sum(sc_lon_m_req_fee.amount) as amount
+,sc_lon_m_req_fee.fee_type
+,(select fee_name from sc_lon_m_ucf_fee where fee_type = sc_lon_m_req_fee.fee_type) as fee_name
+--,sum((select sum(interest_first) from sc_lon_m_loan_request where loan_requestment_no = sc_lon_m_contract.loan_requestment_no)) as interest_first
+from sc_lon_m_req_fee
+,sc_lon_m_contract
+,sc_mem_m_membership_registered
+,sc_mem_m_ucf_member_group
+where sc_lon_m_req_fee.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
+and sc_lon_m_contract.membership_no = sc_mem_m_membership_registered.membership_no
+and sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+
+/*WHERE*/
+--and sc_mem_m_membership_registered.membership_no = '010256'
+
+group by sc_mem_m_ucf_member_group.member_group_control
+,sc_lon_m_contract.loan_type
+,sc_lon_m_req_fee.fee_type
+
+order by sc_mem_m_ucf_member_group.member_group_control
+,sc_lon_m_req_fee.fee_type asc
+</sql>
+  <sub>
+    <r_tnma_loan_fee_group_nest>
+      <sql>SELECT SUM(sc_lon_m_req_fee.amount) AS amount,
+sc_lon_m_req_fee.fee_type,
+sc_lon_m_ucf_fee.fee_name,
+sum(lr.interest_first) as interest_first
+FROM sc_lon_m_req_fee,
+sc_lon_m_contract ,
+sc_mem_m_membership_registered ,
+sc_mem_m_ucf_member_group ,
+sc_lon_m_rule ,
+sc_lon_m_ucf_fee,
+(SELECT loan_requestment_no, SUM(interest_first) AS interest_first
+FROM sc_lon_m_loan_request
+GROUP BY loan_requestment_no) lr
+WHERE sc_lon_m_req_fee.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
+AND sc_lon_m_contract.membership_no = sc_mem_m_membership_registered.membership_no
+AND sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+AND sc_lon_m_contract.loan_type = sc_lon_m_rule.loan_type(+)
+AND sc_lon_m_req_fee.fee_type = sc_lon_m_ucf_fee.fee_type(+)
+AND sc_lon_m_contract.loan_requestment_no = lr.loan_requestment_no(+)
+--AND  sc_mem_m_membership_registered.member_group_no = {0}
+--and sc_lon_m_contract .loan_type = {1}
+/*WHERE*/
+GROUP BY sc_lon_m_req_fee.fee_type,
+sc_lon_m_ucf_fee.fee_name
+order by sc_lon_m_req_fee.fee_type asc
+
+</sql>
+    </r_tnma_loan_fee_group_nest>
+  </sub>
+</root>

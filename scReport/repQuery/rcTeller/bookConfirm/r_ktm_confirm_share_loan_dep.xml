@@ -1,0 +1,112 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="T080" rep_text="หนังสือยืนยันยอด">
+  <arg>
+    <member_group_no text="หน่วย" table="sc_mem_m_membership_registered" operator="bt" combo="sc_mem_m_ucf_member_group2" />
+    <adtm_data text="วันที่ข้อมูล" type="date" sqlwhere="0" sqlreplace="1" nestreplace="1" readonly="0" />
+    <adtm_return text="วันที่คืน" type="date" sqlwhere="0" sqlreplace="1" mustvalue="1" nestreplace="1" />
+    <membership_no special="memno" text="ทะเบียน" table="sc_mem_m_membership_registered" operator="bt" nulltext="ต้องการดูแค่รายคน" />
+  </arg>
+  <combo />
+  <sql>
+    select sc_mem_m_membership_registered.membership_no ,
+    sc_cls_confirm_data.data_balance  as share_stock,
+    sc_mem_m_ucf_member_group.member_group_name ,
+    sc_mem_m_ucf_member_group.member_group_control ,
+    sc_mem_m_membership_registered.member_group_no ,
+    sc_mem_m_ucf_prename.prename,
+    sc_mem_m_membership_registered.member_name,
+    sc_mem_m_membership_registered.member_surname,
+    pka_com_function.fp_get_thaidate(sysdate , 'SD MONTH YYYY') as sysdate_tdate ,
+    nvl( ( select sum( nvl( data_balance , 0 ) )
+    from	sc_cls_confirm_data
+    where	sc_cls_confirm_data.membership_no	= sc_mem_m_membership_registered.membership_no
+    and		confirm_date	=	'!adtm_data_1!'
+    and		data_group		=	'LON'
+    and		nvl( data_balance , 0 ) >	0	 ) , 0 ) as sum_balanace,
+
+    pka_com_function.fp_get_coopname() as coop_name,
+    '!adtm_data_1!' as adtm_data,
+    '!adtm_data_1!' as adtm_edate,
+    '!adtm_return_1!' as adtm_return,
+    '!adtm_appointment_1!' as adtm_appointment,
+    (select manager_name from sc_cnt_m_coop) as	manager_name
+    from sc_mem_m_membership_registered ,
+    sc_mem_m_ucf_member_group ,
+    sc_mem_m_ucf_prename,
+    sc_cls_confirm_data
+    where ( sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no )
+    and   ( sc_mem_m_membership_registered.prename_code = sc_mem_m_ucf_prename.prename_code )
+    and   ( sc_mem_m_membership_registered.membership_no  = sc_cls_confirm_data.membership_no  )
+    and   ( sc_cls_confirm_data.data_type	=	'SH'  )
+    and   ( sc_cls_confirm_data.data_balance	> 0  )
+    --and   ( sc_mem_m_membership_registered.member_status_code = '0' )
+
+    /*WHERE*/
+    and   ( sc_cls_confirm_data.confirm_date = '!adtm_data_1!' )
+    --and   (  sc_mem_m_membership_registered.member_group_no between '012001' and '012001' )
+
+    order by  sc_mem_m_ucf_member_group.member_group_control ,
+    sc_mem_m_membership_registered.member_group_no ,
+    sc_mem_m_membership_registered.membership_no
+  </sql>
+  <sub>
+
+    <r_ktm_confirm_share_loan_dep_nest_emer>
+      <sql>
+        --nest emer ตัวที่ 1
+        select	sc_cls_confirm_data.data_refno as emer_contract ,
+        sc_cls_confirm_data.data_balance as emer_balance
+        from	sc_cls_confirm_data ,
+        sc_lon_m_rule
+        where sc_cls_confirm_data.data_type	=	sc_lon_m_rule.loan_type
+        and	sc_cls_confirm_data.confirm_date	=	'!adtm_data_1!'
+        and	sc_cls_confirm_data.data_group	=	'LON'
+        and	sc_lon_m_rule.loan_group_code	=	'01'
+        and	sc_cls_confirm_data.membership_no	=	{0}
+        order by sc_cls_confirm_data.data_refno
+      </sql>
+    </r_ktm_confirm_share_loan_dep_nest_emer>
+    
+    <r_ktm_confirm_share_loan_dep_nest_norm>
+      <sql>
+        --nest="" norm ตัวที่ 2
+        select	sc_cls_confirm_data.data_refno as norm_contract ,
+        sc_cls_confirm_data.data_balance as norm_balance
+        from	sc_cls_confirm_data ,
+        sc_lon_m_rule
+        where sc_cls_confirm_data.data_type	=	sc_lon_m_rule.loan_type
+        and	sc_cls_confirm_data.confirm_date	=	'!adtm_data_1!'
+        and	sc_cls_confirm_data.data_group	=	'LON'
+        and	sc_lon_m_rule.loan_group_code	=	'02'
+        and	sc_cls_confirm_data.membership_no	=	{0}
+        order by sc_cls_confirm_data.data_refno
+      </sql>
+    </r_ktm_confirm_share_loan_dep_nest_norm>
+
+    <r_ktm_confirm_share_loan_dep_nest_spec>
+      <sql>
+        --nest="" spec ตัวที่ 3
+        select	sc_cls_confirm_data.data_refno as spec_contract ,
+        sc_cls_confirm_data.data_balance as spec_balance
+        from	sc_cls_confirm_data ,
+        sc_lon_m_rule
+        where sc_cls_confirm_data.data_type	=	sc_lon_m_rule.loan_type
+        and	sc_cls_confirm_data.confirm_date	=	'!adtm_data_1!'
+        and	sc_cls_confirm_data.data_group	=	'LON'
+        and	sc_lon_m_rule.loan_group_code	=	'03'
+        and	sc_cls_confirm_data.membership_no	=	{0}
+        order by sc_cls_confirm_data.data_refno
+      </sql>
+    </r_ktm_confirm_share_loan_dep_nest_spec>
+    
+    <r_ktm_confirm_share_loan_dep_nest_dep>
+      <sql>
+        select pka_com_function.fp_form_depno(deposit_account_no) as form_depno , deposit_account_no		,	deposit_account_name		,	deposit_balance
+        from sc_cls_mon_dep_accno
+        where membership_no = {0}
+        and monthly_date = '!adtm_data_1!'
+        order by deposit_account_no
+      </sql>
+    </r_ktm_confirm_share_loan_dep_nest_dep>
+  </sub>
+</root>

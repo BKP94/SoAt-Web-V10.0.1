@@ -1,0 +1,73 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <ref_contract_no text="ประเภทเงินกู้" table="sc_lon_m_rule" column="ref_contract_no" combo="sc_lon_m_rule2" readonly="0" />
+    <begining_of_contract text="วันที่" table="sc_lon_m_contract" type="date" column="begining_of_contract" operator="bt" readonly="0" />
+    <loan_contract_no text="เลขสัญญา" table="sc_lon_m_contract" column="loan_contract_no" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_lon_m_contract.loan_contract_no,
+    sc_lon_m_rule.loan_type,
+    sc_lon_m_rule.loan_type_description,
+    pka_com_function.fp_get_member_name( sc_lon_m_contract.membership_no ) as memname,
+    sc_lon_m_contract.membership_no,
+    pka_com_function.fp_get_thaidate(sysdate , 'SD MONTH YYYY') as sysdate_tdate ,
+    sc_lon_m_contract.member_group_no,
+    pka_com_function.fp_get_group_name_mem(sc_lon_m_contract.membership_no) as member_group_name,
+    sc_lon_m_contract.loan_approve_amount,
+    sc_lon_m_contract.real_recieve
+    FROM sc_lon_m_contract,
+    sc_lon_m_rule
+    WHERE ( sc_lon_m_rule.loan_type = sc_lon_m_contract.loan_type )
+    /*WHERE*/
+    --and   ( ( sc_lon_m_contract.loan_contract_no = 'ส00000006364' ) )
+  </sql>
+  <sub>
+    <r_krabi_app_pay_norm_nest_norm_1>
+      <sql>
+        SELECT sc_com_m_receipt.loan_contract_no,
+        sc_com_m_receipt.receipt_no,
+        sc_com_m_receipt_item.seq_no,
+        sc_com_m_receipt_item.item_type_id,
+        sc_com_m_receipt_item.description,
+        sc_com_m_receipt_item.principal_amount,
+        sc_com_m_receipt_item.interest_amount,
+        sc_com_m_receipt_item.item_amount,
+        sc_com_m_ucf_receipt_item_type.sort_order
+        FROM sc_com_m_receipt,
+        sc_com_m_receipt_item,
+        sc_com_m_ucf_receipt_item_type
+        WHERE ( sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no )
+        and   ( sc_com_m_receipt_item.item_type_id = sc_com_m_ucf_receipt_item_type.item_type_id )
+        /*WHERE*/
+        --and   ( sc_com_m_receipt.loan_contract_no = 'ส00000006364' )
+        AND   ( sc_com_m_receipt.receipt_status = '0' )
+        ORDER BY sc_com_m_ucf_receipt_item_type.sort_order ASC,
+        sc_com_m_receipt_item.description ASC
+      </sql>
+    </r_krabi_app_pay_norm_nest_norm_1>
+    <r_krabi_app_pay_norm_nest_norm_2>
+      <sql>
+        SELECT sc_lon_m_contract_multi_paid.loan_contract_no,
+        sc_lon_m_contract_multi_paid.seq_no,
+        sc_com_m_ucf_money_type.money_type_id,
+        ( case trim( money_type_id )
+        when 'TRD' then pka_com_function.fp_form_depno( sc_lon_m_contract_multi_paid.bank_acc_no )
+        when 'TRB' then pka_com_function.fp_form( sc_lon_m_contract_multi_paid.bank_acc_no , 'XXX-X-XXXXX-X' )
+        end ) as c_type_name,
+        sc_com_m_ucf_money_type.money_type_name,
+        sc_lon_m_contract_multi_paid.paid_amount,
+        to_snumber( sc_lon_m_contract_multi_paid.paid_amount ) as snu_paid_amount,
+        sc_lon_m_contract_multi_paid.bank_acc_no,
+        sc_com_m_ucf_money_type.sort_order
+        FROM sc_lon_m_contract_multi_paid,
+        sc_com_m_ucf_money_type
+        WHERE ( sc_lon_m_contract_multi_paid.type_pay_money = sc_com_m_ucf_money_type.money_type_id )
+        /*WHERE*/
+        --and   ( ( sc_lon_m_contract_multi_paid.loan_contract_no = 'ส00000006364' ) )
+        ORDER BY sc_com_m_ucf_money_type.sort_order ASC,
+        sc_lon_m_contract_multi_paid.seq_no ASC
+      </sql>
+    </r_krabi_app_pay_norm_nest_norm_2>
+  </sub>
+</root>

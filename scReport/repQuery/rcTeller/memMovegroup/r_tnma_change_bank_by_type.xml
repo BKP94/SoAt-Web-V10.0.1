@@ -1,0 +1,58 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <entry_date text="วันที่" table="sc_mem_edit_bank" type="date" column="entry_date" operator="bt" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <membership_no align="center" special="memno" text="ทะเบียน" table="sc_mem_m_membership_registered" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT
+    sc_mem_m_membership_registered.member_group_no ,
+    sc_mem_m_ucf_member_group.member_group_name ,
+    sc_mem_m_membership_registered.membership_no ,
+    pka_com_function.fp_get_member_name( sc_mem_m_membership_registered.membership_no ) as memname ,
+    
+    -- ก่อนแก้
+    ( select short_name  from sc_acc_m_ucf_bank  where bank_id = sc_mem_edit_bank.pre_bank_id ) as pre_bank_id_name ,
+    sc_mem_edit_bank.pre_bank_id ,
+    pka_com_function.fp_form(sc_mem_edit_bank.pre_bank_acc_no,'XXX-X-XXXXX-X') as pre_bank_acc_no ,
+    sc_mem_edit_bank.pre_paid_loan ,
+    sc_mem_edit_bank.pre_paid_dividen ,
+    sc_mem_edit_bank.pre_share_withdraw ,
+    sc_mem_edit_bank.pre_atm_lon  ,
+    sc_mem_edit_bank.pre_atm_dep ,
+    sc_mem_edit_bank.pre_paid_agent ,
+    sc_mem_edit_bank.pre_paid_salary ,
+    
+    -- หลังแก้
+    ( select short_name  from sc_acc_m_ucf_bank  where bank_id = sc_mem_edit_bank.bank_id ) as bank_id_name ,
+    sc_mem_edit_bank.bank_id  ,
+    pka_com_function.fp_form(sc_mem_edit_bank.bank_acc_no,'XXX-X-XXXXX-X') as bank_acc_no,
+    sc_mem_edit_bank.paid_loan ,
+    sc_mem_edit_bank.paid_dividen ,
+    sc_mem_edit_bank.share_withdraw ,
+    sc_mem_edit_bank.atm_lon ,
+    sc_mem_edit_bank.atm_dep ,
+    sc_mem_edit_bank.paid_agent ,
+    sc_mem_edit_bank.paid_salary ,
+    
+    sc_mem_edit_bank.entry_id ,
+    pka_com_function.fp_get_thaidate(sc_mem_edit_bank.entry_date , 'dd/mm/yyyy hh24:mi:ss') as entry_date ,
+    pka_com_function.fp_get_thaidate(sc_mem_edit_bank.entry_date , 'dd/mm/yyyy') as entry_date_tdate ,
+    pka_com_function.fp_get_thaidate(sysdate , 'dd/mm/yyyy') as sysdate_tdate
+
+    FROM sc_mem_m_membership_registered ,
+    sc_mem_m_ucf_member_group,
+    sc_mem_edit_bank
+
+    WHERE 1=1
+    and sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+    and sc_mem_m_membership_registered.membership_no = sc_mem_edit_bank.membership_no
+    and to_date(sc_mem_edit_bank.entry_date) between '!entry_date_1!' and '!entry_date_2!'
+
+    /*WHERE*/
+
+    order by entry_date_tdate , sc_mem_m_membership_registered.member_group_no
+    
+</sql>
+  <sub />
+</root>

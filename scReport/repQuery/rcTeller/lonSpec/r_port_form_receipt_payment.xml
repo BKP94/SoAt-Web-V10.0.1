@@ -1,0 +1,104 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <journal_date text="วันที่การเงิน" table="sc_fin_vourcher_head" type="date" column="journal_date" operator="bt" readonly="0" comboreplace="0" combowhere="0" />
+    <user_id default="mook" text="ผู้ทำรายการ" table="si_security_user" combo="si_security_user2" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>select  sc_fin_vourcher_head.vourcher_no
+,       sc_fin_vourcher_head.operate_date
+,       sc_fin_vourcher_head.journal_date
+,       pka_com_function.fp_get_thaidate( sc_fin_vourcher_head.operate_date , 'SD MONTH YYYY' ) as operate_date_thai
+,       pka_com_function.fp_get_thaidate( sc_fin_vourcher_head.journal_date , 'SD MONTH YYYY' ) as journal_date_thai
+,       sc_fin_vourcher_head.vourcher_value
+,       sc_fin_vourcher_head.vourcher_owner
+,       sc_fin_vourcher_head.vourcher_name
+,       pka_com_function.fp_get_group_name_mem( sc_fin_vourcher_head.vourcher_owner ) as group_name
+,       sc_fin_vourcher_head.vourcher_desc
+,       si_security_user.user_id
+,       si_security_user.user_name
+,       pka_com_function.fp_get_thaidate( sysdate , 'SD MONTH YYYY' ) as sysdate_thai
+,       (select manager_name from sc_cnt_m_coop) as manager_name
+,       (select coop_name from sc_cnt_m_coop) as coop_name
+,       nvl((select total_loan_int from sc_mem_m_membership_registered where membership_no = sc_fin_vourcher_head.vourcher_owner),0) as total_loan_int
+from    sc_fin_vourcher_head
+,       si_security_user
+,       sc_fin_ucf_vourcher_group
+where   sc_fin_ucf_vourcher_group.vourcher_group = sc_fin_vourcher_head.vourcher_group  
+and     sc_fin_vourcher_head.entry_fin = si_security_user.user_id
+and     sc_fin_vourcher_head.vourcher_owner = 'coop'
+/*WHERE*/
+--and     sc_fin_vourcher_head.vourcher_no = 'R67006871' 
+order by sc_fin_vourcher_head.vourcher_no</sql>
+  <sub>
+    <r_port_form_receipt_payment_nest_det>
+      <sql>SELECT  (select coop_name from sc_cnt_m_coop) as coop_name,
+pka_com_function.fp_get_group_name_mem(  sc_fin_vourcher_head.vourcher_owner ) as group_name,
+sc_fin_vourcher_head.vourcher_no,
+sc_fin_vourcher_head.vourcher_group,
+sc_fin_ucf_vourcher_group.vourcher_desc  as vourcher_group_name,
+sc_fin_vourcher_head.journal_date,
+sc_fin_vourcher_head.vourcher_owner,
+sc_fin_vourcher_head.vourcher_name,
+ sc_fin_vourcher_head.vourcher_desc   as vourcher_desc ,
+sc_fin_vourcher_head.operate_date,
+sc_fin_vourcher_head.vourcher_value,
+sc_fin_vourcher_head.entry_fin ,
+pka_com_function.fp_get_moneythai (  sc_fin_vourcher_head.vourcher_value  ) as thai_vourcher_value ,
+si_security_user.user_name ,
+sc_fin_vourcher_detail.account_id,
+sc_fin_ucf_item_type.item_description,
+sc_fin_vourcher_detail.item_amount,
+sc_fin_vourcher_head.vourcher_value,
+pka_com_function.fp_get_moneythai (  sc_fin_vourcher_head.vourcher_value  ) as thai_vourcher_value
+FROM sc_fin_vourcher_head
+,si_security_user
+,sc_fin_ucf_vourcher_group
+,sc_fin_vourcher_detail
+,sc_fin_ucf_item_type
+WHERE 1=1  and
+sc_fin_ucf_vourcher_group.vourcher_group = sc_fin_vourcher_head.vourcher_group and 
+sc_fin_vourcher_head.entry_fin = si_security_user.user_id and
+sc_fin_vourcher_detail.vourcher_no = sc_fin_vourcher_head.vourcher_no and
+sc_fin_ucf_item_type.item_type = sc_fin_vourcher_detail.item_type and
+sc_fin_vourcher_head.vourcher_no = {0}
+/*WHERE*/
+--and ( sc_fin_vourcher_head.vourcher_no = 'P65005333' )</sql>
+    </r_port_form_receipt_payment_nest_det>
+    <r_port_form_receipt_payment_nest_sum>
+      <sql>SELECT  (select coop_name from sc_cnt_m_coop) as coop_name,
+pka_com_function.fp_get_group_name_mem(  sc_fin_vourcher_head.vourcher_owner ) as group_name,
+sc_fin_vourcher_head.vourcher_no,
+sc_fin_vourcher_head.vourcher_group,
+sc_fin_ucf_vourcher_group.vourcher_desc  as vourcher_group_name,
+sc_fin_vourcher_head.journal_date,
+sc_fin_vourcher_head.vourcher_owner,
+sc_fin_vourcher_head.vourcher_name,
+ sc_fin_vourcher_head.vourcher_desc   as vourcher_desc ,
+sc_fin_vourcher_head.operate_date,
+sc_fin_vourcher_head.vourcher_value,
+sc_fin_vourcher_head.entry_fin ,
+pka_com_function.fp_get_moneythai (  sc_fin_vourcher_head.vourcher_value  ) as thai_vourcher_value ,
+si_security_user.user_name ,
+sc_fin_vourcher_detail.account_id,
+sc_fin_ucf_item_type.item_description,
+sc_fin_vourcher_detail.item_amount,
+sc_fin_vourcher_head.vourcher_value,
+pka_com_function.fp_get_moneythai (  sc_fin_vourcher_head.vourcher_value  ) as thai_vourcher_value
+FROM sc_fin_vourcher_head
+,si_security_user
+,sc_fin_ucf_vourcher_group
+,sc_fin_vourcher_detail
+,sc_fin_ucf_item_type
+WHERE 1=1  and
+sc_fin_ucf_vourcher_group.vourcher_group = sc_fin_vourcher_head.vourcher_group and 
+sc_fin_vourcher_head.entry_fin = si_security_user.user_id and
+sc_fin_vourcher_detail.vourcher_no = sc_fin_vourcher_head.vourcher_no and
+sc_fin_ucf_item_type.item_type = sc_fin_vourcher_detail.item_type and
+sc_fin_vourcher_head.vourcher_no = {0}
+/*WHERE*/
+--and ( sc_fin_vourcher_head.vourcher_no = 'P65005333' )</sql>
+    </r_port_form_receipt_payment_nest_sum>
+  </sub>
+  <mis />
+</root>

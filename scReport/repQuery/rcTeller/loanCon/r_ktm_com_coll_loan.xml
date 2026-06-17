@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+  </arg>
+  <combo />
+  <sql>    select '' as loan_contract_no, -- เลขที่สัญญา
+        '' as begining_of_contract, --วันที่ขอกู้
+        '' as memname_guarantor, --ชื่อคนค้ำประกัน **(มีทั้งหมด5คน)**
+        '' as membership_no_guarantor, --เลขทะเบียนคนค้ำประกัน 
+        '' as add_guarantor, --สถานที่ทำงานคนที่ค้ำประกัน  
+        '' as tel_guarantor, --เบอร์โทรคนค้ำประกัน 
+        '' as memname, --ชื่อคนขอกู้
+        '' as membership_no, --เลขทะเบียนคนกู้
+        '' as loan_approve_amount, --จำนวนเงินที่ขอกู้    
+        '' as loan_approve_amount_thai, --คำภาษาไทย จำนวนเงินที่ขอกู้
+        '' as name_witness_commandant, --พยาน(ผู้บังคับบัญชาผู้ค้ำประกัน)**มีทั้งหมด 5 คน**
+        '' as user_name, --เจ้าหน้าที่ผู้ตรวจสอบ(เจ้าหน้าที่ที่ทำการบันทึก)
+        '' as manager_name, --ผู้จัดการ 
+        '' as spouse_surname, -- สามี/ภรรยาขอผู้ค้ำประกัน
+        '' as spouse_occupation, --อาชีพผู้ค้ำประกัน
+        '' as spouse_salary,--รายได้ผู้ค้ำประกัน
+   from  dual ;  
+  </sql>
+  <sub>
+  </sub>
+</root>

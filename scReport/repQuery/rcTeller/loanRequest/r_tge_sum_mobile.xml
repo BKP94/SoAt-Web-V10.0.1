@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <year special="year" text="ปี" type="integer" sqlwhere="0" sqlreplace="1" />
+    <month special="month" text="เดือน" type="integer" combo="monthThLong" sqlwhere="0" sqlreplace="1" />
+  </arg>
+  <combo />
+  <sql>select  op_date
+,       count(1)
+,       sum(add_loan)
+,       loan_type
+,       (case when loan_type = '03' then 'เงินกู้ฉุกเฉิน Mobile'
+        when loan_type = '42' then 'เงินกู้สามัญใช้หุ้นเป็นหลักประกันเงินกู้ Mobile'
+        end
+        )as loan_type_des
+,       '!year_1!' +543 as req_year
+,       pka_com_function.fp_get_month_name('!month_1!','LT') as req_month_name
+from    view_rep_paid_mobile
+where   loan_type in ('03','42')
+--and     op_date between '01/06/2023' and '30/06/2023'
+/*WHERE*/
+and   to_number(to_char(op_date  ,'yyyy')) = '!year_1!'
+and   to_number(to_char(op_date,'mm')) =  '!month_1!'
+group by op_date
+,        loan_type
+order by op_date</sql>
+  <sub />
+</root>

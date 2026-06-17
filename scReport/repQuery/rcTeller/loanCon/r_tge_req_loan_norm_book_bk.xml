@@ -1,0 +1,108 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <begining_of_contract text="วันที่" table="sc_lon_m_loan_request" type="date" readonly="0" />
+    <membership_no special="memno" text="ทะเบียน" table="sc_mem_m_membership_registered" readonly="0" />
+    <loan_type text="ประเภท" table="sc_lon_m_loan_request" combo="sc_lon_m_rule2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>SELECT  sc_lon_m_loan_request.loan_type
+    , sc_lon_m_loan_request.loan_requestment_no as loan_requestment_no
+    , pka_com_function.fp_get_thaidate(  sc_lon_m_loan_request.begining_of_contract  , 'DD  MONTH  YYYY') as begining_of_contract_thai
+    , pka_com_function.fp_get_thaidate(  sc_lon_m_loan_request.begining_of_contract  , 'DD-MM-YYYY') as begining_of_contract
+    , pka_com_function.fp_get_member_name( sc_lon_m_loan_request.membership_no ) as memname
+    , sc_lon_m_loan_request.membership_no as membership_no
+    , sc_mem_m_ucf_member_group.member_group_name
+    , sc_lon_m_loan_request.loan_request_amount as loan_request_amount
+    , pka_com_function.fp_get_moneythai( sc_lon_m_loan_request.loan_request_amount ) as loan_request_amount_thai
+    , sc_lon_m_ucf_loan_obj.loan_objective_description
+    , pka_com_function.fp_get_numberthai( sc_lon_m_loan_request.period_payment_amount ) as period_payment_amount
+    , pka_com_function.fp_get_numberthai( sc_lon_m_loan_request.last_payment_amount ) as last_payment_amount
+    , pka_com_function.fp_get_numberthai( sc_lon_m_loan_request.loan_installment_amount ) as loan_installment_amount
+    , sc_lon_m_loan_request.start_keep_date 
+    , (sc_lon_m_int_step_rate.loan_interest_rate*100) as loan_interest_rate
+    , pka_com_function.fp_get_member_position_long( sc_lon_m_loan_request.membership_no ) as position
+    , sc_mem_m_member_address.address_no
+    , sc_mem_m_member_address.moo
+    , sc_mem_m_member_address.soi
+    , sc_mem_m_member_address.road
+    , sc_mem_m_member_address.tambol
+    , pka_com_function.fp_get_district_name( sc_mem_m_member_address.province_code , sc_mem_m_member_address.district_code )as district
+    , pka_com_function.fp_get_province_name( sc_mem_m_member_address.province_code )as province
+    , si_security_user.user_name
+    FROM sc_lon_m_loan_request,
+    sc_mem_m_membership_registered,
+    sc_mem_m_ucf_member_group,
+    sc_lon_m_rule,
+    sc_lon_m_ucf_loan_obj,
+    sc_lon_m_int_step_rate,
+    sc_mem_m_member_address,
+    si_security_user
+    WHERE sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+    AND si_security_user.user_id = sc_lon_m_loan_request.entry_id
+    AND sc_lon_m_loan_request.membership_no = sc_mem_m_membership_registered.membership_no
+    AND  sc_lon_m_rule.loan_type = sc_lon_m_loan_request.loan_type 
+    AND sc_lon_m_loan_request.loan_objective_code = sc_lon_m_ucf_loan_obj.loan_objective_code
+    AND sc_lon_m_loan_request.loan_type = sc_lon_m_ucf_loan_obj.loan_type
+    AND sc_lon_m_int_step_rate.loan_type = sc_lon_m_loan_request.loan_type
+    AND sc_mem_m_member_address.membership_no = sc_mem_m_membership_registered.membership_no
+    AND sc_mem_m_member_address.address_type = '0'
+    AND sc_lon_m_loan_request.cancel_status = '0'
+    /*WHERE*/
+    -- AND sc_lon_m_loan_request.loan_requestment_no = '6520000373'
+ORDER BY sc_lon_m_loan_request.loan_requestment_no ASC
+
+
+</sql>
+  <sub>
+    <r_tge_req_loan_norm_book_nest>
+      <sql>select  sc_lon_m_loan_request.loan_requestment_no 
+        ,(select sc_lon_m_req_coll.collateral_description
+        from    sc_lon_m_req_coll
+        where   sc_lon_m_req_coll.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+        and     sc_lon_m_req_coll.collateral_type_code = '01'
+        and     sc_lon_m_req_coll.seq_no = '1'
+        )as collname1
+        ,(select sc_lon_m_req_coll.collateral_description
+        from    sc_lon_m_req_coll
+        where   sc_lon_m_req_coll.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+        and     sc_lon_m_req_coll.collateral_type_code = '01'
+        and     sc_lon_m_req_coll.seq_no = '2'
+        )as collname2
+        ,(select sc_lon_m_req_coll.collateral_description
+        from    sc_lon_m_req_coll
+        where   sc_lon_m_req_coll.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+        and     sc_lon_m_req_coll.collateral_type_code = '01'
+        and     sc_lon_m_req_coll.seq_no = '3'
+        )as collname3
+        ,(select sc_lon_m_req_coll.collateral_description
+        from    sc_lon_m_req_coll
+        where   sc_lon_m_req_coll.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+        and     sc_lon_m_req_coll.collateral_type_code = '01'
+        and     sc_lon_m_req_coll.seq_no = '4'
+        )as collname4
+        ,(select sc_lon_m_req_coll.collateral_description
+        from    sc_lon_m_req_coll
+        where   sc_lon_m_req_coll.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+        and     sc_lon_m_req_coll.collateral_type_code in ('02','03','04','05')
+        )as collateral_description
+        ,(select (case when sc_lon_m_req_coll.collateral_type_code = '02' then 'หุ้นค้ำประกัน'
+                 when sc_lon_m_req_coll.collateral_type_code = '03' then 'เงินฝากค้ำประกัน'
+                 when sc_lon_m_req_coll.collateral_type_code = '04' then 'อสังหาริมทรัพย์' 
+                 when sc_lon_m_req_coll.collateral_type_code = '05' then 'ห้องชุด'
+                 end) 
+        from    sc_lon_m_req_coll
+        where   sc_lon_m_req_coll.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+        and     sc_lon_m_req_coll.collateral_type_code in ('02','03','04','05')
+        )as collateral_other
+from    sc_lon_m_loan_request
+where		1=1
+/*WHERE*/
+AND  sc_lon_m_loan_request.loan_requestment_no = {0}
+--and   sc_lon_m_loan_request.loan_requestment_no = '6520000373'
+
+
+</sql>
+    </r_tge_req_loan_norm_book_nest>
+  </sub>
+</root>

@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <begining_of_contract align="center" text="วันที่" table="sc_lon_m_contract" type="date" readonly="0" />
+    <loan_contract_no align="center" default="select max(loan_contract_no) from sc_lon_m_contract where loan_type = 'ส' and begining_of_contract &gt;= sysdate - 3" text="เลขที่สัญญา" table="sc_lon_m_contract" operator="bt" readonly="0" />
+    <membership_no special="memno" text="ทะเบียน" table="sc_lon_m_contract" readonly="0" />
+    <text1 align="center" text="ชุดที่" sqlwhere="0" sqlreplace="1" noheader="1" readonly="0" />
+    <text2 align="center" text="ครั้งที่" sqlwhere="0" sqlreplace="1" noheader="1" readonly="0" />
+    <text3 align="center" text="ประชุมวันที่" type="date" sqlwhere="0" sqlreplace="1" noheader="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>SELECT  sc_lon_m_contract.loan_contract_no , sc_lon_m_loan_request.loan_requestment_no,
+			sc_lon_m_contract.membership_no ,
+			sc_lon_m_contract.loan_approve_amount ,
+      pka_com_function.fp_get_moneythai ( sc_lon_m_contract.loan_approve_amount ) as loan_approve_amount_thai, 
+			sc_lon_m_contract.loan_type ,
+      pka_com_function.fp_get_thaidate(sc_lon_m_contract.start_keep_date , 'SD MONTH YYYY') as start_keep_date,
+      pka_com_function.fp_get_thaidate(sc_lon_m_contract.start_keep_date , 'SD') as start_keep_day,
+      pka_com_function.fp_get_thaidate(sc_lon_m_contract.start_keep_date , 'MONTH') as start_keep_month,
+      pka_com_function.fp_get_thaidate(sc_lon_m_contract.start_keep_date , 'YYYY') as start_keep_year,
+      pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract , 'SD MONTH YYYY') as begining_of_contract,
+      pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract , 'SD') as begining_of_day,
+      pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract , 'YYYY') as begining_of_year,
+      pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract , 'MONTH') as begining_of_month,
+			sc_mem_m_membership_registered.member_group_no ,
+      pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no)  as member_name,       
+			sc_lon_m_rule.loan_type_description ,
+			sc_mem_m_ucf_member_group.member_group_name ,
+       '!text1_1!' as text1,   
+      '!text2_1!' as text2, 
+      '!text3_1!' as text3,
+      sc_cnt_m_coop.coop_name, 
+			sc_mem_m_ucf_member_group.member_group_control ,
+      pka_com_function.fp_get_group_name(sc_mem_m_ucf_member_group.member_group_control )as group_control_name,
+      sc_lon_m_loan_request_mpaid.bank_acc_no,
+      si_security_user.user_name,
+      decode( sc_lon_m_contract.loan_type , 'ส' , sc_cnt_m_coop.assit_manager , sc_cnt_m_coop.manager_name ) as  manager_name
+      
+        FROM sc_lon_m_contract ,
+			sc_mem_m_membership_registered ,
+			sc_mem_m_ucf_prename ,
+			sc_lon_m_rule ,
+			sc_mem_m_ucf_member_group ,
+			sc_lon_m_loan_request  ,
+      sc_lon_m_loan_request_mpaid,
+      si_security_user ,
+      sc_cnt_m_coop
+WHERE ( sc_lon_m_contract.membership_no = sc_mem_m_membership_registered.membership_no )
+and   ( sc_mem_m_membership_registered.prename_code = sc_mem_m_ucf_prename.prename_code ) 
+and   ( sc_lon_m_rule.loan_type = sc_lon_m_contract.loan_type ) 
+and   ( sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no ) 
+and   ( sc_lon_m_loan_request.loan_requestment_no		=	sc_lon_m_contract.loan_requestment_no ) 
+and   ( sc_lon_m_loan_request_mpaid.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no )
+and	  ( sc_lon_m_loan_request.entry_id = si_security_user.user_id)
+/*WHERE*/
+--and   ( sc_lon_m_contract.loan_contract_no = 'ส65000249'  ) 
+-- and   ( sc_lon_m_contract.begining_of_contract &gt;= '04/03/2022'  )  </sql>
+  <sub />
+</root>

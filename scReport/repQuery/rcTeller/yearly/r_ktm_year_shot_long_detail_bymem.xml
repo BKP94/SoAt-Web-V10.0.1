@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <balance_date text="วันที่" table="sc_rep_mem_share_loan_year" type="date" column="balance_date" readonly="0" />
+    <member_group_no text="หน่วย" table="sc_mem_m_ucf_member_group" operator="bt" nulltext="ดูทั้งหมด ไม่ต้องเลือกนะจ๊ะ" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_rep_mem_share_loan_year.client_id,
+    sc_rep_mem_share_loan_year.seq_no,
+    sc_rep_mem_share_loan_year.membership_no,
+    sc_rep_mem_share_loan_year.emer_contract,
+    sc_rep_mem_share_loan_year.emer_loantype,
+    sc_rep_mem_share_loan_year.emer_balance,
+    sc_rep_mem_share_loan_year.emer_period,
+    sc_rep_mem_share_loan_year.emer_installment,
+    sc_rep_mem_share_loan_year.norm_contract,
+    sc_rep_mem_share_loan_year.norm_loantype,
+    sc_rep_mem_share_loan_year.norm_balance,
+    sc_rep_mem_share_loan_year.norm_period,
+    sc_rep_mem_share_loan_year.norm_installment,
+    sc_rep_mem_share_loan_year.spec_contract,
+    sc_rep_mem_share_loan_year.spec_loantype,
+    sc_rep_mem_share_loan_year.spec_balance,
+    sc_rep_mem_share_loan_year.spec_period,
+    sc_rep_mem_share_loan_year.spec_installment,
+    sc_rep_mem_share_loan_year.salary_amount,
+    sc_mem_m_ucf_member_group.member_group_name,
+    sc_mem_m_ucf_member_group.member_group_control,
+    sc_mem_m_membership_registered.mem_type,
+    sc_mem_m_ucf_member_type.mem_type_desc,
+    pka_com_function.fp_get_group_name( sc_mem_m_ucf_member_group.member_group_control ) as grp_con_name,
+    sc_rep_mem_share_loan_year.emer_intarr,
+    sc_rep_mem_share_loan_year.norm_intarr,
+    sc_rep_mem_share_loan_year.spec_intarr,
+    sc_rep_mem_share_loan_year.balance_date,
+    sc_rep_mem_share_loan_year.intarr_date,
+    sc_rep_mem_share_loan_year.emer_paycode,
+    sc_rep_mem_share_loan_year.emer_shot,
+    sc_rep_mem_share_loan_year.emer_long,
+    sc_rep_mem_share_loan_year.norm_paycode,
+    sc_rep_mem_share_loan_year.norm_shot,
+    sc_rep_mem_share_loan_year.norm_long,
+    sc_rep_mem_share_loan_year.spec_paycode,
+    sc_rep_mem_share_loan_year.spec_shot,
+    sc_rep_mem_share_loan_year.spec_long,
+    sc_mem_m_membership_registered.sex,
+    sc_mem_m_ucf_member_group.member_group_no,
+    sc_mem_m_ucf_member_group.control_id,
+    sc_mem_m_ucf_coop_control.control_desc ,
+    sc_rep_mem_share_loan_year.member_name,
+    sc_rep_mem_share_loan_year.member_status_code
+    FROM sc_rep_mem_share_loan_year,
+    sc_mem_m_membership_registered,
+    sc_mem_m_ucf_member_group,
+    sc_mem_m_ucf_coop_control,
+    sc_mem_m_ucf_member_type
+    WHERE ( sc_rep_mem_share_loan_year.membership_no = sc_mem_m_membership_registered.membership_no ) and
+    ( sc_rep_mem_share_loan_year.member_group_no = sc_mem_m_ucf_member_group.member_group_no ) and
+    ( sc_mem_m_ucf_member_type.mem_type_code = sc_mem_m_membership_registered.mem_type ) and
+    ( sc_mem_m_ucf_coop_control.control_id =  sc_mem_m_ucf_member_group.control_id ) and
+    ( ( sc_rep_mem_share_loan_year.client_id = '000' ) )
+    
+     and (     sc_rep_mem_share_loan_year.share_balance &gt; 0 or   
+sc_rep_mem_share_loan_year.emer_balance &gt; 0 or   
+sc_rep_mem_share_loan_year.norm_balance &gt; 0 or   
+sc_rep_mem_share_loan_year.spec_balance &gt; 0 or
+sc_rep_mem_share_loan_year.emer_intarr &gt; 0 or   
+sc_rep_mem_share_loan_year.norm_intarr &gt; 0 or   
+sc_rep_mem_share_loan_year.spec_intarr &gt; 0 
+)
+
+    /*WHERE*/
+    --and (  sc_rep_mem_share_loan_year.balance_date = to_date('01/01/2019','dd/mm/yyyy')
+    --and  sc_mem_m_ucf_member_group.member_group_no between  '01000' and '02490')
+    order by sc_mem_m_ucf_member_group.control_id
+    ,sc_mem_m_ucf_member_group.member_group_control
+    ,sc_mem_m_ucf_member_group.member_group_no
+    ,sc_rep_mem_share_loan_year.membership_no
+    ,sc_rep_mem_share_loan_year.seq_no
+  </sql>
+  <sub />
+</root>

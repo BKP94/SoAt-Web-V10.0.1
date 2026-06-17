@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="T045" rep_text="รายงานการโอนหนี้ให้ผู้ค้ำ">
+  <arg>
+    <transfer_date text="วันที่" table="sc_lon_m_trans_loan_coll_head" type="date" operator="bt" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    SELECT sc_lon_m_trans_loan_coll_head.transfer_doc_no,
+    sc_lon_m_trans_loan_coll_head.membership_no,
+    pka_com_function.fp_get_member_name(sc_lon_m_trans_loan_coll_head.membership_no) AS membername,
+    sc_lon_m_trans_loan_coll_head.principal_balance,
+    sc_lon_m_trans_loan_coll_head.last_access_date,
+    sc_lon_m_trans_loan_coll_head.transfer_status,
+    sc_lon_m_trans_loan_coll_head.principal_of_loan,
+    sc_lon_m_trans_loan_coll_head.period_payment,
+    sc_lon_m_trans_loan_coll_head.begining_of_contract,
+    sc_lon_m_trans_loan_coll_head.last_period,
+    sc_lon_m_trans_loan_coll_head.loan_contract_no,
+    sc_lon_m_trans_loan_coll_head.transfer_date,
+    sc_lon_m_trans_loan_coll_head.int_transfer_amount,
+    '        ' as transfer_date_tdate,
+    '        ' as last_access_date_tdate,
+    '        ' as begining_of_contract_tdate,
+    sc_lon_m_trans_loan_coll_head.installment,
+    sc_mem_m_membership_registered.member_group_no,
+    sc_mem_m_ucf_member_group.member_group_type ,
+    '!transfer_date_1!' as adtm_bdate,
+    '!transfer_date_2!' as adtm_edate
+    FROM sc_lon_m_trans_loan_coll_head,
+    sc_mem_m_membership_registered,
+    sc_mem_m_ucf_member_group
+    WHERE ( sc_lon_m_trans_loan_coll_head.membership_no = sc_mem_m_membership_registered.membership_no )
+    and   ( sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no )
+    AND   ( sc_lon_m_trans_loan_coll_head.transfer_status = '0' )
+    /*WHERE*/
+    --and   ( sc_lon_m_trans_loan_coll_head.transfer_date between '01/06/2020' and '30/06/2020' )
+    order by sc_mem_m_ucf_member_group.member_group_type  ,sc_lon_m_trans_loan_coll_head.membership_no
+  </sql>
+  <sub>
+    <r_ktm_trans_loan_to_coll_receive_nest_coll>
+      <sql>
+        SELECT sc_lon_m_trans_loan_coll_det.seq_no,
+        sc_lon_m_trans_loan_coll_det.collateral_no,
+        pka_com_function.fp_get_member_name(sc_lon_m_trans_loan_coll_det.collateral_no) AS coll_name,
+        sc_lon_m_trans_loan_coll_det.new_contract_no,
+        sc_lon_m_trans_loan_coll_det.loan_transfer_amount,
+        sc_lon_m_trans_loan_coll_det.period_payment,
+        sc_lon_m_trans_loan_coll_det.start_keep_date
+        FROM sc_lon_m_trans_loan_coll_det
+        WHERE sc_lon_m_trans_loan_coll_det.transfer_doc_no = {0}
+      </sql>
+    </r_ktm_trans_loan_to_coll_receive_nest_coll>
+  </sub>
+</root>

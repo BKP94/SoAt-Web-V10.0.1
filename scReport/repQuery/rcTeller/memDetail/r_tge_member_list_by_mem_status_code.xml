@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <member_status_code text="สถานะของสมาชิก" table="sc_mem_m_membership_registered" combo="member_status_code" readonly="0" />
+  </arg>
+  <combo />
+  <sql>SELECT  sc_mem_m_membership_registered.membership_no,   
+         sc_mem_m_membership_registered.member_group_no, 
+         sc_mem_m_ucf_member_group.member_group_name,   
+         (select prename from sc_mem_m_ucf_prename where prename_code = sc_mem_m_membership_registered.prename_code)||sc_mem_m_membership_registered.member_name||' '||sc_mem_m_membership_registered.member_surname  as member_name,
+         pka_com_function.fp_get_group_name(sc_mem_m_ucf_member_group.member_group_control )as member_group_control,
+         sc_mem_m_membership_registered.date_of_birth,
+         pka_com_function.fp_form_idcard (sc_mem_m_membership_registered.id_card)as id_card,
+         pka_com_function.fp_get_member_address_letter(  sc_mem_m_membership_registered.membership_no , '0' , 1 ) as address_line1,   
+         pka_com_function.fp_get_member_address_letter(  sc_mem_m_membership_registered.membership_no , '0' , 2 ) as address_line2,   
+         pka_com_function.fp_get_member_address_letter(  sc_mem_m_membership_registered.membership_no , '0' , 3 ) as address_line3,   
+         pka_com_function.fp_get_member_address_letter(  sc_mem_m_membership_registered.membership_no , '0' , 4 ) as address_line4     
+         
+         , case member_status_code when '0' then 'เป็นสมาชิก' when '3' then 'พ้นสภาพ' end as member_status_code 
+         
+FROM     sc_mem_m_membership_registered,   
+         sc_mem_m_ucf_member_group 
+WHERE ( sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no )   
+/*WHERE*/
+--and sc_mem_m_membership_registered.membership_no = '055832'
+ORDER BY sc_mem_m_ucf_member_group.member_group_control ASC,   
+         sc_mem_m_membership_registered.member_group_no ASC,   
+         sc_mem_m_membership_registered.membership_no </sql>
+  <sub />
+</root>

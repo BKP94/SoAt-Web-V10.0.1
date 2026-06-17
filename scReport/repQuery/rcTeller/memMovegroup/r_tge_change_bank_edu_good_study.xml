@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <entry_date text="วันที่" table="sc_mem_m_chg_accno" type="date" column="entry_date" operator="bt" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <app_status align="center" text="สถานะ" table="sc_mem_m_chg_accno" column="app_status" nulltext="ดูทั้งหมด ไม่ต้องเลือก" combo="app_status" readonly="0" />
+    <class_type text="ระดับชั้น" table="sc_wef_ucf_edu_class" nulltext="ดูทั้งหมด ไม่ต้องเลือก" combo="sc_wef_ucf_edu_class" readonly="0" />
+    <acc_type align="center" text="ประเภท" table="sc_mem_m_chg_accno" nulltext="ดูทั้งหมด ไม่ต้องเลือก" combo="acc_type" readonly="0" />
+  </arg>
+  <combo>
+    <acc_type>WEF=บัญชีรับสวัสดิการ/DIV=บัญชีรับปันผล/AGENT=บัญชีหักเงิน/EDU=บัญชีทุนการศึกษา</acc_type>
+    <app_status>0=ไม่อนุมัติ/1=อนุมัติ/2=รออนุมัติ</app_status>
+  </combo>
+  <sql>select  (select president_name from sc_cnt_m_coop) as president_name
+,       sc_wef_req.requestment_no
+,       pka_com_function.fp_get_member_name(sc_wef_req.membership_no) as membername
+,       sc_wef_req.membership_no
+,       sc_wef_req.total_receive
+,       pka_com_function.fp_get_thaidate(sc_wef_req.approve_date , 'SD MONTH YYYY') as approve_date
+,       pka_com_function.fp_get_thaidate(sysdate) as sys_date
+,       pka_com_function.fp_get_thaidate(sysdate , 'YYYY')  as approve_year
+
+,       (case when sc_wef_req_edu.edu_type = '01005' then 'ทุนส่งเสริมการศึกษา'
+        when sc_wef_req_edu.edu_type = '02005' then 'ทุนเรียนดีตลอดหลักสูตร'
+        when sc_wef_req_edu.edu_type = '03005' then 'ทุนส่งเสริมการศึกษา (เฉพาะนักเรียนพิการ)'
+        end)as edu_type_name
+
+,       sc_wef_req_edu.edu_type
+,       sc_wef_ucf_edu_class.class_type
+,       sc_wef_ucf_edu_class.class_desc
+,       sc_mem_m_ucf_prename.prename
+,       sc_wef_req_edu.child_name
+,       sc_wef_req_edu.child_surname
+,       sc_wef_req_edu.num_rec
+
+,      sc_mem_m_chg_accno.bank_new
+,      pka_com_function.fp_form(sc_mem_m_chg_accno.accno_new , 'XXX-X-XXXXX-X') as accno_new
+
+from    sc_wef_req_edu
+,       sc_wef_req
+,       sc_wef_ucf_edu_class
+,       sc_mem_m_ucf_prename
+,       sc_mem_m_chg_accno
+where   sc_wef_req.requestment_no = sc_wef_req_edu.requestment_no
+and     sc_wef_ucf_edu_class.class_type = sc_wef_req_edu.class_type
+and     sc_mem_m_ucf_prename.prename_code = sc_wef_req_edu.pre_name
+and     sc_mem_m_chg_accno.membership_no = sc_wef_req.membership_no
+and     sc_wef_req.cancel_status = '0'
+and     sc_wef_req_edu.edu_type = '02005'
+and to_date(sc_mem_m_chg_accno.entry_date) between '!entry_date_1!' and '!entry_date_2!'
+and  sc_wef_req_edu.num_rec is not null
+/*WHERE*/
+--and     sc_wef_req.membership_no = '051434'</sql>
+  <sub />
+</root>

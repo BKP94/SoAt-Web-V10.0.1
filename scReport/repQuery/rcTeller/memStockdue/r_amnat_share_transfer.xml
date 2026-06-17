@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <membership_no special="memno" text="ทะเบียน" table="sc_mem_m_membership_registered" readonly="0" />
+  </arg>
+  <combo />
+  <sql>SELECT   sc_mem_m_share_holding_detail.membership_no,   
+         pka_com_function.fp_get_thaidate(sc_mem_m_share_holding_detail.operate_date , 'SD MONTH YYYY') as operate_date,
+         sc_mem_m_share_holding_detail.item_type,  
+         pka_com_function.fp_get_member_name(sc_mem_m_share_holding_detail.membership_no) as member_name, 
+         pka_com_function.fp_get_group_name(sc_mem_m_ucf_member_group.member_group_control) as group_control_name,
+         pka_com_function.fp_get_group_name(sc_mem_m_ucf_member_group.member_group_no) as group_name, 
+         sc_mem_m_share_holding_detail.share_value,   
+         sc_mem_m_share_holding_detail.share_amount,   
+         sc_mem_m_share_mem.share_stock,
+         si_security_user.user_name,
+         (select manager_name from sc_cnt_m_coop) as manager_name,
+         pka_com_function.fp_get_moneythai( sc_mem_m_share_holding_detail.share_value ) as thai_share_value
+    FROM sc_mem_m_share_holding_detail,   
+         sc_mem_m_share_mem,   
+         sc_mem_m_membership_registered,   
+         sc_mem_m_ucf_member_group,
+         si_security_user
+   WHERE ( sc_mem_m_share_holding_detail.membership_no = sc_mem_m_share_mem.membership_no ) and  
+         ( sc_mem_m_share_mem.membership_no = sc_mem_m_membership_registered.membership_no ) and  
+         ( sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no ) and
+         ( ( sc_mem_m_share_holding_detail.item_type = 'TL' ) and 
+         ( si_security_user.user_id = sc_mem_m_share_holding_detail.entry_id ))
+     /*WHERE*/   
+       -- sc_mem_m_share_holding_detail.membership_no = '000515' </sql>
+  <sub />
+</root>

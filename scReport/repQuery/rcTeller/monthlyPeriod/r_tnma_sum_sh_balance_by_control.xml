@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <balance_date text="วันที่" table="sc_rep_mem_share_loan_bal" type="date" nestreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <member_group_control text="หน่วย" table="sc_mem_m_ucf_member_group" operator="bt" nulltext="ดูทั้งหมด ไม่ต้องเลือกนะจ๊ะ" combo="sc_mem_m_ucf_member_group7" readonly="0" comboreplace="0" combowhere="0" />
+    <member_status_code text="ประเภทสมาชิก" table="sc_rep_mem_share_loan_bal" combo="member_status_code" readonly="0" comboreplace="0" combowhere="0" />
+    <emer_contact_status text="ประเภท" table="sc_rep_mem_share_loan_bal" combo="emer_contact_status" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>    select sc_mem_m_ucf_member_group.member_group_control
+    ,   pka_com_function.fp_get_group_name(sc_mem_m_ucf_member_group.member_group_control)as coltrol_name
+    ,   sum(sc_rep_mem_share_loan_bal.share_balance)as share_balance
+    ,   sum(sc_rep_mem_share_loan_bal.share_installment)as share_installment
+    from sc_rep_mem_share_loan_bal
+    ,   sc_mem_m_ucf_member_group
+    where 1=1
+    and sc_rep_mem_share_loan_bal.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+    and sc_rep_mem_share_loan_bal.share_balance &gt;0
+    /*WHERE*/
+    --and sc_rep_mem_share_loan_bal.balance_date = to_date('16/09/2025','dd/mm/yyyy')
+    --and sc_rep_mem_share_loan_bal.membership_no = '056043'
+
+    group by sc_mem_m_ucf_member_group.member_group_control
+    order by sc_mem_m_ucf_member_group.member_group_control
+  </sql>
+  <sub>
+  </sub>
+</root>

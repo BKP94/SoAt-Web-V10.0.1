@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <member_group_no text="หน่วย" table="sc_mem_m_membership_registered" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>SELECT sc_mem_m_membership_registered.membership_no
+        ,pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as member_name
+	,sc_mem_m_ucf_member_group.member_group_name
+	,sc_mem_m_membership_registered.member_group_no
+	--,sc_mem_m_membership_registered.salary_amount
+    ,( select salary_real  from sc_mem_m_member_work_info  where sc_mem_m_member_work_info.membership_no = sc_mem_m_membership_registered.membership_no ) as salary_amount
+	,sc_mem_m_membership_registered.salary_pure_amount
+	,sc_mem_m_membership_registered.position_amount
+	,sc_mem_m_membership_registered.other_amount
+	,pka_lon_reqsrv.fp_calc_agetext_m_live(sc_mem_m_membership_registered.membership_no) as date_of_birth
+	,sc_mem_m_share_mem.share_amount
+FROM sc_mem_m_membership_registered
+	,sc_mem_m_ucf_prename
+	,sc_mem_m_ucf_member_group
+	,sc_mem_m_share_mem
+WHERE (sc_mem_m_membership_registered.prename_code = sc_mem_m_ucf_prename.prename_code)
+	AND (sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no)
+	AND (sc_mem_m_share_mem.membership_no = sc_mem_m_membership_registered.membership_no)
+--	AND (	(			sc_mem_m_ucf_member_group.member_group_no BETWEEN :s_mem			AND :e_mem			)
+	AND (sc_mem_m_membership_registered.member_status_code = '0')
+/*WHERE*/
+
+
+ORDER BY sc_mem_m_membership_registered.member_group_no ASC
+	,sc_mem_m_membership_registered.membership_no ASC
+
+</sql>
+  <sub />
+</root>

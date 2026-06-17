@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <entry_date align="center" text="วันที่" type="date" operator="bt" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    SELECT sn.membership_no,
+    pka_com_function.fp_get_member_group(sn.membership_no) as member_group_no,
+    pka_com_function.fp_get_group_name_mem(sn.membership_no) as member_group_name,
+    sn.operate_date,
+    sn.doc_edit,
+    ( SELECT prename FROM sc_mem_m_ucf_prename WHERE prename_code = sn.pre_prename_code )  ||  sn.pre_member_name || ' ' ||sn.pre_member_surname AS c_name_pre,
+    ( SELECT prename FROM sc_mem_m_ucf_prename WHERE prename_code = sn.prename_code )  ||  sn.member_name || ' ' || sn.member_surname AS c_name_edit,
+    sn.entry_id,sn.entry_date
+    FROM sc_mem_edit_name sn
+    WHERE 1 = 1
+    and   sn.operate_date between '!entry_date_1!' and '!entry_date_2!'
+    ORDER BY sn.membership_no
+  </sql>
+  <sub />
+</root>

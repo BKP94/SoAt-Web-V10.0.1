@@ -1,0 +1,75 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <branch_id text="สาขา" table="sc_com_m_branch" combo="sc_com_m_branch" readonly="0" />
+    <receipt_date text="วันที่" table="sc_com_m_receipt" type="date" operator="bt" readonly="0" />
+    <user_id text="ผู้บันทึก" table="si_security_user" column="user_id" combo="si_security_user2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    select sum(tab.row_memno)over( partition by (receipt_date) order by tab.receipt_date ,tab.branch_id ,tab.receipt_no ,tab.sort_group_item) as rowno,  tab.*
+    from ( SELECT  decode(lag(sc_mem_m_membership_registered.membership_no,1,null)over(  partition by (sc_com_m_receipt.receipt_date)  order by sc_com_m_receipt.receipt_date ,sc_com_m_branch.branch_id
+    ,sc_com_m_receipt.receipt_no ,sc_com_m_ucf_receipt_item_type.group_item ) ,sc_mem_m_membership_registered.membership_no,0,1) as row_memno ,
+    sc_com_m_receipt.receipt_date  as receipt_date
+    ,sc_com_m_receipt.receipt_no  as receipt_no
+    ,sc_mem_m_membership_registered.membership_no    as membership_no
+    ,PKA_COM_FUNCTION.fp_get_member_name( sc_mem_m_membership_registered.membership_no ) as membername
+    ,sc_com_m_receipt.receipt_status  as receipt_status
+    ,( case group_item  when 'SHR' then 1 when 'LON'  then  5 else  99 end ) as sort_group_item
+    ,sc_com_m_ucf_receipt_item_type.group_item  as group_item
+    ,case
+    when  sc_com_m_ucf_receipt_item_type.group_item = 'LON' then
+    sc_com_m_receipt_item.description
+    when  sc_com_m_ucf_receipt_item_type.group_item = 'ISP' then
+    sc_com_m_receipt_item.description
+    else
+    sc_com_m_ucf_receipt_item_type.item_type_name
+    end 	as 		description
+
+    ,sc_com_m_receipt.entry_id as entry_id
+
+
+
+    ,sc_com_m_branch.branch_id  as branch_id
+    ,sc_com_m_branch.branch_name  as branch_name
+
+    ,decode( sc_com_m_receipt.receipt_status , '0' , sc_com_m_receipt_item.principal_amount , 0  ) as principal_amount
+    ,decode( sc_com_m_receipt.receipt_status , '0' , sc_com_m_receipt_item.interest_amount , 0  ) as interest_amount
+    ,decode( sc_com_m_receipt.receipt_status , '0' , sc_com_m_receipt_item.item_amount , 0  ) as item_amount
+    ,sc_com_m_receipt.ppm_status as ppm_status
+    ,sc_com_m_receipt.keep_monthly as keep_monthly
+    , decode(  sc_com_m_ucf_receipt_item_type.group_item , 'LON' ,  FPB_GET_LOAN_TYPE_REF(  sc_com_m_receipt_item.loan_type ) , sc_com_m_receipt_item.loan_type )  as loan_type
+    ,(  	select sum( item_amount )
+    from	sc_com_m_receipt_item
+    where	receipt_no = sc_com_m_receipt.receipt_no ) as sum_rec
+    FROM sc_mem_m_membership_registered,
+    sc_mem_m_ucf_member_group,
+    sc_com_m_receipt,
+    sc_com_m_receipt_item,
+    sc_com_m_ucf_money_type,
+    sc_com_m_branch  ,
+    sc_com_m_ucf_receipt_item_type
+    ,si_security_user
+    ,sc_lon_m_contract_multi_paid
+    ,sc_lon_m_rule
+
+    WHERE ( sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no ) and
+    ( sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no ) and
+    ( sc_mem_m_membership_registered.membership_no = sc_com_m_receipt.membership_no ) and
+
+    ( sc_com_m_receipt.branch_id = sc_com_m_branch.branch_id ) and
+    ( 	sc_com_m_ucf_receipt_item_type.item_type_id = sc_com_m_receipt_item.item_type_id ) and
+    ( ( sc_com_m_receipt_item.item_amount &gt; 0 ) )
+
+    and si_security_user.user_id  = sc_com_m_receipt.entry_id
+    and	sc_lon_m_contract_multi_paid.loan_contract_no  = sc_com_m_receipt.loan_contract_no
+    and	sc_com_m_ucf_money_type.money_type_id = sc_lon_m_contract_multi_paid.type_pay_money
+    and sc_lon_m_rule.loan_type = sc_com_m_receipt_item.loan_type
+
+    and	sc_com_m_ucf_money_type.money_type_id  in (  'ATM' ) /*จ่ายเงินกู้*/
+    and sc_com_m_receipt.money_type_id = 'CLR' /*ประเภทห90
+    /*WHERE*/
+    )tab
+  </sql>
+  <sub />
+</root>

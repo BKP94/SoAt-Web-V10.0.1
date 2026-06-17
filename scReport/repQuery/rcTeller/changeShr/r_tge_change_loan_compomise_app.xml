@@ -1,0 +1,85 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <operate_date text="วันที่" table="sc_mem_m_chang_request" type="date" column="operate_date" operator="bt" readonly="0" />
+    <drop_status text="สถานะการเปลี่ยนแปลง" table="sc_mem_m_chg_loan_det" nulltext="ดูทั้งหมด ไม่ต้องเลือกนะจ๊ะ" combo="drop_status_chg" readonly="0" />
+  </arg>
+  <combo>
+    <dep_code>01=หุ้นหนี้/02=บริหาร/03=ติดตามหนี้/04=สินเชื่อ</dep_code>
+    <drop_status_chg>0=-/1=งดทั้งหมด/2=งดต้น/3=งดดอก/4=ปกติ เปลี่ยนแปลง</drop_status_chg>
+  </combo>
+  <sql>    select sum(tab.row_memno)over( partition by (drop_status) order by tab.drop_status ,tab.document_no , tab.membership_no ) as rowno,  tab.*
+    from ( SELECT sc_mem_m_chg_loan_det.membership_no,
+    decode(lag(sc_mem_m_chg_loan_det.membership_no,1,null)over(  order by  sc_mem_m_chg_loan_det.drop_status , sc_mem_m_chg_loan_det.document_no , sc_mem_m_chg_loan_det.membership_no )
+    ,sc_mem_m_chg_loan_det.membership_no,0,1) as row_memno,
+    PKA_COM_FUNCTION.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as memname,
+    pka_com_function.fp_get_thaidate(sysdate , 'dd/mm/yyyy') as sysdate_tdate,
+    sc_mem_m_chang_request.dep_code,
+    ( select sc_mem_m_ucf_change_payment.description_detail from sc_mem_m_ucf_change_payment where reason_code = sc_mem_m_chang_request.reason_code ) as description_detail,
+    sc_mem_m_chg_loan_det.document_no,
+    sc_mem_m_chg_loan_det.loan_contract,
+    sc_mem_m_chg_loan_det.pricipal,
+    sc_mem_m_chg_loan_det.balance,
+    sc_mem_m_chg_loan_det.period_old,
+    sc_mem_m_chg_loan_det.installment_old,
+    sc_mem_m_member_work_info.salary_amount,
+    sc_mem_m_chg_loan_det.period_payment_old,
+    sc_mem_m_chg_loan_det.period_payment_new,
+    sc_mem_m_chg_loan_det.period_compomise,
+    sc_mem_m_chg_loan_det.drop_status,
+    ( case sc_mem_m_chg_loan_det.drop_status
+    when '0' then '-'
+    when '1' then 'งดทั้งหมด'
+    when '2' then 'งดต้น'
+    when '3' then 'งดดอก'
+    when '4' then 'ปกติ/เปลี่ยนแปลง' end ) as drop_status_name,
+    sc_mem_m_chang_request.effactive_date,
+    sc_mem_m_chang_request.spare_begin,
+    sc_mem_m_chang_request.spare_date,
+    sc_mem_m_chang_request.operate_date,
+    sc_mem_m_chang_request.remark,
+    sc_mem_m_share_mem.share_stock,
+    sc_mem_m_ucf_member_group.member_group_no,
+    sc_mem_m_ucf_member_group.member_group_control,
+    sc_mem_m_ucf_member_group.member_group_name,
+    sc_mem_m_ucf_prename.prename,
+    sc_mem_m_membership_registered.member_name,
+    sc_mem_m_membership_registered.member_surname,
+    sc_mem_m_share_mem.period_recrieve,
+    '!report_header01!' as report_header01,
+    '!report_header02!' as report_header02,
+    '!report_footer01!' as report_footer01,
+    '!report_footer02!' as report_footer02,
+    sc_mem_m_chg_loan_det.installment_new ,
+    sc_mem_m_chg_loan_det.code_put ,
+    sc_mem_m_chg_loan_det.code_put_old
+    FROM sc_mem_m_chg_loan_det,
+    sc_mem_m_membership_registered,
+    sc_mem_m_member_work_info,
+    sc_mem_m_share_mem,
+    sc_mem_m_ucf_member_group,
+    sc_mem_m_ucf_prename,
+    sc_mem_m_chang_request
+
+
+    WHERE ( sc_mem_m_membership_registered.membership_no = sc_mem_m_share_mem.membership_no ) and
+    ( sc_mem_m_membership_registered.membership_no = sc_mem_m_member_work_info.membership_no ) and
+    ( sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no ) and
+    ( sc_mem_m_ucf_prename.prename_code = sc_mem_m_membership_registered.prename_code ) and
+    ( sc_mem_m_chg_loan_det.document_no = sc_mem_m_chang_request.document_no ) and
+    ( sc_mem_m_membership_registered.membership_no = sc_mem_m_chang_request.membership_no ) and
+    ( sc_mem_m_chang_request.cancel_status = 0 ) and
+    ( sc_mem_m_chg_loan_det.drop_status not in  '0' )
+    and sc_mem_m_chang_request.approve_status = '1'
+    /*WHERE*/
+    --and sc_mem_m_chang_request.operate_date = '18/03/2021'
+    --and sc_mem_m_chg_loan_det.membership_no = '001826'
+    --and ( sc_mem_m_chg_loan_det.drop_status ='4' )
+    order by sc_mem_m_chg_loan_det.drop_status
+    ,sc_mem_m_chg_loan_det.document_no
+    ,sc_mem_m_chg_loan_det.membership_no
+    )tab
+
+  </sql>
+  <sub />
+</root>

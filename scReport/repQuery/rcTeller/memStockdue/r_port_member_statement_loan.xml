@@ -1,0 +1,124 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <membership_no special="memno" text="ทะเบียน" table="sc_mem_m_membership_registered" sqlreplace="1" noheader="1" readonly="0" comboreplace="0" combowhere="0" />
+    <loan_payment_date text="วันที่" table="sc_lon_m_loan_card_detail" type="date" operator="bt" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <loan_contract_no text="เลขสัญญา" table="sc_lon_m_contract" column="loan_contract_no" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_mem_m_membership_registered.membership_no ,
+    PKA_COM_FUNCTION.fp_get_member_name( sc_mem_m_membership_registered.membership_no ) as membername ,
+    PKA_COM_FUNCTION.fp_get_member_sharestock( sc_mem_m_membership_registered.membership_no ) as share_stock ,
+    PKA_COM_FUNCTION.fp_get_thaidate( sc_mem_m_membership_registered.approve_date ) as approve_date ,
+    PKA_COM_FUNCTION.fp_get_member_salary( sc_mem_m_membership_registered.membership_no ) as memsalary ,
+    PKA_LON_REQSRV.fp_calc_install_m_age( sc_mem_m_membership_registered.membership_no ) as age_mem ,
+    
+    sc_lon_m_loan_card.loan_contract_no,
+    sc_lon_m_loan_card.principal_balance,
+    sc_lon_m_loan_card.interest_arrear,
+    sc_lon_m_loan_card.last_calcint_date ,
+
+    sc_lon_m_loan_card_detail.seq_no,
+    sc_lon_m_loan_card_detail.ref_loan_doc_no  ,
+    PKA_COM_FUNCTION.fp_get_thaidate( sc_lon_m_loan_card_detail.loan_payment_date ) as loan_payment_date,
+    sc_lon_m_loan_card_detail.payment_amount,
+    sc_lon_m_loan_card_detail.interest_amout,
+    sc_lon_m_loan_card_detail.principal_balance detail_principal_bala ,
+    sc_lon_m_loan_card_detail.period,
+    sc_lon_m_loan_card_detail.interest_to ,
+
+    sc_lon_m_ucf_loan_card_item.item_type_code,
+    sc_lon_m_ucf_loan_card_item.item_type_description || decode( sc_lon_m_ucf_loan_card_item.item_type_code , 'KC' ,  ' ( ' || sc_lon_m_loan_card_detail.membership_no || ' )', '' ) as item_type_description ,
+    sc_lon_m_ucf_loan_card_item.sign_status ,
+
+    sc_lon_m_contract.begining_of_contract,
+    sc_lon_m_contract.loan_type,
+    sc_lon_m_contract.loan_approve_amount,
+    sc_lon_m_contract.period_payment_amount,
+    sc_lon_m_contract.loan_installment_amount,
+    
+    sc_lon_m_rule.loan_type_description,
+
+    sc_mem_m_ucf_member_group.member_group_no,
+    sc_mem_m_ucf_member_group.member_group_name,
+    sc_mem_m_ucf_member_group.member_group_control ,
+    sc_mem_m_ucf_member_group.control_id 
+
+    , substr(( select  sc_fin_ucf_money_retrun.return_desc 
+       from sc_com_m_receipt , sc_fin_ucf_money_retrun
+       where sc_com_m_receipt.receipt_no = sc_lon_m_loan_card_detail.ref_loan_doc_no 
+       and   sc_fin_ucf_money_retrun.return_method = sc_com_m_receipt.deposit_account_no ),5,50) as return_desc 
+    
+    FROM 	sc_lon_m_loan_card,
+    sc_lon_m_loan_card_detail,
+    sc_lon_m_ucf_loan_card_item,
+    sc_mem_m_membership_registered  ,
+    sc_lon_m_contract,
+    sc_lon_m_rule,
+    sc_mem_m_ucf_member_group
+    WHERE   	( sc_lon_m_loan_card.loan_contract_no 				= sc_lon_m_contract.loan_contract_no ) and
+    ( sc_lon_m_loan_card.loan_contract_no 				= sc_lon_m_loan_card_detail.loan_contract_no ) and
+    ( sc_lon_m_loan_card_detail.item_type_code 		= sc_lon_m_ucf_loan_card_item.item_type_code ) and
+    ( sc_lon_m_loan_card.membership_no 				= sc_mem_m_membership_registered.membership_no ) and
+    ( sc_lon_m_rule.loan_type = sc_lon_m_contract.loan_type ) and
+    ( sc_mem_m_ucf_member_group.member_group_no 	= sc_mem_m_membership_registered.member_group_no ) and
+    ( ( sc_lon_m_loan_card_detail.item_type_code = 'BF' and sc_lon_m_loan_card_detail.principal_balance &gt; 0 )  or  sc_lon_m_loan_card_detail.item_type_code &lt;&gt; 'BF'  )
+    /*WHERE*/
+
+union all
+
+    SELECT sc_mem_m_membership_registered.membership_no ,
+    PKA_COM_FUNCTION.fp_get_member_name( sc_mem_m_membership_registered.membership_no ) as membername ,
+    PKA_COM_FUNCTION.fp_get_member_sharestock( sc_mem_m_membership_registered.membership_no ) as share_stock ,
+    PKA_COM_FUNCTION.fp_get_thaidate( sc_mem_m_membership_registered.approve_date ) as approve_date ,
+    PKA_COM_FUNCTION.fp_get_member_salary( sc_mem_m_membership_registered.membership_no ) as memsalary ,
+    null as age_mem ,
+    
+    null as loan_contract_no,
+    null as principal_balance,
+    null as interest_arrear,
+    null as last_calcint_date ,
+
+    null as seq_no,
+    null as ref_loan_doc_no  ,
+    PKA_COM_FUNCTION.fp_get_thaidate( null ) as loan_payment_date,
+    null as payment_amount,
+    null as interest_amout,
+    null as detail_principal_bala ,
+    null as period,
+    null as interest_to ,
+
+    null as item_type_code,
+    null as item_type_description ,
+    null as sign_status ,
+
+    null as begining_of_contract,
+    null as loan_type,
+    null as loan_approve_amount,
+    null as period_payment_amount,
+    null as loan_installment_amount,
+    
+    null as loan_type_description,
+
+    sc_mem_m_ucf_member_group.member_group_no,
+    sc_mem_m_ucf_member_group.member_group_name,
+    sc_mem_m_ucf_member_group.member_group_control ,
+    sc_mem_m_ucf_member_group.control_id 
+
+    , null as return_desc 
+    
+    from sc_mem_m_membership_registered
+    ,    sc_mem_m_ucf_member_group    
+    where sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+    and   sc_mem_m_membership_registered.membership_no = decode( (select count(distinct sc_lon_m_loan_card.loan_contract_no) 
+                                                         from sc_lon_m_loan_card 
+                                                         , sc_lon_m_loan_card_detail 
+                                                         where sc_lon_m_loan_card.loan_contract_no = sc_lon_m_loan_card_detail.loan_contract_no 
+                                                         and sc_lon_m_loan_card.membership_no = sc_mem_m_membership_registered.membership_no 
+                                                         and sc_lon_m_loan_card_detail.loan_payment_date between '!loan_payment_date_1!' and '!loan_payment_date_2!'
+                                                         ) , '0' , '!membership_no!' , null )
+    
+/*union all มาเพิ่มเพราะว่าถ้าสมาขิกไม่มีหนี้ ให้แสดงข้อมูลสมาชิกด้วย*/    </sql>
+  <sub />
+  <mis />
+</root>

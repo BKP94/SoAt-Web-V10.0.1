@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <membership_no special="memno" text="ทะเบียน" table="sc_mem_m_membership_registered" column="membership_no" readonly="0" />
+    <loan_payment_date text="วันที่จ่าย" table="sc_lon_m_loan_card_detail" type="date" column="loan_payment_date" operator="bt" readonly="0" />
+    <loan_contract_no text="เลขสัญญา" table="sc_lon_m_contract" column="loan_contract_no" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_mem_m_membership_registered.membership_no ,
+    PKA_COM_FUNCTION.fp_get_member_name( sc_mem_m_membership_registered.membership_no ) as membername ,
+
+
+    sc_lon_m_loan_card.loan_contract_no,
+    sc_lon_m_loan_card.principal_balance,
+    sc_lon_m_loan_card.interest_arrear,
+    sc_lon_m_loan_card.last_calcint_date,
+
+    sc_lon_m_loan_card_detail.seq_no,
+    sc_lon_m_loan_card_detail.ref_loan_doc_no  ,
+    sc_lon_m_loan_card_detail.loan_payment_date,
+    sc_lon_m_loan_card_detail.payment_amount,
+    sc_lon_m_loan_card_detail.interest_amout,
+    sc_lon_m_loan_card_detail.principal_balance detail_principal_bala ,
+    sc_lon_m_loan_card_detail.period,
+
+    sc_lon_m_ucf_loan_card_item.item_type_code,
+    sc_lon_m_ucf_loan_card_item.item_type_description || decode( sc_lon_m_ucf_loan_card_item.item_type_code , 'KC' ,  ' ( ' || sc_lon_m_loan_card_detail.membership_no || ' )', '' ) as item_type_description ,
+    sc_lon_m_ucf_loan_card_item.sign_status ,
+
+    sc_lon_m_contract.begining_of_contract,
+    sc_lon_m_contract.loan_type,
+
+    sc_mem_m_ucf_member_group.member_group_no,
+    sc_mem_m_ucf_member_group.member_group_name,
+    sc_mem_m_ucf_member_group.member_group_control ,
+    sc_mem_m_ucf_member_group.control_id
+
+    FROM 	sc_lon_m_loan_card,
+    sc_lon_m_loan_card_detail,
+    sc_lon_m_ucf_loan_card_item,
+    sc_mem_m_membership_registered  ,
+    sc_lon_m_contract,
+    sc_mem_m_ucf_member_group
+    WHERE   	( sc_lon_m_loan_card.loan_contract_no 				= sc_lon_m_contract.loan_contract_no ) and
+    ( sc_lon_m_loan_card.loan_contract_no 				= sc_lon_m_loan_card_detail.loan_contract_no ) and
+    ( sc_lon_m_loan_card_detail.item_type_code 		= sc_lon_m_ucf_loan_card_item.item_type_code ) and
+    ( sc_lon_m_loan_card.membership_no 				= sc_mem_m_membership_registered.membership_no ) and
+    ( sc_mem_m_ucf_member_group.member_group_no 	= sc_mem_m_membership_registered.member_group_no ) and
+    ( ( sc_lon_m_loan_card_detail.item_type_code = 'BF' and sc_lon_m_loan_card_detail.principal_balance &gt; 0 )  or  sc_lon_m_loan_card_detail.item_type_code &lt;&gt; 'BF'  )
+    /*WHERE*/
+    --and sc_mem_m_membership_registered.membership_no = '045883'
+    --and sc_lon_m_loan_card_detail.loan_payment_date = '07/06/2019'
+  </sql>
+  <sub />
+</root>

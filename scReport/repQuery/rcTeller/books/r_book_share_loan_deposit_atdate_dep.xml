@@ -1,0 +1,109 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="T080" rep_text="หนังสือแจ้งยอด">
+  <arg>
+    <member_group_no text="หน่วย" table="sc_cls_mon_mem_shr" operator="bt" combo="sc_mem_m_ucf_member_group2" />
+    <monthly_date text="วันที่" table="sc_cls_mon_mem_shr" type="date" sqlwhere="0" sqlreplace="1" mustvalue="1" nestreplace="1" />
+    <membership_no special="memno" text="ทะเบียน" table="sc_cls_mon_mem_shr" operator="bt" nulltext="ต้องการดูแค่สมาชิก" />
+    <check_address default="select '01' from dual" text="ที่อยู่" combo="r_ch_address" sqlwhere="0" sqlreplace="1" mustvalue="1" />
+  </arg>
+  <combo>
+    <r_ch_address>01=มีที่อยู่/02=ไม่มีที่อยู่</r_ch_address>
+  </combo>
+  <sql>select  membership_no
+        ,member_group_no
+        ,(select manager_name from sc_cnt_m_coop) as	manager_name
+        ,'ผู้จัดการทั่วไป' as	manager_position
+        ,monthly_date
+        ,member_name
+        ,( 'เลขทะเบียนที่ ' || membership_no || '                 สังกัด ' ||  member_group_no ) as mem_title
+        ,decode ( '!check_address!' , '01'
+		, ( select 'เลขที่ ' || address_no|| ' หมู่ ' || moo || ' ซอย ' || soi || ' ถนน ' || road || ' ต.' || tambol ||
+		' อ.' || ( select district_name from sc_mem_m_ucf_district  where province_code = sc_mem_m_member_address.province_code and district_code = sc_mem_m_member_address.district_code ) || 
+		' จ.' || ( select province_name from sc_mem_m_ucf_province where province_code = sc_mem_m_member_address.province_code ) || ' ' || postcode 
+		from sc_mem_m_member_address 
+		where address_type ='0'
+		and membership_no = sc_cls_mon_mem_shr.membership_no )
+
+                  ,''
+                ) as address_title 
+ 
+       ,'!check_address!' as check_address
+
+from sc_cls_mon_mem_shr
+where      member_status_code  = '0'
+  and         membership_no in ( select membership_no 
+                                                      from sc_cls_mon_dep_accno 
+                                                    where  deposit_balance &gt; 0 
+                                                    and monthly_date = sc_cls_mon_mem_shr.monthly_date  )
+and          monthly_date = '!monthly_date!'
+/*WHERE*/
+</sql>
+  <sub>
+    <r_book_share_loan_deposit_atdate_dep_nest>
+      <sql>select decode(tx.item_group_pre,tx.item_group_now,null,tx.item_group_now||'.') as item_group,
+    tx.item_dep_no , 
+    tx.item_amount ,
+    tx.item_name
+from(
+    select tm.item_group as item_group_now,
+        lag(tm.item_group,1,0) over(order by tm.item_group) as item_group_pre,
+        tm.item_dep_no,
+        tm.item_name , 
+        tm.item_amount,
+        sum(1) over(order by tm.item_dep_no) as row_no,
+        floor((sum(1) over())/2) + mod((sum(1) over()),2) as row_mx
+    from (
+        select  3 as item_group,
+            null as loan_group_code,
+            deposit_account_no as item_dep_no ,
+            deposit_account_name as item_name ,
+            deposit_balance as item_amount
+        from sc_cls_mon_dep_accno 
+        where close_status = '0'
+        and monthly_date = '!monthly_date!'
+        and membership_no = {0}
+        order by deposit_account_no
+    ) tm
+) tx
+where tx.row_no &lt;= tx.row_mx
+--where tx.row_no &gt; tx.row_mx</sql>
+    </r_book_share_loan_deposit_atdate_dep_nest>
+    <r_book_share_loan_deposit_atdate_dep_nest_02>
+      <sql>select decode(tx.item_group_pre,tx.item_group_now,null,tx.item_group_now||'.') as item_group,
+    tx.item_dep_no , 
+    tx.item_amount ,
+    tx.item_name
+from(
+    select tm.item_group as item_group_now,
+        lag(tm.item_group,1,0) over(order by tm.item_group) as item_group_pre,
+        tm.item_dep_no,
+        tm.item_name , 
+        tm.item_amount,
+        sum(1) over(order by tm.item_dep_no) as row_no,
+        floor((sum(1) over())/2) + mod((sum(1) over()),2) as row_mx
+    from (
+        select  3 as item_group,
+            null as loan_group_code,
+            deposit_account_no as item_dep_no ,
+            deposit_account_name as item_name ,
+            deposit_balance as item_amount
+        from sc_cls_mon_dep_accno 
+        where close_status = '0'
+        and monthly_date = '!monthly_date!'
+        and membership_no = {0}
+        order by deposit_account_no
+    ) tm
+) tx
+--where tx.row_no &lt;= tx.row_mx
+where tx.row_no &gt; tx.row_mx</sql>
+    </r_book_share_loan_deposit_atdate_dep_nest_02>
+    <r_book_share_loan_deposit_atdate_dep_nest_03>
+      <sql>select  count(deposit_account_no) as c_account_no
+        ,sum(deposit_balance) as s_dep_bal
+from sc_cls_mon_dep_accno
+where  close_status = '0'
+and monthly_date = '!monthly_date!'
+and membership_no = {0}</sql>
+    </r_book_share_loan_deposit_atdate_dep_nest_03>
+  </sub>
+</root>

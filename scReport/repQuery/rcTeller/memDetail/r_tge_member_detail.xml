@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <member_group_no text="หน่วย" table="sc_mem_m_ucf_member_group" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select  sc_mem_m_membership_registered.membership_no
+,       sc_mem_m_membership_registered.date_of_birth
+,       sc_mem_m_ucf_prename.prename||sc_mem_m_membership_registered.member_name||' '||sc_mem_m_membership_registered.member_surname as member_name
+,       sc_mem_m_ucf_member_group.member_group_name
+,       sc_mem_m_ucf_member_group.member_group_no
+,       trim(substr(pka_lon_reqsrv.fp_calc_agetext_m_live(sc_mem_m_membership_registered.membership_no),0,3)) as age_mem
+,       decode(sc_mem_m_membership_registered.id_card,null,null,pka_com_function.fp_form_idcard(sc_mem_m_membership_registered.id_card)) as id_card
+,       decode(sc_mem_m_member_address.telephone,null,(select address.telephone from sc_mem_m_member_address address where address.membership_no = sc_mem_m_membership_registered.membership_no and address.address_type = '1'),sc_mem_m_member_address.telephone) as telephone
+,       sysdate
+from    sc_mem_m_membership_registered
+,       sc_mem_m_ucf_member_group
+,       sc_mem_m_ucf_prename
+,       sc_mem_m_member_address
+where   sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+and     sc_mem_m_ucf_prename.prename_code = sc_mem_m_membership_registered.prename_code
+and     sc_mem_m_member_address.membership_no = sc_mem_m_membership_registered.membership_no
+and     sc_mem_m_member_address.address_type = '0'
+and     sc_mem_m_membership_registered.member_status_code = '0'
+and     sc_mem_m_membership_registered.mem_type = '01'
+--and     sc_mem_m_membership_registered.membership_no = '049898'
+--and     sc_mem_m_membership_registered.member_group_no = '010101'
+/*WHERE*/
+order by sc_mem_m_membership_registered.membership_no
+</sql>
+  <sub />
+</root>

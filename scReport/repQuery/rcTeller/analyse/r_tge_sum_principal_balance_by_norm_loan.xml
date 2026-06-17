@@ -1,0 +1,217 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <at_date align="center" text="วันที่" type="date" column="at_date" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select  tab.* , (select max(count_mem) from tab where account_id = '6' and confirm_date = '!at_date!') as mem_no_loan
+from    (
+select  *
+from    (
+select  '3' as account_id
+,       '' as account_name
+,       sc_cls_confirm_data.confirm_date
+,       0 as count_mem
+,       sum(sc_cls_confirm_data.data_balance) as sum_balance
+,       '            รวมหนี้คงเหลือ' as text
+from    sc_cls_confirm_mem
+,       sc_mem_m_membership_registered
+,       sc_cls_confirm_data
+,       sc_lon_m_rule
+where   sc_mem_m_membership_registered.membership_no = sc_cls_confirm_mem.membership_no
+and     sc_cls_confirm_data.confirm_date = sc_cls_confirm_mem.confirm_date
+and     sc_cls_confirm_data.membership_no = sc_cls_confirm_mem.membership_no
+and     sc_lon_m_rule.loan_type = sc_cls_confirm_data.data_type
+and     sc_cls_confirm_mem.member_status_code = '0'  
+and     sc_mem_m_membership_registered.mem_type = '01'
+and     sc_cls_confirm_data.data_group = 'LON'
+and     sc_cls_confirm_data.data_balance &gt; '0'
+and     sc_lon_m_rule.account_id = '115120'
+and     sc_lon_m_rule.loan_type not in ('21','25')
+and     sc_cls_confirm_data.confirm_date = '!at_date!'
+group by sc_cls_confirm_data.confirm_date
+)
+
+union
+
+select  *
+from    (
+select  '2' as account_id
+,       'ลูกหนี้เงินกู้สามัญ (คนค้ำประกัน)' as account_name
+,       sc_cls_confirm_data.confirm_date
+,       count(sc_cls_confirm_data.membership_no) as count_mem
+,       sum(sc_cls_confirm_data.data_balance) as sum_balance
+,       'คน       มูลค่าหุ้น' as text
+from    sc_cls_confirm_mem
+,       sc_mem_m_membership_registered
+,       sc_cls_confirm_data
+where   sc_mem_m_membership_registered.membership_no = sc_cls_confirm_mem.membership_no
+and     sc_cls_confirm_data.confirm_date = sc_cls_confirm_mem.confirm_date
+and     sc_cls_confirm_data.membership_no = sc_cls_confirm_mem.membership_no
+and     sc_cls_confirm_data.membership_no  in (select  membership_no
+                                              from     sc_cls_confirm_data tab
+                                              ,        sc_lon_m_rule lon
+                                              where    membership_no = sc_cls_confirm_data.membership_no
+                                              and      lon.loan_type = tab.data_type
+                                              and      data_group = 'LON'
+                                              and      data_balance &gt; '0'
+                                              and      lon.account_id = '115120'
+                                              and      lon.loan_type not in ('21','25')
+                                              and      confirm_date = sc_cls_confirm_data.confirm_date
+                                              )
+and     sc_cls_confirm_mem.member_status_code = '0'  
+and     sc_mem_m_membership_registered.mem_type = '01'
+and     sc_cls_confirm_data.data_group = 'SHR'
+and     sc_cls_confirm_data.data_balance &gt; '0'
+and     sc_cls_confirm_data.confirm_date = '!at_date!'
+group by sc_cls_confirm_data.confirm_date
+)
+
+union
+
+select  *
+from    (
+select  '5' as account_id
+,       '' as account_name
+,       sc_cls_confirm_data.confirm_date
+,       0 as count_mem
+,       sum(sc_cls_confirm_data.data_balance) as sum_balance
+,       '            รวมหนี้คงเหลือ' as text
+from    sc_cls_confirm_mem
+,       sc_mem_m_membership_registered
+,       sc_cls_confirm_data
+,       sc_lon_m_rule
+where   sc_mem_m_membership_registered.membership_no = sc_cls_confirm_mem.membership_no
+and     sc_cls_confirm_data.confirm_date = sc_cls_confirm_mem.confirm_date
+and     sc_cls_confirm_data.membership_no = sc_cls_confirm_mem.membership_no
+and     sc_lon_m_rule.loan_type = sc_cls_confirm_data.data_type
+and     sc_cls_confirm_mem.member_status_code = '0'  
+and     sc_mem_m_membership_registered.mem_type = '01'
+and     sc_cls_confirm_data.data_group = 'LON'
+and     sc_cls_confirm_data.data_balance &gt; '0'
+and     sc_lon_m_rule.account_id = '115120'
+and     sc_lon_m_rule.loan_type  in ('21','25')
+and     sc_cls_confirm_data.confirm_date = '!at_date!'
+group by sc_cls_confirm_data.confirm_date
+)
+
+union
+
+select  *
+from    (
+select  '4' as account_id
+,       'ลูกหนี้เงินกู้สามัญ (หุ้นค้ำประกัน)' as account_name
+,       sc_cls_confirm_data.confirm_date
+,       count(sc_cls_confirm_data.membership_no) as count_mem
+,       sum(sc_cls_confirm_data.data_balance) as sum_balance
+,       'คน       มูลค่าหุ้น' as text
+from    sc_cls_confirm_mem
+,       sc_mem_m_membership_registered
+,       sc_cls_confirm_data
+where   sc_mem_m_membership_registered.membership_no = sc_cls_confirm_mem.membership_no
+and     sc_cls_confirm_data.confirm_date = sc_cls_confirm_mem.confirm_date
+and     sc_cls_confirm_data.membership_no = sc_cls_confirm_mem.membership_no
+and     sc_cls_confirm_data.membership_no  in (select  membership_no
+                                              from     sc_cls_confirm_data tab
+                                              ,        sc_lon_m_rule lon
+                                              where    membership_no = sc_cls_confirm_data.membership_no
+                                              and      lon.loan_type = tab.data_type
+                                              and      data_group = 'LON'
+                                              and      data_balance &gt; '0'
+                                              and      lon.account_id = '115120'
+                                              and      lon.loan_type  in ('21','25')
+                                              and      confirm_date = sc_cls_confirm_data.confirm_date
+                                              )
+and     sc_cls_confirm_mem.member_status_code = '0'  
+and     sc_mem_m_membership_registered.mem_type = '01'
+and     sc_cls_confirm_data.data_group = 'SHR'
+and     sc_cls_confirm_data.data_balance &gt; '0'
+and     sc_cls_confirm_data.confirm_date = '!at_date!'
+group by sc_cls_confirm_data.confirm_date
+)
+
+union
+
+select  *
+from    (
+select  '1' as account_id
+,       'จำนวนสมาชิกทั้งหมด' as account_name
+,       sc_cls_confirm_data.confirm_date
+,       count(sc_cls_confirm_data.membership_no) as count_mem
+,       sum(sc_cls_confirm_data.data_balance) as sum_balance
+,       'คน       มูลค่าหุ้นทั้งหมด' as text
+from    sc_cls_confirm_mem
+,       sc_mem_m_membership_registered
+,       sc_cls_confirm_data
+where   sc_mem_m_membership_registered.membership_no = sc_cls_confirm_mem.membership_no
+and     sc_cls_confirm_data.confirm_date = sc_cls_confirm_mem.confirm_date
+and     sc_cls_confirm_data.membership_no = sc_cls_confirm_mem.membership_no
+and     sc_cls_confirm_mem.member_status_code = '0'  
+and     sc_mem_m_membership_registered.mem_type = '01'
+and     sc_cls_confirm_data.data_group = 'SHR'
+and     sc_cls_confirm_data.data_balance &gt; '0'
+and     sc_cls_confirm_data.confirm_date = '!at_date!'
+group by sc_cls_confirm_data.confirm_date
+)
+
+union
+
+select  *
+from    (
+select  '6' as account_id
+,       'สมาชิกที่ไม่ได้กู้' as account_name
+,       sc_cls_confirm_data.confirm_date
+,       count(sc_cls_confirm_data.membership_no) as count_mem
+,       sum(sc_cls_confirm_data.data_balance) as sum_balance
+,       'คน       มูลค่าหุ้น' as text
+from    sc_cls_confirm_mem
+,       sc_mem_m_membership_registered
+,       sc_cls_confirm_data
+where   sc_mem_m_membership_registered.membership_no = sc_cls_confirm_mem.membership_no
+and     sc_cls_confirm_data.confirm_date = sc_cls_confirm_mem.confirm_date
+and     sc_cls_confirm_data.membership_no = sc_cls_confirm_mem.membership_no
+and     sc_cls_confirm_data.membership_no not in (select  membership_no
+                                                 from     sc_cls_confirm_data tab
+                                                 where    membership_no = sc_cls_confirm_data.membership_no
+                                                 and      data_group = 'LON'
+                                                 and      data_balance &gt; '0'
+                                                 and      confirm_date = sc_cls_confirm_data.confirm_date
+                                                 )
+and     sc_cls_confirm_mem.member_status_code = '0'  
+and     sc_mem_m_membership_registered.mem_type = '01'
+and     sc_cls_confirm_data.data_group = 'SHR'
+and     sc_cls_confirm_data.data_balance &gt; '0'
+and     sc_cls_confirm_data.confirm_date = '!at_date!'
+group by sc_cls_confirm_data.confirm_date
+)
+
+union
+
+select  *
+from    (
+select  '7' as account_id
+,       'รวมจำนวนทั้งสิ้น' account_name
+,       sc_cls_confirm_data.confirm_date
+,       count(sc_cls_confirm_data.data_refno) as count_mem
+,       sum(sc_cls_confirm_data.data_balance) as sum_balance
+,       'คน       รวมหนี้ทั้งหมด' as text
+from    sc_cls_confirm_mem
+,       sc_mem_m_membership_registered
+,       sc_cls_confirm_data
+,       sc_lon_m_rule
+where   sc_mem_m_membership_registered.membership_no = sc_cls_confirm_mem.membership_no
+and     sc_cls_confirm_data.confirm_date = sc_cls_confirm_mem.confirm_date
+and     sc_cls_confirm_data.membership_no = sc_cls_confirm_mem.membership_no
+and     sc_lon_m_rule.loan_type = sc_cls_confirm_data.data_type
+and     sc_cls_confirm_mem.member_status_code = '0'  
+and     sc_mem_m_membership_registered.mem_type = '01'
+and     sc_cls_confirm_data.data_group = 'LON'
+and     sc_lon_m_rule.account_id = '115120'
+and     sc_cls_confirm_data.data_balance &gt; '0'
+and     sc_cls_confirm_data.confirm_date = '!at_date!'
+group by sc_cls_confirm_data.confirm_date
+)
+) tab
+--รายงานมี Formatting Rules</sql>
+  <sub />
+</root>

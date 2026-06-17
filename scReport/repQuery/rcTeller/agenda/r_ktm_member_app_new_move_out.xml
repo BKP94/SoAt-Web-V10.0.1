@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <adt_date text="วันที่" type="date" column="adt_date" operator="bt" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    SELECT sc_mem_m_tran_group.doc_no,
+    sc_mem_m_tran_group.membership_no,
+    pka_com_function.fp_get_member_name(sc_mem_m_tran_group.membership_no) as memname,
+    sc_mem_m_tran_group.group_old,
+    pka_com_function.fp_get_group_name(sc_mem_m_tran_group.group_old) as group_old_name,
+    sc_mem_m_tran_group.group_new,
+    pka_com_function.fp_get_group_name(sc_mem_m_tran_group.group_new) as group_new_name,
+    sc_mem_m_tran_group.entry_date,
+    sc_mem_m_tran_group.entry_id,
+    sc_mem_m_tran_group.app_status,
+    sc_mem_m_tran_group.app_date,
+    sc_mem_m_tran_group.app_id ,
+    sc_mem_m_ucf_member_group.member_group_type,
+    sc_mem_m_ucf_member_group.member_group_control,
+    pka_com_function.fp_get_group_name(sc_mem_m_ucf_member_group.member_group_no) as group_control_name,
+
+    nvl(sc_mem_m_tran_group.share_balance,0) as share_balance,
+    nvl(sc_mem_m_tran_group.emer_balance,0) as emer_balance,
+    nvl(sc_mem_m_tran_group.norm_balance,0) as norm_balance,
+    nvl(sc_mem_m_tran_group.spec_balance,0) as spec_balance,
+    nvl(sc_mem_m_tran_group.fund_balance,0) as fund_balance,
+
+    '!adt_date_1!' as adt_date_from,
+    '!adt_date_2!' as adt_date_to
+
+    FROM sc_mem_m_membership_registered,
+    sc_mem_m_tran_group,
+    sc_mem_m_ucf_member_group,
+    sc_mem_m_ucf_member_group sc_mem_m_ucf_member_group_a,
+    sc_mem_m_ucf_member_group sc_mem_m_ucf_member_group_b,
+    sc_mem_m_ucf_member_group sc_mem_m_ucf_member_group_c
+
+    WHERE sc_mem_m_ucf_member_group.member_group_no = sc_mem_m_ucf_member_group_a.member_group_no and
+    ( sc_mem_m_tran_group.membership_no = sc_mem_m_membership_registered.membership_no ) and
+    ( sc_mem_m_tran_group.group_old = sc_mem_m_ucf_member_group_a.member_group_no ) and
+    ( sc_mem_m_tran_group.group_new = sc_mem_m_ucf_member_group_b.member_group_no ) and
+    ( sc_mem_m_ucf_member_group_a.member_group_control = sc_mem_m_ucf_member_group_c.member_group_no ) and
+    ( sc_mem_m_tran_group.app_status = '1' )  AND
+    ( sc_mem_m_tran_group.app_date between  '!adt_date_1!'  and '!adt_date_2!' )
+
+    /*WHERE*/
+    order by sc_mem_m_tran_group.membership_no
+  </sql>
+  <sub />
+</root>

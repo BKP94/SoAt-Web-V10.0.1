@@ -1,0 +1,73 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <operate_date text="วันที่" table="sc_mem_edit_group" type="date" operator="bt" mustvalue="1" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>select  sc_mem_edit_group.membership_no
+    ,       pka_com_function.fp_get_member_name(sc_mem_edit_group.membership_no) as memname
+    ,       trim(sc_mem_edit_group.pre_member_group_no)||' '||trim(pka_com_function.fp_get_group_name(sc_mem_edit_group.pre_member_group_no)) as group_old_name
+    ,       trim(sc_mem_edit_group.member_group_no)||' '||trim(pka_com_function.fp_get_group_name(sc_mem_edit_group.member_group_no)) as group_new_name
+    ,       sc_mem_edit_group.entry_id
+    ,       pka_com_function.fp_get_thaidate(sc_mem_edit_group.entry_date,'DD/MM/YYYY')as entry_date
+    ,       pka_com_function.fp_get_thaidate(sc_mem_edit_group.entry_date,'HH24:MI:SS')as entry_time
+    ,       sc_mem_m_share_mem.share_stock
+    ,       nvl(sc_mem_m_share_mem.share_coll_amount,0) as share_coll_amount
+    ,       sc_mem_m_membership_registered.member_status_code 
+    ,       sc_mem_m_ucf_member_group.member_group_control
+    ,       pka_com_function.fp_get_group_name(sc_mem_m_ucf_member_group.member_group_control) as member_control_name
+    ,        sc_mem_m_membership_registered.member_group_no
+    
+    -- sc_mem_m_share_mem.share_stock -if ( isnull(sc_mem_m_share_mem.mem_share_coll_amount),0, sc_mem_m_share_mem.mem_share_coll_amount  )
+    from    sc_mem_edit_group
+    ,sc_mem_m_share_mem
+    ,sc_mem_m_membership_registered
+    ,sc_mem_m_ucf_member_group
+    where   1=1
+    and sc_mem_edit_group.membership_no = sc_mem_m_share_mem.membership_no
+    and sc_mem_m_membership_registered.membership_no =  sc_mem_edit_group.membership_no
+    and sc_mem_m_ucf_member_group.member_group_no = sc_mem_m_membership_registered.member_group_no
+    --and     sc_mem_edit_group.membership_no = '023808'
+    
+/*---------------------[  วันที่  ]------------------------*/
+-- and to_date(sc_mem_edit_group.entry_date) between to_date(to_date('2025-8-1 0:0:0','yyyy-mm-dd hh24:mi:ss'),'dd/mm/yyyy') and to_date(to_date('2025-9-5 0:0:0','yyyy-mm-dd hh24:mi:ss'),'dd/mm/yyyy')
+/*WHERE*/
+    order by pka_com_function.fp_get_thaidate(sc_mem_edit_group.entry_date,'DD/MM/YYYY')
+    ,        sc_mem_edit_group.membership_no
+    ,        pka_com_function.fp_get_thaidate(sc_mem_edit_group.entry_date,'HH24:MI:SS')</sql>
+  <sub>
+    <r_tnma_app_trans_group_loanshare_nest>
+      <sql>select sc_lon_m_contract.loan_contract_no
+	,sc_lon_m_loan_card.principal_balance
+	,sc_lon_m_contract.period_payment_amount
+from sc_lon_m_contract
+	,sc_lon_m_loan_card
+where (sc_lon_m_loan_card.loan_contract_no = sc_lon_m_contract.loan_contract_no)
+	and (sc_lon_m_loan_card.principal_balance &gt; 0)
+	and (sc_lon_m_contract.membership_no = {0})
+order by sc_lon_m_loan_card.loan_type asc
+</sql>
+    </r_tnma_app_trans_group_loanshare_nest>
+    <r_tnma_app_trans_group_loangroup_nest>
+      <sql>select sc_lon_m_loan_card.loan_type
+ ,sum(sc_lon_m_loan_card.principal_balance) as principal_balance
+ ,sum(sc_lon_m_contract.period_payment_amount)  as period_payment_amount
+ ,sc_mem_m_membership_registered.member_status_code
+    from sc_lon_m_contract
+        ,sc_lon_m_loan_card
+        ,sc_mem_m_membership_registered
+        ,sc_mem_edit_group
+        ,sc_mem_m_ucf_member_group
+where (sc_lon_m_loan_card.loan_contract_no = sc_lon_m_contract.loan_contract_no)
+    and sc_mem_m_membership_registered.membership_no = sc_lon_m_contract.membership_no 
+    and sc_mem_m_membership_registered.membership_no =  sc_mem_edit_group.membership_no
+    and sc_mem_m_ucf_member_group.member_group_no = sc_mem_edit_group.member_group_no
+ and (sc_lon_m_loan_card.principal_balance &gt; 0)
+ and sc_mem_m_ucf_member_group.member_group_control = {0}
+
+group by sc_lon_m_loan_card.loan_type 
+,sc_mem_m_membership_registered.member_status_code
+order by sc_lon_m_loan_card.loan_type asc</sql>
+    </r_tnma_app_trans_group_loangroup_nest>
+  </sub>
+</root>

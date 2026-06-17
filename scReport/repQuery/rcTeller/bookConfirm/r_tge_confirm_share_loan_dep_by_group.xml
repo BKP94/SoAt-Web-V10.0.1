@@ -1,0 +1,181 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="T080" rep_text="หนังสือยืนยันยอด">
+  <arg>
+    <confirm_date align="center" text="วันที่" table="sc_cls_confirm_data" type="date" column="confirm_date" readonly="0" />
+    <member_group_no text="หน่วย" table="sc_mem_m_ucf_member_group" column="member_group_no" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select sum(tab.row_memno)over(order by tab.member_group_no , tab.membership_no ) as rowno,  tab.*
+from (  SELECT 	decode(lag(sc_mem_m_ucf_member_group.member_group_no,1,null)over( order by sc_mem_m_ucf_member_group.member_group_no , sc_cls_confirm_mem.membership_no ) ,sc_mem_m_ucf_member_group.member_group_no ,0,1 ) as row_memno
+,       sc_mem_m_ucf_member_group.member_group_no
+,       sc_mem_m_ucf_member_group.member_group_name
+,       sc_cls_confirm_mem.membership_no
+,       sc_cls_confirm_mem.member_fullname as member_name
+,       sc_cls_confirm_data.data_balance as share_stock
+,       (select month_name_thai from sc_cnt_m_month where month_no = extract(month from sc_cls_confirm_data.confirm_date)) as confirm_month_thai
+,       extract(year from sc_cls_confirm_data.confirm_date)+543 as confirm_year
+,       sc_cls_confirm_data.confirm_date
+
+,       (select nvl(sum(data_balance),0)
+        from    sc_cls_confirm_data tab
+        where   membership_no = sc_cls_confirm_data.membership_no
+        and     confirm_date = sc_cls_confirm_data.confirm_date
+        and     data_group = 'LON'
+        and     data_balance &gt; '0'
+        ) as sum_all_loan
+
+,       (select nvl(count(distinct membership_no),0)
+        from    sc_cls_confirm_data tab
+        where   membership_no = sc_cls_confirm_data.membership_no
+        and     confirm_date = sc_cls_confirm_data.confirm_date
+        and     data_group = 'LON'
+        and     data_balance &gt; '0'
+        ) as count_all_loan
+
+,       (select nvl(sum(data_balance),0)
+        from    sc_cls_confirm_data tab
+        where   membership_no = sc_cls_confirm_data.membership_no
+        and     confirm_date = sc_cls_confirm_data.confirm_date
+        and     data_group = 'DEP'
+        and     data_type = '00'
+        and     data_balance &gt; '0'
+        ) as sum_dep_00
+
+,       (select nvl(count(data_refno),0)
+        from    sc_cls_confirm_data tab
+        where   membership_no = sc_cls_confirm_data.membership_no
+        and     confirm_date = sc_cls_confirm_data.confirm_date
+        and     data_group = 'DEP'
+        and     data_type = '00'
+        and     data_balance &gt; '0'
+        ) as count_dep_00
+
+,       (select nvl(sum(data_balance),0)
+        from    sc_cls_confirm_data tab
+        where   membership_no = sc_cls_confirm_data.membership_no
+        and     confirm_date = sc_cls_confirm_data.confirm_date
+        and     data_group = 'DEP'
+        and     data_type = '12'
+        and     data_balance &gt; '0'
+        ) as sum_dep_12
+
+,       (select nvl(count(data_refno),0)
+        from    sc_cls_confirm_data tab
+        where   membership_no = sc_cls_confirm_data.membership_no
+        and     confirm_date = sc_cls_confirm_data.confirm_date
+        and     data_group = 'DEP'
+        and     data_type = '12'
+        and     data_balance &gt; '0'
+        ) as count_dep_12
+
+,       (select nvl(sum(data_balance),0)
+        from    sc_cls_confirm_data tab
+        where   membership_no = sc_cls_confirm_data.membership_no
+        and     confirm_date = sc_cls_confirm_data.confirm_date
+        and     data_group = 'DEP'
+        and     data_type = '40'
+        and     data_balance &gt; '0'
+        ) as sum_dep_40
+
+,       (select nvl(count(data_refno),0)
+        from    sc_cls_confirm_data tab
+        where   membership_no = sc_cls_confirm_data.membership_no
+        and     confirm_date = sc_cls_confirm_data.confirm_date
+        and     data_group = 'DEP'
+        and     data_type = '40'
+        and     data_balance &gt; '0'
+        ) as count_dep_40
+
+,       (select nvl(sum(data_balance),0)
+        from    sc_cls_confirm_data tab
+        where   membership_no = sc_cls_confirm_data.membership_no
+        and     confirm_date = sc_cls_confirm_data.confirm_date
+        and     data_group = 'DEP'
+        and     data_type = '50'
+        and     data_balance &gt; '0'
+        ) as sum_dep_50
+
+,       (select nvl(count(data_refno),0)
+        from    sc_cls_confirm_data tab
+        where   membership_no = sc_cls_confirm_data.membership_no
+        and     confirm_date = sc_cls_confirm_data.confirm_date
+        and     data_group = 'DEP'
+        and     data_type = '50'
+        and     data_balance &gt; '0'
+        ) as count_dep_50
+
+,       (select nvl(sum(data_balance),0)
+        from    sc_cls_confirm_data tab
+        where   membership_no = sc_cls_confirm_data.membership_no
+        and     confirm_date = sc_cls_confirm_data.confirm_date
+        and     data_group = 'DEP'
+        and     data_type = '60'
+        and     data_balance &gt; '0'
+        ) as sum_dep_60
+
+,       (select nvl(count(data_refno),0)
+        from    sc_cls_confirm_data tab
+        where   membership_no = sc_cls_confirm_data.membership_no
+        and     confirm_date = sc_cls_confirm_data.confirm_date
+        and     data_group = 'DEP'
+        and     data_type = '60'
+        and     data_balance &gt; '0'
+        ) as count_dep_60
+
+,       (select nvl(sum(data_balance),0)
+        from    sc_cls_confirm_data tab
+        where   membership_no = sc_cls_confirm_data.membership_no
+        and     confirm_date = sc_cls_confirm_data.confirm_date
+        and     data_group = 'DEP'
+        and     data_type = '61'
+        and     data_balance &gt; '0'
+        ) as sum_dep_61
+
+,       (select nvl(count(data_refno),0)
+        from    sc_cls_confirm_data tab
+        where   membership_no = sc_cls_confirm_data.membership_no
+        and     confirm_date = sc_cls_confirm_data.confirm_date
+        and     data_group = 'DEP'
+        and     data_type = '61'
+        and     data_balance &gt; '0'
+        ) as count_dep_61
+
+,       (select nvl(sum(data_balance),0)
+        from    sc_cls_confirm_data tab
+        where   membership_no = sc_cls_confirm_data.membership_no
+        and     confirm_date = sc_cls_confirm_data.confirm_date
+        and     data_group = 'DEP'
+        and     data_type = '62'
+        and     data_balance &gt; '0'
+        ) as sum_dep_62
+
+,       (select nvl(count(data_refno),0)
+        from    sc_cls_confirm_data tab
+        where   membership_no = sc_cls_confirm_data.membership_no
+        and     confirm_date = sc_cls_confirm_data.confirm_date
+        and     data_group = 'DEP'
+        and     data_type = '62'
+        and     data_balance &gt; '0'
+        ) as count_dep_62
+
+from    sc_cls_confirm_mem
+,       sc_cls_confirm_data
+,       sc_mem_m_ucf_member_group
+,       sc_cls_confirm_letter
+where   sc_cls_confirm_mem.confirm_date = sc_cls_confirm_data.confirm_date
+and     sc_cls_confirm_mem.membership_no = sc_cls_confirm_data.membership_no
+and     sc_mem_m_ucf_member_group.member_group_no = sc_cls_confirm_mem.member_group_no
+and     sc_cls_confirm_mem.member_status_code = '0'  
+and     sc_cls_confirm_mem.mem_type in ('01','02')
+and     sc_cls_confirm_data.data_group = 'SHR'
+and     sc_cls_confirm_letter.confirm_date = sc_cls_confirm_mem.confirm_date
+and     sc_cls_confirm_letter.membership_no  = sc_cls_confirm_mem.membership_no
+and     sc_mem_m_ucf_member_group.member_group_no not between '035700' and '035799'
+/*WHERE*/
+--and     sc_cls_confirm_data.confirm_date = '31/07/2023'
+--and     sc_mem_m_ucf_member_group.member_group_no = '040900'
+order by sc_mem_m_ucf_member_group.member_group_no
+)tab</sql>
+  <sub>
+  </sub>
+</root>

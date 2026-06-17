@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="T060" rep_text="รายงานแสดงการกู้ตามวัตถุประสงค์ ตามประเภทเงินกู้">
+  <arg>
+    <begining_of_contract text="วันที่" table="sc_lon_m_contract" type="date" operator="bt" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>SELECT sc_lon_m_rule.loan_type,
+    sc_lon_m_rule.loan_type_description,
+    sc_lon_m_ucf_loan_obj.loan_objective_description,
+    sc_lon_m_ucf_loan_obj.loan_objective_code,
+    sc_lon_m_rule.account_id,
+    count(sc_lon_m_contract.loan_contract_no) as count_conno,
+    sum(  sc_lon_m_contract.loan_approve_amount ) as loan_approve_amount, --ยอดอนุมัติ
+    sum( sc_lon_m_contract.real_recieve  ) as real_receive --จำนวนรับจริง
+FROM sc_lon_m_contract,
+    sc_lon_m_loan_card,
+    sc_lon_m_loan_request,
+    sc_lon_m_ucf_loan_obj,
+    sc_lon_m_rule
+WHERE ( sc_lon_m_contract.loan_contract_no = sc_lon_m_loan_card.loan_contract_no ) 
+and   ( sc_lon_m_contract.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no )
+and   ( sc_lon_m_loan_request.loan_type = sc_lon_m_ucf_loan_obj.loan_type )
+and   ( sc_lon_m_loan_request.loan_objective_code = sc_lon_m_ucf_loan_obj.loan_objective_code ) 
+and   ( sc_lon_m_rule.loan_type = sc_lon_m_contract.loan_type )
+and sc_lon_m_rule.invest_status = '0'
+/*WHERE*/
+--and to_number(to_char( sc_lon_m_contract.begining_of_contract  ,'yyyy')) = '!year_1!'
+--and to_number(to_char( sc_lon_m_contract.begining_of_contract  ,'mm')) = '!month_1!'
+GROUP BY sc_lon_m_rule.loan_type,
+    sc_lon_m_rule.loan_type_description,
+    sc_lon_m_ucf_loan_obj.loan_objective_code,
+    sc_lon_m_ucf_loan_obj.loan_objective_description,
+     sc_lon_m_rule.account_id
+ORDER BY  sc_lon_m_rule.loan_type asc,
+    sc_lon_m_rule.loan_type_description asc,
+    sc_lon_m_ucf_loan_obj.loan_objective_code asc,
+    sc_lon_m_ucf_loan_obj.loan_objective_description asc</sql>
+  <sub />
+</root>

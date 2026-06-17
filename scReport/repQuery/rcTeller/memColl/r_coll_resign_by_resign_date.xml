@@ -1,0 +1,73 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <approve_date text="วันที่ลาออก" table="sc_mem_m_resign_requestment" type="date" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    select sum(tab.row_memno)over(order by tab.member_group_no,tab.contract_memno ,tab.loan_contract_no) as rowno,  tab.*
+    from (
+    SELECT sc_mem_m_resign_requestment.approve_date,
+    decode(lag(sc_mem_m_resign_loncoll.contract_memno,1,null)over(  order by sc_mem_m_membership_registered.member_group_no ,
+    sc_mem_m_resign_loncoll.contract_memno ,
+    sc_mem_m_resign_loncoll.loan_contract_no ) ,sc_mem_m_resign_loncoll.contract_memno,0,1) as row_memno,
+    sc_mem_m_membership_registered.member_group_no,
+    sc_mem_m_resign_loncoll.contract_memno,
+    sc_mem_m_resign_loncoll.contract_mem_name,
+    sc_mem_m_resign_loncoll.loan_contract_no,
+    sc_mem_m_share_mem.share_stock,
+    sc_lon_m_loan_card.principal_balance
+    FROM sc_mem_m_resign_requestment,
+    sc_mem_m_resign_loncoll,
+    sc_lon_m_loan_card,
+    sc_mem_m_membership_registered,
+    sc_mem_m_share_mem
+    WHERE ( sc_mem_m_resign_requestment.resign_doc_no = sc_mem_m_resign_loncoll.resign_doc_no ) and
+    ( sc_mem_m_resign_loncoll.loan_contract_no = sc_lon_m_loan_card.loan_contract_no ) and
+    ( sc_mem_m_resign_loncoll.contract_memno = sc_mem_m_membership_registered.membership_no ) and
+    ( sc_mem_m_membership_registered.membership_no = sc_mem_m_share_mem.membership_no ) and
+    ( sc_mem_m_resign_requestment.approve_result = '1' ) and
+    ( sc_lon_m_loan_card.principal_balance &gt; 0 ) and
+    ( sc_mem_m_share_mem.share_stock &gt; 0 ) and
+    sc_lon_m_loan_card.loan_contract_no in ( 	select sc_lon_m_contract_coll.loan_contract_no
+    from 	sc_lon_m_contract_coll
+    where sc_lon_m_contract_coll.loan_contract_no = sc_lon_m_loan_card.loan_contract_no
+    and 	sc_lon_m_contract_coll.status = '0'
+    and	  sc_lon_m_contract_coll.collateral_type_code = '01'
+    and	  sc_lon_m_contract_coll.ref_own_no = sc_mem_m_resign_requestment.membership_no
+    )
+    /*WHERE*/
+    --AND ( sc_mem_m_resign_requestment.approve_date between '1/6/2020'  and '30/6/2020' )
+    ORDER BY sc_mem_m_membership_registered.member_group_no ASC,
+    sc_mem_m_resign_loncoll.contract_memno ASC,
+    sc_mem_m_resign_loncoll.loan_contract_no ASC
+    )tab
+  </sql>
+  <sub>
+    <r_coll_resign_by_resign_date_nest>
+      <sql>
+        SELECT sc_lon_m_contract_coll.ref_own_no,
+        sc_lon_m_contract_coll.loan_contract_no,
+        decode(lag(sc_lon_m_contract_coll.ref_own_no,1,null)over(  order by sc_mem_m_membership_registered.member_status_code ,
+        sc_lon_m_contract_coll.ref_own_no  ) ,sc_lon_m_contract_coll.ref_own_no,0,1) as row_memno,
+        sc_lon_m_contract_coll.collateral_description,
+        sc_mem_m_membership_registered.member_status_code,
+        decode( sc_mem_m_membership_registered.member_status_code , '0'
+        , ''
+        , pka_com_function.fp_get_thaidate( sc_mem_m_membership_registered.resignation_approve_date , 'DD/MM/YYYY'  )) as resignation_approve_date,
+
+        sc_mem_m_membership_registered.resign_code,
+        (select sc_mem_m_ucf_resign_cause.resign_cause_name from sc_mem_m_ucf_resign_cause where sc_mem_m_membership_registered.resign_code = sc_mem_m_ucf_resign_cause.resign_cause_code) as resign_name,
+        decode( sc_mem_m_membership_registered.member_status_code , '0' , PKB_KTM.fp_get_collpermit_balance( sc_lon_m_contract_coll.ref_own_no , sc_lon_m_contract_coll.loan_contract_no ) , 0 )  as c_coll
+        FROM sc_lon_m_contract_coll,
+        sc_mem_m_membership_registered
+        WHERE ( sc_lon_m_contract_coll.ref_own_no = sc_mem_m_membership_registered.membership_no ) and
+        ( ( sc_lon_m_contract_coll.loan_contract_no = {0} ) AND
+        ( sc_lon_m_contract_coll.status = '0' ) AND
+        ( sc_lon_m_contract_coll.collateral_type_code = '01' ) )
+        ORDER BY sc_mem_m_membership_registered.member_status_code DESC,
+        sc_lon_m_contract_coll.ref_own_no ASC
+      </sql>
+    </r_coll_resign_by_resign_date_nest>
+  </sub>
+</root>

@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <year special="year" text="ปี" type="integer" sqlwhere="0" sqlreplace="1" />
+    <month special="month" text="เดือน" type="integer" combo="monthThLong" sqlwhere="0" sqlreplace="1" />
+    <ref_contract_no text="ประเภทเงินกู้" table="sc_lon_m_rule" column="ref_contract_no" combo="sc_lon_m_rule_ref_contract_no" readonly="0" />
+  </arg>
+  <combo />
+  <sql>SELECT sc_lon_m_contract.begining_of_contract 
+      ,pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract , 'dd') as day
+      ,count(sc_lon_m_contract.membership_no) as c_count_mem
+      ,sum(sc_lon_m_contract.loan_approve_amount) as loan_approve_amount
+      ,sc_lon_m_rule.ref_contract_no
+      ,FPB_GET_LOAN_TYPE_DESC( FPB_GET_LOAN_TYPE_REF(  sc_lon_m_rule.ref_contract_no ))  as loan_type_description 
+      ,'!year_1!' +543 as req_year
+      ,pka_com_function.fp_get_month_name('!month_1!','LT') as req_month_name
+FROM sc_lon_m_rule,   
+     sc_acc_m_account_master,   
+     sc_lon_m_contract,   
+     sc_com_m_branch
+    ,sc_lon_m_contract_multi_paid
+    ,sc_com_m_ucf_money_type
+    ,sc_lon_m_loan_request
+WHERE ( sc_lon_m_rule.account_id = sc_acc_m_account_master.account_id ) and  
+      ( sc_lon_m_rule.loan_type = sc_lon_m_contract.loan_type ) and     
+      (sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_contract.loan_requestment_no ) and
+      ( sc_lon_m_contract.create_loan_status = '1' )   and
+      ( sc_com_m_branch.branch_id = sc_lon_m_contract.branch_id ) 
+and sc_lon_m_contract_multi_paid.loan_contract_no = sc_lon_m_contract.loan_contract_no
+and sc_lon_m_contract_multi_paid.type_pay_money = sc_com_m_ucf_money_type.money_type_id
+and  sc_lon_m_contract_multi_paid.seq_no = 1
+and  sc_lon_m_rule.invest_status = '0'
+/*WHERE*/
+and   to_number(to_char(  sc_lon_m_contract.begining_of_contract  ,'yyyy')) = '!year_1!'
+and   to_number(to_char(  sc_lon_m_contract.begining_of_contract  ,'mm')) =  '!month_1!'
+--and   sc_lon_m_contract.begining_of_contract = '02/05/2023'
+--and  sc_lon_m_rule.ref_contract_no = 'ฐ'
+GROUP BY sc_lon_m_contract.begining_of_contract
+        ,sc_lon_m_rule.ref_contract_no
+ORDER BY sc_lon_m_contract.begining_of_contract ASC 
+        ,sc_lon_m_rule.ref_contract_no asc</sql>
+  <sub />
+</root>

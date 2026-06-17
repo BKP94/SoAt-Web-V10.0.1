@@ -1,0 +1,175 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <metadata name="sqlDataSource1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>17, 17</value>
+  </metadata>
+  <data name="customSqlQuery1.Sql" xml:space="preserve">
+    <value>select sum(tab.row_memno)over( partition by (receipt_date) order by tab.receipt_date ,tab.branch_id ,tab.receipt_no ,tab.sort_group_item) as rowno,  tab.*
+    from ( SELECT  decode(lag(sc_mem_m_membership_registered.membership_no,1,null)over(  partition by (sc_com_m_receipt.receipt_date)  order by sc_com_m_receipt.receipt_date ,sc_com_m_branch.branch_id
+    ,sc_com_m_receipt.receipt_no ,sc_com_m_ucf_receipt_item_type.group_item ) ,sc_mem_m_membership_registered.membership_no,0,1) as row_memno ,
+    sc_com_m_receipt.receipt_date  as receipt_date
+    ,sc_com_m_receipt.receipt_no  as receipt_no
+    ,sc_mem_m_membership_registered.membership_no    as membership_no
+    ,PKA_COM_FUNCTION.fp_get_member_name( sc_mem_m_membership_registered.membership_no ) as membername
+    ,sc_com_m_receipt.receipt_status  as receipt_status
+    ,( case group_item  when 'SHR' then 1 when 'LON'  then  5 else  99 end ) as sort_group_item
+    ,sc_com_m_ucf_receipt_item_type.group_item  as group_item
+    ,case
+    when  sc_com_m_ucf_receipt_item_type.group_item = 'LON' then
+    sc_com_m_receipt_item.description
+    when  sc_com_m_ucf_receipt_item_type.group_item = 'ISP' then
+    sc_com_m_receipt_item.description
+    else
+    sc_com_m_ucf_receipt_item_type.item_type_name
+    end 	as 		description
+    ,sc_com_m_receipt.money_type_id
+    ,sc_com_m_receipt.entry_id as entry_id
+
+    ,sc_com_m_branch.branch_id  as branch_id
+    ,sc_com_m_branch.branch_name  as branch_name
+
+    ,decode( sc_com_m_receipt.receipt_status , '0' , sc_com_m_receipt_item.principal_amount , 0  ) as principal_amount
+    ,decode( sc_com_m_receipt.receipt_status , '0' , sc_com_m_receipt_item.interest_amount , 0  ) as interest_amount
+    ,decode( sc_com_m_receipt.receipt_status , '0' , sc_com_m_receipt_item.item_amount , 0  ) as item_amount
+    ,sc_com_m_receipt.ppm_status as ppm_status
+    ,sc_com_m_receipt.keep_monthly as keep_monthly
+    , decode(  sc_com_m_ucf_receipt_item_type.group_item , 'LON' ,  FPB_GET_LOAN_TYPE_REF(  sc_com_m_receipt_item.loan_type ) , sc_com_m_receipt_item.loan_type )  as loan_type
+    ,(  	select sum( item_amount )
+    from	sc_com_m_receipt_item
+    where	receipt_no = sc_com_m_receipt.receipt_no ) as sum_rec
+    FROM sc_mem_m_membership_registered,
+    sc_mem_m_ucf_member_group,
+    sc_com_m_receipt,
+    sc_com_m_receipt_item,
+    sc_com_m_ucf_money_type,
+    sc_com_m_branch  ,
+    sc_com_m_ucf_receipt_item_type
+    ,si_security_user
+    ,sc_lon_m_contract_multi_paid
+    ,sc_lon_m_rule
+
+    WHERE 1 = 2
+    /*WHERE*/
+    )tab</value>
+  </data>
+  <data name="sqlDataSource1.ResultSchemaSerializable" xml:space="preserve">
+    <value>PERhdGFTZXQgTmFtZT0ic3FsRGF0YVNvdXJjZTEiPjxWaWV3IE5hbWU9IlF1ZXJ5Ij48RmllbGQgTmFtZT0iUk9XTk8iIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IlJPV19NRU1OTyIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iUkVDRUlQVF9EQVRFIiBUeXBlPSJEYXRlVGltZSIgLz48RmllbGQgTmFtZT0iUkVDRUlQVF9OTyIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJNRU1CRVJTSElQX05PIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9Ik1FTUJFUk5BTUUiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iUkVDRUlQVF9TVEFUVVMiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iU09SVF9HUk9VUF9JVEVNIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJHUk9VUF9JVEVNIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IkRFU0NSSVBUSU9OIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9Ik1PTkVZX1RZUEVfSUQiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iRU5UUllfSUQiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iQlJBTkNIX0lEIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IkJSQU5DSF9OQU1FIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IlBSSU5DSVBBTF9BTU9VTlQiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IklOVEVSRVNUX0FNT1VOVCIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iSVRFTV9BTU9VTlQiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IlBQTV9TVEFUVVMiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iS0VFUF9NT05USExZIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IkxPQU5fVFlQRSIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJTVU1fUkVDIiBUeXBlPSJEZWNpbWFsIiAvPjwvVmlldz48L0RhdGFTZXQ+</value>
+  </data>
+</root>

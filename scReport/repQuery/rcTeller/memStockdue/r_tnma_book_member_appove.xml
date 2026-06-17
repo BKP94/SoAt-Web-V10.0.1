@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <approve_date text="วันที่อนุมัติ" table="sc_mem_m_membership_registered" type="date" column="approve_date" readonly="0" comboreplace="0" combowhere="0" />
+    <book_no text="เลขที่หนังสือ" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <book_date text="วันที่ลงหนังสือ" type="date" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <libery text="ชุดที่" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <meet text="ครั้งที่" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <meet_date type="date" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <month special="month" text="เดือน" table="sc_kep_t_monthly_receive" type="integer" column="receive_month" combo="monthThLong" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <years text="ปี" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT pka_mem_newmem.fp_member_name(sc_mem_m_application_form.application_form_no) as memname
+    ,sc_mem_m_application_form.member_group_no
+    ,sc_mem_m_ucf_member_group.member_group_name
+    ,sc_mem_m_ucf_member_group_addr.district_code
+    ,sc_mem_m_ucf_member_group_addr.province_code
+    ,pka_com_function.fp_get_district_name(sc_mem_m_ucf_member_group_addr.province_code,sc_mem_m_ucf_member_group_addr.district_code) as district
+    ,pka_com_function.fp_get_province_name(sc_mem_m_ucf_member_group_addr.province_code) as province
+    ,sc_mem_m_ucf_district.post_code as postcode
+    ,sc_mem_m_membership_registered.membership_no
+    ,'!book_no_1!' as book_no
+    ,PKA_COM_FUNCTION.fp_get_thaidate( '!book_date_1!' , 'SD  MONTH  YYYY' ) as book_date
+    ,'!libery_1!' as libery
+    ,'!meet_1!' as meet
+    ,'!years_1!' as years
+    , PKA_COM_FUNCTION.fp_get_thaidate( '!meet_date_1!' , 'SD  MONTH  YYYY' ) as meet_date
+    ,PKA_COM_FUNCTION.fp_get_month_name('!month_1!') as month
+    --    , sc_mem_m_member_address.postcode as post_code
+    FROM sc_mem_m_application_form
+    ,sc_mem_m_ucf_member_group
+    ,sc_mem_m_ucf_member_group_addr
+    ,sc_mem_m_membership_registered
+    ,sc_mem_m_ucf_district
+    WHERE (sc_mem_m_application_form.member_group_no = sc_mem_m_ucf_member_group.member_group_no)
+    AND (sc_mem_m_application_form.application_form_no = sc_mem_m_membership_registered.application_form_no)
+    and sc_mem_m_ucf_member_group_addr.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+    and sc_mem_m_ucf_district.district_code = sc_mem_m_ucf_member_group_addr.district_code
+    and sc_mem_m_ucf_district.province_code = sc_mem_m_ucf_member_group_addr.province_code
+    /*WHERE*/</sql>
+  <sub />
+</root>

@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <confirm_date text="วันที่" table="sc_cls_confirm_data" type="date" column="confirm_date" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select  sc_cls_confirm_data.data_balance
+,       sc_cls_confirm_data.data_refno
+,       sc_cls_confirm_data.data_type
+,       sc_cls_confirm_data.confirm_date
+,       sysdate
+from    sc_cls_confirm_data
+,       sc_lon_m_rule
+,       sc_mem_m_membership_registered
+where   sc_cls_confirm_data.data_type = sc_lon_m_rule.loan_type
+and     sc_mem_m_membership_registered.membership_no = sc_cls_confirm_data.membership_no
+and     sc_cls_confirm_data.data_type in ('21','25')
+and     sc_cls_confirm_data.data_group = 'LON'
+and     sc_cls_confirm_data.data_balance &gt; '0'
+and     sc_mem_m_membership_registered.member_status_code = '0'
+and     sc_mem_m_membership_registered.mem_type = '01'
+and     sc_lon_m_rule.invest_status = '0'
+/*WHERE*/
+</sql>
+  <sub />
+</root>

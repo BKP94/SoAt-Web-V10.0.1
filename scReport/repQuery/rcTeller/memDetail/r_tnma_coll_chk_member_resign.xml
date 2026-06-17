@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+  </arg>
+  <combo />
+  <sql>SELECT SC_LON_M_CONTRACT_COLL.LOAN_CONTRACT_NO  
+ ,SC_LON_M_LOAN_CARD.MEMBERSHIP_NO   
+ ,pka_com_function.fp_get_member_name(SC_LON_M_LOAN_CARD.MEMBERSHIP_NO) as membername
+, pka_com_function.fp_get_group_name_mem(SC_LON_M_LOAN_CARD.MEMBERSHIP_NO) as gropname
+, SC_LON_M_LOAN_CARD.PRINCIPAL_BALANCE
+, SC_LON_M_CONTRACT_COLL.REF_OWN_NO
+, SC_LON_M_CONTRACT_COLL.COLLATERAL_DESCRIPTION
+ ,sc_atm_lon_card.MODIFY_STATUS  
+FROM SC_LON_M_CONTRACT_COLL,   
+ SC_MEM_M_MEMBERSHIP_REGISTERED,   
+ SC_LON_M_LOAN_CARD,   
+ sc_atm_lon_card  
+WHERE ( sc_atm_lon_card.LOAN_CONTRACT_NO = SC_LON_M_CONTRACT_COLL.LOAN_CONTRACT_NO ) and  
+ ( SC_LON_M_CONTRACT_COLL.REF_OWN_NO = SC_MEM_M_MEMBERSHIP_REGISTERED.MEMBERSHIP_NO ) and  
+ ( SC_LON_M_LOAN_CARD.LOAN_CONTRACT_NO = sc_atm_lon_card.LOAN_CONTRACT_NO ) and  
+ ( ( sc_lon_m_loan_card.loan_type = 'ก' ) AND  
+ ( sc_mem_m_membership_registered.member_status_code = '3' ) AND  
+ ( sc_lon_m_contract_coll.status = '0' ) AND  
+ ( sc_atm_lon_card.modify_status = '0' ) )    
+and SC_LON_M_LOAN_CARD.PRINCIPAL_BALANCE &gt; 0</sql>
+  <sub>
+  </sub>
+</root>

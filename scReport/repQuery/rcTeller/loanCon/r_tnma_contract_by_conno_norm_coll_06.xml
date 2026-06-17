@@ -1,0 +1,160 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <membership_no text="ทะเบียน" cascade="loan_contract_no" sqlwhere="0" readonly="0" comboreplace="0" combowhere="0" />
+    <loan_contract_no text="เลขสัญญาเงินกู้" table="sc_lon_m_contract" combo="loan_contract_no_combo" mustvalue="1" nestwhere="1" readonly="0" comboreplace="0" combowhere="0" />
+    <ref_own_no text="ผู้ค้ำประกัน" table="sc_lon_m_contract_coll" nestwhere="1" readonly="0" comboreplace="0" combowhere="0" />
+    <op_date default="null" text="วันที่เปลี่ยนค้ำ" type="date" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo>
+    <loan_contract_no_combo>select loan_contract_no as item_code
+      ,loan_contract_no as item_desc
+      from sc_lon_m_contract
+      where membership_no = {0}
+      order by begining_of_contract desc</loan_contract_no_combo>
+  </combo>
+  <sql>
+    select sc_lon_m_contract.loan_contract_no
+    ,sc_lon_m_contract.membership_no
+    ,pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract,'sd Month yyyy') as requestm
+    ,pka_com_function.fp_get_member_name( sc_lon_m_contract.membership_no ) as memname
+    ,pka_com_function.fp_get_member_position_long( sc_lon_m_contract.membership_no ) as position
+    ,sc_mem_m_ucf_member_group.member_group_no
+    ,sc_mem_m_ucf_member_group.member_group_name
+    ,pka_com_function.fp_get_thaidate(to_date('!op_date!','dd/mm/yyyy'),'sd Month yyyy')as op_date
+
+    --ที่อยู่ทะเบียนบ้าน
+    ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract.membership_no, '1' , 6 ) as address_no
+    ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract.membership_no, '1' , 8 ) as moo
+    ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract.membership_no, '1' , 7 ) as mooban
+    ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract.membership_no, '1' , 10 ) as soi
+    ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract.membership_no, '1' , 9 ) as road
+    ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract.membership_no, '1' , 11 ) as tambol
+    ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract.membership_no, '1' , 12 ) as district
+    ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract.membership_no, '1' , 13 ) as province
+    ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract.membership_no, '1' , 14 ) as postcode
+    ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract.membership_no, '1' , 15 ) as telephone
+
+    ,sc_lon_m_contract.loan_approve_amount
+    ,pka_com_function.fp_get_moneythai( sc_lon_m_contract.loan_approve_amount ) as loan_request_amount_thai
+    ,(pka_lon_reqsrv.fp_calc_intrate(sc_lon_m_rule.loan_type)*100)as int_rate
+    ,sc_lon_m_contract.period_payment_amount
+    ,pka_com_function.fp_get_numberthai( sc_lon_m_contract.period_payment_amount ) as period_payment_amount_thai
+    ,sc_lon_m_contract.loan_installment_amount
+    ,pka_com_function.fp_get_numberthai( sc_lon_m_contract.loan_installment_amount ) as loan_installment_amount_thai
+    ,sc_lon_m_contract.last_payment_amount
+    ,pka_com_function.fp_get_numberthai( sc_lon_m_contract.last_payment_amount ) as last_payment_amount_thai
+    ,sc_lon_m_contract.begining_of_contract
+    ,pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract,'sd Month yyyy') as begining_of_contract_date
+
+    ,(select marriage_status from sc_mem_m_ucf_marriage_status where sc_mem_m_ucf_marriage_status.marriage_status_code = sc_mem_m_membership_registered.marriage_status) as marriage_status
+    ,fpa_com_marriage(sc_mem_m_membership_registered.membership_no) as spname
+    ,(select id_card from sc_mem_m_member_spouse_info where membership_no = sc_mem_m_membership_registered.membership_no) as sp_id_card
+    ,to_char(sysdate, 'DD/MM/YYYY-HH24:MI:SS')||'-'||sc_lon_m_contract.appove_officer as entry_id
+    ,pka_com_function.fp_get_district_name( sc_mem_m_ucf_member_group_addr.province_code , sc_mem_m_ucf_member_group_addr.district_code ) as group_district
+    ,( select sc_mem_m_ucf_province.province_name from sc_mem_m_ucf_province where sc_mem_m_ucf_province.province_code = sc_mem_m_ucf_member_group_addr.province_code ) as province_addr
+
+    --บันทึกข้อความ
+    ,(select share_stock from sc_mem_m_share_mem where membership_no = sc_mem_m_membership_registered.membership_no) as share_stock
+    ,(select sum(principal_balance) from sc_lon_m_loan_card where membership_no = sc_mem_m_membership_registered.membership_no) as principal_balance
+    ,(select sum(req_amount) from sc_lon_m_req_coll where loan_requestment_no = sc_lon_m_contract.loan_requestment_no) as req_amount
+    ,(select si_security_user.user_name from si_security_user where user_id = sc_lon_m_contract.appove_officer) as entry_name
+
+    from sc_lon_m_contract
+    ,sc_mem_m_membership_registered
+    ,sc_mem_m_ucf_member_group
+    ,sc_mem_m_ucf_member_group_addr
+    ,sc_lon_m_rule
+    ,sc_mem_m_member_work_info
+
+    where 1=1
+    and sc_lon_m_contract.membership_no = sc_mem_m_membership_registered.membership_no
+    and sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+    and sc_mem_m_ucf_member_group.member_group_no = sc_mem_m_ucf_member_group_addr.member_group_no
+    and sc_lon_m_rule.loan_type = sc_lon_m_contract.loan_type
+    and sc_lon_m_contract.membership_no = sc_mem_m_member_work_info.membership_no
+    /*WHERE*/
+    --and sc_lon_m_contract.loan_contract_no = 'ส6800799'
+    order by sc_lon_m_contract.loan_contract_no asc</sql>
+  <sub>
+    <r_tnma_contract_by_conno_norm_coll_06_nest>
+      <sql>
+        select sc_lon_m_contract_coll.ref_own_no as ref_own_no
+        ,sc_lon_m_contract.loan_contract_no as loan_contract_no
+        ,sc_lon_m_contract_coll.collateral_description as collateral_description
+        ,pka_com_function.fp_get_member_position_name( sc_lon_m_contract_coll.ref_own_no ) as position
+        ,sc_mem_m_ucf_member_group.member_group_no as member_group_no
+        ,pka_com_function.fp_get_group_name_mem(sc_lon_m_contract_coll.ref_own_no) as group_name
+
+        --ที่อยู่ปัจจุบัน
+        ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no, '0' , 6 ) as address_no
+        ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no, '0' , 8 ) as moo
+        ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no, '0' , 7 ) as mooban
+        ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no, '0' , 10 ) as soi
+        ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no, '0' , 9 ) as road
+        ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no, '0' , 11 ) as tambol
+        ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no, '0' , 12 ) as district
+        ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no, '0' , 13 ) as province
+        ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no, '0' , 14 ) as postcode
+        ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no, '0' , 15 ) as telephone
+
+        ,pka_com_function.fp_get_district_name( sc_mem_m_ucf_member_group.province_code , sc_mem_m_ucf_member_group.district_code ) as group_district
+        ,substr(pka_lon_reqsrv.fp_calc_agetext_m_live( sc_lon_m_contract_coll.ref_own_no ),1,3) as age
+        ,sc_lon_m_contract_coll.collateral_no as collateral_no
+
+        from sc_lon_m_contract
+        ,sc_lon_m_contract_coll
+        ,sc_mem_m_membership_registered
+        ,sc_mem_m_member_work_info
+        ,sc_mem_m_ucf_member_group
+        ,sc_mem_m_ucf_member_group_addr
+
+        where sc_lon_m_contract.loan_contract_no = sc_lon_m_contract_coll.loan_contract_no
+        and sc_mem_m_membership_registered.membership_no = sc_lon_m_contract_coll.ref_own_no
+        and sc_mem_m_member_work_info.membership_no = sc_lon_m_contract_coll.ref_own_no
+        and sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+        and sc_mem_m_ucf_member_group.member_group_no = sc_mem_m_ucf_member_group_addr.member_group_no
+        and sc_lon_m_contract_coll.collateral_type_code in('01')
+        and sc_lon_m_contract.loan_contract_no = {0}
+        --and sc_lon_m_contract_coll.ref_own_no = {1}
+        /*WHERE*/
+        --and sc_lon_m_contract.loan_contract_no = 'ผ6800001'
+
+        union
+
+        select sc_lon_m_contract_coll.ref_own_no as ref_own_no
+        ,sc_lon_m_contract.loan_contract_no as loan_contract_no
+        ,sc_lon_m_contract_coll.collateral_description as collateral_description
+        ,'' as position
+        ,'' as member_group_no
+        ,'' as group_name
+
+        --ที่อยู่ปัจจุบัน
+        ,sc_lon_m_contract_coll.address_no as address_no
+        ,sc_lon_m_contract_coll.moo as moo
+        ,sc_lon_m_contract_coll.moo_ban as mooban
+        ,sc_lon_m_contract_coll.soi as soi
+        ,sc_lon_m_contract_coll.road as road
+        ,pka_com_function.fp_get_sub_district_name(sc_lon_m_contract_coll.tambol) as tambol
+        ,pka_com_function.fp_get_district_name(sc_lon_m_contract_coll.province_code,sc_lon_m_contract_coll.district_code) as district
+        ,pka_com_function.fp_get_province_name(sc_lon_m_contract_coll.province_code) as province
+        ,sc_lon_m_contract_coll.postcode as postcode
+        ,sc_lon_m_contract_coll.telephone as telephone
+
+        ,'' as group_district
+        ,'' as age
+        ,sc_lon_m_contract_coll.collateral_no as collateral_no
+
+        from sc_lon_m_contract
+        ,sc_lon_m_contract_coll
+
+        where sc_lon_m_contract.loan_contract_no = sc_lon_m_contract_coll.loan_contract_no
+        and sc_lon_m_contract_coll.collateral_type_code in( '12','13')
+        and sc_lon_m_contract.loan_contract_no = {0}
+        --and sc_lon_m_contract_coll.ref_own_no = {1}
+        /*WHERE*/
+        --and sc_lon_m_contract.loan_contract_no = 'ผ6800001'
+      </sql>
+    </r_tnma_contract_by_conno_norm_coll_06_nest>
+  </sub>
+</root>

@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <branch_id align="center" text="สาขา" table="sc_com_m_branch" combo="sc_com_m_branch" readonly="0" comboreplace="0" combowhere="0" />
+    <receipt_date text="วันที่" table="sc_com_m_receipt" type="date" operator="bt" nestreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <member_group_no text="หน่วย" table="sc_com_m_receipt" operator="bt" combo="sc_mem_m_ucf_member_group2" nestwhere="1" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>select  sc_mem_m_ucf_member_group.member_group_control
+    ,   pka_com_function.fp_get_group_name(sc_mem_m_ucf_member_group.member_group_control) as group_control_name
+    ,   to_snumber( sum(sc_com_m_receipt_item.item_amount) ) as item_amount
+
+from    sc_com_m_receipt
+    ,   sc_com_m_receipt_item
+    ,   sc_mem_m_ucf_member_group 
+    ,   sc_com_m_branch
+    
+where   1=1
+and     sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no
+and     sc_com_m_receipt.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+and     sc_com_m_receipt.branch_id = sc_com_m_branch.branch_id
+and     sc_com_m_receipt.receipt_status = '0'
+and     sc_com_m_receipt_item.item_amount &gt; 0
+and     sc_com_m_receipt_item.loan_type = 'SH'
+and     sc_com_m_receipt.money_type_id &lt;&gt; 'CLR'
+/*WHERE*/
+
+group by sc_mem_m_ucf_member_group.member_group_control
+
+order by sc_mem_m_ucf_member_group.member_group_control asc</sql>
+  <sub>
+  </sub>
+</root>

@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <member_group_no text="หน่วย" table="sc_mem_m_ucf_member_group" operator="bt" nulltext="ดูทั้งหมด ไม่ต้องเลือกนะจ๊ะ" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select pka_com_function.fp_get_member_name( sc_mem_m_membership_registered.membership_no) as c_name
+,sc_mem_m_membership_registered.membership_no
+,sc_mem_m_membership_registered.member_group_no
+,sc_mem_m_ucf_member_group.group_section
+,sc_mem_m_ucf_member_group.keeping_fingroup
+,sc_mem_m_membership_registered.id_card
+,sc_mem_m_member_work_info.salary_amount
+,sc_mem_m_member_work_info.academic_salary
+,sc_mem_m_member_work_info.remuneration_amount 
+,sc_mem_m_member_work_info.salary_real 
+,pka_com_function.fp_get_thaidate(sc_mem_m_membership_registered.date_of_birth)  as date_of_birth_tdate
+--,SUBSTR( pka_lon_reqsrv.fp_calc_agetext_m_live(sc_mem_m_membership_registered.membership_no) ,1 ,3 )  as age_text
+,PKA_LON_REQSRV.fp_calc_agetext(TRUNC(MONTHS_BETWEEN(sysdate ,sc_mem_m_membership_registered.date_of_birth),0),'Y','',0) as age_text
+from sc_mem_m_member_work_info 
+,sc_mem_m_membership_registered 
+,sc_mem_m_ucf_member_group 
+where sc_mem_m_membership_registered.membership_no = sc_mem_m_member_work_info.membership_no
+and sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+and sc_mem_m_membership_registered.member_status_code = '0'
+/*WHERE*/
+ORDER BY sc_mem_m_ucf_member_group.member_group_no , sc_mem_m_membership_registered.membership_no ASC</sql>
+  <sub />
+</root>

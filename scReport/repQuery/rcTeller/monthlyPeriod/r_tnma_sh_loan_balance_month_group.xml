@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <balance_date text="วันที่" table="sc_rep_mem_share_loan_bal" type="date" readonly="0" comboreplace="0" combowhere="0" />
+    <emer_contact_status text="ประเภท" table="sc_rep_mem_share_loan_bal" combo="emer_contact_status" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>select sc_rep_mem_share_loan_bal.member_group_no
+,pka_com_function.fp_get_group_name(sc_rep_mem_share_loan_bal.member_group_no) as member_group_name
+,COUNT(DISTINCT sc_rep_mem_share_loan_bal.membership_no) AS count_mem
+,sum(sc_rep_mem_share_loan_bal.share_balance) as  share_balance
+
+, COUNT(CASE WHEN sc_lon_m_rule.loan_group_code = '01' THEN 1 END) AS cnt_emer
+,SUM(CASE WHEN sc_lon_m_rule.loan_group_code = '01'  THEN sc_rep_mem_share_loan_bal.emer_balance ELSE null END) AS cnt_emer_balance
+, COUNT(CASE WHEN sc_lon_m_rule.loan_group_code = '02' THEN 1 END) AS cnt_norm
+,SUM(CASE WHEN sc_lon_m_rule.loan_group_code = '02'  THEN sc_rep_mem_share_loan_bal.emer_balance ELSE null END) AS cnt_norm_balance
+, COUNT(CASE WHEN sc_lon_m_rule.loan_group_code = '03' THEN 1 END) AS cnt_spec
+,SUM(CASE WHEN sc_lon_m_rule.loan_group_code = '03'  THEN sc_rep_mem_share_loan_bal.emer_balance ELSE null END) AS cnt_spec_balance
+
+
+from sc_rep_mem_share_loan_bal
+,sc_lon_m_rule
+where 1=1
+and sc_rep_mem_share_loan_bal.emer_loantype = sc_lon_m_rule.loan_type
+/*WHERE*/
+
+
+group by sc_rep_mem_share_loan_bal.member_group_no
+
+order by sc_rep_mem_share_loan_bal.member_group_no
+</sql>
+  <sub>
+  </sub>
+</root>

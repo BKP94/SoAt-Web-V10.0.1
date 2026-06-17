@@ -1,0 +1,68 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <receive_year special="year" text="ปี" table="sc_kep_t_monthly_receive" readonly="0" />
+    <receive_month align="center" special="month" text="เดือน" table="sc_kep_t_monthly_receive" combo="monthThLong" readonly="0" />
+    <member_group_keeping text="กลุ่มส่งหัก" table="sc_fin_ucf_keeping_group" combo="sc_fin_ucf_keeping_group2" readonly="0" />
+    <member_group_no text="หน่วย" table="sc_mem_m_ucf_member_group" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+    <membership_no special="memno" text="ทะเบียน" table="sc_kep_t_monthly_receive" column="membership_no" readonly="0" />
+    <text1 text="เลขที่เอกสาร" column="text1" sqlwhere="0" sqlreplace="1" noheader="1" readonly="0" />
+    <paid_date text="วันที่ชำระ" type="date" column="paid_date" sqlwhere="0" sqlreplace="1" noheader="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>      SELECT     sc_kep_t_monthly_receive.membership_no as membership_no 
+, pka_com_function.fp_get_member_name(sc_kep_t_monthly_receive.membership_no) as member_name
+, pka_com_function.fp_get_thaidate(sysdate , 'SD MONTH YYYY') as sysdate_date
+, pka_com_function.fp_get_thaidate(  sc_kep_t_monthly_receive.receipt_date , 'MONTH YYYY')  as month_thai 
+, sc_kep_t_monthly_receive.kep_amount    -  sc_kep_t_monthly_receive.kep_method_amount   as unkeep 
+, '!paid_date_1!' as paid_date
+,'!text1_1!' as text1
+, pka_com_function.fp_get_member_address_letter( sc_kep_t_monthly_receive.membership_no ,   sc_mem_m_ucf_doc_place.address_type  , 1  ) as address_line1 
+, pka_com_function.fp_get_member_address_letter( sc_kep_t_monthly_receive.membership_no ,   sc_mem_m_ucf_doc_place.address_type  , 2  ) as address_line2 
+, pka_com_function.fp_get_member_address_letter( sc_kep_t_monthly_receive.membership_no ,   sc_mem_m_ucf_doc_place.address_type  , 3  ) as address_line3 
+, pka_com_function.fp_get_member_address_letter( sc_kep_t_monthly_receive.membership_no ,   sc_mem_m_ucf_doc_place.address_type  , 4  ) as address_line4 
+, pka_com_function.fp_get_member_address_letter( sc_kep_t_monthly_receive.membership_no ,   sc_mem_m_ucf_doc_place.address_type  , 5  ) as address_line5 
+, sc_mem_m_ucf_member_group.member_group_type
+, sc_mem_m_ucf_member_group_type.member_group_type_name
+, sc_fin_ucf_keeping_group.member_group_keeping
+, sc_fin_ucf_keeping_group.member_group_name as fin_group_name 
+, sc_mem_m_ucf_member_group.member_group_no
+, sc_mem_m_ucf_member_group.member_group_name
+,sc_kep_t_monthly_receive.amount_form_file 
+, sc_cnt_m_coop.coop_name
+, sc_cnt_m_coop.address as address_coop 
+,sc_cnt_m_coop.tumbol_name
+,pka_com_function.fp_get_district_name( sc_cnt_m_coop.province_code , sc_cnt_m_coop.district_code) as district_name
+,pka_com_function.fp_get_province_name( sc_cnt_m_coop.province_code ) as province_name
+,sc_cnt_m_coop.postcode
+,sc_cnt_m_coop.manager_name 
+
+    FROM sc_kep_t_monthly_receive
+,  sc_mem_m_membership_registered
+,  sc_mem_m_ucf_member_group
+,  sc_mem_m_ucf_member_type
+,  sc_mem_m_ucf_coop_control
+,  sc_fin_ucf_keeping_group
+,sc_mem_m_ucf_member_group_type
+,sc_cnt_m_coop
+,sc_mem_m_ucf_doc_place
+    WHERE 1=1
+and  sc_mem_m_membership_registered.doc_place_status   = sc_mem_m_ucf_doc_place.item_code
+and    ( sc_mem_m_membership_registered.membership_no = sc_kep_t_monthly_receive.membership_no ) 
+and    ( sc_mem_m_ucf_member_group.member_group_no = sc_kep_t_monthly_receive.member_group_no ) 
+and    ( sc_mem_m_ucf_member_type.mem_type_code = sc_mem_m_membership_registered.mem_type ) 
+and    ( sc_mem_m_ucf_member_group.control_id = sc_mem_m_ucf_coop_control.control_id ) 
+and    ( sc_kep_t_monthly_receive.agent_no = sc_fin_ucf_keeping_group.member_group_keeping )   
+and   (sc_mem_m_ucf_member_group_type.member_group_type = sc_mem_m_ucf_member_group.member_group_type)
+and    sc_kep_t_monthly_receive.kep_amount   &gt;  sc_kep_t_monthly_receive.kep_method_amount    
+
+    /*WHERE*/
+--and sc_mem_m_ucf_member_group.member_group_type = 'T020'
+--and sc_kep_t_monthly_receive.receive_year  =  2022
+--and sc_kep_t_monthly_receive.receive_month = 1
+--and sc_fin_ucf_keeping_group.member_group_keeping = '007000'
+order by    sc_mem_m_ucf_member_group.member_group_type
+, sc_mem_m_ucf_member_group.member_group_no
+, sc_kep_t_monthly_receive.membership_no</sql>
+  <sub />
+</root>

@@ -1,0 +1,76 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <loan_type align="center" default="สม" text="ประเภทเงินกู้" table="sc_lon_m_rule" combo="sc_lon_m_rule_user_current" readonly="0" />
+    <requestment_date align="center" text="วันที่ขอกู้" table="sc_lon_m_loan_request" type="date" column="requestment_date" readonly="0" />
+    <begining_of_contract align="center" text="วันที่เริ่มสัญญา" table="sc_lon_m_loan_request" type="date" column="begining_of_contract" readonly="0" />
+    <type_pay_money text="ประเภทการจ่าย" table="sc_lon_m_loan_request_mpaid" column="type_pay_money" combo="sc_com_m_ucf_money_type2" readonly="0" />
+    <cancel_status align="center" text="สถานะคำขอ" table="sc_lon_m_loan_request" column="cancel_status" combo="cancel_status" readonly="0" />
+    <loan_contract_no align="center" text="ตั้งเเต่เลขที่สัญญา" table="sc_lon_m_contract" column="loan_contract_no" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql> SELECT sc_lon_m_loan_request.membership_no   
+         ,pka_com_function.fp_get_member_name(sc_lon_m_loan_request.membership_no) as memname
+         ,sc_lon_m_loan_request.loan_request_amount 
+         ,sc_lon_m_loan_request.total_old_loan  
+         ,sc_lon_m_loan_request.buy_share   
+         ,sc_lon_m_loan_request.branch_id   
+         ,sc_lon_m_loan_request.total_oldint   
+         ,sc_lon_m_loan_request.fee_amount   
+         ,sc_lon_m_loan_request.return_fund_amount
+         ,sc_lon_m_loan_request_mpaid.bank_code  
+         ,pka_com_function.fp_form(sc_lon_m_loan_request_mpaid.bank_acc_no, 'XXX-X-XXXXX-X') as bank_acc_no
+         ,sc_lon_m_loan_request_mpaid.type_pay_money
+         ,sc_com_m_ucf_money_type.money_type_name
+         ,sc_lon_m_loan_request.loan_requestment_no
+         ,sc_lon_m_contract.loan_contract_no 
+         ,sc_lon_m_contract.loan_approve_amount
+         ,sc_lon_m_contract.real_recieve  
+         ,sc_lon_m_contract.loan_type
+         ,sc_lon_m_rule.loan_group_code
+
+         ,case when sc_lon_m_rule.loan_group_code = '01' then 'ฉุกเฉิน'
+               when sc_lon_m_rule.loan_group_code = '02' then 'สามัญ'
+               when sc_lon_m_rule.loan_group_code = '03' then 'พิเศษ'
+               else ''
+         end as loan_group_type_name
+
+         ,sc_lon_m_rule.loan_type_description
+         ,sc_lon_m_loan_request.crem_fee_amount
+         ,sc_lon_m_contract.rec_rep_status
+         ,sc_lon_m_loan_request.approver_code
+         ,sc_lon_m_ucf_loan_approver.approver_desc
+         ,pka_com_function.fp_get_thaidate( sc_lon_m_loan_request.requestment_date) as requestment_date
+         ,pka_com_function.fp_get_thaidate( sc_lon_m_loan_request.begining_of_contract) as begining_of_contract
+         ,pka_com_function.fp_get_thaidate(sysdate , 'SD MONTH YYYY') as sysdate_tdate
+         ,sc_lon_m_loan_request.cancel_status
+        ,( select   sum( amount )
+            from sc_lon_m_req_fee
+	        where loan_requestment_no =  sc_lon_m_loan_request.loan_requestment_no ) as dep_amt
+    
+        ,( select   sum( insure_pay ) 
+	       from sc_lon_m_req_fee
+	       where loan_requestment_no =  sc_lon_m_loan_request.loan_requestment_no ) as ins_amt
+        ,sc_cnt_m_coop.coop_name
+
+  FROM sc_lon_m_loan_request 
+       ,sc_lon_m_contract  
+       ,sc_lon_m_rule
+       ,sc_lon_m_ucf_loan_approver
+       ,sc_cnt_m_coop
+       ,sc_lon_m_loan_request_mpaid
+       ,sc_com_m_ucf_money_type
+       
+  WHERE sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
+        and sc_lon_m_loan_request.loan_type = sc_lon_m_rule.loan_type
+        and sc_lon_m_loan_request.approver_code = sc_lon_m_ucf_loan_approver.approver_code
+        and sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_loan_request_mpaid.loan_requestment_no
+        and sc_lon_m_loan_request_mpaid.type_pay_money = sc_com_m_ucf_money_type.money_type_id
+        and sc_lon_m_contract.rec_rep_status = '1'
+        and sc_lon_m_contract.loan_contract_no  not in  (select sc_lon_m_loan_card.loan_contract_no 
+                                                          from sc_lon_m_loan_card
+                                                          where  sc_lon_m_loan_card.close_status = '1')
+/*WHERE*/
+</sql>
+  <sub />
+</root>

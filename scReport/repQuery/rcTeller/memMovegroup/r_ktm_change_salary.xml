@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <operate_date text="วันที่" table="sc_mem_edit_salary" type="date" operator="bt" readonly="0" />
+    <membership_no special="memno" text="ทะเบียน" table="sc_mem_m_membership_registered" column="membership_no" readonly="0" />
+    <member_group_no text="หน่วย" table="sc_mem_m_membership_registered" column="member_group_no" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    select sc_mem_edit_salary.membership_no,
+    PKA_COM_FUNCTION.fp_get_member_name( sc_mem_edit_salary.membership_no ) as memname,
+    sc_mem_edit_salary.entry_id,
+    sc_mem_edit_salary.operate_date,
+    sc_mem_edit_salary.pre_salary_amount,
+    sc_mem_edit_salary.salary_amount,
+    sc_mem_m_membership_registered.member_group_no,
+    pka_com_function.fp_get_group_name (sc_mem_m_membership_registered.member_group_no) as member_group_name
+    from sc_mem_edit_salary,
+    sc_mem_m_membership_registered
+    where sc_mem_m_membership_registered.membership_no = sc_mem_edit_salary.membership_no
+    /*WHERE*/
+  </sql>
+  <sub />
+</root>

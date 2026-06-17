@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <opdate text="วันที่อนุมัติ" type="date" column="opdate" operator="bt" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    SELECT  PKA_COM_FUNCTION.fp_get_member_name( sc_mem_m_membership_registered.membership_no ) as memname ,
+    sc_mem_m_membership_registered.membership_no ,
+    sc_mem_m_membership_registered.approve_date ,
+    sc_mem_m_membership_registered.member_name ,
+    sc_mem_m_membership_registered.member_surname ,
+    PKA_LON_REQSRV.fp_calc_agetext( sc_mem_m_membership_registered.date_of_birth )  as age,
+    sc_mem_m_ucf_member_group.member_group_no,
+    sc_mem_m_ucf_member_group.member_group_name,
+    sc_mem_m_ucf_member_group.member_group_control ,
+    pka_com_function.fp_get_group_name(sc_mem_m_ucf_member_group.member_group_control) as group_control,
+    sc_mem_m_ucf_member_group.control_id,
+    sc_mem_m_membership_registered.sex ,
+    sc_mem_m_member_work_info.position_code ,
+    sc_mem_m_member_work_info.salary_id ,
+    sc_mem_m_member_work_info.salary_amount ,
+    sc_mem_m_share_mem.share_amount ,
+    sc_mem_m_membership_registered.approve_date ,
+    sc_mem_m_application_form.approve_id
+
+    ,	  (	select	sc_com_m_receipt_item.item_amount
+    from		sc_com_m_receipt
+    ,			sc_com_m_receipt_item
+    where	( sc_mem_m_membership_registered.membership_no 	= sc_com_m_receipt.membership_no )
+    and 		( sc_com_m_receipt.receipt_no 	= sc_com_m_receipt_item.receipt_no )
+    and 		sc_com_m_receipt_item.item_type_id = 'MFE'
+    and		sc_com_m_receipt.receipt_status = '0') as item_amount
+
+    , (  select count( tb_mem_female.membership_no )
+    from     sc_mem_m_membership_registered tb_mem_female ,
+    sc_mem_m_application_form tb_app_female
+    where  tb_mem_female.application_form_no = tb_app_female.application_form_no
+    and 	  ( tb_mem_female.approve_date between  to_date('!opdate_1!') and to_date('!opdate_2!') )
+    and	  tb_mem_female.sex = 'F'
+    ) as c_female
+
+    , (   select count( tb_mem_male.membership_no )
+    from     sc_mem_m_membership_registered tb_mem_male ,
+    sc_mem_m_application_form tb_app_male
+    where  tb_mem_male.application_form_no = tb_app_male.application_form_no
+    and 	  ( tb_mem_male.approve_date between  to_date('!opdate_1!') and to_date('!opdate_2!') )
+    and 	  tb_mem_male.sex = 'M'
+    ) as c_male
+
+    FROM 	sc_mem_m_membership_registered ,
+    sc_mem_m_member_work_info ,
+    sc_mem_m_share_mem    ,
+    sc_mem_m_ucf_position ,
+    sc_mem_m_ucf_member_group ,
+    sc_com_m_branch
+    ,	sc_mem_m_application_form
+
+    WHERE  ( sc_mem_m_membership_registered.membership_no 	= sc_mem_m_member_work_info.membership_no )
+    and          ( sc_mem_m_ucf_member_group.member_group_no 	= sc_mem_m_membership_registered.member_group_no )
+    and          ( sc_mem_m_membership_registered.membership_no 	= sc_mem_m_share_mem.membership_no )
+    and	    (	sc_mem_m_member_work_info.position_code		= sc_mem_m_ucf_position.position_code )
+    and	    (	sc_mem_m_membership_registered.branch_id				= sc_com_m_branch.branch_id )
+    and		sc_mem_m_membership_registered.application_form_no = sc_mem_m_application_form.application_form_no
+    and (  sc_mem_m_membership_registered.approve_date between  to_date('!opdate_1!') and to_date('!opdate_2!'))
+    /*WHERE*/
+  </sql>
+  <sub />
+</root>

@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <begining_of_contract text="วันอนุมัติเงินกู้" table="sc_lon_m_contract" type="date" operator="bt" readonly="0" comboreplace="0" combowhere="0" />
+    <loan_type text="ประเภทเงินกู้" table="sc_lon_m_rule" operator="bt" combo="sc_lon_m_rule2" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>SELECT  sum(tab.row_memno)over(order by tab.begining_of_contract , tab.loan_requestment_no , tab.ref_own_no ) as rowno,  tab.*
+from (  SELECT 	decode(lag( sc_lon_m_loan_request.loan_requestment_no ,1,null )over( order by sc_lon_m_contract.begining_of_contract , sc_lon_m_loan_request.loan_requestment_no , sc_lon_m_req_coll.ref_own_no ) ,sc_lon_m_loan_request.loan_requestment_no ,0,1 ) as row_memno
+,       pka_com_function.fp_get_thaidate( sc_lon_m_contract.begining_of_contract , 'SD MONTH YYYY' ) as begining_of_contract_thai
+,       sc_lon_m_contract.begining_of_contract
+,       sc_lon_m_loan_request.loan_requestment_no
+,       sc_lon_m_loan_request.membership_no
+,       pka_com_function.fp_get_member_name( sc_lon_m_loan_request.membership_no ) as member_name
+,       sc_lon_m_req_coll.ref_own_no
+,       sc_lon_m_req_coll.collateral_description
+,       pka_com_function.fp_get_member_group( sc_lon_m_req_coll.ref_own_no ) as coll_group_no
+,       pka_com_function.fp_get_group_name_mem( sc_lon_m_req_coll.ref_own_no ) as coll_group_name
+FROM    sc_lon_m_loan_request 
+,       sc_lon_m_req_coll
+,       sc_mem_m_membership_registered 
+,       sc_lon_m_rule 
+,       sc_lon_m_contract 
+,       sc_com_m_branch 
+,       sc_lon_m_ucf_loan_payment_type 
+,       sc_lon_m_loan_request_mpaid 
+,       sc_acc_m_ucf_bank
+WHERE   ( sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no )
+and     ( sc_lon_m_contract.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no )
+and     ( sc_mem_m_membership_registered.membership_no = sc_lon_m_contract.membership_no )
+and     ( sc_lon_m_contract.loan_type = sc_lon_m_rule.loan_type )
+and     ( sc_com_m_branch.branch_id = sc_lon_m_contract.branch_id )
+and     ( sc_lon_m_ucf_loan_payment_type.loan_payment_type_code = sc_lon_m_contract.loan_payment_type_code )
+and     ( sc_lon_m_loan_request_mpaid.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no )
+and     ( sc_acc_m_ucf_bank.bank_id = sc_lon_m_loan_request_mpaid.bank_code )
+and     sc_lon_m_loan_request_mpaid.other_loan_status = '0'
+and     sc_lon_m_loan_request.approve_status = '1'
+/*WHERE*/
+--and     sc_lon_m_contract.begining_of_contract = '01/04/2024'
+ORDER BY sc_lon_m_contract.begining_of_contract
+,        sc_lon_m_loan_request.loan_requestment_no
+,        sc_lon_m_req_coll.ref_own_no
+) tab</sql>
+  <sub />
+  <mis />
+</root>

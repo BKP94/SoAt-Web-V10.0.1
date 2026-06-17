@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <adt_date text="วันที่" type="date" column="adt_date" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select  sc_mem_m_membership_registered.membership_no
+,       sc_mem_m_ucf_prename.prename||sc_mem_m_membership_registered.member_name||' '||sc_mem_m_membership_registered.member_surname as member_name
+,       sc_mem_m_ucf_member_group.member_group_name
+,       '!adt_date!' as adt_date
+,       sysdate
+,       sc_mem_m_membership_registered.date_of_birth
+,       sc_mem_m_membership_registered.approve_date
+,       trim(pka_lon_reqsrv.fp_calc_agetext_m_age( sc_mem_m_membership_registered.membership_no , '!adt_date!' )) as age_mem
+,       trim(substr(trim(pka_lon_reqsrv.fp_calc_agetext_m_age( sc_mem_m_membership_registered.membership_no , '!adt_date!' )),0,2)) as age_mem_year
+,       trim(pka_lon_reqsrv.fp_calc_agetext_m_live( sc_mem_m_membership_registered.membership_no , '!adt_date!' )) as age_live
+,       trim(substr(trim(pka_lon_reqsrv.fp_calc_agetext_m_live( sc_mem_m_membership_registered.membership_no , '!adt_date!' )),0,3)) as age_live_year
+,       pka_lon_reqsrv.fp_calc_install_m_age( sc_mem_m_membership_registered.membership_no ) as age_mem_month
+,       (case when trim(substr(trim(pka_lon_reqsrv.fp_calc_agetext_m_age( sc_mem_m_membership_registered.membership_no , '!adt_date!' )),0,2)) in ('2','3','4') then 1
+        when trim(substr(trim(pka_lon_reqsrv.fp_calc_agetext_m_age( sc_mem_m_membership_registered.membership_no , '!adt_date!' )),0,2)) in ('5','6','7','8','9') then 2
+        when trim(substr(trim(pka_lon_reqsrv.fp_calc_agetext_m_age( sc_mem_m_membership_registered.membership_no , '!adt_date!' )),0,2)) in ('10','11','12','13','14') then 3
+        when trim(substr(trim(pka_lon_reqsrv.fp_calc_agetext_m_age( sc_mem_m_membership_registered.membership_no , '!adt_date!' )),0,2)) in ('15','16','17','18','19') then 4
+        else 5
+        end) as age_mem_range
+,       (case when trim(substr(trim(pka_lon_reqsrv.fp_calc_agetext_m_age( sc_mem_m_membership_registered.membership_no , '!adt_date!' )),0,2)) in ('2','3','4') then 'อายุการเป็นสมาชิก 2 ปี แต่ไม่ครบ 5 ปี'
+        when trim(substr(trim(pka_lon_reqsrv.fp_calc_agetext_m_age( sc_mem_m_membership_registered.membership_no , '!adt_date!' )),0,2)) in ('5','6','7','8','9') then 'อายุการเป็นสมาชิก 5 ปี แต่ไม่ครบ 10 ปี'
+        when trim(substr(trim(pka_lon_reqsrv.fp_calc_agetext_m_age( sc_mem_m_membership_registered.membership_no , '!adt_date!' )),0,2)) in ('10','11','12','13','14') then 'อายุการเป็นสมาชิก 10 ปี แต่ไม่ครบ 15 ปี'
+        when trim(substr(trim(pka_lon_reqsrv.fp_calc_agetext_m_age( sc_mem_m_membership_registered.membership_no , '!adt_date!' )),0,2)) in ('15','16','17','18','19') then 'อายุการเป็นสมาชิก 15 ปี แต่ไม่ครบ 20 ปี'
+        else 'อายุการเป็นสมาชิก 20 ปีขึ้นไป'
+        end) as age_mem_range_text
+from    sc_mem_m_membership_registered
+,       sc_mem_m_ucf_prename
+,       sc_mem_m_ucf_member_group
+where   sc_mem_m_membership_registered.prename_code = sc_mem_m_ucf_prename.prename_code
+and     sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+and     sc_mem_m_membership_registered.member_status_code = '0'
+and     sc_mem_m_membership_registered.mem_type = '01'
+and     trim(substr(trim(pka_lon_reqsrv.fp_calc_agetext_m_age( sc_mem_m_membership_registered.membership_no , '!adt_date!' )),3,20)) not in ('เดือน',' เดือน','  เดือน')
+and     trim(substr(trim(pka_lon_reqsrv.fp_calc_agetext_m_age( sc_mem_m_membership_registered.membership_no , '!adt_date!' )),0,2)) &gt; '1'
+and     trim(substr(trim(pka_lon_reqsrv.fp_calc_agetext_m_live( sc_mem_m_membership_registered.membership_no , '!adt_date!' )),0,3)) &gt; '59'
+/*WHERE*/
+order by sc_mem_m_membership_registered.date_of_birth</sql>
+  <sub />
+</root>

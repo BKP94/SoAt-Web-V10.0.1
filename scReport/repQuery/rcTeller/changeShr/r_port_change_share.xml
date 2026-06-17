@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="T055" rep_text="รายงานการเปลี่ยนแปลงการส่งหุ้นรายเดือน">
+  <arg>
+    <operate_date text="วันที่คำขอ" table="sc_mem_m_chang_request" type="date" column="operate_date" operator="bt" />
+    <member_group_no control="ASPxComboBox" text="หน่วย" table="sc_mem_m_membership_registered" operator="bt" nulltext="ดูทั้งหมด ไม่ต้องเลือกนะจ๊ะ" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+    <approve_status text="สถานะ" table="sc_mem_m_chang_request" column="approve_status" combo="approve_status" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select tab.*
+       ,sum(tab.row_memno)over (partition by (member_group_control)order by tab.member_group_control, tab.member_group_no,tab.membership_no) as rowno
+from    (
+          select  sc_mem_m_membership_registered.membership_no,
+                  sc_mem_m_ucf_member_group.member_group_control,
+                  sc_mem_m_ucf_member_group.member_group_control||'  '||PKA_COM_FUNCTION.fp_get_group_name(sc_mem_m_ucf_member_group.member_group_control) as group_control_name,
+                  sc_mem_m_membership_registered.member_group_no,
+                  (select prename from sc_mem_m_ucf_prename where prename_code = sc_mem_m_membership_registered.membership_no ) ||' ' ||member_name ||'  ' ||member_surname as member_name,
+                  sc_mem_m_membership_registered.member_group_no || ' - ' || (select member_group_name from sc_mem_m_ucf_member_group where member_group_no = sc_mem_m_membership_registered.member_group_no ) as group_name,
+                  sc_mem_m_chg_share_det.shr_value_new,
+                  decode(sc_mem_m_chg_share_det.drop_status_last,'0','ส่งเพิ่มขึ้น',decode(sc_mem_m_chg_share_det.drop_status_last,'1','งดส่ง','2','ส่งปกติ')) as status_old,
+                  decode(sc_mem_m_chg_share_det.drop_status,'1','งดส่ง','0','-',decode(sc_mem_m_chg_share_det.drop_status,'2','ส่งปกติ')) as status_new,
+                  sc_mem_m_chg_share_det.shr_value_old ,
+                  sc_mem_m_chg_share_det.effactive_date
+                  ,decode(lag(sc_mem_m_membership_registered.membership_no,1,null)over(order by sc_mem_m_ucf_member_group.member_group_control ,sc_mem_m_ucf_member_group.member_group_no,sc_mem_m_membership_registered.membership_no) ,sc_mem_m_membership_registered.membership_no,0,1) as row_memno
+          from    sc_mem_m_chg_share_det ,
+                  sc_mem_m_membership_registered ,
+                  sc_mem_m_chang_request,
+                  sc_mem_m_ucf_member_group
+          where   ( sc_mem_m_membership_registered.membership_no   = sc_mem_m_chang_request.membership_no )
+          and     ( sc_mem_m_chang_request.document_no             = sc_mem_m_chg_share_det.document_no )
+          and     ( sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no )
+          and     ( sc_mem_m_chang_request.cancel_status           = '0' )
+          --and     ( sc_mem_m_chang_request.approve_status    = '1' )
+          --and     ( sc_mem_m_chg_share_det.shr_value_new    != sc_mem_m_chg_share_det.shr_value_old )
+          /*WHERE*/
+--          and sc_mem_m_chang_request.operate_date between to_date('2018-1-1 0:0:0','yyyy-mm-dd hh24:mi:ss') and to_date('2018-9-12 0:0:0','yyyy-mm-dd hh24:mi:ss')
+--          and sc_mem_m_membership_registered.member_group_no between '010000' and '010000'
+          
+          order by  sc_mem_m_ucf_member_group.member_group_control,
+                    sc_mem_m_membership_registered.member_group_no,
+                    sc_mem_m_membership_registered.membership_no
+        ) tab</sql>
+  <sub />
+  <mis />
+</root>

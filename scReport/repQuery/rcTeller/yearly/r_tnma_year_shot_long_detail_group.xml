@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <balance_date text="วันที่" table="sc_rep_mem_share_loan_year" type="date" column="balance_date" readonly="0" />
+    <member_group_no text="หน่วย" table="sc_mem_m_ucf_member_group" operator="bt" nulltext="ดูทั้งหมด ไม่ต้องเลือกนะจ๊ะ" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>SELECT sc_mem_m_ucf_member_group.member_group_no
+,sc_mem_m_ucf_member_group.member_group_name
+,sc_mem_m_ucf_member_group.member_group_control
+,pka_com_function.fp_get_group_name( sc_mem_m_ucf_member_group.member_group_control ) as grp_con_name
+,COUNT(DISTINCT sc_rep_mem_share_loan_year.membership_no) as count_mem
+,sum(sc_rep_mem_share_loan_year.emer_balance) as emer_balance
+,sum(sc_rep_mem_share_loan_year.emer_period) as emer_period
+,sum(sc_rep_mem_share_loan_year.emer_installment) as emer_installment
+,sum(sc_rep_mem_share_loan_year.norm_balance)  as norm_balance
+,sum(sc_rep_mem_share_loan_year.norm_period) as norm_period
+,sum(sc_rep_mem_share_loan_year.norm_installment) as norm_installment
+,sum(sc_rep_mem_share_loan_year.spec_balance) as spec_balance
+,sum(sc_rep_mem_share_loan_year.spec_period) as spec_period
+,sum(sc_rep_mem_share_loan_year.spec_installment) as spec_installment
+,sum(sc_rep_mem_share_loan_year.salary_amount) as salary_amount
+,sum(sc_rep_mem_share_loan_year.emer_intarr) as emer_intarr
+,sum(sc_rep_mem_share_loan_year.norm_intarr) as  norm_intarr
+,sum(sc_rep_mem_share_loan_year.spec_intarr) as spec_intarr
+,sc_rep_mem_share_loan_year.balance_date
+,sc_rep_mem_share_loan_year.intarr_date
+,sum(decode(sc_rep_mem_share_loan_year.norm_paycode,'01',sc_rep_mem_share_loan_year.emer_shot,0)) as emer_shot
+,sum(decode(sc_rep_mem_share_loan_year.norm_paycode,'01',sc_rep_mem_share_loan_year.emer_long,0)) as emer_long
+,sum(decode(sc_rep_mem_share_loan_year.norm_paycode,'01',sc_rep_mem_share_loan_year.norm_shot,0)) as norm_shot
+,sum(decode(sc_rep_mem_share_loan_year.norm_paycode,'01',sc_rep_mem_share_loan_year.norm_long,0)) as norm_long
+,sum(decode(sc_rep_mem_share_loan_year.spec_paycode,'01',sc_rep_mem_share_loan_year.spec_shot,0))  as spec_shot
+,sum(decode(sc_rep_mem_share_loan_year.spec_paycode,'01',sc_rep_mem_share_loan_year.spec_long,0)) as spec_long
+
+
+,sum(decode(sc_rep_mem_share_loan_year.norm_paycode,'02',sc_rep_mem_share_loan_year.norm_shot,0)) as normshotyod
+,sum(decode(sc_rep_mem_share_loan_year.spec_paycode,'02',sc_rep_mem_share_loan_year.spec_shot,0)) as specshotyod
+,sum(decode(sc_rep_mem_share_loan_year.norm_paycode,'02',sc_rep_mem_share_loan_year.norm_long,0)) as normlongyod
+,sum(decode(sc_rep_mem_share_loan_year.spec_paycode,'02',sc_rep_mem_share_loan_year.spec_long,0)) as speclongyod
+
+FROM sc_rep_mem_share_loan_year,
+sc_mem_m_membership_registered,
+sc_mem_m_ucf_member_group,
+sc_mem_m_ucf_coop_control,
+sc_mem_m_ucf_member_type
+WHERE ( sc_rep_mem_share_loan_year.membership_no = sc_mem_m_membership_registered.membership_no ) and
+( sc_rep_mem_share_loan_year.member_group_no = sc_mem_m_ucf_member_group.member_group_no ) and
+( sc_mem_m_ucf_member_type.mem_type_code = sc_mem_m_membership_registered.mem_type ) and
+( sc_mem_m_ucf_coop_control.control_id = sc_mem_m_ucf_member_group.control_id ) and
+( ( sc_rep_mem_share_loan_year.client_id = '000' ) )
+and ( sc_rep_mem_share_loan_year.share_balance &gt; 0 or
+sc_rep_mem_share_loan_year.emer_balance &gt; 0 or
+sc_rep_mem_share_loan_year.norm_balance &gt; 0 or
+sc_rep_mem_share_loan_year.spec_balance &gt; 0 or
+sc_rep_mem_share_loan_year.emer_intarr &gt; 0 or
+sc_rep_mem_share_loan_year.norm_intarr &gt; 0 or
+sc_rep_mem_share_loan_year.spec_intarr &gt; 0
+)
+
+/*---------------------[  วันที่  ]------------------------*/
+-- and sc_rep_mem_share_loan_year.balance_date = to_date('2025-10-31 0:0:0','yyyy-mm-dd hh24:mi:ss')
+/*WHERE*/
+--and sc_mem_m_ucf_member_group.member_group_control in ('01000','01002')
+
+group by sc_mem_m_ucf_member_group.member_group_no
+,sc_mem_m_ucf_member_group.member_group_name
+,sc_mem_m_ucf_member_group.member_group_control
+,sc_rep_mem_share_loan_year.balance_date
+,sc_rep_mem_share_loan_year.intarr_date
+
+order by sc_mem_m_ucf_member_group.member_group_control desc
+,sc_mem_m_ucf_member_group.member_group_no</sql>
+  <sub />
+</root>

@@ -1,0 +1,258 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="T050" rep_text="เล่มทะเบียนสมาชิก">
+  <col>
+    <share_amount text="หุ้นรายเดือน" />
+  </col>
+  <arg>
+    <approve_date text="วันที่รายการ" type="date" operator="bt" sqlwhere="0" nestreplace="1" readonly="0" />
+    <membership_no special="memno" text="ทะเบียน" table="sc_mem_m_membership_registered" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    select sc_mem_m_ucf_member_group.member_group_no
+    ,sc_mem_m_ucf_member_group.member_group_name
+    ,sc_mem_m_membership_registered.membership_no
+    ,(select prename from sc_mem_m_ucf_prename where prename_code = sc_mem_m_membership_registered.prename_code)||sc_mem_m_membership_registered.member_name||' '||sc_mem_m_membership_registered.member_surname  as member_name
+    ,sc_mem_m_share_mem.share_amount
+    ,sc_mem_m_share_mem.share_stock
+    ,sc_mem_m_membership_registered.spouse_name
+ ,pka_com_function.fp_get_thaidate(sc_mem_m_membership_registered.approve_date,'dd/mm/yyyy') as approve_date
+    ,sc_mem_m_membership_registered.position_code
+    , sc_mem_m_membership_registered.total_loan_int
+    ,(select sc_mem_m_member_work_info.position_code
+    from sc_mem_m_member_work_info where sc_mem_m_member_work_info.membership_no = sc_mem_m_membership_registered.membership_no) as position_code
+    ,(select sc_mem_m_member_work_info.position_long
+    from sc_mem_m_member_work_info where sc_mem_m_member_work_info.membership_no = sc_mem_m_membership_registered.membership_no) as position_long
+    ,sc_mem_m_membership_registered.marriage_status
+    ,(case sc_mem_m_membership_registered.marriage_status when '0' then 'โสด' when '1' then 'สมรส' when '2' then 'ม่าย' when '3' then 'หย่าร้าง' end) as marriage_status_name
+    ,sc_mem_m_membership_registered.date_of_birth
+    ,pka_com_function.fp_get_member_address_pres(sc_mem_m_membership_registered.membership_no) as address
+    ,pka_lon_reqsrv.fp_calc_agetext_m_live(sc_mem_m_membership_registered.membership_no) as age_life_text
+ ,pka_com_function.fp_get_thaidate(sc_mem_m_membership_registered.resignation_approve_date,'dd/mm/yyyy') as resignation_approve_date
+    ,sc_mem_m_ucf_member_type.mem_type_desc
+    ,sc_mem_m_member_work_info.salary_amount
+    ,sc_mem_m_member_work_info.salary_id
+ ,decode(sc_mem_m_membership_registered.member_status_code,'0','ปกติ','พ้นสภาพ') as member_status_code
+    from sc_mem_m_membership_registered
+    ,sc_mem_m_ucf_member_group
+    ,sc_mem_m_share_mem
+    ,sc_mem_m_member_work_info
+    ,sc_mem_m_ucf_member_type
+    where sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+    and sc_mem_m_membership_registered.membership_no = sc_mem_m_share_mem.membership_no
+    and sc_mem_m_membership_registered.membership_no = sc_mem_m_member_work_info.membership_no
+    and sc_mem_m_ucf_member_type.mem_type_code = sc_mem_m_membership_registered.mem_type
+    /*WHERE*/
+    --and sc_mem_m_membership_registered.approve_date between '01/06/2020' and '30/06/2020'
+    order by sc_mem_m_ucf_member_group.member_group_no
+    ,sc_mem_m_membership_registered.membership_no
+  </sql>
+  <sub>
+    <r_ktm_mem_share_loan_card_share>
+      <sql>        select sc_mem_m_share_holding_detail.seq_no
+        ,nvl(sc_mem_m_share_holding_detail.period,0) as period
+        ,sc_mem_m_share_holding_detail.share_value
+        --*sc_mem_m_ucf_share_item_type.sign_flag as share_value
+        ,sc_mem_m_share_holding_detail.share_stock
+        ,sc_mem_m_share_holding_detail.item_type
+        --KTM สอ.กทม. กรณีรหัสรายการ RM ,RC วันที่รายการให้ใช้ entry_date แสดงผล
+        ,FPB_GET_SHARE_OPERATE_DATE(sc_mem_m_share_holding_detail.membership_no , sc_mem_m_share_holding_detail.seq_no)  as operate_date 
+
+        from sc_mem_m_share_holding_detail
+        ,sc_mem_m_ucf_share_item_type
+        where sc_mem_m_share_holding_detail.item_type  = sc_mem_m_ucf_share_item_type.item_type
+        and sc_mem_m_share_holding_detail.membership_no = {0}
+        and sc_mem_m_share_holding_detail.operate_date between '!approve_date_1!' and '!approve_date_2!'
+        /*WHERE*/
+        order by sc_mem_m_share_holding_detail.seq_no
+        ,sc_mem_m_share_holding_detail.share_stock
+      </sql>
+    </r_ktm_mem_share_loan_card_share>
+    <r_ktm_mem_share_loan_card_norm>
+      <sql>select sc_lon_m_rule.loan_group_code,
+        --KTM สอ.กทม. กรณีรหัสรายการ RM ,RC วันที่รายการให้ใช้ entry_date แสดงผล
+        FPB_GET_LOAN_PAYMENT_DATE(sc_lon_m_loan_card_detail.loan_contract_no , sc_lon_m_loan_card_detail.seq_no)  as loan_payment_date ,
+        sc_lon_m_loan_card_detail.principal_balance,
+        sc_lon_m_loan_card_detail.interest_amout,
+        sc_lon_m_loan_card_detail.payment_amount,
+        sc_lon_m_loan_card_detail.period,
+        sc_lon_m_loan_card_detail.seq_no,
+        sc_lon_m_loan_card_detail.item_type_code,
+        sc_lon_m_contract.loan_type,
+        sc_lon_m_contract.loan_approve_amount,
+        sc_lon_m_loan_card_detail.loan_contract_no,
+        sc_lon_m_contract.begining_of_contract
+        from sc_lon_m_contract,
+        sc_lon_m_loan_card_detail,
+        sc_lon_m_rule
+        where ( sc_lon_m_contract.loan_contract_no = sc_lon_m_loan_card_detail.loan_contract_no ) 
+        and   ( sc_lon_m_rule.loan_type = sc_lon_m_contract.loan_type ) 
+        and   ( sc_lon_m_rule.loan_group_code &lt;&gt; '01' )  
+        --and  (sc_lon_m_loan_card_detail.status &lt;&gt; '1' ) 
+        and  (  sc_lon_m_contract.membership_no = {0} ) 
+        and  (sc_lon_m_loan_card_detail.loan_payment_date between '!approve_date_1!' and '!approve_date_2!')
+        /*WHERE*/
+        order by sc_lon_m_loan_card_detail.loan_contract_no
+        ,sc_lon_m_contract.begining_of_contract
+        ,sc_lon_m_loan_card_detail.seq_no</sql>
+    </r_ktm_mem_share_loan_card_norm>
+    <r_ktm_mem_share_loan_card_emer>
+      <sql>        select sc_lon_m_rule.loan_group_code,
+        --KTM สอ.กทม. กรณีรหัสรายการ RM ,RC วันที่รายการให้ใช้ entry_date แสดงผล
+        FPB_GET_LOAN_PAYMENT_DATE(sc_lon_m_loan_card_detail.loan_contract_no , sc_lon_m_loan_card_detail.seq_no)  as loan_payment_date ,
+        sc_lon_m_loan_card_detail.principal_balance,
+        sc_lon_m_loan_card_detail.payment_amount,
+        sc_lon_m_loan_card_detail.interest_amout,
+        sc_lon_m_loan_card_detail.item_type_code,
+        sc_lon_m_loan_card_detail.seq_no,
+        sc_lon_m_contract.loan_type,
+        sc_lon_m_loan_card_detail.period,
+        sc_lon_m_contract.loan_approve_amount,
+        sc_lon_m_loan_card_detail.loan_contract_no,
+        sc_lon_m_contract.begining_of_contract
+        from sc_lon_m_contract,
+        sc_lon_m_loan_card_detail,
+        sc_lon_m_rule
+        where ( sc_lon_m_contract.loan_contract_no = sc_lon_m_loan_card_detail.loan_contract_no ) and
+        ( sc_lon_m_rule.loan_type = sc_lon_m_contract.loan_type ) and ( sc_lon_m_rule.loan_group_code = '01' )  and
+        (  sc_lon_m_contract.membership_no = {0} ) and
+        (sc_lon_m_loan_card_detail.loan_payment_date	between '!approve_date_1!' and '!approve_date_2!' )
+        /*WHERE*/
+        order by sc_lon_m_loan_card_detail.loan_contract_no
+        ,sc_lon_m_contract.begining_of_contract
+        ,sc_lon_m_loan_card_detail.seq_no
+      </sql>
+    </r_ktm_mem_share_loan_card_emer>
+    <r_ktm_mem_share_loan_card_coll>
+      <sql>
+        select 	sc_lon_m_contract_coll.loan_contract_no,
+        sc_lon_m_contract_coll.ref_own_no,
+        sc_mem_m_membership_registered.member_group_no,
+        sc_mem_m_ucf_prename.prename,
+        sc_mem_m_membership_registered.member_name,
+        sc_mem_m_membership_registered.member_surname,
+        sc_mem_m_membership_registered.membership_no
+
+        from 		sc_lon_m_contract_coll,
+        sc_mem_m_membership_registered,
+        sc_mem_m_ucf_prename,
+        sc_lon_m_loan_card
+
+        where 	( sc_mem_m_ucf_prename.prename_code  = sc_mem_m_membership_registered.prename_code)
+        and  	(  sc_mem_m_membership_registered.membership_no = sc_lon_m_loan_card.membership_no)
+        and  	(  sc_lon_m_loan_card.loan_contract_no  =sc_lon_m_contract_coll.loan_contract_no)
+        and  	( ( sc_lon_m_contract_coll.ref_own_no = {0} )
+        and    ( sc_lon_m_contract_coll.status = '0')
+        and	( sc_lon_m_loan_card.principal_balance &gt; 0 )
+        )
+      </sql>
+    </r_ktm_mem_share_loan_card_coll>
+    <r_ktm_mem_share_loan_card_concern>
+      <sql>
+        SELECT 	sc_lon_m_contract_coll.loan_contract_no,
+        sc_lon_m_contract_coll.ref_own_no,
+        sc_lon_m_contract_coll.collateral_description,
+        sc_lon_m_contract_coll.collateral_type_code  ,
+        pka_com_function.fp_get_member_group(sc_lon_m_contract_coll.ref_own_no) as group_ref_own_no,
+        pka_com_function.fp_get_member_name(sc_lon_m_contract_coll.ref_own_no) as member_name
+
+        FROM 		sc_lon_m_contract_coll,
+        sc_lon_m_loan_card
+
+        WHERE ( trim(sc_lon_m_contract_coll.loan_contract_no) = trim(sc_lon_m_loan_card.loan_contract_no))
+        and  	( ( sc_lon_m_loan_card.membership_no = {0} )
+        AND  	( sc_lon_m_contract_coll.status = '0' )
+        AND  	( sc_lon_m_loan_card.principal_balance &gt; 0 )
+        )
+      </sql>
+    </r_ktm_mem_share_loan_card_concern>
+    <r_ktm_mem_share_loan_card_return>
+      <sql>
+        SELECT sc_kep_t_monthly_receive.membership_no,
+        sc_kep_t_monthly_receive.receipt_no,
+        sc_kep_t_monthly_receive.receive_year,
+        sc_kep_t_monthly_receive.receive_month,
+        sc_kep_t_monthly_receive.seq_no,
+        sc_kep_t_monthly_receive.receipt_return_date
+
+        , ( select sum( unkeep_money_amount )
+        from sc_kep_t_monthly_receive_det  det
+        where  det.membership_no = sc_kep_t_monthly_receive.membership_no
+        and det.receive_year = sc_kep_t_monthly_receive.receive_year
+        and det.receive_month = sc_kep_t_monthly_receive.receive_month
+        and det.seq_no = sc_kep_t_monthly_receive.seq_no
+        and det.keeping_type_code = 'MS00'
+        )  as c_share
+
+        , ( select sum( unkeep_principal_of_loan )
+        from sc_kep_t_monthly_receive_det  det
+        where  det.membership_no = sc_kep_t_monthly_receive.membership_no
+        and det.receive_year = sc_kep_t_monthly_receive.receive_year
+        and det.receive_month = sc_kep_t_monthly_receive.receive_month
+        and det.seq_no = sc_kep_t_monthly_receive.seq_no
+        and det.keeping_type_code = 'ML01'
+        )  as c_emer_prin
+
+        , ( select sum( unkeep_interest )
+        from sc_kep_t_monthly_receive_det  det
+        where  det.membership_no = sc_kep_t_monthly_receive.membership_no
+        and det.receive_year = sc_kep_t_monthly_receive.receive_year
+        and det.receive_month = sc_kep_t_monthly_receive.receive_month
+        and det.seq_no = sc_kep_t_monthly_receive.seq_no
+        and det.keeping_type_code = 'ML01'
+        )  as c_emer_int
+
+        , ( select sum( unkeep_principal_of_loan )
+        from sc_kep_t_monthly_receive_det  det
+        where  det.membership_no = sc_kep_t_monthly_receive.membership_no
+        and det.receive_year = sc_kep_t_monthly_receive.receive_year
+        and det.receive_month = sc_kep_t_monthly_receive.receive_month
+        and det.seq_no = sc_kep_t_monthly_receive.seq_no
+        and det.keeping_type_code = 'ML02'
+        )  as c_norm_prin
+
+        , ( select sum( unkeep_interest )
+        from sc_kep_t_monthly_receive_det  det
+        where  det.membership_no = sc_kep_t_monthly_receive.membership_no
+        and det.receive_year = sc_kep_t_monthly_receive.receive_year
+        and det.receive_month = sc_kep_t_monthly_receive.receive_month
+        and det.seq_no = sc_kep_t_monthly_receive.seq_no
+        and det.keeping_type_code = 'ML02'
+        )  as c_norm_int
+
+        , ( select sum( unkeep_principal_of_loan )
+        from sc_kep_t_monthly_receive_det  det
+        where  det.membership_no = sc_kep_t_monthly_receive.membership_no
+        and det.receive_year = sc_kep_t_monthly_receive.receive_year
+        and det.receive_month = sc_kep_t_monthly_receive.receive_month
+        and det.seq_no = sc_kep_t_monthly_receive.seq_no
+        and det.keeping_type_code = 'ML03'
+        )  as c_spec_prin
+
+        , ( select sum( unkeep_interest )
+        from sc_kep_t_monthly_receive_det  det
+        where  det.membership_no = sc_kep_t_monthly_receive.membership_no
+        and det.receive_year = sc_kep_t_monthly_receive.receive_year
+        and det.receive_month = sc_kep_t_monthly_receive.receive_month
+        and det.seq_no = sc_kep_t_monthly_receive.seq_no
+        and det.keeping_type_code = 'ML03'
+        )  as c_spec_int
+
+        FROM sc_kep_t_monthly_receive
+        WHERE 1=1
+        --   and   ( ( sc_kep_t_monthly_receive.receive_year = 2019 )
+        --   AND   ( sc_kep_t_monthly_receive.receive_month = 10 )
+        AND   ( sc_kep_t_monthly_receive.receipt_status = '2' )
+        AND   ( sc_kep_t_monthly_receive.membership_no = {0} )
+        GROUP BY sc_kep_t_monthly_receive.membership_no,
+        sc_kep_t_monthly_receive.receive_year,
+        sc_kep_t_monthly_receive.receive_month,
+        sc_kep_t_monthly_receive.seq_no,
+        sc_kep_t_monthly_receive.receipt_return_date ,
+        sc_kep_t_monthly_receive.receipt_no
+
+        ORDER BY  sc_kep_t_monthly_receive.receive_year,
+        sc_kep_t_monthly_receive.receive_month
+      </sql>
+    </r_ktm_mem_share_loan_card_return>
+  </sub>
+</root>

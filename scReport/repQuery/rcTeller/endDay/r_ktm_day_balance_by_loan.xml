@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+  </arg>
+  <combo />
+  <sql>
+    SELECT sc_lon_m_ucf_loan_code.loan_code,
+    sc_lon_m_ucf_loan_code.loan_code_desc,
+    sc_acc_m_account_master.account_id,
+    sc_acc_m_account_master.account_name,
+    sc_lon_m_rule.loan_type,
+    sc_lon_m_rule.loan_type_description,
+    count( sc_lon_m_loan_card.loan_contract_no ) as c_count,
+    sum( sc_lon_m_loan_card.principal_balance ) as c_balance
+
+    FROM sc_lon_m_loan_card,
+    sc_lon_m_rule,
+    sc_lon_m_ucf_loan_code,
+    sc_acc_m_account_master
+    WHERE ( sc_lon_m_loan_card.loan_type = sc_lon_m_rule.loan_type ) and
+    ( sc_lon_m_loan_card.loan_code = sc_lon_m_ucf_loan_code.loan_code ) and
+    ( sc_lon_m_rule.account_id = sc_acc_m_account_master.account_id ) and
+    ( ( sc_lon_m_loan_card.principal_balance  &lt;&gt; 0  ) )
+    GROUP BY sc_lon_m_ucf_loan_code.loan_code,
+    sc_lon_m_ucf_loan_code.loan_code_desc,
+    sc_acc_m_account_master.account_id,
+    sc_acc_m_account_master.account_name,
+    sc_lon_m_rule.loan_type,
+    sc_lon_m_rule.loan_type_description
+    /*WHERE*/
+  </sql>
+</root>

@@ -1,0 +1,192 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <member_group_no text="หน่วย" table="sc_mem_m_ucf_member_group" column="member_group_no" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+    <membership_no special="memno" text="ทะเบียน" table="sc_mem_m_membership_registered" column="membership_no" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT 	sc_mem_m_membership_registered.membership_no,
+    PKA_COM_FUNCTION.fp_get_member_name( sc_mem_m_membership_registered.membership_no ) as membername  ,
+    sc_mem_m_membership_registered.mem_type ,
+    sc_mem_m_ucf_member_group.member_group_no,
+    sc_mem_m_ucf_member_group.member_group_name,
+    sc_mem_m_ucf_member_group.member_group_control,
+    sc_mem_m_ucf_member_group.control_id
+    ,sc_mem_m_share_mem.share_stock
+    ,pka_lon_reqsrv.fp_calc_agetext_m_age(sc_mem_m_membership_registered.membership_no) as agetext_member
+    ,pka_lon_reqsrv.fp_calc_agetext_m_live(sc_mem_m_membership_registered.membership_no) as agetext_live
+    ,pka_com_function.fp_get_thaidate( sc_mem_m_membership_registered.approve_date ,'DD MONTH YYYY') as t_approve_date
+    ,pka_com_function.fp_get_thaidate(sysdate , 'SD MONTH YYYY') as sysdate_tdate
+    ,sc_mem_m_membership_registered.date_of_birth
+    ,sc_mem_m_share_mem.period_recrieve
+    , sc_mem_m_share_mem.share_amount
+    ,sc_mem_m_share_mem.drop_status
+, 	( select sc_mem_m_capital_stock_detail.dividend
+		from sc_mem_m_capital_stock_detail
+		where sc_mem_m_membership_registered.membership_no = sc_mem_m_capital_stock_detail.membership_no
+		and sc_mem_m_capital_stock_detail.account_year = (select max(stock_detail.account_year)
+		from sc_mem_m_capital_stock_detail stock_detail
+		where sc_mem_m_membership_registered.membership_no = stock_detail.membership_no )) as dividend
+	,	( select sc_mem_m_capital_stock_detail.average_return
+		from sc_mem_m_capital_stock_detail
+		where sc_mem_m_membership_registered.membership_no = sc_mem_m_capital_stock_detail.membership_no
+		and sc_mem_m_capital_stock_detail.account_year = (select max(stock_detail.account_year)
+		from sc_mem_m_capital_stock_detail stock_detail
+		where sc_mem_m_membership_registered.membership_no = stock_detail.membership_no )) as average_return
+    , PKA_COM_FUNCTION.fp_get_loan_balance_by_mem(sc_mem_m_membership_registered.membership_no) as loan_balance
+    FROM 		sc_mem_m_membership_registered,
+    sc_mem_m_ucf_member_group  ,
+    sc_mem_m_share_mem
+    WHERE 	( sc_mem_m_membership_registered.member_group_no 		= 	sc_mem_m_ucf_member_group.member_group_no ) and
+    sc_mem_m_share_mem.membership_no = sc_mem_m_membership_registered.membership_no
+    /*WHERE*/
+  </sql>
+  <sub>
+    <r_tnma_member_detail_nest_member_own_info>
+      <sql>
+        select
+        '' as saving_name
+        , '' as own_work_age
+        ,'' as first_date,
+        '' as first_date_tdate
+        FROM dual
+        WHERE 1 = 1
+        /*select sc_mem_m_ucf_othersaving.saving_name
+        , sc_mem_m_member_own_info.own_work_age
+        ,sc_mem_m_member_own_info.first_date,
+        '' as first_date_tdate
+        FROM sc_mem_m_member_own_info ไม่มี Table
+        ,sc_mem_m_ucf_othersaving
+        WHERE sc_mem_m_member_own_info.other_saving =sc_mem_m_ucf_othersaving.other_saving_member
+        and  sc_mem_m_member_own_info.membership_no = {0}*/
+      </sql>
+    </r_tnma_member_detail_nest_member_own_info>
+    <r_tnma_member_detail_nest_member_detail_loan>
+      <sql>
+        select tab.*
+        from(
+        select sc_lon_m_loan_card.loan_contract_no
+        , sc_lon_m_loan_card.principal_balance
+        , sc_lon_m_loan_card.pending_amount
+        , pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract,'dd mon yyyy') as begining_of_contract
+        , sc_lon_m_contract.loan_approve_amount
+        , sc_lon_m_contract.loan_installment_amount
+        , sc_lon_m_contract.period_payment_amount
+        , nvl(sc_lon_m_loan_card.last_period , 0) as  last_period
+        , '' as collateral_description
+        , '' as collateral_no
+        from sc_lon_m_loan_card,
+        sc_lon_m_contract
+        where ( sc_lon_m_loan_card.loan_contract_no = sc_lon_m_contract.loan_contract_no )
+        and ( ( sc_lon_m_loan_card.principal_balance &gt; 0 )  or  (  ( principal_balance = 0  )
+        and ( sc_lon_m_contract.atm_status = '1' )
+        and (sc_lon_m_loan_card.close_status is null) ) )
+        and  ( sc_lon_m_loan_card.membership_no = {0} )
+
+
+        union
+
+        SELECT sc_lon_m_loan_card.loan_contract_no
+        , sc_lon_m_loan_card.principal_balance
+        , sc_lon_m_loan_card.pending_amount
+        , pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract,'dd mon yyyy') as begining_of_contract
+        , sc_lon_m_contract.loan_approve_amount
+        , sc_lon_m_contract.loan_installment_amount
+        , sc_lon_m_contract.period_payment_amount
+        , nvl(sc_lon_m_loan_card.last_period , 0) as  last_period
+        ,  sc_lon_m_contract_coll.ref_own_no ||' '|| decode(  sc_lon_m_contract_coll.collateral_type_code , '01' ,  PKA_COM_FUNCTION.fp_get_member_name( sc_lon_m_contract_coll.ref_own_no ) , sc_lon_m_contract_coll.collateral_description)  as collateral_description
+        , sc_lon_m_contract_coll.collateral_no
+        from sc_lon_m_loan_card
+        ,   sc_lon_m_contract
+        , sc_lon_m_contract_coll
+        where 1=1
+        and sc_lon_m_contract.loan_contract_no = sc_lon_m_loan_card.loan_contract_no
+        and sc_lon_m_contract.loan_contract_no = sc_lon_m_contract_coll.loan_contract_no
+        and ( ( sc_lon_m_loan_card.principal_balance &gt; 0 )  or  (  ( principal_balance = 0  )
+        and ( sc_lon_m_contract.atm_status = '1' )
+        and (sc_lon_m_loan_card.close_status is null) ) )
+        and sc_lon_m_contract_coll.status = '0'
+        and sc_lon_m_contract.membership_no = {0}
+        )tab
+        where tab.collateral_no is not null
+        order by tab.loan_contract_no
+        , tab.collateral_no
+      </sql>
+    </r_tnma_member_detail_nest_member_detail_loan>
+    <r_tnma_member_detail_nest_member_detail_loan_coll>
+      <sql>
+        SELECT sc_lon_m_contract_coll.collateral_type_code,
+        sc_lon_m_contract_coll.ref_own_no,
+        decode(  sc_lon_m_contract_coll.collateral_type_code , '01' ,  PKA_COM_FUNCTION.fp_get_member_name( sc_lon_m_contract_coll.ref_own_no ) , sc_lon_m_contract_coll.collateral_description)  as collateral_description
+        FROM sc_lon_m_contract_coll
+        WHERE ( sc_lon_m_contract_coll.loan_contract_no = {0} ) AND
+        ( sc_lon_m_contract_coll.status = '0' )
+      </sql>
+    </r_tnma_member_detail_nest_member_detail_loan_coll>
+    <r_tnma_member_detail_nest_member_detail_coll>
+      <sql>
+        SELECT sc_lon_m_contract_coll.loan_contract_no,
+        sc_lon_m_loan_card.membership_no,
+        sc_lon_m_loan_card.principal_balance,
+        PKA_COM_FUNCTION.fp_get_member_name( sc_lon_m_loan_card.membership_no ) as membername
+        FROM sc_lon_m_contract_coll,
+        sc_lon_m_loan_card
+        WHERE ( sc_lon_m_contract_coll.loan_contract_no = sc_lon_m_loan_card.loan_contract_no ) and
+        ( ( sc_lon_m_contract_coll.ref_own_no = {0} ) AND
+        ( sc_lon_m_contract_coll.status = '0' ) AND
+        ( sc_lon_m_loan_card.principal_balance &gt; 0 ) )
+      </sql>
+    </r_tnma_member_detail_nest_member_detail_coll>
+    <r_tnma_member_detail_nest_member_detail_dep>
+      <sql>
+        SELECT sc_dep_m_creditor.deposit_account_no,
+        pka_com_function.fp_form( sc_dep_m_creditor.deposit_account_no , 'XXX-XX-XXXXXXXXXX' ) as from_dep_acc_no,
+        sc_dep_m_creditor.deposit_type_code,
+        sc_dep_m_creditor.deposit_balance,
+        sc_dep_m_rule.deposit_name
+        FROM sc_dep_m_creditor,
+        sc_dep_m_rule
+        WHERE ( sc_dep_m_creditor.deposit_type_code = sc_dep_m_rule.deposit_type_code ) and
+        ( ( sc_dep_m_creditor.close_status = '0' ) AND
+        ( sc_dep_m_creditor.membership_no = {0} ) )
+      </sql>
+    </r_tnma_member_detail_nest_member_detail_dep>
+    <r_tnma_member_detail_nest_member_detail_gain>
+      <sql>
+        SELECT sc_mem_m_ucf_prename.prename,
+        sc_mem_m_member_recrieve_gain.gain_name,
+        sc_mem_m_member_recrieve_gain.gain_surname,
+        sc_mem_m_member_recrieve_gain.rec_no
+        FROM sc_mem_m_member_recrieve_gain,
+        sc_mem_m_ucf_prename
+        WHERE ( sc_mem_m_member_recrieve_gain.prename_code = sc_mem_m_ucf_prename.prename_code ) and
+        ( ( sc_mem_m_member_recrieve_gain.membership_no = {0} ) AND
+        ( sc_mem_m_member_recrieve_gain.gain_status = '0' ) )
+      </sql>
+    </r_tnma_member_detail_nest_member_detail_gain>
+    <r_tnma_member_detail_nest_member_detail_insure>
+      <sql>
+        SELECT '' as insurance_no,
+               '' as insurance_balance
+        FROM dual
+        WHERE 1 = 1
+        /*SELECT sc_mem_m_member_insurance.insurance_no,
+        sc_mem_m_member_insurance.insurance_balance
+        FROM sc_mem_m_member_insurance
+        WHERE ( sc_mem_m_member_insurance.membership_no = :as_memno ) AND
+        ( sc_mem_m_member_insurance.insurance_balance &gt; 0 )*/
+      </sql>
+    </r_tnma_member_detail_nest_member_detail_insure>
+    <r_tnma_member_detail_nest_member_refer_2>
+      <sql>
+        SELECT  sc_mem_m_member_member_refer.membership_no ,
+        sc_mem_m_ucf_concern.related_na
+        ,pka_com_function.fp_get_member_name(sc_mem_m_member_member_refer.membership_no) as member_name
+        FROM sc_mem_m_member_member_refer
+        , sc_mem_m_ucf_concern
+        WHERE sc_mem_m_member_member_refer.conceern_code =sc_mem_m_ucf_concern.conceern_code
+        and  ( sc_mem_m_member_member_refer.membership_no_ref  = {0} )
+      </sql>
+    </r_tnma_member_detail_nest_member_refer_2>
+  </sub>
+</root>

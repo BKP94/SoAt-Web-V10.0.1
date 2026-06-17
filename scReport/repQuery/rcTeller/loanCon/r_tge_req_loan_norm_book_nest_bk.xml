@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <loan_contract_no align="center" text="เลขสัญญา" table="sc_lon_m_loan_request" column="loan_requestment_no" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select  sc_lon_m_loan_request.loan_requestment_no 
+        ,(select sc_lon_m_req_coll.collateral_description
+        from    sc_lon_m_req_coll
+        where   sc_lon_m_req_coll.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+        and     sc_lon_m_req_coll.collateral_type_code = '01'
+        and     sc_lon_m_req_coll.seq_no = '1'
+        )as collname1
+        ,(select sc_lon_m_req_coll.collateral_description
+        from    sc_lon_m_req_coll
+        where   sc_lon_m_req_coll.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+        and     sc_lon_m_req_coll.collateral_type_code = '01'
+        and     sc_lon_m_req_coll.seq_no = '2'
+        )as collname2
+        ,(select sc_lon_m_req_coll.collateral_description
+        from    sc_lon_m_req_coll
+        where   sc_lon_m_req_coll.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+        and     sc_lon_m_req_coll.collateral_type_code = '01'
+        and     sc_lon_m_req_coll.seq_no = '3'
+        )as collname3
+        ,(select sc_lon_m_req_coll.collateral_description
+        from    sc_lon_m_req_coll
+        where   sc_lon_m_req_coll.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+        and     sc_lon_m_req_coll.collateral_type_code = '01'
+        and     sc_lon_m_req_coll.seq_no = '4'
+        )as collname4
+        ,(select sc_lon_m_req_coll.collateral_description
+        from    sc_lon_m_req_coll
+        where   sc_lon_m_req_coll.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+        and     sc_lon_m_req_coll.collateral_type_code in ('02','03','04','05')
+        )as collateral_description
+        ,(select (case when sc_lon_m_req_coll.collateral_type_code = '02' then 'หุ้นค้ำประกัน'
+                 when sc_lon_m_req_coll.collateral_type_code = '03' then 'เงินฝากค้ำประกัน'
+                 when sc_lon_m_req_coll.collateral_type_code = '04' then 'อสังหาริมทรัพย์' 
+                 when sc_lon_m_req_coll.collateral_type_code = '05' then 'ห้องชุด'
+                 end) 
+        from    sc_lon_m_req_coll
+        where   sc_lon_m_req_coll.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+        and     sc_lon_m_req_coll.collateral_type_code in ('02','03','04','05')
+        )as collateral_other
+from    sc_lon_m_loan_request
+where		sc_lon_m_loan_request.loan_type in ('20','21','22','24')
+/*WHERE*/
+--where   sc_lon_m_loan_request.loan_requestment_no = '6525000010'
+
+
+</sql>
+  <sub>
+  </sub>
+</root>

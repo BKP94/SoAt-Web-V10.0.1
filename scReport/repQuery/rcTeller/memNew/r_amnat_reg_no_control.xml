@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <approve_date text="วันที่" table="sc_mem_m_member_reg_no_control" type="date" column="approve_date" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>  SELECT sc_mem_m_member_reg_no_control.membership_no,   
+         sc_mem_m_member_reg_no_control.approve_date,   
+         sc_mem_m_member_reg_no_control.recrieve_status,   
+         sc_mem_m_ucf_application_type.application_fee,   
+         sc_mem_m_ucf_application_type.appl_type_code,   
+         sc_mem_m_ucf_application_type.appl_type_name,   
+         pka_com_function.fp_get_member_name(  sc_mem_m_member_reg_no_control.membership_no) as memname  
+    FROM sc_mem_m_member_reg_no_control,   
+         sc_mem_m_application_form,   
+         sc_mem_m_membership_registered,   
+         sc_mem_m_ucf_application_type  
+   WHERE ( sc_mem_m_application_form.application_form_no = sc_mem_m_membership_registered.application_form_no ) and  
+         ( sc_mem_m_member_reg_no_control.membership_no = sc_mem_m_membership_registered.membership_no ) and  
+         ( sc_mem_m_ucf_application_type.appl_type_code = sc_mem_m_application_form.appl_type_code ) and  
+         ( ( sc_mem_m_member_reg_no_control.approve_date &gt;= '1/1/2021' ) )    
+/*WHERE*/
+order by  sc_mem_m_member_reg_no_control.recrieve_status, 
+sc_mem_m_ucf_application_type.application_fee,
+sc_mem_m_member_reg_no_control.membership_no</sql>
+  <sub />
+</root>

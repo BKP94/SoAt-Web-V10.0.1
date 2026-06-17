@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <aml_date text="วันที่รายการ" table="sc_mem_m_member_aml" type="date" operator="bt" readonly="0" />
+    <aml_id text="เลขบัตรประจำตัวประชาชน" table="sc_mem_m_member_aml" column="aml_id" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    select  sc_mem_m_member_aml.aml_date
+    ,sc_mem_m_member_aml.aml_prename
+    ,sc_mem_m_member_aml.aml_name
+    ,sc_mem_m_member_aml.aml_surname
+    ,sc_mem_m_member_aml.aml_id
+    ,sc_mem_m_member_aml.aml_birth
+    ,sc_mem_m_member_aml.aml_bookno
+    ,sc_mem_m_member_aml.aml_remark
+    ,sc_mem_m_member_aml.entry_id
+    ,sc_mem_m_member_aml.seq_no
+
+    from sc_mem_m_member_aml
+    where 1 = 1
+    /*WHERE*/
+    order by sc_mem_m_member_aml.aml_date asc , sc_mem_m_member_aml.seq_no asc
+  </sql>
+  <sub />
+</root>

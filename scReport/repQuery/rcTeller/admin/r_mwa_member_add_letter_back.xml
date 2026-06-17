@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <membership_no align="center" text="ทะเบียน" table="sc_mem_m_membership_registered" column="membership_no" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select   sc_mem_m_membership_registered.membership_no
+         ,pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as memname       
+         ,pka_com_function.fp_get_member_address_letter(sc_mem_m_membership_registered.membership_no,0,1) as member_address_1
+         ,pka_com_function.fp_get_member_address_letter(sc_mem_m_membership_registered.membership_no,0,2) as member_address_2
+         ,pka_com_function.fp_get_member_address_letter(sc_mem_m_membership_registered.membership_no,0,3) as member_address_3
+         ,pka_com_function.fp_get_province_name(sc_mem_m_member_address.province_code) as province_name
+         ,trim('*' from sc_mem_m_member_address.postcode) as postcode
+         ,substr(trim('*' from sc_mem_m_member_address.postcode),1,1)as postcode1
+         ,substr(trim('*' from sc_mem_m_member_address.postcode),2,1)as postcode2
+         ,substr(trim('*' from sc_mem_m_member_address.postcode),3,1)as postcode3
+         ,substr(trim('*' from sc_mem_m_member_address.postcode),4,1)as postcode4
+         ,substr(trim('*' from sc_mem_m_member_address.postcode),5,1)as postcode5
+         
+    from sc_mem_m_membership_registered,
+         sc_mem_m_member_address
+         
+    where sc_mem_m_membership_registered.membership_no = sc_mem_m_member_address.membership_no
+    and sc_mem_m_membership_registered.member_status_code &lt;&gt; '3'
+    and sc_mem_m_member_address.address_type = '0'
+
+/*WHERE*/
+</sql>
+  <sub />
+</root>

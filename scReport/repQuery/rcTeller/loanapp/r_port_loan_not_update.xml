@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <member_group_no default="400" text="หน่วย" table="sc_mem_m_ucf_member_group" column="member_group_no" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+    <loan_payment_date text="วันที่ชำระล่าสุด" type="date" column="loan_payment_date" operator="bt" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>select  sum(tab.row_memno)over( order by tab.member_group_no , tab.membership_no , tab.loan_contract_no ) as rowno,  tab.*
+from    (SELECT  decode(lag(sc_mem_m_membership_registered.membership_no,1,null)over( order by sc_mem_m_ucf_member_group.member_group_no , sc_mem_m_membership_registered.membership_no , sc_lon_m_contract.loan_contract_no ) , sc_mem_m_membership_registered.membership_no ,0,1 ) as row_memno  
+,       sc_mem_m_membership_registered.membership_no
+,       pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as member_name 
+,       sc_mem_m_ucf_member_group.member_group_no   
+,       sc_mem_m_ucf_member_group.member_group_name   
+,       sc_lon_m_contract.loan_contract_no   
+,       sc_lon_m_contract.loan_type   
+,       pka_com_function.fp_get_thaidate( sc_lon_m_contract.begining_of_contract , 'DD/MM/YYYY' ) as begining_of_contract_thai  
+,       sc_lon_m_contract.loan_approve_amount   
+,       sc_lon_m_contract.period_payment_amount
+,       sc_lon_m_contract.loan_installment_amount
+,       sc_lon_m_loan_card.principal_balance   
+,       sc_lon_m_loan_card.interest_arrear   
+,       pka_com_function.fp_get_thaidate( sc_lon_m_loan_card.last_access_date , 'DD/MM/YYYY' ) as last_access_tdate
+,       pka_com_function.fp_get_thaidate( sc_lon_m_loan_card.last_calcint_date , 'DD/MM/YYYY' ) as last_calcint_tdate   
+,       pka_com_function.fp_get_thaidate( sc_lon_m_loan_card.last_process_date , 'DD/MM/YYYY' ) as last_process_tdate  
+
+,       (select telephone
+        from    sc_mem_m_member_address
+        where	address_type = '0'
+        and		membership_no =  sc_mem_m_membership_registered.membership_no
+		) as telephone
+        
+,       (select pka_com_function.fp_get_thaidate( max(loan_payment_date) , 'DD/MM/YYYY' )
+        from    sc_lon_m_loan_card_detail
+        where	loan_contract_no = sc_lon_m_loan_card.loan_contract_no
+        and     item_type_code not in ('PM','RM')
+		) as loan_payment_tdate        
+        
+FROM    sc_lon_m_contract   
+,       sc_lon_m_loan_card   
+,       sc_mem_m_membership_registered   
+,       sc_mem_m_ucf_member_group  
+WHERE   ( sc_lon_m_loan_card.loan_contract_no = sc_lon_m_contract.loan_contract_no )   
+and     ( sc_mem_m_membership_registered.membership_no = sc_lon_m_loan_card.membership_no )   
+and     ( sc_mem_m_ucf_member_group.member_group_no = sc_mem_m_membership_registered.member_group_no )    
+and     ( sc_lon_m_loan_card.principal_balance &gt; 0 )
+and     (select max(loan_payment_date)
+        from    sc_lon_m_loan_card_detail
+        where	loan_contract_no = sc_lon_m_loan_card.loan_contract_no
+        and     item_type_code not in ('PM','RM')
+		) between '!loan_payment_date_1!' and '!loan_payment_date_2!'
+/*WHERE*/
+--and     sc_lon_m_loan_card.last_calcint_date between '01/10/2023' and '01/07/2024'
+--and     sc_lon_m_loan_card.membership_no = '00002'
+ORDER BY sc_mem_m_ucf_member_group.member_group_no
+,        sc_mem_m_membership_registered.membership_no
+,        sc_lon_m_contract.loan_contract_no
+) tab</sql>
+  <sub />
+</root>

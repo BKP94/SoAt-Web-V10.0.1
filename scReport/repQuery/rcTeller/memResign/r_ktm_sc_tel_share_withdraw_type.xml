@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="T025" rep_text="รายงานการถอนหุ้น โอนหุ้น แยกประเภท">
+  <arg>
+    <withdraw_date text="เริ่มวันที่" table="sc_mem_m_share_withdraw_head" type="date" operator="bt" />
+    <trans_type text="ประเภท" combo="trans_type" />
+  </arg>
+  <combo>
+    <trans_type>
+      1=ถอนหุ้น/2=โอนหุ้นให้ผู้รับผลประโยชน์/3=โอนหุ้นให้ผู้อื่น/4=ถอนหุ้นบางส่วน
+    </trans_type>
+  </combo>
+  <sql>
+    SELECT	substr(pka_com_function.fp_get_member_name(sc_mem_m_share_withdraw_head.membership_no),1,100) as member_name,
+    (case sc_mem_m_share_withdraw_head.trans_type when 'SWW' then 'ถอนหุ้น'when 'SWG' then 'โอนหุ้นให้ผู้รับผลประโยชน์' when 'SWT' then 'โอนหุ้นให้ผู้อื่น' end )as trans_type_1,
+    sc_mem_m_share_withdraw_head.withdraw_doc_no,
+    sc_mem_m_share_withdraw_head.membership_no,
+    sc_mem_m_share_withdraw_head.withdraw_date ,
+    sc_mem_m_share_withdraw_det.membership_recieve ,
+    sc_mem_m_share_withdraw_det.share_stock ,
+    sc_mem_m_share_withdraw_det.share_withdraw ,
+    sc_mem_m_share_withdraw_head.trans_type
+    FROM 		sc_mem_m_share_withdraw_head ,
+    sc_mem_m_share_withdraw_det
+    WHERE 	( sc_mem_m_share_withdraw_det.withdraw_doc_no = sc_mem_m_share_withdraw_head.withdraw_doc_no )
+    /*and		( sc_mem_m_share_withdraw_head.withdraw_date between :adtm_datefrom and :adtm_dateto )*/
+    and		( sc_mem_m_share_withdraw_head.withdraw_status = '0' )
+    /*and		( sc_mem_m_share_withdraw_head.trans_type  = :as_type)*/
+    /*WHERE*/
+  </sql>
+  <sub />
+</root>

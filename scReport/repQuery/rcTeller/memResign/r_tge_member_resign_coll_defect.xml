@@ -1,0 +1,88 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <membership_no align="center" special="memno" text="ทะเบียน" table="sc_mem_m_membership_registered" column="membership_no" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select  sc_mem_m_membership_registered.membership_no
+,       pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no)as member_name
+,       pka_com_function.fp_get_group_name_mem(sc_mem_m_membership_registered.membership_no)as member_group_name
+,       pka_com_function.fp_get_member_sharestock(sc_mem_m_membership_registered.membership_no)as share_stock
+,       pka_com_function.fp_lon_get_balance_atnow(sc_mem_m_membership_registered.membership_no)as loan_bal
+,       sc_mem_m_membership_registered.member_status_code
+,       (select shr.share_value
+        from    sc_mem_m_share_holding_detail shr
+        ,       sc_mem_m_membership_registered mem
+        where   shr.membership_no = mem.membership_no
+        and     shr.membership_no = sc_mem_m_membership_registered.membership_no
+        and     shr.item_type = 'WD'
+        and     mem.member_status_code = '3'
+        ) as share_wd
+from    sc_mem_m_membership_registered
+where   1=1
+--and     sc_mem_m_membership_registered.membership_no = '050000'
+/*WHERE*/</sql>
+  <sub>
+    <r_tge_member_resign_coll_defect_nest_loan_coll>
+      <sql>select  sc_lon_m_loan_card.membership_no
+,       sc_lon_m_contract_coll.loan_contract_no
+,       sc_lon_m_contract_coll.ref_own_no
+,       pka_com_function.fp_get_member_name(sc_lon_m_loan_card.membership_no)as member_name
+,       pka_com_function.fp_get_group_name_mem(sc_lon_m_loan_card.membership_no)as member_group_name
+,       pka_com_function.fp_get_member_name(sc_lon_m_contract_coll.ref_own_no)as collateral_name
+,       pka_com_function.fp_get_group_name_mem(sc_lon_m_contract_coll.ref_own_no)as collateral_group_name
+,       pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract,'SD MONTH YYYY')as begining_of_contract
+,       sc_lon_m_contract.loan_approve_amount
+from    sc_lon_m_loan_card
+,       sc_lon_m_contract_coll
+,       sc_lon_m_contract
+,       sc_mem_m_membership_registered
+where   sc_lon_m_loan_card.loan_contract_no = sc_lon_m_contract_coll.loan_contract_no
+and     sc_lon_m_contract.loan_contract_no = sc_lon_m_contract_coll.loan_contract_no
+and     sc_mem_m_membership_registered.membership_no = sc_lon_m_contract_coll.ref_own_no
+and     sc_mem_m_membership_registered.member_status_code = '0'
+and     sc_lon_m_loan_card.principal_balance &gt; '0'
+and     sc_lon_m_contract_coll.collateral_type_code = '01'
+and     sc_lon_m_contract_coll.status = '0'
+and     sc_lon_m_loan_card.membership_no = {0}
+/*WHERE*/
+--and     sc_lon_m_loan_card.membership_no = '023808'
+</sql>
+    </r_tge_member_resign_coll_defect_nest_loan_coll>
+    <r_tge_member_resign_coll_defect_nest_contract_coll>
+      <sql>select sum(tab.row_memno)over(order by tab.membership_no , tab.loan_contract_no ) as rowno,  tab.*
+from (  SELECT 	sc_lon_m_contract_coll.collateral_no
+,       decode(lag(sc_lon_m_loan_card.loan_contract_no,1,null)over(  order by sc_lon_m_loan_card.membership_no , sc_lon_m_loan_card.loan_contract_no ) ,sc_lon_m_loan_card.loan_contract_no ,0,1 ) as row_memno
+,       sc_lon_m_loan_card.loan_contract_no
+,       sc_lon_m_loan_card.membership_no 
+,       pka_com_function.fp_get_member_name(sc_lon_m_loan_card.membership_no)as member_name
+,       pka_com_function.fp_get_group_name_mem(sc_lon_m_loan_card.membership_no)as member_group_name
+,       pka_com_function.fp_get_member_name(sc_lon_m_contract_coll.collateral_no)as coll_name
+,       pka_com_function.fp_get_group_name_mem(sc_lon_m_contract_coll.collateral_no)as coll_group_name
+,       pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract,'SD MONTH YYYY')as begining_of_contract
+,       sc_lon_m_contract.loan_approve_amount
+,       coll.ref_own_no
+,       pka_com_function.fp_get_member_name(coll.ref_own_no)as member_ref_own_no
+,       pka_com_function.fp_get_group_name_mem(coll.ref_own_no)as member_group_ref_own_no
+from    sc_lon_m_contract_coll
+,       sc_lon_m_loan_card
+,       sc_lon_m_contract
+,       sc_lon_m_contract_coll coll
+,       sc_mem_m_membership_registered
+where   sc_lon_m_contract_coll.loan_contract_no = sc_lon_m_loan_card.loan_contract_no
+and     sc_lon_m_contract.loan_contract_no = sc_lon_m_loan_card.loan_contract_no
+and     coll.loan_contract_no = sc_lon_m_contract_coll.loan_contract_no
+and     sc_mem_m_membership_registered.membership_no = coll.ref_own_no
+and     sc_mem_m_membership_registered.member_status_code = '0'
+and     sc_lon_m_contract_coll.status = '0'
+and     sc_lon_m_contract_coll.collateral_type_code = '01'
+and     sc_lon_m_loan_card.principal_balance &gt; '0'
+and     sc_lon_m_contract_coll.collateral_no =  {0}
+/*WHERE*/
+--and     sc_lon_m_contract_coll.collateral_no = '023808'
+order by sc_lon_m_loan_card.membership_no 
+,        sc_lon_m_loan_card.loan_contract_no
+)tab</sql>
+    </r_tge_member_resign_coll_defect_nest_contract_coll>
+  </sub>
+</root>

@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <adtm_date text="ณ วันที่" type="date" column="adtm_date" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <member_group_no text="หน่วย" table="sc_mem_m_membership_registered" column="member_group_no" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    select sc_mem_m_membership_registered.membership_no
+    ,(select prename from sc_mem_m_ucf_prename where prename_code = sc_mem_m_membership_registered.prename_code)||sc_mem_m_membership_registered.member_name||' '||sc_mem_m_membership_registered.member_surname as member_name
+    ,pka_com_function.fp_get_thaidate(sc_mem_m_membership_registered.approve_date ) as approve_tdate
+    ,pka_lon_reqsrv.fp_calc_agetext(pka_lon_reqsrv.fp_calc_install_m_age(sc_mem_m_membership_registered.membership_no)) as age_mem_text /*อายุการเป็นสมาชิก*/
+    ,pka_lon_reqsrv.fp_calc_agetext_m_live(sc_mem_m_membership_registered.membership_no) as age_life_text /*อายุ*/
+    ,PKA_COM_FUNCTION.fp_get_thaidate(sc_mem_m_membership_registered.date_of_birth ) as tdate_of_birth
+    ,'!adtm_date_1!' as adtm_date
+
+    from sc_mem_m_membership_registered
+    where 1 = 1
+    and sc_mem_m_membership_registered.member_status_code = '0'
+    /*WHERE*/
+    --and sc_mem_m_membership_registered.member_group_no between '011001' and '011001'
+    order by sc_mem_m_membership_registered.membership_no asc
+  </sql>
+  <sub />
+</root>

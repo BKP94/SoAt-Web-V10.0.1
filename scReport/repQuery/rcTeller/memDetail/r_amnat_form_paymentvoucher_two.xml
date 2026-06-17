@@ -1,0 +1,112 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <vourcher_no text="เลขที่ใบสำคัญ" table="sc_fin_vourcher_head" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT  (select coop_name from sc_cnt_m_coop) as coop_name,
+    (select manager_name from sc_cnt_m_coop) as manager_name,
+    (select president_name from sc_cnt_m_coop) as president_name,
+    pka_com_function.fp_get_member_name( sc_fin_vourcher_detail.ref_memno ) as member_name,
+    sc_fin_vourcher_head.vourcher_no,
+    sc_fin_vourcher_head.vourcher_group,
+    (select vourcher_desc from sc_fin_ucf_vourcher_group where vourcher_group = sc_fin_vourcher_head.vourcher_group ) as vourcher_group_name,
+    sc_fin_vourcher_head.operate_date,
+    sc_fin_vourcher_head.vourcher_desc,
+    sc_fin_vourcher_detail.ref_memno,
+    sc_fin_vourcher_head.vourcher_owner,
+    sc_fin_vourcher_head.vourcher_name,
+    sc_fin_vourcher_head.journal_date,
+    sc_fin_vourcher_detail.account_id,
+    sc_fin_vourcher_head.vourcher_value,
+    ( SELECT sc_acc_m_account_master.account_name
+    FROM sc_acc_m_account_master
+    WHERE account_id = sc_fin_vourcher_detail.account_id
+    and sc_acc_m_account_master.account_type_id = '3' ) as account_name ,
+
+    case
+    when sc_fin_vourcher_head.ref_system = 'FBK' then
+    ' '
+    when sc_fin_vourcher_head.ref_system = 'FBR' then
+    ' '
+    else
+    decode( FPA_FIN_VALID_BANK_FIN( sc_fin_vourcher_detail.account_tr ) , ' ' , sc_fin_vourcher_detail.account_tr , ' ' )
+    end as account_tr ,
+    ( SELECT sc_acc_m_account_master.account_name
+    FROM sc_acc_m_account_master
+    WHERE account_id = sc_fin_vourcher_detail.account_tr
+    and sc_acc_m_account_master.account_type_id = '3' ) as account_tr_name ,
+
+    sc_fin_vourcher_detail.pay_type,
+    sc_fin_vourcher_detail.seq_no,
+    sc_fin_vourcher_head.entry_fin ,
+    pka_com_function.fp_get_moneythai (sc_fin_vourcher_head.vourcher_value) as thai_vourcher_value,
+
+    TRUNC( sum(sc_fin_vourcher_detail.item_amount)) as item_amount_a
+    ,mod( sum( sc_fin_vourcher_detail.item_amount) , 1 ) * 100 as item_amount_b
+    ,pka_com_function.fp_get_moneythai ( sum( sc_fin_vourcher_detail.item_amount )) as thai_item_amount
+    ,si_security_user.user_name
+    FROM sc_fin_vourcher_head,
+    sc_fin_vourcher_detail
+    ,si_security_user
+    WHERE ( sc_fin_vourcher_head.vourcher_no = sc_fin_vourcher_detail.vourcher_no ) and
+    sc_fin_vourcher_head.entry_fin = si_security_user.user_id
+    and sc_fin_vourcher_detail.account_id is not null
+    --and sc_fin_vourcher_detail.pay_type = 'C' --เงินสด
+    /*WHERE*/
+    --and ( sc_fin_vourcher_head.vourcher_no = 'P65000228' )
+    group by
+    sc_fin_vourcher_head.vourcher_no,
+    sc_fin_vourcher_head.operate_date,
+    sc_fin_vourcher_head.vourcher_owner,
+    sc_fin_vourcher_detail.ref_memno,
+    sc_fin_vourcher_head.vourcher_name,
+    sc_fin_vourcher_head.vourcher_desc,
+    sc_fin_vourcher_head.journal_date,
+    sc_fin_vourcher_detail.account_id,
+    sc_fin_vourcher_detail.item_amount,
+    sc_fin_vourcher_head.vourcher_value,
+    sc_fin_vourcher_head.vourcher_group,
+    case
+    when sc_fin_vourcher_head.ref_system = 'FBK' then
+    ' '
+    when sc_fin_vourcher_head.ref_system = 'FBR' then
+    ' '
+    else
+    decode( FPA_FIN_VALID_BANK_FIN( sc_fin_vourcher_detail.account_tr ) , ' ' , sc_fin_vourcher_detail.account_tr , ' ' )
+    end ,
+    sc_fin_vourcher_detail.pay_type,
+    sc_fin_vourcher_detail.seq_no,
+    sc_fin_vourcher_head.entry_fin
+    ,sc_fin_vourcher_detail.remark
+    ,si_security_user.user_name
+    ,sc_fin_vourcher_detail.account_tr
+
+
+    order by sc_fin_vourcher_detail.seq_no,
+sc_fin_vourcher_detail.item_amount
+
+
+  </sql>
+  <sub>
+    <r_amnat_form_paymentvoucher_nest_two>
+      <sql>        SELECT  pka_com_function.fp_get_member_name( sc_fin_vourcher_detail.ref_memno ) as member_name,
+        sc_fin_vourcher_head.vourcher_value,
+        sc_fin_vourcher_detail.item_amount,
+        TRUNC(sc_fin_vourcher_detail.item_amount) as item_amount_a
+        ,mod( sum( sc_fin_vourcher_detail.item_amount) , 1 ) * 100 as item_amount_b
+        FROM sc_fin_vourcher_head,
+        sc_fin_vourcher_detail
+        WHERE ( sc_fin_vourcher_head.vourcher_no = sc_fin_vourcher_detail.vourcher_no )
+        --and sc_fin_vourcher_detail.pay_type = 'C' --เงินสด
+        /*WHERE*/
+        and  sc_fin_vourcher_head.vourcher_no = {0}
+        group by
+        sc_fin_vourcher_detail.ref_memno,
+        sc_fin_vourcher_detail.item_amount,
+        sc_fin_vourcher_detail.seq_no,
+        sc_fin_vourcher_head.vourcher_value
+      </sql>
+    </r_amnat_form_paymentvoucher_nest_two>
+  </sub>
+</root>

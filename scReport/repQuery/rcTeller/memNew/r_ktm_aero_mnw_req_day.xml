@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <apply_date text="วันที่สมัคร" table="sc_mem_m_application_form" type="date" column="apply_date" operator="bt" readonly="0" />
+    <approve_status default="2" text="สถานะ" table="sc_mem_m_application_form" combo="approve_status" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    select sc_mem_m_application_form.application_form_no /*เลขที่คำขอ*/
+    ,pka_mem_newmem.fp_member_name(sc_mem_m_application_form.application_form_no)  as memname /*ชื่อ - นามสกุล*/
+    ,pka_com_function.fp_get_thaidate( sc_mem_m_application_form.apply_date , 'dd  month  yyyy') as apply_date_tdate /*วันที่ขอสมัครสมาชิก*/
+    ,pka_lon_reqsrv.fp_calc_agetext( sc_mem_m_application_form.date_of_birth )  as age /*อายุ*/
+    ,decode(sc_mem_m_application_form.sex,'M',1,0) as sex_m /*จำนวนผู้ชาย*/
+    ,decode(sc_mem_m_application_form.sex,'M',0,1) as sex_f /*จำนวนผู้หญิง*/
+    ,sc_mem_m_application_form.apply_date /*วันที่ขอสมัคร*/
+    ,sc_mem_m_application_form.entry_id /*ผู้ทำรายการ*/
+    ,sc_mem_m_app_work_info.salary_amount /*เงินเดือน*/
+    ,sc_mem_m_app_share.share_monthly /*ส่งหุ้น/เดือน*/
+    ,pka_mem.fp_desc_position(sc_mem_m_app_work_info.position_code ) as position_name /*ตำแหน่ง*/
+    ,sc_mem_m_application_form.appl_type_code
+    ,pka_mem.fp_desc_appType(sc_mem_m_application_form.appl_type_code ) as appl_type_name /*ประเภทการสมัคร*/
+    ,sc_mem_m_application_form.mem_type
+    ,pka_mem.fp_desc_memType(sc_mem_m_application_form.mem_type ) as mem_type_desc /*ประเภทสมาชิก*/
+    ,sc_mem_m_application_form.member_group_no /*รหัสสังกัด*/
+    ,pka_mem.fp_desc_memGroup(sc_mem_m_application_form.member_group_no) as member_group_name /*ชื่อสังกัด*/
+    ,(select membership_no from sc_mem_m_membership_registered where application_form_no = sc_mem_m_application_form.application_form_no) as membership_no
+    from sc_mem_m_application_form
+    ,sc_mem_m_app_work_info
+    ,sc_mem_m_app_share
+    where ( sc_mem_m_application_form.application_form_no 	= sc_mem_m_app_work_info.application_form_no )
+    and ( sc_mem_m_application_form.application_form_no 	= sc_mem_m_app_share.application_form_no )
+    and ( sc_mem_m_application_form.cancel_status = '0' )
+    /*WHERE*/
+    order by sc_mem_m_application_form.apply_date
+    , sc_mem_m_application_form.mem_type
+    , sc_mem_m_application_form.appl_type_code
+    , sc_mem_m_application_form.application_form_no
+  </sql>
+  <sub />
+</root>

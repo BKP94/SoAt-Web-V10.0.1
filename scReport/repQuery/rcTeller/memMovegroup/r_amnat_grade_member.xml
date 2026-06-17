@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <member_group_no text="หน่วย" table="sc_mem_m_ucf_member_group" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+    <balance_date text="ณ วันที่" table="sc_rep_mem_share_loan_bal" type="date" readonly="0" />
+  </arg>
+  <combo />
+  <sql>SELECT  sc_cnt_m_coop.coop_name
+,sc_rep_mem_share_loan_bal.member_group_no
+,sc_rep_mem_share_loan_bal.membership_no
+,sc_rep_mem_share_loan_bal.other_code
+,pka_com_function.fp_get_member_name( sc_rep_mem_share_loan_bal.membership_no ) as member_name
+,pka_com_function.fp_get_group_name ( sc_rep_mem_share_loan_bal.member_group_no ) as group_name
+
+    FROM  sc_cnt_m_coop  
+,sc_mem_m_ucf_member_group
+,sc_rep_mem_share_loan_bal
+   WHERE  1=1
+and sc_mem_m_ucf_member_group.member_group_no = sc_rep_mem_share_loan_bal.member_group_no
+and  sc_rep_mem_share_loan_bal.member_status_code = '0'   
+and  sc_rep_mem_share_loan_bal.mem_type = '01' 
+and sc_rep_mem_share_loan_bal.share_balance &gt; 0 
+/*WHERE*/
+--and sc_rep_mem_share_loan_bal.balance_date = '31/12/2021'
+order by  sc_rep_mem_share_loan_bal.member_group_no ASC,   
+         sc_rep_mem_share_loan_bal.membership_no ASC   
+</sql>
+  <sub />
+</root>

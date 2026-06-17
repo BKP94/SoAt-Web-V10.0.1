@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <membership_no special="memno" text="ทะเบียน" table="sc_fin_money_return" column="membership_no" readonly="0" />
+    <payment_date text="วันที่จ่าย" type="date" column="payment_date" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <ass_name default="นางชุติมา  พุ่มบุบผา" text="ผู้ช่วยฯ" column="ass_name" combo="sc_cnt_m_committee_list3" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    select sc_fin_money_return.membership_no /*เลขทะเบียน*/
+    ,pka_com_function.fp_get_member_name(sc_fin_money_return.membership_no) as member_name
+    ,pka_com_function.fp_get_member_group(sc_fin_money_return.membership_no) as member_group_no
+    ,substr(pka_com_function.fp_get_member_group(sc_fin_money_return.membership_no),0,3)||'-'||substr(pka_com_function.fp_get_member_group(sc_fin_money_return.membership_no),4,6)||'-'||sc_fin_money_return.membership_no as memno
+    ,sc_fin_money_return.item_no
+    ,pka_com_function.fp_get_thaidate(sysdate , 'SD MONTH YYYY') as sysdate_tdate
+    ,pka_com_function.fp_get_thaidate('!payment_date!' , 'SD MONTH YYYY') as payment_tdate
+    ,sc_fin_money_return.operate_date /*วันที่รายการ*/
+    ,to_snumber( sc_fin_money_return.money_return ) as money_return /*จำนวนเงินที่คืน*/
+    ,pka_com_function.fp_get_moneythai (sc_fin_money_return.money_return) as thai_money_return
+    ,sc_fin_money_return.return_method /*ระะบบการคืน*/
+    ,sc_fin_money_return.request_method
+    ,sc_fin_money_return.refno1 /*เลขอ้างอิง*/
+    ,sc_fin_money_return.remark
+    ,sc_fin_money_return.request_bankid
+    ,sc_fin_money_return.request_bankac
+    ,sc_fin_money_return.return_status /*การจ่าย*/
+    ,sc_fin_money_return.request_status
+    ,sc_fin_money_return.cancel_status
+    ,(
+    select sc_com_m_receipt.cheque_date
+    from sc_com_m_receipt
+    where sc_com_m_receipt.receipt_no = sc_fin_money_return.refno1
+    ) as trans_date  /*วันที่โอน*/
+    ,(
+    select sc_fin_m_bank.bank_name
+    from sc_com_m_receipt ,sc_fin_m_bank
+    where sc_com_m_receipt.receipt_no = sc_fin_money_return.refno1
+    and sc_com_m_receipt.fin_bank  = sc_fin_m_bank.bank_fin
+    ) as trans_bank  /*ธนาคารโอน*/
+    ,(
+    select sc_fin_ucf_money_retrun.return_desc
+    from sc_fin_ucf_money_retrun
+    where sc_fin_ucf_money_retrun.return_method = sc_fin_money_return.return_method
+    ) as return_desc /*ประเภท*/
+    ,'' as status
+    ,'!ass_name!' as ass_name
+    ,FPB_FIN_GET_MONEY_RETURN_DATE(sc_fin_money_return.membership_no , sc_fin_money_return.item_no ) as return_date
+    from sc_fin_money_return
+    where 1=1
+    and (sc_fin_money_return.cancel_status = '0')
+    and (sc_fin_money_return.return_status = '0' )
+    --and sc_fin_money_return.money_return &gt; 50000
+    /*WHERE*/
+    --and (sc_fin_money_return.membership_no = '034714')
+    order by item_no
+  </sql>
+  <sub />
+</root>

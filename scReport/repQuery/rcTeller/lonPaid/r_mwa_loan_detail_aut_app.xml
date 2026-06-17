@@ -1,0 +1,70 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <begining_of_contract align="center" text="วันที่อนุมัติ" table="vr_tel_lon_info" type="date" column="begining_of_contract" readonly="0" />
+    <loan_requestment_no align="center" text="เลขคำขอกู้" table="vr_tel_lon_info" column="loan_requestment_no" readonly="0" />
+    <manager_no_1 align="center" default="0025" text="ฝ่ายจัดการ1" combo="sc_hr_off_member_official" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <manager_no_2 align="center" default="0017" text="ฝ่ายจัดการ2" combo="sc_hr_off_member_official" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <official_no_1 align="center" default="0041" text="ผู้อนุมัติ" combo="combo_approve_name" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo>
+    <combo_approve_name>select    
+    sc_hr_off_member.official_no as item_code
+    ,pka_hr.fp_get_hr_name(official_no)as item_desc
+from sc_hr_off_member
+,sc_hr_ucf_official_position
+where sc_hr_off_member.official_position = sc_hr_ucf_official_position.official_position
+and sc_hr_ucf_official_position.approve_loan_status = '1'</combo_approve_name>
+  </combo>
+  <sql>    SELECT
+    pka_com_function.fp_get_thaidate( vr_tel_lon_info.begining_of_contract, 'SD MONTH YYYY' ) as begining_of_contract_date--วันที่อนุมัติ
+    ,pka_com_function.fp_get_member_name(vr_tel_lon_info.membership_no) as memname --ชื่อสมาชิก
+    ,vr_tel_lon_info.loan_requestment_no
+    ,vr_tel_lon_info.membership_no --ทะเบียนสมาชิก
+    ,sc_lon_m_rule.loan_group_code --กลุ่มเงินกู้
+    ,vr_tel_lon_info.loan_type --รหัสเงินกู้
+    ,sc_lon_m_rule.loan_type_description --ชื่อเงินกู้
+    ,vr_tel_lon_info.loan_request_amount --กู้ได้
+    ,pka_lon_reqsrv.fp_calc_agetext(pka_lon_reqsrv.fp_calc_install_m_age(vr_tel_lon_info.membership_no)) as age_mem_text --อายุสมาชิก
+,substr(pka_lon_reqsrv.fp_calc_agetext(pka_lon_reqsrv.fp_calc_install_d2d(vr_tel_lon_info.requestment_date,pka_lon_reqsrv.fp_calc_member_retire(vr_tel_lon_info.membership_no,sc_mem_m_membership_registered.date_of_birth,60))),1,2) as retire_age --อายุงานคงเหลือ
+    ,vr_tel_lon_info.total_share_value --มีหุ้น
+     ,to_snumber((decode(vr_tel_lon_info.total_share_value,0,1,vr_tel_lon_info.loan_request_amount / vr_tel_lon_info.total_share_value))*100) as total_share_rate --ร้อยละของหุ้น
+    --,to_snumber((decode(vr_tel_lon_info.total_share_value,0,1,vr_tel_lon_info.total_share_value /  vr_tel_lon_info.loan_request_amount))*100) as total_share_rate --ร้อยละของหุ้น
+    ,vr_tel_lon_info.loan_coll--จำนวนคนค้ำ
+    ,vr_tel_lon_info.amount_30pt --30% ของเงินเดือน
+    ,vr_tel_lon_info.balance_salary
+    ,vr_tel_lon_info.salary_amount --เงินเดือน
+    ,to_snumber(vr_tel_lon_info.percent_salary) as percent_salary --ร้อยละของเงินเดือน
+    ,vr_tel_lon_info.approve_status
+    ,vr_tel_lon_info.approver_code
+    ,vr_tel_lon_info.approver_desc
+    ,vr_tel_lon_info.entry_id
+    ,pka_com_function.fp_get_user_name(vr_tel_lon_info.entry_id) as entry_name
+    
+    ,(select pka_com_function.fp_get_member_position_long(si_security_user.membership_no)
+      from si_security_user
+      where si_security_user.user_id = vr_tel_lon_info.entry_id
+    ) as entry_position
+
+, pka_hr.fp_get_hr_name( '!official_no_1!'  )  as  approve_name 
+, pka_hr.fp_get_hr_position_by_offno(  '!official_no_1!' )|| decode( '!official_no_1!', '0014','  รักษาการแทน ','0017','  รักษาการแทน ', '' )   as approve_position
+
+, pka_hr.fp_get_hr_name( '!manager_no_1!'  )  as  manager_name
+, pka_hr.fp_get_hr_position_by_offno(  '!manager_no_1!' ) as manager_position
+, pka_hr.fp_get_hr_name( '!manager_no_2!'  )  as  manager_name_2
+, pka_hr.fp_get_hr_position_by_offno(  '!manager_no_2!' ) as manager_position_2
+
+,pka_com_function.fp_get_member_group(vr_tel_lon_info.membership_no) as member_group_no
+,pka_com_function.fp_get_group_name_mem(vr_tel_lon_info.membership_no) as member_group_name
+
+,decode( '!official_no_1!', '0014','ผู้จัดการ','0017','ผู้จัดการ', '' )   as approve_tan
+
+    FROM vr_tel_lon_info
+    ,sc_mem_m_membership_registered
+    ,sc_lon_m_rule
+    where vr_tel_lon_info.loan_type = sc_lon_m_rule.loan_type
+    and vr_tel_lon_info.membership_no = sc_mem_m_membership_registered.membership_no
+
+/*WHERE*/ </sql>
+  <sub />
+</root>

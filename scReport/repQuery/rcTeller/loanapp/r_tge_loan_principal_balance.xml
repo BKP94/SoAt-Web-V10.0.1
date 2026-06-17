@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <begining_of_contract_year align="center" special="year" text="ปีที่เริ่มสัญญา" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <loan_type default="30" text="ประเภท" table="sc_lon_m_contract" combo="sc_lon_m_rule2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select  sc_lon_m_rule.loan_type
+,       sc_lon_m_rule.loan_type_description
+,       sc_lon_m_contract.loan_contract_no
+,       sc_lon_m_contract.membership_no
+,       trim(sc_mem_m_ucf_prename.prename)||trim(sc_mem_m_membership_registered.member_name)||' '||trim(sc_mem_m_membership_registered.member_surname) as member_name
+,       trim(sc_mem_m_ucf_member_group.member_group_no)||' '||trim(sc_mem_m_ucf_member_group.member_group_name) as member_group
+,       sc_lon_m_contract.begining_of_contract 
+,       extract(year from sc_lon_m_contract.begining_of_contract) as begining_of_contract_year
+,       sc_lon_m_contract.loan_approve_amount
+,       sc_lon_m_contract.real_recieve
+,       sc_lon_m_loan_card.principal_balance
+from    sc_lon_m_contract
+,       sc_lon_m_loan_card
+,       sc_mem_m_membership_registered
+,       sc_mem_m_ucf_prename
+,       sc_mem_m_ucf_member_group
+,       sc_lon_m_rule
+where   sc_lon_m_contract.membership_no = sc_mem_m_membership_registered.membership_no
+and     sc_lon_m_loan_card.loan_contract_no = sc_lon_m_contract.loan_contract_no
+and     sc_mem_m_ucf_prename.prename_code = sc_mem_m_membership_registered.prename_code
+and     sc_mem_m_ucf_member_group.member_group_no = sc_mem_m_membership_registered.member_group_no
+and     sc_lon_m_rule.loan_type = sc_lon_m_contract.loan_type
+and     sc_lon_m_loan_card.principal_balance &gt; '0'
+and     extract(year from sc_lon_m_contract.begining_of_contract) = '!begining_of_contract_year!'
+--and     sc_lon_m_rule.loan_type = '30'
+/*WHERE*/
+order by sc_lon_m_contract.begining_of_contract 
+,        sc_lon_m_contract.membership_no</sql>
+  <sub>
+  </sub>
+</root>

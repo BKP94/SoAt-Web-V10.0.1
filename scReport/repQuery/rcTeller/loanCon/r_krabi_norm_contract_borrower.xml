@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+  </arg>
+  <combo />
+  <sql>
+    SELECT sc_lon_m_loan_request.loan_requestment_no
+
+    , pka_com_function.fp_get_thaidate( sc_lon_m_loan_request.requestment_date , 'SD' ) as requestment_tdate
+    , pka_com_function.fp_get_thaidate( sc_lon_m_loan_request.requestment_date , 'MONTH' ) as requestment_month
+    , pka_com_function.fp_get_thaidate( sc_lon_m_loan_request.requestment_date , 'YYYY' ) as requestment_year
+    , pka_com_function.fp_get_member_name( sc_lon_m_loan_request.membership_no ) as memname
+    , extract ( year from ( sc_lon_m_loan_request.requestment_date ) ) - extract ( year from ( sc_mem_m_membership_registered.date_of_birth ) ) as age_year
+    , sc_mem_m_member_address.address_no
+    , sc_mem_m_member_address.moo
+    , sc_mem_m_member_address.road
+    , sc_mem_m_member_address.soi
+    , sc_mem_m_member_address.tambol
+    , pka_com_function.fp_get_district_name( sc_mem_m_member_address.province_code , sc_mem_m_member_address.district_code ) as district_name
+    , pka_com_function.fp_get_province_name( sc_mem_m_member_address.province_code ) as province_name
+    , sc_mem_m_ucf_member_group.member_group_name
+    , pka_com_function.fp_get_member_position_name( sc_mem_m_membership_registered.membership_no ) as position_name
+    , sc_mem_m_membership_registered.membership_no
+
+    FROM sc_lon_m_loan_request
+    , sc_mem_m_membership_registered
+    , sc_mem_m_member_address
+    , sc_mem_m_ucf_member_group
+
+    WHERE 1=2
+  </sql>
+  <sub />
+</root>

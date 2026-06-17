@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <membership_no special="memno" default="027447" text="ทะเบียน" table="sc_lon_m_loan_request" readonly="0" />
+  </arg>
+  <combo />
+  <sql>SELECT   (select coop_name from sc_cnt_m_coop) as coop_name,
+sc_lon_m_loan_request.loan_requestment_no  
+, ( select manager_name from sc_cnt_m_coop ) as manager_name
+, ( select user_name from si_security_user where si_security_user.user_id = sc_lon_m_loan_request.entry_id  )  as user_name
+, pka_com_function.fp_get_member_name( sc_lon_m_loan_request.membership_no) as memname
+, pka_com_function.fp_get_moneythai ( sc_lon_m_loan_request.loan_request_amount ) as thai_loan_request_amount
+, sc_lon_m_loan_request.requestment_date as loan_requestment_date
+, pka_com_function.fp_get_thaidate(  sc_lon_m_loan_request.requestment_date , 'SD MONTH YYYY'  )  loan_requestment_date_tdate
+, sc_lon_m_loan_request.membership_no as membership_no 
+, sc_lon_m_loan_request.loan_request_amount  as loan_request_amount
+, decode( sc_mem_m_membership_registered.marriage_status 
+                  , '1' , (   select sc_mem_m_ucf_prename.prename || sc_mem_m_member_spouse_info.spouse_name || '  ' || sc_mem_m_member_spouse_info.spouse_surname
+      from sc_mem_m_member_spouse_info
+      ,sc_mem_m_ucf_prename
+      where sc_mem_m_member_spouse_info.prename_code = sc_mem_m_ucf_prename.prename_code
+      and sc_mem_m_member_spouse_info.membership_no = sc_mem_m_membership_registered.membership_no
+       ) 
+,' ' ) as spouse_name 
+
+    FROM sc_lon_m_loan_request,  
+sc_mem_m_ucf_member_group,
+sc_mem_m_membership_registered,
+sc_mem_m_ucf_marriage_status,
+sc_lon_m_rule
+   WHERE sc_mem_m_ucf_member_group.member_group_no = sc_lon_m_loan_request.member_group_no 
+and sc_mem_m_membership_registered.membership_no  = sc_lon_m_loan_request.membership_no
+and sc_mem_m_ucf_marriage_status.marriage_status_code = sc_mem_m_membership_registered.marriage_status
+and sc_lon_m_rule.loan_type = sc_lon_m_loan_request.loan_type
+/*WHERE*/
+--and sc_lon_m_loan_request.loan_requestment_no = '65พ000011'</sql>
+  <sub />
+</root>

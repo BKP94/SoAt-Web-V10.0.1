@@ -1,0 +1,235 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <metadata name="sqlDataSource1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>17, 17</value>
+  </metadata>
+  <data name="customSqlQuery1.Sql" xml:space="preserve">
+    <value>Select 
+        Tab.membership_no
+    ,   '3000000125003' as coop_registered_no
+    ,   Tab.account_year
+    ,   Tab.id_card
+    ,   Tab.prename
+    ,   Tab.member_name
+    ,   Tab.member_surname
+    --,   Tab.national_name
+    ,   DECODE(Tab.national_name , '' , 'ไทย' , Tab.national_name )  as national_name
+    --,   ( NVL(Tab.data_balance,0) * Tab.share_value_perunit ) / 100 as  share_value
+    ,   CASE
+            WHEN Tab.member_status_code = '3' THEN ( NVL(Tab.share_stock_holding_detail,0) * Tab.share_value_perunit ) / 100
+            ELSE 
+                ( NVL(Tab.data_balance,0) * Tab.share_value_perunit ) / 100
+        END as share_value
+        
+    ,   Tab.share_value_perunit
+    ,   pka_com_function.fp_get_thaidate(Tab.approve_date,'ddmmyyyy') as approve_date
+    --,   Tab.mem_type_desc
+    ,   DECODE(Tab.mem_type , '01' , '1' , '02' , '2' ) as mem_type_desc
+    ,   pka_com_function.fp_get_thaidate(Tab.resignation_approve_date,'ddmmyyyy') as resignation_approve_date
+    ,   Tab.address_pres_address_no
+    ,   Tab.address_pres_tambol
+    ,   Tab.address_pres_district
+    ,   Tab.address_pres_province
+    ,   Tab.address_pres_post
+    ,   Tab.address_pres_telephone
+
+From
+    (
+        select  sc_cls_confirm_mem.membership_no
+            ,   sc_cls_confirm_mem.member_status_code
+            ,   sc_cls_confirm_mem.mem_type
+            ,   ( select mem_type_desc from sc_mem_m_ucf_member_type where mem_type_code = sc_cls_confirm_mem.mem_type ) as mem_type_desc
+            ,   ( select id_card from sc_mem_m_membership_registered where membership_no = sc_cls_confirm_mem.membership_no ) as id_card
+            ,   EXTRACT( YEAR from confirm_date )+543 as account_year
+
+            ,   (   select sc_mem_m_ucf_prename.prename 
+                    from  sc_mem_m_membership_registered 
+                        , sc_mem_m_ucf_prename
+                    where   sc_mem_m_membership_registered.prename_code = sc_mem_m_ucf_prename.prename_code
+                    and     membership_no = sc_cls_confirm_mem.membership_no 
+                ) as prename
+
+            ,   ( select member_name from sc_mem_m_membership_registered where membership_no = sc_cls_confirm_mem.membership_no ) as member_name
+            ,   ( select member_surname from sc_mem_m_membership_registered where membership_no = sc_cls_confirm_mem.membership_no ) as member_surname
+
+            ,   (   select sc_mem_m_ucf_nationality.nationality_description 
+                    from  sc_mem_m_membership_registered 
+                        , sc_mem_m_ucf_nationality
+                    where   sc_mem_m_membership_registered.nationality_code = sc_mem_m_ucf_nationality.nationality_code
+                    and     membership_no = sc_cls_confirm_mem.membership_no 
+                ) as national_name
+
+            ,   ( select approve_date from sc_mem_m_membership_registered where membership_no = sc_cls_confirm_mem.membership_no ) as approve_date
+            ,   ( select resignation_approve_date from sc_mem_m_membership_registered where membership_no = sc_cls_confirm_mem.membership_no ) as resignation_approve_date
+            ,   ( select share_value_perunit from sc_share_m_constant ) as share_value_perunit
+
+            ,   (   select data_balance 
+                    from sc_cls_confirm_data 
+                    where   data_group = 'SHR'   
+                    and     membership_no = sc_cls_confirm_mem.membership_no
+                    and     confirm_date = sc_cls_confirm_mem.confirm_date
+                ) as data_balance
+
+            ,   (   select  share_stock
+                    from    sc_mem_m_share_holding_detail
+                    where   1=1
+                    and     membership_no = sc_cls_confirm_mem.membership_no
+                    and     seq_no = (  select max(seq_no) - 1
+                                        from   sc_mem_m_share_holding_detail temp
+                                        where  1=1
+                                        --and     item_type in ('WD','TL')
+                                        and     seq_no &lt; (  select max(seq_no)
+                                                            from   sc_mem_m_share_holding_detail temp
+                                                            where  item_type in ('WD','TL')
+                                                            and     temp.membership_no = sc_mem_m_share_holding_detail.membership_no 
+                                                         )
+                                        and     temp.membership_no = sc_mem_m_share_holding_detail.membership_no 
+                                     )
+                ) as share_stock_holding_detail
+
+            -- ที่อยู่ตามทะเบียนบ้าน
+            ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_cls_confirm_mem.membership_no , '1' , '6' ) , '-' , ''  , PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_cls_confirm_mem.membership_no , '1' , '6' ) ) AS address_pres_address_no
+            ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_cls_confirm_mem.membership_no , '1' , '8' ) , '-' , ''  , PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_cls_confirm_mem.membership_no , '1' , '8' ) ) AS address_pres_moo
+            ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_cls_confirm_mem.membership_no , '1' , '7' ) , '-' , ''  , PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_cls_confirm_mem.membership_no , '1' , '7' ) ) AS address_pres_mooban
+            ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_cls_confirm_mem.membership_no , '1' , '9' ) , '-' , ''  , PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_cls_confirm_mem.membership_no , '1' , '9' ) ) AS address_pres_road
+            ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_cls_confirm_mem.membership_no , '1' , '10' ) , '-' , '' , PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_cls_confirm_mem.membership_no , '1' , '10' ) ) AS address_pres_soi
+            ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_cls_confirm_mem.membership_no , '1' , '11' ) , '-' , '' , PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_cls_confirm_mem.membership_no , '1' , '11' ) ) AS address_pres_tambol
+            ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_cls_confirm_mem.membership_no , '1' , '12' ) , '-' , '' , PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_cls_confirm_mem.membership_no , '1' , '12' ) ) AS address_pres_district
+            ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_cls_confirm_mem.membership_no , '1' , '13' ) , '-' , '' , PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_cls_confirm_mem.membership_no , '1' , '13' ) ) AS address_pres_province
+            ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_cls_confirm_mem.membership_no , '1' , '14' ) , '-' , '' , PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_cls_confirm_mem.membership_no , '1' , '14' ) ) AS address_pres_post
+            ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_cls_confirm_mem.membership_no , '1' , '15' ) , '-' , '' , PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_cls_confirm_mem.membership_no , '1' , '15' ) ) AS address_pres_telephone
+
+        from    sc_cls_confirm_mem
+            ,   sc_mem_m_ucf_member_group
+
+        where   1=1
+        and     sc_cls_confirm_mem.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+        and     sc_cls_confirm_mem.member_status_code = '0'
+                
+        /*WHERE*/
+
+    ) Tab
+
+WHERE   1=2</value>
+  </data>
+  <data name="sqlDataSource1.ResultSchemaSerializable" xml:space="preserve">
+    <value>PERhdGFTZXQgTmFtZT0ic3FsRGF0YVNvdXJjZTEiPjxWaWV3IE5hbWU9IlF1ZXJ5Ij48RmllbGQgTmFtZT0iTUVNQkVSU0hJUF9OTyIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJDT09QX1JFR0lTVEVSRURfTk8iIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iQUNDT1VOVF9ZRUFSIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJJRF9DQVJEIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IlBSRU5BTUUiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iTUVNQkVSX05BTUUiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iTUVNQkVSX1NVUk5BTUUiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iTkFUSU9OQUxfTkFNRSIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJTSEFSRV9WQUxVRSIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iU0hBUkVfVkFMVUVfUEVSVU5JVCIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iQVBQUk9WRV9EQVRFIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9Ik1FTV9UWVBFX0RFU0MiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iUkVTSUdOQVRJT05fQVBQUk9WRV9EQVRFIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IkFERFJFU1NfUFJFU19BRERSRVNTX05PIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IkFERFJFU1NfUFJFU19UQU1CT0wiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iQUREUkVTU19QUkVTX0RJU1RSSUNUIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IkFERFJFU1NfUFJFU19QUk9WSU5DRSIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJBRERSRVNTX1BSRVNfUE9TVCIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJBRERSRVNTX1BSRVNfVEVMRVBIT05FIiBUeXBlPSJTdHJpbmciIC8+PC9WaWV3PjwvRGF0YVNldD4=</value>
+  </data>
+</root>

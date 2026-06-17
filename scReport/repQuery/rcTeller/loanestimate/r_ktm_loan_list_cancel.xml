@@ -1,0 +1,68 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <ref_contract_no text="ประเภทเงินกู้" table="sc_lon_m_rule" column="ref_contract_no" combo="sc_lon_m_rule2" readonly="0" />
+    <begining_of_contract text="วันที่" table="sc_lon_m_contract" type="date" column="begining_of_contract" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    SELECT PKA_COM_FUNCTION.fp_get_member_name( sc_lon_m_contract.membership_no ) as membername ,
+    sc_lon_m_contract.membership_no ,
+    sc_lon_m_contract.loan_requestment_no ,
+    sc_lon_m_contract.begining_of_contract ,
+    sc_lon_m_contract.loan_payment_type_code ,
+    sc_lon_m_contract.loan_approve_amount ,
+    sc_lon_m_contract.loan_installment_amount ,
+    sc_lon_m_contract.period_payment_amount ,
+    sc_lon_m_contract.start_keep_date ,
+    sc_lon_m_contract.real_recieve ,
+    sc_lon_m_contract.loan_contract_no ,
+    sc_lon_m_contract.appove_officer ,
+    sc_lon_m_contract_multi_paid.bank_acc_no ,
+    sc_lon_m_contract.rec_rep_status ,
+    sc_lon_m_contract.create_loan_status,
+    sc_lon_m_contract.vourcher_no  ,
+    sc_lon_m_contract.paid_loan_id ,
+    sc_lon_m_contract.paid_loan_date ,
+
+    sc_lon_m_loan_request.salary_amount ,
+    sc_lon_m_loan_request.entry_id ,
+
+    sc_com_m_branch.branch_id ,
+    sc_com_m_branch.branch_name ,
+
+    sc_lon_m_ucf_loan_obj.loan_objective_description ,
+
+    sc_mem_m_ucf_member_group.member_group_no,
+    sc_mem_m_ucf_member_group.member_group_name,
+    sc_mem_m_ucf_member_group.member_group_control ,
+    sc_mem_m_ucf_member_group.control_id
+
+    ,		FPB_GET_LOAN_TYPE_REF(  sc_lon_m_contract.loan_type ) as loan_type
+    ,		FPB_GET_LOAN_TYPE_DESC( FPB_GET_LOAN_TYPE_REF(  sc_lon_m_contract.loan_type ))  as loan_type_description
+
+    FROM 	sc_lon_m_loan_request ,
+    sc_mem_m_membership_registered ,
+    sc_mem_m_ucf_member_group ,
+    sc_lon_m_rule ,
+    sc_lon_m_ucf_loan_obj ,
+    sc_lon_m_contract     ,
+    sc_lon_m_contract_multi_paid ,
+    sc_com_m_branch
+    WHERE 	( sc_mem_m_membership_registered.member_group_no 	= sc_mem_m_ucf_member_group.member_group_no )
+    and          	( sc_lon_m_contract.loan_type 							= sc_lon_m_ucf_loan_obj.loan_type )
+    and          	( sc_lon_m_contract.loan_objective_code 				= sc_lon_m_ucf_loan_obj.loan_objective_code )
+    and          	( sc_lon_m_contract.loan_requestment_no 				= sc_lon_m_loan_request.loan_requestment_no )
+    and          	( sc_mem_m_membership_registered.membership_no 	= sc_lon_m_contract.membership_no )
+    and          	( sc_lon_m_contract.loan_type 							= sc_lon_m_rule.loan_type )
+    and          	( sc_com_m_branch.branch_id 							= sc_lon_m_contract.branch_id )
+    and   (sc_lon_m_contract_multi_paid.loan_contract_no = sc_lon_m_contract.loan_contract_no)
+    and sc_lon_m_contract.create_loan_status &lt;&gt; '1'
+    /*WHERE*/
+    --and sc_lon_m_rule.ref_contract_no = '4'
+    --and sc_lon_m_contract.begining_of_contract between '01/03/2020' and '13/03/2020'
+    order by sc_lon_m_contract.loan_type,
+    sc_lon_m_contract.loan_contract_no
+  </sql>
+  <sub />
+</root>

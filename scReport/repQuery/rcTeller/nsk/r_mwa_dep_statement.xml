@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="DY20" rep_text="รายงาน Statement บัญชีเงินฝาก">
+  <arg>
+    <deposit_type_code text="ประเภทเงินฝาก" table="sc_dep_m_rule" column="deposit_type_code" combo="sc_dep_m_rule2" readonly="0" />
+    <operate_date text="ตั้งแต่วันที่" table="sc_dep_m_creditor_item" type="date" operator="bt" sqlreplace="1" readonly="0" />
+    <deposit_account_no text="ตั้งแต่เลขที่บัญชี" table="sc_dep_m_creditor" operator="bt" noheader="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    SELECT
+    pka_com_function.fp_get_thaidate(sc_dep_m_creditor.deposit_opened_date , 'DD/MM/YYYY') as deposit_opened_date,
+    pka_com_function.fp_get_group_name_mem(sc_dep_m_creditor.membership_no) as group_name,
+    pka_com_function.fp_form( sc_dep_m_creditor.deposit_account_no , 'XX-XXXXXXXXXXXX' ) as from_deposit_account_no,
+    decode( sc_dep_m_ucf_dep_item_type.sign_flag , 1 , sc_dep_m_creditor_item.deposit_balance , null ) as decode_dep ,
+    decode( sc_dep_m_ucf_dep_item_type.sign_flag , -1 , sc_dep_m_creditor_item.deposit_balance , null ) as decode_withdraw,
+    sc_dep_m_creditor.deposit_account_name,
+    sc_dep_m_creditor.deposit_account_no,
+    sc_dep_m_creditor.deposit_balance,
+    sc_dep_m_creditor.withdrawable_amount,
+    sc_dep_m_creditor_item.seq_no,
+    pka_com_function.fp_get_thaidate(sc_dep_m_creditor_item.operate_date , 'DD/MM/YYYY') as operate_date,
+    sc_dep_m_creditor_item.item_type,
+    sc_dep_m_creditor_item.deposit_balance,
+    sc_dep_m_creditor_item.total_balance,
+    sc_dep_m_creditor_item.officer_id,
+    sc_dep_m_creditor.membership_no,
+    sc_dep_m_ucf_dep_item_type.deposit_item_type,
+    sc_dep_m_ucf_dep_item_type.sign_flag,
+    sc_dep_m_ucf_dep_item_type.print_code,
+    sc_dep_m_creditor_item.book_status,
+    sc_dep_m_creditor_item.tax_amount,
+    sc_dep_m_creditor_item.int_amount,
+    sc_com_m_branch.branch_name,
+    sc_dep_m_creditor.member_status,
+    sc_dep_m_creditor_item.old_acc_int,
+    pka_com_function.fp_get_thaidate('!operate_date_1!' , 'DD/MM/YYYY') as adtm_bdate,
+    pka_com_function.fp_get_thaidate('!operate_date_2!' , 'DD/MM/YYYY') as adtm_edate,
+
+    ( select max(pka_com_function.fp_get_thaidate(sc_dep_m_creditor_item.operate_date , 'DD/MM/YYYY'))
+      from sc_dep_m_creditor_item
+      where sc_dep_m_creditor.deposit_account_no = sc_dep_m_creditor_item.deposit_account_no
+      and   sc_dep_m_creditor_item.item_type = 'INT'
+    /*WHERE*/
+    ) as start_calcint_tdate,
+    
+    pka_com_function.fp_get_thaidate( sc_dep_m_creditor.last_calcint_date , 'DD/MM/YYYY') as last_calcint_tdate,
+    sc_dep_m_rule.deposit_type_code,
+    sc_dep_m_rule.deposit_name,
+    sc_dep_m_creditor_item.refer_seq_no,
+    sc_dep_m_rule.deposit_group_code
+    FROM sc_dep_m_creditor,
+    sc_dep_m_creditor_item,
+    sc_dep_m_ucf_dep_item_type,
+    sc_com_m_branch,
+    sc_dep_m_rule
+    WHERE ( sc_dep_m_creditor.deposit_account_no = sc_dep_m_creditor_item.deposit_account_no ) and
+    ( sc_dep_m_ucf_dep_item_type.deposit_item_type = sc_dep_m_creditor_item.item_type ) and
+    ( sc_dep_m_creditor.branch_id = sc_com_m_branch.branch_id ) and
+    ( sc_dep_m_creditor.deposit_type_code = sc_dep_m_rule.deposit_type_code )
+    /*WHERE*/
+    --         and  (sc_dep_m_creditor.deposit_type_code = '10')
+    --         and  ( sc_dep_m_creditor_item.operate_date between  '01/01/2019' and '22/10/2019')
+    --         and  ( sc_dep_m_creditor.deposit_account_no between  '100017684' and '100017684' )
+  </sql>
+  <sub />
+</root>

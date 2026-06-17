@@ -1,0 +1,95 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <an_month special="month" text="ประจำเดือน" type="integer" combo="monthThLong" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <transfer_date text="วันที่" table="sc_lon_m_trans_loan_coll_head" type="date" column="transfer_date" operator="bt" readonly="0" />
+    <as_letter text="เลขที่" column="as_letter" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <member_group_no text="หน่วย" table="sc_mem_m_ucf_member_group" column="member_group_no" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+    <as_name default="นางรวีวรรณ  ช่อดอก" text="ผู้ช่วยฯ" combo="sc_cnt_m_committee_list3" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+ 
+  <sql>
+    select pka_com_function.fp_get_moneythai (tab.int_cal) as thai_int_cal , tab.*
+    from ( SELECT sc_lon_m_trans_loan_coll_head.transfer_doc_no,
+    sc_lon_m_trans_loan_coll_head.membership_no,
+    pka_com_function.fp_get_member_name(sc_lon_m_trans_loan_coll_head.membership_no) as member_name,
+    ( case  '!an_month!'  when 1 then 'มกราคม' when 2 then 'กุมภาพันธ์' when 3 then 'มีนาคม' when 4 then 'เมษายน' when 5 then 'พฤษภาคม' when 6 then 'มิถุนายน' when 7 then 'กรกฎาคม' when 8 then 'สิงหาคม' when 9 then 'กันยายน' when 10 then 'ตุลาคม' when 11 then 'พฤศจิกายน'  else 'ธันวาคม' end ) as month_thai,
+    sc_lon_m_trans_loan_coll_head.principal_balance,
+    pka_com_function.fp_get_moneythai (sc_lon_m_trans_loan_coll_head.principal_balance) as thai_principal_balance,
+    PKA_LON_INTSRV.fp_calint (sc_lon_m_trans_loan_coll_head.loan_contract_no, pka.to_date(sc_lon_m_trans_loan_coll_head.last_calcint_date + 30 ),sc_lon_m_trans_loan_coll_head.principal_balance ,pka.to_date(sc_lon_m_trans_loan_coll_head.last_calcint_date),'PL')+ sc_lon_m_trans_loan_coll_det.int_arrear as int_cal,
+    sc_lon_m_trans_loan_coll_head.principal_of_loan,
+    sc_lon_m_trans_loan_coll_head.period_payment,
+    sc_lon_m_trans_loan_coll_head.last_period,
+    sc_lon_m_trans_loan_coll_head.loan_contract_no,
+    pka_com_function.fp_form( sc_lon_m_trans_loan_coll_head.loan_contract_no , 'X-XX-XXXXXXXXXX' ) as from_loan_contract_no,
+    sc_mem_m_ucf_member_group.member_group_no,
+    sc_lon_m_trans_loan_coll_head.transfer_date,
+    sc_lon_m_trans_loan_coll_head.int_transfer_amount,
+    '!as_letter_1!' as  as_letter,
+    (select coop_name from sc_cnt_m_coop ) as coop_name,
+    '!as_name_1!'as as_name,
+    pka_com_function.fp_get_thaidate(sysdate , 'SD MONTH YYYY') as sysdate_tdate ,
+    sc_lon_m_trans_loan_coll_det.collateral_no,
+    pka_com_function.fp_get_member_name(sc_lon_m_trans_loan_coll_det.collateral_no) as collateral_name,
+    pka_com_function.fp_get_member_group(sc_lon_m_trans_loan_coll_det.collateral_no) as group_collateral_no,
+    sc_lon_m_trans_loan_coll_det.loan_transfer_amount,
+    sc_lon_m_trans_loan_coll_det.period_payment as det_period_payment,
+    pka_com_function.fp_get_moneythai (sc_lon_m_trans_loan_coll_det.period_payment) as thai_det_period_payment,
+    sc_mem_m_ucf_member_group.voucher_name,
+    sc_lon_m_contract.loan_approve_amount,
+    pka_com_function.fp_get_moneythai (sc_lon_m_contract.loan_approve_amount) as thai_approve_amount,
+    sc_lon_m_contract.period_payment_amount,
+    pka_com_function.fp_get_moneythai (sc_lon_m_contract.period_payment_amount) as thai_period_payment_amount,
+    sc_lon_m_trans_loan_coll_det.int_arrear,
+    sc_lon_m_contract.loan_installment_amount,
+    sc_lon_m_contract.begining_of_contract,
+    sc_lon_m_loan_card_detail.payment_amount,
+    sc_lon_m_trans_loan_coll_det.seq_no
+    FROM sc_lon_m_trans_loan_coll_head,
+    sc_mem_m_ucf_member_group,
+    sc_lon_m_trans_loan_coll_det,
+    sc_lon_m_contract,
+    sc_mem_m_membership_registered,
+    sc_lon_m_loan_card_detail
+    WHERE ( sc_lon_m_trans_loan_coll_head.transfer_doc_no = sc_lon_m_trans_loan_coll_det.transfer_doc_no )
+    and   ( sc_lon_m_trans_loan_coll_head.loan_contract_no = sc_lon_m_contract.loan_contract_no )
+    and   ( sc_mem_m_membership_registered.membership_no = sc_lon_m_trans_loan_coll_head.membership_no )
+    and   ( sc_mem_m_ucf_member_group.member_group_no = sc_mem_m_membership_registered.member_group_no )
+    and   ( sc_lon_m_trans_loan_coll_head.loan_contract_no = sc_lon_m_loan_card_detail.loan_contract_no )
+    and  ( rtrim(sc_lon_m_loan_card_detail.ref_loan_doc_no) = rtrim(sc_lon_m_trans_loan_coll_head.transfer_doc_no) )
+    AND   ( sc_lon_m_trans_loan_coll_head.transfer_status = '0' )
+    /*WHERE*/
+    --   and sc_lon_m_trans_loan_coll_head.transfer_doc_no = 'T63000129'
+    --and  sc_lon_m_trans_loan_coll_head.membership_no = '034555'
+    --   and  ( ( sc_mem_m_ucf_member_group.member_group_no between '019007' and '019007' )
+    --   AND  ( sc_lon_m_trans_loan_coll_head.transfer_date between '28/04/2020' and '28/04/2020' ) )
+    )tab
+  </sql>
+  <sub>
+    <r_ktm_member_book_trans_loan_to_coll01_nest_coll_name>
+      <sql>
+        SELECT substr((listagg(' และ '||trim(pka_com_function.fp_get_member_name(collateral_no,'0'))) within group(order by seq_no)),5) as desc_fp
+        FROM sc_lon_m_trans_loan_coll_det,
+        sc_lon_m_trans_loan_coll_head
+        WHERE ( sc_lon_m_trans_loan_coll_det.transfer_doc_no = sc_lon_m_trans_loan_coll_head.transfer_doc_no ) and
+        ( ( sc_lon_m_trans_loan_coll_det.transfer_doc_no = {0} ) )
+      </sql>
+    </r_ktm_member_book_trans_loan_to_coll01_nest_coll_name>
+    <r_ktm_member_book_trans_loan_to_coll01_nest>
+      <sql>        SELECT sc_lon_m_trans_loan_coll_det.collateral_no,
+        sc_lon_m_trans_loan_coll_det.seq_no + 1 as row_memno,
+        decode(lag(sc_lon_m_trans_loan_coll_det.collateral_no,1,null)over(  order by sc_lon_m_trans_loan_coll_det.collateral_no ) ,sc_lon_m_trans_loan_coll_det.collateral_no,1,0) as row_memno,
+        pka_com_function.fp_get_member_name(sc_lon_m_trans_loan_coll_det.collateral_no) as collateral_name ,
+        sc_lon_m_contract.begining_of_contract
+        FROM sc_lon_m_trans_loan_coll_det,
+        sc_lon_m_trans_loan_coll_head,
+        sc_lon_m_contract
+        WHERE ( sc_lon_m_trans_loan_coll_det.transfer_doc_no = sc_lon_m_trans_loan_coll_head.transfer_doc_no ) and
+        ( sc_lon_m_trans_loan_coll_head.loan_contract_no = sc_lon_m_contract.loan_contract_no ) and
+        ( ( sc_lon_m_trans_loan_coll_det.transfer_doc_no = {0}) AND
+        ( sc_lon_m_trans_loan_coll_head.transfer_status = '0' ) )
+       order by sc_lon_m_trans_loan_coll_det.seq_no
+      </sql>
+    </r_ktm_member_book_trans_loan_to_coll01_nest>
+  </sub>
+</root>

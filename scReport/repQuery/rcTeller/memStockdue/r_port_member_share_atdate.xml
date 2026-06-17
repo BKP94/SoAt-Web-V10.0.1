@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <confirm_date align="center" text="หุ้น ณ วันที่" table="sc_cls_confirm_mem" type="date" column="confirm_date" readonly="0" comboreplace="0" combowhere="0" />
+    <member_group_no text="หน่วย" table="sc_cls_confirm_mem" operator="bt" nulltext="ดึงทั้งหมดไม่ต้องเลือกจ้า" combo="sc_mem_m_ucf_member_group2" noheader="1" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>select  sc_cls_confirm_mem.confirm_date
+,       sc_cls_confirm_mem.membership_no
+,       sc_cls_confirm_mem.member_fullname
+,       sc_mem_m_ucf_member_group.member_group_no
+,       sc_mem_m_ucf_member_group.member_group_name
+,       sc_cls_confirm_data.data_balance as share_stock
+,       sc_mem_m_ucf_member_type.mem_type_code
+,       sc_mem_m_ucf_member_type.mem_type_desc
+from    sc_cls_confirm_data
+,       sc_cls_confirm_mem
+,       sc_mem_m_ucf_member_group
+,       sc_mem_m_ucf_member_type
+where   sc_cls_confirm_data.membership_no = sc_cls_confirm_mem.membership_no
+and     sc_cls_confirm_data.confirm_date = sc_cls_confirm_mem.confirm_date
+and     sc_mem_m_ucf_member_group.member_group_no = sc_cls_confirm_mem.member_group_no
+and     sc_mem_m_ucf_member_type.mem_type_code = sc_cls_confirm_mem.mem_type
+and     sc_cls_confirm_mem.member_status_code = '0'
+and     sc_cls_confirm_data.data_balance &gt; '0'
+and     sc_cls_confirm_data.data_group = 'SHR'
+/*WHERE*/
+--and     sc_cls_confirm_data.membership_no = '05955'
+--and     sc_cls_confirm_mem.confirm_date = '09/06/2024'
+order by sc_cls_confirm_mem.membership_no</sql>
+  <sub />
+</root>

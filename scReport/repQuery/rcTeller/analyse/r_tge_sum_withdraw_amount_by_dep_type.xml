@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <working_day text="วันที่" table="sc_dep_m_creditor_item" type="date" column="working_day" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>SELECT  sc_dep_m_creditor_item.deposit_account_no
+,       to_snumber(sc_dep_m_creditor_item.deposit_balance) as withdraw_amount
+,       sc_dep_m_creditor_item.working_day
+,       sc_dep_m_rule.deposit_type_code
+,       sc_dep_m_rule.deposit_name
+,       sysdate     
+FROM    sc_dep_m_creditor_item
+,       sc_dep_m_ucf_dep_item_type
+,       sc_dep_m_creditor
+,       sc_dep_m_rule
+WHERE   sc_dep_m_creditor_item.item_type = sc_dep_m_ucf_dep_item_type.deposit_item_type 
+and     sc_dep_m_creditor_item.deposit_account_no = sc_dep_m_creditor.deposit_account_no 
+and     sc_dep_m_rule.deposit_type_code = sc_dep_m_creditor.deposit_type_code 
+and     sc_dep_m_ucf_dep_item_type.sign_flag = '-1'
+/*WHERE*/</sql>
+  <sub />
+</root>

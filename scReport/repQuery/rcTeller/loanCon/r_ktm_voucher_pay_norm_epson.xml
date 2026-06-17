@@ -1,0 +1,297 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <membership_no align="center" special="memno" text="ทะเบียน" table="sc_lon_m_loan_request" column="membership_no" readonly="0" />
+    <requestment_date text="วันที่" table="sc_lon_m_loan_request" type="date" column="requestment_date" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_lon_m_loan_request.loan_requestment_no
+    , pka_com_function.fp_get_thaidate( sc_lon_m_loan_request.requestment_date , 'SD MONTH YYYY' ) as requestment_tdate
+
+    /*คนค้ำ คนที่ 1*/
+    ,( select pka_com_function.fp_get_member_name( sc_lon_m_req_coll.ref_own_no )
+      from sc_lon_m_req_coll
+      where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no
+      and sc_lon_m_req_coll.seq_no = '1'
+    ) as coll_name_1
+     ,( select sc_lon_m_req_coll.ref_own_no
+      from sc_lon_m_req_coll
+      where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no
+      and sc_lon_m_req_coll.seq_no = '1'
+    ) as ref_own_no_1
+    ,( select extract ( year from ( sc_lon_m_loan_request.requestment_date ) ) - extract ( year from ( sc_mem_m_membership_registered.date_of_birth ) )
+      from sc_lon_m_req_coll
+      ,sc_mem_m_membership_registered
+      where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no
+      and sc_mem_m_membership_registered.membership_no = sc_lon_m_req_coll.ref_own_no
+      and sc_lon_m_req_coll.seq_no = '1'
+    ) as age_year_1 
+    ,( select pka_com_function.fp_form_idcard( sc_mem_m_membership_registered.id_card )
+      from sc_lon_m_req_coll
+      ,sc_mem_m_membership_registered
+      where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no
+      and sc_mem_m_membership_registered.membership_no = sc_lon_m_req_coll.ref_own_no
+      and sc_lon_m_req_coll.seq_no = '1'
+    ) as id_card_1
+    ,( select pka_com_function.fp_get_member_position_name( sc_lon_m_req_coll.ref_own_no )
+      from sc_lon_m_req_coll
+      where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no
+      and sc_lon_m_req_coll.seq_no = '1'
+    ) as position_name_1
+    ,( select pka_com_function.fp_get_group_name_mem(sc_lon_m_req_coll.ref_own_no)
+      from sc_lon_m_req_coll
+      where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no
+      and sc_lon_m_req_coll.seq_no = '1'
+    ) as member_group_name_1   
+    ,( select pka_com_function.fp_get_district_name( sc_mem_m_ucf_member_group_addr.province_code , sc_mem_m_ucf_member_group_addr.district_code )
+      from sc_lon_m_req_coll
+      ,sc_mem_m_membership_registered
+      ,sc_mem_m_ucf_member_group_addr
+      where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no
+      and sc_mem_m_membership_registered.membership_no = sc_lon_m_req_coll.ref_own_no
+      AND sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group_addr.member_group_no
+      and sc_lon_m_req_coll.seq_no = '1'
+    ) as group_district_name_1  
+    ,( select sc_mem_m_member_address.address_no
+      from sc_lon_m_req_coll
+      ,sc_mem_m_member_address
+      where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no
+      and sc_mem_m_member_address.membership_no = sc_lon_m_req_coll.ref_own_no
+      and sc_mem_m_member_address.address_type = '1'
+      and sc_lon_m_req_coll.seq_no = '1'
+    ) as address_no_1   
+    ,( select sc_mem_m_member_address.moo
+      from sc_lon_m_req_coll
+      ,sc_mem_m_member_address
+      where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no
+      and sc_mem_m_member_address.membership_no = sc_lon_m_req_coll.ref_own_no
+      and sc_mem_m_member_address.address_type = '1'
+      and sc_lon_m_req_coll.seq_no = '1'
+    ) as moo_1
+    ,( select sc_mem_m_member_address.road
+      from sc_lon_m_req_coll
+      ,sc_mem_m_member_address
+      where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no
+      and sc_mem_m_member_address.membership_no = sc_lon_m_req_coll.ref_own_no
+      and sc_mem_m_member_address.address_type = '1'
+      and sc_lon_m_req_coll.seq_no = '1'
+    ) as road_1   
+    ,( select sc_mem_m_member_address.soi
+      from sc_lon_m_req_coll
+      ,sc_mem_m_member_address
+      where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no
+      and sc_mem_m_member_address.membership_no = sc_lon_m_req_coll.ref_own_no
+      and sc_mem_m_member_address.address_type = '1'
+      and sc_lon_m_req_coll.seq_no = '1'
+    ) as soi_1   
+    ,( select sc_mem_m_member_address.tambol
+      from sc_lon_m_req_coll
+      ,sc_mem_m_member_address
+      where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no
+      and sc_mem_m_member_address.membership_no = sc_lon_m_req_coll.ref_own_no
+      and sc_mem_m_member_address.address_type = '1'
+      and sc_lon_m_req_coll.seq_no = '1'
+    ) as tambol_1   
+    ,( select pka_com_function.fp_get_district_name( sc_mem_m_member_address.province_code , sc_mem_m_member_address.district_code )
+      from sc_lon_m_req_coll
+      ,sc_mem_m_member_address
+      where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no
+      and sc_mem_m_member_address.membership_no = sc_lon_m_req_coll.ref_own_no
+      and sc_mem_m_member_address.address_type = '1'
+      and sc_lon_m_req_coll.seq_no = '1'
+    ) as district_name_1   
+    ,( select pka_com_function.fp_get_province_name( sc_mem_m_member_address.province_code )
+      from sc_lon_m_req_coll
+      ,sc_mem_m_member_address
+      where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no
+      and sc_mem_m_member_address.membership_no = sc_lon_m_req_coll.ref_own_no
+      and sc_mem_m_member_address.address_type = '1'
+      and sc_lon_m_req_coll.seq_no = '1'
+    ) as province_name_1  
+    ,( select sc_mem_m_member_address.postcode
+      from sc_lon_m_req_coll
+      ,sc_mem_m_member_address
+      where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no
+      and sc_mem_m_member_address.membership_no = sc_lon_m_req_coll.ref_own_no
+      and sc_mem_m_member_address.address_type = '1'
+      and sc_lon_m_req_coll.seq_no = '1'
+    ) as postcode_1   
+    ,( select sc_mem_m_member_address.telephone
+      from sc_lon_m_req_coll
+      ,sc_mem_m_member_address
+      where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no
+      and sc_mem_m_member_address.membership_no = sc_lon_m_req_coll.ref_own_no
+      and sc_mem_m_member_address.address_type = '1'
+      and sc_lon_m_req_coll.seq_no = '1'
+    ) as telephone_1    
+    ,( select sc_mem_m_ucf_marriage_status.marriage_status
+      from sc_lon_m_req_coll
+      ,sc_mem_m_membership_registered
+      ,sc_mem_m_ucf_marriage_status
+      where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no
+      and sc_mem_m_membership_registered.membership_no = sc_lon_m_loan_request.membership_no
+      and sc_mem_m_membership_registered.marriage_status = sc_mem_m_ucf_marriage_status.marriage_status_code
+      and sc_lon_m_req_coll.seq_no = '1'
+    ) as marriage_status_1
+    
+    /*คนค้ำ คนที่ 2*/
+    ,( select pka_com_function.fp_get_member_name( sc_lon_m_req_coll.ref_own_no )
+      from sc_lon_m_req_coll
+      where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no
+      and sc_lon_m_req_coll.seq_no = '2'
+    ) as coll_name_2    
+    ,( select sc_lon_m_req_coll.ref_own_no
+      from sc_lon_m_req_coll
+      where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no
+      and sc_lon_m_req_coll.seq_no = '2'
+    ) as ref_own_no_2    
+    ,( select extract ( year from ( sc_lon_m_loan_request.requestment_date ) ) - extract ( year from ( sc_mem_m_membership_registered.date_of_birth ) )
+      from sc_lon_m_req_coll 
+      ,sc_mem_m_membership_registered
+      where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no
+      and sc_mem_m_membership_registered.membership_no = sc_lon_m_req_coll.ref_own_no
+      and sc_lon_m_req_coll.seq_no = '2'
+    ) as age_year_2    
+    ,( select pka_com_function.fp_form_idcard( sc_mem_m_membership_registered.id_card )
+      from sc_lon_m_req_coll
+      ,sc_mem_m_membership_registered
+      where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no
+      and sc_mem_m_membership_registered.membership_no = sc_lon_m_req_coll.ref_own_no
+      and sc_lon_m_req_coll.seq_no = '2'
+    ) as id_card_2   
+    ,( select pka_com_function.fp_get_member_position_name( sc_lon_m_req_coll.ref_own_no )
+      from sc_lon_m_req_coll
+      where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no
+      and sc_lon_m_req_coll.seq_no = '2'
+    ) as position_name_2    
+    ,( select pka_com_function.fp_get_group_name_mem(sc_lon_m_req_coll.ref_own_no)
+      from sc_lon_m_req_coll
+      where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no
+      and sc_lon_m_req_coll.seq_no = '2'
+    ) as member_group_name_2    
+    ,( select pka_com_function.fp_get_district_name( sc_mem_m_ucf_member_group_addr.province_code , sc_mem_m_ucf_member_group_addr.district_code )
+      from sc_lon_m_req_coll
+      ,sc_mem_m_membership_registered
+      ,sc_mem_m_ucf_member_group_addr
+      where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no
+      and sc_mem_m_membership_registered.membership_no = sc_lon_m_req_coll.ref_own_no
+      AND sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group_addr.member_group_no
+      and sc_lon_m_req_coll.seq_no = '2'
+    ) as group_district_name_2    
+    ,( select sc_mem_m_member_address.address_no
+      from sc_lon_m_req_coll
+      ,sc_mem_m_member_address
+      where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no
+      and sc_mem_m_member_address.membership_no = sc_lon_m_req_coll.ref_own_no
+      and sc_mem_m_member_address.address_type = '1'
+      and sc_lon_m_req_coll.seq_no = '2'
+    ) as address_no_2   
+    ,( select sc_mem_m_member_address.moo
+      from sc_lon_m_req_coll
+      ,sc_mem_m_member_address
+      where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no
+      and sc_mem_m_member_address.membership_no = sc_lon_m_req_coll.ref_own_no
+      and sc_mem_m_member_address.address_type = '1'
+      and sc_lon_m_req_coll.seq_no = '2'
+    ) as moo_2 
+    ,( select sc_mem_m_member_address.road
+      from sc_lon_m_req_coll
+      ,sc_mem_m_member_address
+      where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no
+      and sc_mem_m_member_address.membership_no = sc_lon_m_req_coll.ref_own_no
+      and sc_mem_m_member_address.address_type = '1'
+      and sc_lon_m_req_coll.seq_no = '2'
+    ) as road_2  
+    ,( select sc_mem_m_member_address.soi
+      from sc_lon_m_req_coll
+      ,sc_mem_m_member_address
+      where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no
+      and sc_mem_m_member_address.membership_no = sc_lon_m_req_coll.ref_own_no
+      and sc_mem_m_member_address.address_type = '1'
+      and sc_lon_m_req_coll.seq_no = '2'
+    ) as soi_2  
+    ,( select sc_mem_m_member_address.tambol
+      from sc_lon_m_req_coll
+      ,sc_mem_m_member_address
+      where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no
+      and sc_mem_m_member_address.membership_no = sc_lon_m_req_coll.ref_own_no
+      and sc_mem_m_member_address.address_type = '1'
+      and sc_lon_m_req_coll.seq_no = '2'
+    ) as tambol_2  
+    ,( select pka_com_function.fp_get_district_name( sc_mem_m_member_address.province_code , sc_mem_m_member_address.district_code )
+      from sc_lon_m_req_coll
+      ,sc_mem_m_member_address
+      where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no
+      and sc_mem_m_member_address.membership_no = sc_lon_m_req_coll.ref_own_no
+      and sc_mem_m_member_address.address_type = '1'
+      and sc_lon_m_req_coll.seq_no = '2'
+    ) as district_name_2 
+    ,( select pka_com_function.fp_get_province_name( sc_mem_m_member_address.province_code )
+      from sc_lon_m_req_coll
+      ,sc_mem_m_member_address
+      where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no
+      and sc_mem_m_member_address.membership_no = sc_lon_m_req_coll.ref_own_no
+      and sc_mem_m_member_address.address_type = '1'
+      and sc_lon_m_req_coll.seq_no = '2'
+    ) as province_name_2 
+    ,( select sc_mem_m_member_address.postcode
+      from sc_lon_m_req_coll
+      ,sc_mem_m_member_address
+      where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no
+      and sc_mem_m_member_address.membership_no = sc_lon_m_req_coll.ref_own_no
+      and sc_mem_m_member_address.address_type = '1'
+      and sc_lon_m_req_coll.seq_no = '2'
+    ) as postcode_2
+    ,( select sc_mem_m_member_address.telephone
+      from sc_lon_m_req_coll
+      ,sc_mem_m_member_address
+      where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no
+      and sc_mem_m_member_address.membership_no = sc_lon_m_req_coll.ref_own_no
+      and sc_mem_m_member_address.address_type = '1'
+      and sc_lon_m_req_coll.seq_no = '2'
+    ) as telephone_2
+    ,( select sc_mem_m_ucf_marriage_status.marriage_status
+      from sc_lon_m_req_coll
+      ,sc_mem_m_membership_registered
+      ,sc_mem_m_ucf_marriage_status
+      where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no
+      and sc_mem_m_membership_registered.membership_no = sc_lon_m_loan_request.membership_no
+      and sc_mem_m_membership_registered.marriage_status = sc_mem_m_ucf_marriage_status.marriage_status_code
+      and sc_lon_m_req_coll.seq_no = '2'
+    ) as marriage_status_2
+
+    /*ผู้กู้*/
+    , sc_lon_m_loan_request.membership_no
+    , pka_com_function.fp_get_member_name( sc_lon_m_loan_request.membership_no ) as memname
+    , ( SELECT sc_lon_m_ucf_loan_obj.loan_objective_description
+    FROM sc_lon_m_ucf_loan_obj
+    WHERE sc_lon_m_ucf_loan_obj.loan_type = sc_lon_m_loan_request.loan_type
+    AND sc_lon_m_ucf_loan_obj.loan_objective_code = sc_lon_m_loan_request.loan_objective_code ) as loan_objective_code_desc
+    , sc_lon_m_loan_request.mem_request_amount
+    , pka_com_function.fp_get_moneythai( sc_lon_m_loan_request.mem_request_amount ) as mem_request_amount_thai
+    , pka_lon_intsrv.fp_intrate_table_loantype( sc_lon_m_loan_request.loan_type , sc_lon_m_loan_request.begining_of_contract ) * 100 as lon_int_rate
+    , sc_lon_m_loan_request.period_payment_amount
+    , sc_lon_m_loan_request.last_payment_amount
+    , sc_lon_m_loan_request.loan_installment_amount
+
+    from sc_lon_m_loan_request
+    where 1 = 1 
+/*WHERE*/
+    --AND sc_lon_m_loan_request.membership_no = '015359'
+    --AND sc_lon_m_loan_request.requestment_date = '26/3/2021'
+    order by sc_lon_m_loan_request.loan_requestment_no
+  </sql>
+  <sub>
+    <r_ktm_voucher_pay_norm_epson_nest>
+      <sql>        SELECT  sc_lon_m_loan_request.loan_requestment_no
+        , pka_com_function.fp_get_member_name( sc_lon_m_loan_request.membership_no ) as memname
+        FROM sc_lon_m_loan_request
+        WHERE 1 = 1
+        AND sc_lon_m_loan_request.loan_requestment_no = {0}
+        /*WHERE*/
+        --AND sc_lon_m_loan_request.loan_requestment_no = '64ส00066'
+        ORDER BY sc_lon_m_loan_request.loan_requestment_no ASC
+      </sql>
+    </r_ktm_voucher_pay_norm_epson_nest>
+  </sub>
+</root>

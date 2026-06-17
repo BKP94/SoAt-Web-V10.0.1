@@ -1,0 +1,97 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <receipt_date text="วันที่" table="sc_com_m_receipt" type="date" operator="bt" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select distinct sc_com_m_receipt.receipt_date as c_receiptdate  
+    ,pka_com_function.fp_get_thaidate(sc_com_m_receipt.receipt_date  , 'dd/mm/yyyy') as receipt_tdate
+from sc_com_m_receipt  
+Where 1=1
+/*WHERE*/
+--and   sc_com_m_receipt.receipt_date between '23/06/2024' and '28/06/2024'    </sql>
+  <sub>
+    <r_mwa_receipt_sum_daily_nest_shrfee>
+      <sql>select	sc_com_m_receipt_item.item_type_id,   
+		sum(sc_com_m_receipt_item.item_amount) as c_itemamount,   
+		count(sc_com_m_receipt_item.description) as c_countmember 
+    
+    ,( case sc_com_m_receipt_item.item_type_id  when 'SB' then 'รับชำระค่าหุ้น'
+                          when 'FE' then 'รับชำระค่าธรรมเนียม'
+      end ) as c_item_type_name
+      
+from	sc_com_m_receipt,   
+		sc_com_m_receipt_item  
+where	sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+and	sc_com_m_receipt.receipt_date = {0}
+and	sc_com_m_receipt_item.item_amount &gt; 0
+and	( (sc_com_m_receipt.receipt_status = '0' ) or ( sc_com_m_receipt.receipt_status is null ) )
+and	( sc_com_m_receipt_item.item_type_id in ('SB','FE') )
+GROUP BY sc_com_m_receipt_item.item_type_id</sql>
+    </r_mwa_receipt_sum_daily_nest_shrfee>
+    <r_mwa_receipt_sum_daily_nest_receive_loan>
+      <sql>select	sc_lon_m_rule.loan_group_code,   
+		sum(sc_com_m_receipt_item.principal_amount) as c_prinamount,   
+		sum(sc_com_m_receipt_item.interest_amount) as c_intamount,   
+		count(sc_com_m_receipt_item.description) as c_countcontract
+    
+    ,( case sc_lon_m_rule.loan_group_code
+          when '01' then '-  ฉุกเฉิน'
+          when '02' then '-  สามัญ'
+          when '03' then '-  พิเศษ'
+        end ) as loan_group_code_name
+        
+from	sc_com_m_receipt,   
+		sc_com_m_receipt_item,   
+		sc_lon_m_contract,   
+		sc_lon_m_rule  
+where	( sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no ) 
+and	( sc_lon_m_rule.loan_type = sc_lon_m_contract.loan_type )
+and	( sc_com_m_receipt_item.description = sc_lon_m_contract.loan_contract_no )
+and	( sc_com_m_receipt.receipt_date = {0} )
+and	( sc_com_m_receipt_item.item_amount &gt; 0 )
+and	( (sc_com_m_receipt.receipt_status = '0' ) or ( sc_com_m_receipt.receipt_status is null ) )
+and      ( sc_com_m_receipt_item.loan_type  not in ('สอ') )
+GROUP BY sc_lon_m_rule.loan_group_code   </sql>
+    </r_mwa_receipt_sum_daily_nest_receive_loan>
+    <r_mwa_receipt_sum_daily_nest_payment_loan>
+      <sql>SELECT sc_lon_m_rule.loan_group_code,   
+         sum(sc_lon_m_contract.loan_approve_amount) as c_loanamount,   
+         count(sc_lon_m_contract.loan_contract_no) as c_countcontract  
+         
+         ,( case sc_lon_m_rule.loan_group_code
+          when '01' then '-  ฉุกเฉิน'
+          when '02' then '-  สามัญ'
+          when '03' then '-  พิเศษ'
+        end ) as loan_group_code_name
+        
+FROM sc_lon_m_contract,   
+         sc_lon_m_rule  
+WHERE ( sc_lon_m_rule.loan_type = sc_lon_m_contract.loan_type ) and  
+         ( ( (sc_lon_m_contract.begining_of_contract) = {0} ) AND  
+         ( sc_lon_m_contract.loan_type not in ('สอ') ) )   
+GROUP BY sc_lon_m_rule.loan_group_code   </sql>
+    </r_mwa_receipt_sum_daily_nest_payment_loan>
+    <r_mwa_receipt_sum_daily_nest_adding_loan>
+      <sql>SELECT sc_lon_m_rule.loan_group_code,   
+         sum(sc_lon_m_contract.loan_approve_amount) as c_loanamount,   
+         count(sc_lon_m_contract.loan_contract_no) as c_countcontract  
+         
+         ,( case sc_lon_m_rule.loan_group_code
+          when '01' then '-  ฉุกเฉิน'
+          when '02' then '-  สามัญ'
+          when '03' then '-  พิเศษ'
+        end ) as loan_group_code_name
+
+FROM sc_lon_m_contract,   
+         sc_lon_m_rule,   
+         sc_lon_m_loan_card_detail  
+WHERE ( sc_lon_m_rule.loan_type = sc_lon_m_contract.loan_type ) and  
+         ( sc_lon_m_contract.loan_contract_no = sc_lon_m_loan_card_detail.loan_contract_no ) and  
+         ( ( (sc_lon_m_loan_card_detail.loan_payment_date) = {0}) AND  
+         ( sc_lon_m_loan_card_detail.item_type_code = 'AD' ) AND  
+         ( sc_lon_m_contract.loan_type not in ('สอ') ) )     
+GROUP BY sc_lon_m_rule.loan_group_code   </sql>
+    </r_mwa_receipt_sum_daily_nest_adding_loan>
+  </sub>
+</root>

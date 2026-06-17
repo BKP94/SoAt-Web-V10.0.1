@@ -1,0 +1,58 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <an_month special="month" text="ประจำเดือน" type="integer" combo="monthThLong" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <approve_date text="วันที่อนุมัติ" table="sc_mem_m_resign_requestment" type="date" column="approve_date" operator="bt" readonly="0" />
+    <as_letter text="เลขที่" column="as_letter" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <member_group_no text="หน่วย" table="sc_mem_m_membership_registered" column="member_group_no" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+    <as_name default="นางรวีวรรณ  ช่อดอก" text="ผู้ช่วยฯ" combo="sc_cnt_m_committee_list3" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+ 
+  <sql>
+    select pka_com_function.fp_get_moneythai (tab.principal_balance) as thai_principal_balance ,tab.*
+    from ( select sc_mem_m_resign_requestment.membership_no
+    ,pka_com_function.fp_get_member_group(sc_mem_m_resign_requestment.membership_no) as group_memno
+    ,(select position_name from sc_mem_m_ucf_position where position_code = sc_mem_m_membership_registered.position_code) as position_name
+    ,pka_com_function.fp_get_group_name_mem(sc_mem_m_resign_requestment.membership_no) as group_name_memno
+    ,sc_mem_m_resign_loncoll.loan_contract_no
+    ,pka_com_function.fp_get_thaidate(sc_lon_m_loan_card.last_calcint_date , 'SD MONTH YYYY') as last_calcint_date
+    ,sc_lon_m_contract.begining_of_contract
+    ,pka_com_function.fp_get_loan_balance(sc_mem_m_resign_loncoll.loan_contract_no) as principal_balance
+    ,pka_com_function.fp_get_member_name(sc_mem_m_resign_requestment.membership_no) as member_name
+    ,sc_mem_m_resign_requestment.resign_code
+    ,( select sc_mem_m_ucf_resign_cause.resign_cause_name from sc_mem_m_ucf_resign_cause where sc_mem_m_ucf_resign_cause.resign_cause_code = sc_mem_m_resign_requestment.resign_code ) as mem_resign
+    ,sc_mem_m_resign_requestment.approve_date
+    ,sc_mem_m_resign_loncoll.contract_memno
+    ,pka_com_function.fp_get_member_group(sc_mem_m_resign_loncoll.contract_memno) as group_collno
+    ,pka_com_function.fp_get_member_name(sc_mem_m_resign_loncoll.contract_memno) as coll_name
+    ,(select coop_name from sc_cnt_m_coop ) as coop_name
+    ,'!as_name_1!' as as_name
+    , pka_com_function.fp_get_thaidate(sysdate , 'SD MONTH YYYY') as sysdate_tdate
+    ,'!as_letter!' as as_letter
+    ,'!an_month!' as an_month
+
+    from sc_mem_m_resign_requestment
+    ,sc_mem_m_membership_registered
+    ,sc_mem_m_resign_loncoll
+    ,sc_lon_m_contract
+    ,sc_lon_m_loan_card
+
+    where ( sc_mem_m_membership_registered.membership_no = sc_mem_m_resign_requestment.membership_no )
+    and   ( sc_mem_m_resign_loncoll.resign_doc_no = sc_mem_m_resign_requestment.resign_doc_no )
+    and   ( sc_lon_m_contract.loan_contract_no = sc_mem_m_resign_loncoll.loan_contract_no )
+    and   ( sc_lon_m_contract.loan_contract_no = sc_lon_m_loan_card.loan_contract_no )
+    and   ( sc_mem_m_resign_requestment.approve_result = '1' )
+    and   ( sc_lon_m_loan_card.principal_balance &gt; 0 )
+    and   sc_lon_m_contract.loan_contract_no in ( select sc_lon_m_contract_coll.loan_contract_no
+                                                  from 	sc_lon_m_contract_coll
+                                                  where sc_lon_m_contract_coll.loan_contract_no = sc_lon_m_contract.loan_contract_no
+                                                  and 	sc_lon_m_contract_coll.status = '0'
+                                                  and	  sc_lon_m_contract_coll.collateral_type_code = '01'
+                                                  and	  sc_lon_m_contract_coll.ref_own_no = sc_mem_m_resign_requestment.membership_no
+                                                )
+    /*WHERE*/
+    --and sc_mem_m_resign_requestment.resign_doc_no = '63001603'
+    )tab
+  </sql>
+  <sub />
+</root>

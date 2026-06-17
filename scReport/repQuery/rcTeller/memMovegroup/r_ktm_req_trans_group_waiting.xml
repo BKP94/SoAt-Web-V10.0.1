@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <entry_date text="วันที่" table="sc_mem_m_tran_group" type="date" operator="bt" readonly="0" />
+    <user_id text="ผู้บันทึก" table="si_security_user" combo="si_security_user2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    SELECT sc_mem_m_tran_group.doc_no,
+    sc_mem_m_tran_group.membership_no,
+    pka_com_function.fp_get_member_name(sc_mem_m_tran_group.membership_no) as memname,
+    sc_mem_m_tran_group.group_old,
+    pka_com_function.fp_get_group_name(sc_mem_m_tran_group.group_old) as group_old_name,
+    sc_mem_m_tran_group.group_new,
+    pka_com_function.fp_get_group_name(sc_mem_m_tran_group.group_new) as group_new_name,
+    sc_mem_m_tran_group.entry_date,
+    sc_mem_m_tran_group.entry_id,
+    sc_mem_m_tran_group.app_status,
+    sc_mem_m_tran_group.app_date,
+    sc_mem_m_tran_group.app_id ,
+    si_security_user.user_name
+    FROM sc_mem_m_tran_group,
+    si_security_user
+    where sc_mem_m_tran_group.entry_id = si_security_user.user_id
+    and sc_mem_m_tran_group.app_status =  '2'
+    /*WHERE*/
+    order by sc_mem_m_tran_group.doc_no
+  </sql>
+  <sub />
+</root>

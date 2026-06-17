@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <operate_date text="วันนี้" table="sc_mem_edit_salary" type="date" column="operate_date" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    select sc_mem_edit_salary.membership_no as memno,
+    PKA_COM_FUNCTION.fp_get_member_name( sc_mem_edit_salary.membership_no ) as memname,
+    sc_mem_edit_salary.entry_id as entry_id,
+    si_security_user.user_name,
+    sc_mem_edit_salary.operate_date as operate_date,
+    sc_mem_edit_salary.pre_salary_amount as old,
+    to_snumber(sc_mem_edit_salary.salary_amount) as new,
+
+    sc_mem_edit_address.pre_address_no,
+    sc_mem_edit_address.pre_moo,
+    sc_mem_edit_address.pre_road,
+    sc_mem_edit_address.pre_soi,
+    sc_mem_edit_address.pre_tambol,
+    sc_mem_edit_address.pre_district_code,
+    sc_mem_edit_address.pre_province_code,
+    sc_mem_edit_address.pre_postcode,
+    sc_mem_edit_address.pre_telephone,
+    sc_mem_edit_address.pre_mooban,
+
+    sc_mem_edit_address.address_no,
+    sc_mem_edit_address.moo,
+    sc_mem_edit_address.road,
+    sc_mem_edit_address.soi,
+    sc_mem_edit_address.tambol,
+    sc_mem_edit_address.district_code,
+    sc_mem_edit_address.province_code,
+    sc_mem_edit_address.postcode,
+    sc_mem_edit_address.telephone,
+    sc_mem_edit_address.mooban
+
+    from sc_mem_edit_salary,
+    sc_mem_edit_address,
+    sc_mem_m_membership_registered,
+    si_security_user
+    where sc_mem_m_membership_registered.membership_no = sc_mem_edit_salary.membership_no
+    and sc_mem_edit_address.membership_no = sc_mem_edit_salary.membership_no
+    and si_security_user.user_id = sc_mem_edit_salary.entry_id
+    /*WHERE*/
+    --    and sc_mem_edit_salary.operate_date between to_date('2020-5-22 0:0:0','yyyy-mm-dd hh24:mi:ss') and to_date('2020-5-22 0:0:0','yyyy-mm-dd hh24:mi:ss')
+  </sql>
+  <sub />
+</root>

@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <approve_date text="วันที่อนุมัติ" table="sc_mem_m_membership_registered" type="date" column="approve_date" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_mem_m_membership_registered.membership_no ,
+    pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no) AS mem_name ,
+    sc_mem_m_application_form.sex,
+    sc_mem_m_app_work_info.position_long,
+    sc_mem_m_ucf_member_group.member_group_no ,
+    sc_mem_m_ucf_member_group.member_group_name ,
+    sc_mem_m_ucf_member_group.pre_group_name,
+    sc_mem_m_app_share.share_monthly,
+    sc_mem_m_app_work_info.salary_amount,
+    sc_mem_m_ucf_group_position.description,
+    sc_mem_m_ucf_application_type.application_fee ,
+    sc_mem_m_app_work_info.position_long,
+    sc_mem_m_application_form.approve_date,
+    sc_mem_m_application_form.hum_id,
+    sc_mem_m_ucf_salary_level.level_name,
+    0.00 as insurance_amount,
+    sc_mem_m_ucf_group_position.group_position
+    FROM sc_mem_m_application_form ,
+    sc_mem_m_membership_registered ,
+    sc_mem_m_ucf_member_group,
+    sc_mem_m_app_share,
+    sc_mem_m_app_work_info,
+    sc_mem_m_ucf_application_type,
+    sc_mem_m_ucf_group_position,
+    sc_mem_m_ucf_salary_level
+    WHERE sc_mem_m_membership_registered.application_form_no = sc_mem_m_application_form.application_form_no
+    AND sc_mem_m_ucf_member_group.member_group_no            =sc_mem_m_application_form.member_group_no
+    AND sc_mem_m_app_share.application_form_no               = sc_mem_m_application_form.application_form_no
+    AND sc_mem_m_app_work_info.application_form_no           = sc_mem_m_application_form.application_form_no
+    AND sc_mem_m_ucf_application_type.appl_type_code         =sc_mem_m_application_form.appl_type_code
+    AND sc_mem_m_ucf_group_position.group_position           =sc_mem_m_app_work_info.group_position
+    AND sc_mem_m_ucf_salary_level.level_code                 = sc_mem_m_app_work_info.salary_rate_code
+    /*WHERE*/
+  </sql>
+  <sub />
+</root>

@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <member_group_no text="หน่วย" table="sc_mem_m_ucf_member_group" column="member_group_no" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>SELECT sc_rep_mem_share_loan_bal.client_id,   
+         sc_rep_mem_share_loan_bal.seq_no,   
+         sc_rep_mem_share_loan_bal.membership_no,   
+         sc_rep_mem_share_loan_bal.member_group_no,   
+         sc_rep_mem_share_loan_bal.emer_contract,   
+         sc_rep_mem_share_loan_bal.emer_loantype,   
+         sc_rep_mem_share_loan_bal.emer_balance,   
+         sc_rep_mem_share_loan_bal.emer_period,   
+         sc_rep_mem_share_loan_bal.emer_installment,   
+         sc_mem_m_ucf_member_group.member_group_name,   
+         sc_mem_m_ucf_member_group.member_group_control,   
+         sc_mem_m_membership_registered.mem_type,   
+         pka_com_function.fp_get_group_name( sc_mem_m_ucf_member_group.member_group_control ) as grp_con_name,   
+         sc_rep_mem_share_loan_bal.emer_intarr,   
+         sc_rep_mem_share_loan_bal.balance_date,   
+         sc_rep_mem_share_loan_bal.intarr_date,   
+         sc_mem_m_ucf_member_group.control_id,   
+         sc_rep_mem_share_loan_bal.emer_loan_code,   
+         sc_rep_mem_share_loan_bal.member_status_code,   
+         sc_rep_mem_share_loan_bal.member_name,   
+         sc_rep_mem_share_loan_bal.emer_paycode,   
+         sc_rep_mem_share_loan_bal.emer_last_date  
+    FROM sc_rep_mem_share_loan_bal,   
+         sc_mem_m_membership_registered,   
+         sc_mem_m_ucf_member_group,   
+         sc_lon_m_contract,   
+         sc_lon_m_rule  
+ WHERE  sc_rep_mem_share_loan_bal.membership_no = sc_mem_m_membership_registered.membership_no and  
+       sc_rep_mem_share_loan_bal.member_group_no = sc_mem_m_ucf_member_group.member_group_no  and  
+       sc_lon_m_contract.loan_contract_no = sc_rep_mem_share_loan_bal.emer_contract  and  
+       sc_lon_m_contract.loan_type = sc_lon_m_rule.loan_type  and  
+       sc_rep_mem_share_loan_bal.client_id = '000'  AND  
+       sc_rep_mem_share_loan_bal.emer_balance &gt; 0   and
+       sc_rep_mem_share_loan_bal.balance_date = to_date('31/12/2021' , 'dd/mm/yyyy')</sql>
+  <sub />
+</root>

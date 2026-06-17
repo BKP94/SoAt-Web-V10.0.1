@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+  </arg>
+  <combo />
+  <sql>
+    select sum(tab.row_memno)over(order by tab.member_group_no,tab.membership_no) as rowno,  tab.*
+    from (
+    SELECT sc_mem_m_membership_registered.member_group_no,
+    sc_mem_m_membership_registered.membership_no,
+    decode(lag(sc_mem_m_membership_registered.membership_no,1,null)over(  order by sc_mem_m_membership_registered.member_group_no ,sc_mem_m_membership_registered.membership_no) ,sc_mem_m_membership_registered.membership_no,0,1) as row_memno,
+    pka_com_function.fp_get_member_name(  sc_lon_m_loan_card.membership_no ) as memname,
+    sc_lon_m_loan_card.loan_contract_no,
+    sc_lon_m_loan_card.principal_balance,
+    sc_mem_m_share_mem.share_stock,
+    pka_com_function.fp_get_thaidate( sc_lon_m_contract.begining_of_contract ,  'DD/MM/YYYY' ) as begining_of_contract
+
+    FROM sc_lon_m_loan_card,
+    sc_mem_m_membership_registered,
+    sc_mem_m_share_mem,
+    sc_lon_m_contract
+    WHERE ( sc_mem_m_membership_registered.membership_no = sc_mem_m_share_mem.membership_no ) and
+    ( sc_lon_m_loan_card.membership_no = sc_mem_m_membership_registered.membership_no ) and
+    ( sc_lon_m_loan_card.loan_contract_no = sc_lon_m_contract.loan_contract_no ) and
+    ( ( sc_mem_m_membership_registered.coll_resign= '1' ) ) and
+    sc_lon_m_loan_card.principal_balance &gt; 0
+    and  ( sc_lon_m_loan_card.loan_type not in ('1','3','9') )
+    and  ( sc_mem_m_share_mem.share_stock &gt; 0 )
+    and  ( sc_mem_m_membership_registered.debtor_code = 'EL' )
+    /*WHERE*/
+    ORDER BY sc_mem_m_membership_registered.member_group_no ASC,
+    sc_mem_m_membership_registered.membership_no ASC
+    )tab
+  </sql>
+  <sub>
+    <r_coll_resign_by_memno_levies_nest>
+      <sql>
+        SELECT sc_lon_m_contract_coll.ref_own_no,
+        sc_lon_m_contract_coll.collateral_description,
+        sc_mem_m_membership_registered.member_status_code,
+        decode( sc_mem_m_membership_registered.member_status_code , '0'
+        , ''
+        , pka_com_function.fp_get_thaidate( sc_mem_m_membership_registered.resignation_approve_date ,  'DD/MM/YYYY'  )) as resignation_approve_date,
+
+        sc_mem_m_membership_registered.resign_code,
+        (select sc_mem_m_ucf_resign_cause.resign_cause_name from sc_mem_m_ucf_resign_cause where sc_mem_m_membership_registered.resign_code = sc_mem_m_ucf_resign_cause.resign_cause_code) as resign_name,
+        decode( sc_mem_m_membership_registered.member_status_code , '0' , PKB_KTM.fp_get_collpermit_balance( sc_lon_m_contract_coll.ref_own_no , sc_lon_m_contract_coll.loan_contract_no ) , 0 )  as c_coll,
+        pka_com_function.fp_get_member_group(sc_lon_m_contract_coll.ref_own_no) as coll_group_no
+        FROM sc_lon_m_contract_coll,
+        sc_mem_m_membership_registered
+        WHERE ( sc_lon_m_contract_coll.ref_own_no = sc_mem_m_membership_registered.membership_no ) and
+        ( ( sc_lon_m_contract_coll.loan_contract_no = {0} ) AND
+        ( sc_lon_m_contract_coll.status = '0' ) AND
+        ( sc_lon_m_contract_coll.collateral_type_code = '01' ) )
+        ORDER BY sc_mem_m_membership_registered.member_status_code DESC,
+        sc_lon_m_contract_coll.ref_own_no ASC
+      </sql>
+    </r_coll_resign_by_memno_levies_nest>
+  </sub>
+</root>

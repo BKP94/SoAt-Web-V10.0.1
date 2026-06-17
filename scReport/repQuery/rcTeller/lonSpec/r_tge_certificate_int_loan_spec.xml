@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <account_year align="center" special="year" text="ปี" table="sc_acc_m_account_year" type="integer2" column="account_year" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select  pka_com_function.fp_get_member_name( sc_lon_m_contract.membership_no )as member_name
+,       sc_lon_m_contract.membership_no
+,       sc_lon_m_contract.loan_contract_no
+,       sc_lon_m_contract.loan_approve_amount
+,       sc_lon_m_contract.begining_of_contract
+,       sc_lon_m_ucf_loan_obj.loan_objective_description
+,       pkb_repyear.fp_loan_sum_int( sc_lon_m_contract.loan_contract_no  ,  sc_acc_m_account_year.beginning_of_account ,  sc_acc_m_account_year.ending_of_account )as total_int
+,       sc_acc_m_account_year.account_year
+,       sysdate
+from    sc_lon_m_contract
+,       sc_lon_m_loan_card
+,       sc_lon_m_ucf_loan_obj
+,       sc_acc_m_account_year
+where   sc_lon_m_contract.loan_contract_no = sc_lon_m_loan_card.loan_contract_no
+and     sc_lon_m_contract.loan_type = sc_lon_m_ucf_loan_obj.loan_type
+and     sc_lon_m_contract.loan_objective_code = sc_lon_m_ucf_loan_obj.loan_objective_code
+and     sc_lon_m_contract.loan_type in ('60','61')
+and     sc_lon_m_contract.create_loan_status = '1'
+and     sc_lon_m_loan_card.principal_balance &gt; '0'
+and     sc_acc_m_account_year.account_year &gt; extract(year from sc_lon_m_contract.begining_of_contract)
+--and     sc_lon_m_contract.membership_no = '009039'
+/*WHERE*/
+order by sc_lon_m_contract.membership_no
+  </sql>
+  <sub />
+</root>

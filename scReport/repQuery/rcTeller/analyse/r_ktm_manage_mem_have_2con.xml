@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+  </arg>
+  <combo />
+  <sql>    SELECT  sc_lon_m_rule.loan_type,
+    sc_lon_m_loan_card.membership_no,
+    PKA_COM_FUNCTION.fp_get_member_name( sc_lon_m_loan_card.membership_no ) as membername ,
+    count( sc_lon_m_loan_card.principal_balance) as c_count ,
+    sum( sc_lon_m_loan_card.principal_balance) as c_bal
+    FROM  sc_lon_m_loan_card  ,
+    sc_lon_m_rule
+    WHERE  ( sc_lon_m_loan_card.loan_type = sc_lon_m_rule.loan_type )
+    AND     ( sc_lon_m_loan_card.principal_balance &gt; 0 )
+       GROUP BY  sc_lon_m_loan_card.membership_no  ,
+    sc_lon_m_rule.loan_type
+    HAVING ( count( sc_lon_m_loan_card.membership_no) &gt; 1 )
+  </sql>
+  <sub>
+    <r_ktm_manage_mem_have_2con_nest>
+      <sql>
+        select sc_lon_m_contract.loan_contract_no
+        ,sc_lon_m_contract.begining_of_contract
+        ,sc_lon_m_loan_card.principal_balance
+
+        from sc_lon_m_contract
+        ,sc_lon_m_loan_card
+        ,sc_lon_m_rule
+        where sc_lon_m_loan_card.loan_contract_no = sc_lon_m_contract.loan_contract_no
+        and sc_lon_m_loan_card.loan_type = sc_lon_m_rule.loan_type
+        and sc_lon_m_loan_card.principal_balance &gt; 0
+        and sc_lon_m_loan_card.loan_type &lt;&gt; '3'
+        and sc_lon_m_rule.loan_group_code = '02'
+        /*WHERE*/
+        and sc_lon_m_contract.membership_no = {0}
+        and sc_lon_m_rule.loan_type = {1}
+        order by sc_lon_m_contract.loan_contract_no
+      </sql>
+    </r_ktm_manage_mem_have_2con_nest>
+  </sub>
+</root>

@@ -1,0 +1,68 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <begining_of_contract text="วันที่" table="sc_lon_m_contract" type="date" operator="bt" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select  sc_lon_m_contract.loan_contract_no
+,       sc_lon_m_contract.membership_no
+,       substr(pka_lon_reqsrv.fp_calc_agetext_m_live ( sc_lon_m_contract.membership_no , sc_lon_m_contract.begining_of_contract ),1,3)as age
+,       trim(pka_com_function.fp_get_member_name ( sc_lon_m_contract.membership_no )) ||'  ('|| sc_lon_m_contract.membership_no ||')' as member_name
+,       pka_com_function.fp_get_group_name ( sc_lon_m_contract.member_group_no ) as group_name
+,       pka_com_function.fp_get_member_sharestock ( sc_lon_m_contract.membership_no ) as share_stock
+,       pka_com_function.fp_get_moneythai ( sc_lon_m_contract.loan_request_amount ) as loan_request_amount_thai
+,       sc_lon_m_contract.loan_request_amount
+,       sc_lon_m_contract.loan_approve_amount
+,       sc_lon_m_contract.loan_installment_amount
+,       sc_lon_m_contract.begining_of_contract
+,       sc_lon_m_contract.loan_type
+,       sc_lon_m_contract.period_payment_amount
+
+,       (select   nvl(total_old_loan + total_oldint,0)
+         from      sc_lon_m_loan_request
+         where     loan_requestment_no = sc_lon_m_contract.loan_requestment_no
+         ) as     old_loan
+
+,       (select   real_recieve
+         from      sc_lon_m_loan_request
+         where     loan_requestment_no = sc_lon_m_contract.loan_requestment_no
+         ) as     real_recieve
+
+,       (select   balance_salary
+         from      sc_lon_m_loan_request
+         where     loan_requestment_no = sc_lon_m_contract.loan_requestment_no
+         ) as     balance_salary
+
+,       (select   salary_amount
+         from      sc_lon_m_loan_request
+         where     loan_requestment_no = sc_lon_m_contract.loan_requestment_no
+         ) as     salary_amount
+
+,       sc_lon_m_ucf_loan_obj.loan_objective_description
+,       '!begining_of_contract_1!' as from_date
+,       '!begining_of_contract_2!' as to_date
+,       ((sc_lon_req_coll_law_appraise.company_square * sc_lon_req_coll_law_appraise.land_company)+sc_lon_req_coll_law_appraise.house_company)as sum_land_house_value    
+,       (sc_lon_req_coll_law_appraise.land_coop * sc_lon_req_coll_law_appraise.land_square * sc_lon_req_coll_law_appraise.land_rate) as loan_land_amount
+,       (sc_lon_req_coll_law_appraise.house_coop * sc_lon_req_coll_law_appraise.house_square * sc_lon_req_coll_law_appraise.house_rate) as loan_building_amount
+,       ((select   salary_amount
+         from      sc_lon_m_loan_request
+         where     loan_requestment_no = sc_lon_m_contract.loan_requestment_no
+         ) * 0.95) as share_95
+from    sc_lon_m_contract
+,       sc_lon_m_rule
+,       sc_lon_m_ucf_loan_obj
+,       sc_lon_req_coll_law_appraise
+,       sc_lon_req_coll_law_head
+where   sc_lon_m_contract.loan_type = sc_lon_m_rule.loan_type
+and     sc_lon_m_contract.loan_type = sc_lon_m_ucf_loan_obj.loan_type
+and     sc_lon_m_contract.loan_objective_code = sc_lon_m_ucf_loan_obj.loan_objective_code
+and     sc_lon_req_coll_law_appraise.doc_no = sc_lon_req_coll_law_head.doc_no
+and     sc_lon_m_contract.membership_no = sc_lon_req_coll_law_head.membership_no
+and     sc_lon_m_contract.create_loan_status = '1'
+and     sc_lon_m_contract.loan_type = '60'
+--and     sc_lon_m_contract.begining_of_contract between '01 ก.พ. 2023' and '28 ก.พ. 2023'
+/*WHERE*/
+order by sc_lon_m_contract.membership_no</sql>
+  <sub>
+  </sub>
+</root>

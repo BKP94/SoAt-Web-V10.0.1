@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <member_group_no text="หน่วย" table="sc_mem_m_ucf_member_group" operator="bt" nulltext="ดูทั้งหมด ไม่ต้องเลือกนะจ๊ะ" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    select member_group_no
+    ,member_group_name
+    ,paid_status
+    from sc_mem_m_ucf_member_group
+    where member_group_no in ( select member_group_fin
+    from sc_mem_m_ucf_member_group )
+    /*WHERE*/
+    --and	member_group_no	between	:as_group1 and :as_group2
+    order by member_group_no
+  </sql>
+  <sub />
+</root>

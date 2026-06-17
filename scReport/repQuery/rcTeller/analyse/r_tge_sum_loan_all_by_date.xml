@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <begining_of_contract text="วันที่" table="sc_lon_m_contract" type="date" column="begining_of_contract" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select sum(tab.row_date)over(order by tab.begining_of_contract) as rowno,  tab.*
+from (  SELECT decode(lag(sc_lon_m_contract.begining_of_contract,1,null)over(  order by sc_lon_m_contract.begining_of_contract ) ,sc_lon_m_contract.begining_of_contract ,0,1 ) as row_date
+,       sc_lon_m_contract.begining_of_contract
+,       sc_lon_m_contract.loan_contract_no
+,       sc_lon_m_contract.loan_approve_amount
+,       sc_lon_m_loan_request.total_old_loan + sc_lon_m_loan_request.total_oldint as total_old_loan
+,       sc_mem_m_ucf_member_group.member_group_no
+,       sc_mem_m_ucf_member_group.member_group_name
+,       sysdate
+from    sc_lon_m_contract
+,       sc_mem_m_membership_registered
+,       sc_mem_m_ucf_member_group
+,       sc_lon_m_rule
+,       sc_lon_m_loan_request
+where   sc_lon_m_contract.membership_no = sc_mem_m_membership_registered.membership_no
+and     sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+and     sc_lon_m_rule.loan_type = sc_lon_m_contract.loan_type
+and     sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
+and     sc_mem_m_membership_registered.member_status_code = '0'
+and     sc_mem_m_membership_registered.mem_type = '01'
+and     sc_lon_m_contract.create_loan_status = '1'
+and     sc_lon_m_rule.invest_status = '0'
+--and     sc_lon_m_contract.begining_of_contract between '01/07/2023' and '30/07/2023'
+/*WHERE*/
+order by sc_lon_m_contract.begining_of_contract
+) tab</sql>
+  <sub />
+</root>

@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="T025" rep_text="-&gt; รายงานเคลื่อนไหวหุ้น">
+  <arg>
+  </arg>
+  <combo />
+  <sql>SELECT SC_MEM_M_MEMBERSHIP_REGISTERED.MEMBERSHIP_NO
+	,(SC_MEM_M_UCF_PRENAME.prename || sc_mem_m_membership_registered.member_name || '  ' || sc_mem_m_membership_registered.member_surname) AS membername
+	,SC_LON_M_LOAN_CARD.LOAN_CONTRACT_NO
+	,SC_LON_M_LOAN_CARD.BEGIN_BALANCE
+	,SC_LON_M_LOAN_CARD.PRINCIPAL_BALANCE
+	,SC_LON_M_LOAN_CARD.INTEREST_ARREAR
+	,SC_MEM_M_MEMBERSHIP_REGISTERED.ID_CARD
+	,SC_LON_M_LOAN_CARD.FIXED_INTEREST_RATE
+	,sc_lon_m_ucf_loan_code.LOAN_CODE_DESC
+	,pka_com_function.fp_get_thaidate(SC_LON_M_CONTRACT.APPROVE_DATE, 'dd/mm/yyyy') AS APPROVE_DATE
+	,SC_MEM_M_UCF_MEMBER_GROUP.MEMBER_GROUP_NAME
+	,SC_MEM_M_MEMBERSHIP_REGISTERED.MEMBER_GROUP_NO
+	,SC_LON_M_LOAN_CARD.LAST_PERIOD
+	,SC_LON_M_CONTRACT.PERIOD_PAYMENT_AMOUNT
+	,SC_LON_M_LOAN_CARD.DROP_PAYMENT_STATUS
+	,SC_LON_M_LOAN_CARD.FIXED_PAYMENT
+	,SC_LON_M_CONTRACT.LOAN_PAYMENT_TYPE_CODE
+	,pka_com_function.fp_get_thaidate(sc_mem_m_membership_registered.resignation_approve_date, 'dd/mm/yyyy') AS resignation_approve_date
+	,SC_MEM_M_UCF_MEMBER_GROUP.group_section
+	,pka_com_function.fp_get_thaidate(SC_LON_M_LOAN_CARD.entry_date, 'dd/mm/yyyy') AS entry_date
+	,SC_MEM_M_UCF_MEMBER_GROUP.member_group_ref
+	,sc_lon_m_contract.loan_type
+	,sc_mem_m_membership_registered.id_card
+	,DECODE(SC_LON_M_CONTRACT.drop_payment_status, '0', 'ปกติ', '1', 'งดทั้งหมด', '2', 'งดต้น', 'งดดอก') AS drop_payment_status_name
+	,DECODE(SC_LON_M_CONTRACT.loan_payment_type_code, '01', 'คงต้น', 'คงยอด') AS loan_payment_type_name
+FROM SC_LON_M_LOAN_CARD
+	,SC_MEM_M_MEMBERSHIP_REGISTERED
+	,SC_MEM_M_UCF_MEMBER_GROUP
+	,SC_MEM_M_UCF_PRENAME
+	,sc_lon_m_ucf_loan_code
+	,SC_LON_M_CONTRACT
+        ,sc_mem_m_share_mem
+WHERE (SC_MEM_M_MEMBERSHIP_REGISTERED.PRENAME_CODE = SC_MEM_M_UCF_PRENAME.PRENAME_CODE)
+	AND (SC_LON_M_LOAN_CARD.LOAN_CODE = sc_lon_m_ucf_loan_code.LOAN_CODE)
+	AND (SC_LON_M_CONTRACT.LOAN_CONTRACT_NO = SC_LON_M_LOAN_CARD.LOAN_CONTRACT_NO)
+	AND (SC_MEM_M_MEMBERSHIP_REGISTERED.MEMBER_GROUP_NO = SC_MEM_M_UCF_MEMBER_GROUP.MEMBER_GROUP_NO)
+    and sc_mem_m_membership_registered.membership_no = sc_mem_m_share_mem.membership_no
+    --and sc_mem_m_share_mem.share_stock &lt;=0
+	AND (
+		(SC_LON_M_LOAN_CARD.MEMBERSHIP_NO = sc_mem_m_membership_registered.membership_no)
+		AND (SC_LON_M_LOAN_CARD.contact_status = '1')
+		AND (SC_LON_M_LOAN_CARD.principal_balance &gt; 0)
+		)
+        
+ORDER BY SC_MEM_M_MEMBERSHIP_REGISTERED.MEMBERSHIP_NO ASC</sql>
+  <sub />
+</root>

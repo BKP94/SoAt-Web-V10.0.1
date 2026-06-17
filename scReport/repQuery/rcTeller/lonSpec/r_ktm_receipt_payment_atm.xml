@@ -1,0 +1,225 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <branch_id text="สาขา" table="sc_com_m_branch" combo="sc_com_m_branch" readonly="0" />
+    <receipt_date text="วันที่" table="sc_com_m_receipt" type="date" operator="bt" readonly="0" />
+    <user_id text="ผู้บันทึก" table="si_security_user" column="user_id" combo="si_security_user2" readonly="0" />
+    <member_group_no text="หน่วย" table="sc_mem_m_ucf_member_group" column="member_group_no" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+  </arg>
+  <combo />
+  <sql> select sum(tab.row_memno)over( order by tab.receipt_date ,tab.branch_id ,tab.sort_order ,tab.money_type_id ,tab.bank_fin , tab.entry_id  ,tab.receipt_no ,tab.sort_group_item ) as rowno,  tab.*
+    from (
+    SELECT decode(lag(sc_com_m_receipt.receipt_no,1,null)over( order by sc_com_m_receipt.receipt_date ,sc_com_m_branch.branch_id ,sc_com_m_ucf_money_type.sort_order
+    ,sc_com_m_receipt.money_type_id ,sc_fin_m_bank.bank_fin , sc_com_m_receipt.entry_id ,sc_com_m_receipt.receipt_no  ,( case group_item  when 'SHR' then 1 when 'LON'  then  5 else  99 end ) ) ,sc_com_m_receipt.receipt_no,0,1) as row_memno,
+    sc_com_m_receipt.receipt_date  as receipt_date
+    ,sc_com_m_receipt.receipt_no  as receipt_no
+    ,( case group_item  when 'SHR' then 1 when 'LON'  then  5 else  99 end ) as sort_group_item
+    ,to_tdate(sc_com_m_receipt.cancel_date) as tdate_cancel_date
+    ,sc_mem_m_membership_registered.membership_no    as membership_no
+    ,PKA_COM_FUNCTION.fp_get_member_name( sc_mem_m_membership_registered.membership_no ) as membername
+    ,sc_com_m_receipt.receipt_status  as receipt_status
+
+    ,sc_com_m_ucf_receipt_item_type.group_item  as group_item
+   , sc_mem_m_ucf_member_group.member_group_name
+   , sc_com_m_receipt.cheque_date
+
+    ,case
+    when  sc_com_m_ucf_receipt_item_type.group_item  = 'LON'  then
+    sc_com_m_receipt_item.description||
+    ( select ' (*)' from sc_lon_m_loan_card
+    where loan_contract_no = trim( sc_com_m_receipt_item.description )
+    and loan_code &lt;&gt; '0' )
+    when  sc_com_m_ucf_receipt_item_type.group_item  = 'ISP'  then
+    sc_com_m_receipt_item.description --FPB_GET_INSURE_NAME( sc_com_m_receipt_item.description  )
+    else
+    sc_com_m_receipt_item.description
+    end   as 		description
+
+
+    ,sc_com_m_receipt.entry_id as entry_id
+
+    ,sc_com_m_ucf_money_type.sort_order as sort_order
+    ,sc_com_m_receipt.money_type_id as money_type_id
+    ,sc_com_m_ucf_money_type.money_type_name  as money_type_name
+
+    ,sc_com_m_branch.branch_id  as branch_id
+    ,sc_com_m_branch.branch_name  as branch_name
+
+    ,decode( sc_com_m_receipt.receipt_status , '0' , sc_com_m_receipt_item.principal_amount , 0  ) as principal_amount
+    ,decode( sc_com_m_receipt.receipt_status , '0' , sc_com_m_receipt_item.interest_amount , 0  ) as interest_amount
+    ,decode( sc_com_m_receipt.receipt_status , '0' , sc_com_m_receipt_item.item_amount , 0  ) as item_amount
+    ,sc_com_m_receipt.ppm_status as ppm_status
+    ,sc_com_m_receipt.keep_monthly as keep_monthly
+    , decode(  sc_com_m_ucf_receipt_item_type.group_item , 'LON' ,  FPB_GET_LOAN_TYPE_REF(  sc_com_m_receipt_item.loan_type ) , sc_com_m_receipt_item.loan_type )  as loan_type
+    ,sc_fin_m_bank.account_id
+    ,sc_fin_m_bank.bank_fin
+    ,sc_fin_m_bank.bank_name
+    ,sc_acc_m_account_master.account_name
+    ,(  	select sum( item_amount )
+    from	sc_com_m_receipt_item
+    where	receipt_no = sc_com_m_receipt.receipt_no ) as sum_rec
+
+
+
+    ,sc_com_m_receipt.money_trans_amount
+    ,sc_com_m_receipt.money_trans_return
+    ,sc_com_m_receipt.calcint_date
+    ,sc_com_m_receipt.cancel_date
+    ,sc_com_m_receipt.cancel_id
+    , sc_mem_m_ucf_member_type.mem_type_code
+    ,sc_mem_m_ucf_member_type.mem_type_desc
+    FROM sc_mem_m_membership_registered,
+    sc_mem_m_ucf_member_group,
+    sc_com_m_receipt,
+    sc_com_m_receipt_item,
+    sc_com_m_ucf_money_type,
+    sc_com_m_branch  ,
+    sc_com_m_ucf_receipt_item_type
+    ,si_security_user
+    ,sc_fin_m_bank
+    ,sc_acc_m_account_master
+    ,sc_mem_m_ucf_member_type
+
+    WHERE ( sc_com_m_receipt.member_group_no = sc_mem_m_ucf_member_group.member_group_no ) and
+    ( sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no ) and
+    ( sc_mem_m_membership_registered.membership_no = sc_com_m_receipt.membership_no ) and
+    ( sc_com_m_receipt.money_type_id = sc_com_m_ucf_money_type.money_type_id ) and
+    ( sc_com_m_receipt.branch_id = sc_com_m_branch.branch_id ) and
+    ( 	sc_com_m_ucf_receipt_item_type.item_type_id = sc_com_m_receipt_item.item_type_id ) and
+    ( ( sc_com_m_receipt_item.item_amount &gt; 0 ) )
+
+    and si_security_user.user_id  = sc_com_m_receipt.entry_id
+    and sc_com_m_ucf_money_type.money_type_id not in ( 'FUN' )
+    and sc_com_m_ucf_money_type.money_type_id =   'AOP'
+    and sc_fin_m_bank.bank_fin = sc_com_m_receipt.fin_bank
+    and sc_fin_m_bank.account_id = sc_acc_m_account_master.account_id
+    and sc_mem_m_ucf_member_type.mem_type_code = sc_mem_m_membership_registered.mem_type
+    /*WHERE*/
+    order by sc_com_m_receipt.receipt_date ,sc_com_m_branch.branch_id ,sc_com_m_ucf_money_type.sort_order
+    ,sc_com_m_receipt.money_type_id ,sc_fin_m_bank.bank_fin , sc_com_m_receipt.entry_id ,sc_com_m_receipt.receipt_no  ,( case group_item  when 'SHR' then 1 when 'LON'  then  5 else  99 end )
+    )tab
+  </sql>
+  <sub>
+    <r_ktm_receipt_payment_atm_nest>
+      <sql>
+        SELECT tab_data.account_id,
+        tab_data.account_name,
+        tab_data.loan_type,
+        tab_data.loan_type_description,
+        tab_data.principal_amount,
+        tab_data.interest_amount,
+        tab_data.item_amount
+        ,tab_data. loan_type_des
+        ,( 	select sum( money_trans_return )
+        from	sc_com_m_receipt , sc_com_m_ucf_money_type
+        where sc_com_m_receipt.receipt_status ='0'
+        and	sc_com_m_receipt.money_type_id = sc_com_m_ucf_money_type.money_type_id
+        and     sc_com_m_ucf_money_type.account_type =   'FBK'
+        and	receipt_date = {0}
+        and 	branch_id = {1}
+        ) as money_trans_return
+        from
+        (
+        /* à§Ô¹¡Ùé */
+        SELECT sc_acc_m_account_master.account_id,
+        sc_acc_m_account_master.account_name,
+        sc_lon_m_rule.loan_type,
+        sc_lon_m_rule.loan_type_description,
+
+        sum( sc_com_m_receipt_item.principal_amount ) as principal_amount,
+        sum( sc_com_m_receipt_item.interest_amount ) as interest_amount,
+        sum( sc_com_m_receipt_item.item_amount) as item_amount  ,
+        sc_com_m_receipt.receipt_date as receipt_date
+        ,(sc_lon_m_rule.ref_contract_type) as loan_type_des
+        ,sc_com_m_receipt.branch_id as branch_id
+        FROM sc_com_m_receipt,
+        sc_com_m_receipt_item,
+        sc_lon_m_rule,
+        sc_acc_m_account_master,
+        sc_com_m_ucf_receipt_item_type
+        ,sc_com_m_ucf_money_type
+        WHERE ( sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no ) and
+        ( sc_com_m_receipt_item.loan_type = sc_lon_m_rule.loan_type ) and
+        ( FPB_GET_KEEP_ACCOUNT_ID(  'ML'  , sc_com_m_receipt.membership_no ,  sc_com_m_receipt_item.description , sc_com_m_receipt_item.loan_type  )  = sc_acc_m_account_master.account_id ) and
+        ( sc_com_m_receipt_item.item_type_id = sc_com_m_ucf_receipt_item_type.item_type_id ) and
+        ( sc_com_m_receipt.receipt_status = '0' ) AND
+        ( sc_com_m_ucf_receipt_item_type.group_item = 'LON' ) AND
+        ( sc_com_m_receipt_item.item_amount &lt;&gt; 0 )
+        and sc_com_m_ucf_money_type.money_type_id = sc_com_m_receipt.money_type_id
+        and    sc_com_m_ucf_money_type.account_type =   'FBK'
+        /*and sc_com_m_receipt.receipt_date = '20/1/2016'*/
+        GROUP BY sc_acc_m_account_master.account_id,
+        sc_acc_m_account_master.account_name,
+        sc_lon_m_rule.loan_type,
+        sc_lon_m_rule.loan_type_description   ,
+        sc_com_m_receipt.receipt_date  ,
+        sc_lon_m_rule.ref_contract_type
+        ,sc_com_m_receipt.money_type_id
+        ,sc_com_m_receipt.branch_id
+
+        union
+
+        SELECT sc_com_m_ucf_receipt_item_type.item_type_id as account_id  ,
+        sc_com_m_ucf_receipt_item_type.item_type_name  as account_name  ,
+        sc_com_m_ucf_receipt_item_type.item_type_id as loan_type  ,
+        sc_com_m_ucf_receipt_item_type.item_type_name  as loan_type_description ,
+
+        sum( sc_com_m_receipt_item.principal_amount ) as principal_amount,
+        sum( sc_com_m_receipt_item.interest_amount ) as interest_amount,
+        sum( sc_com_m_receipt_item.item_amount) as item_amount  ,
+        sc_com_m_receipt.receipt_date as receipt_date
+
+        ,' - ' as loan_type_des
+        ,sc_com_m_receipt.branch_id as branch_id
+        FROM sc_com_m_receipt,
+        sc_com_m_receipt_item,
+        sc_com_m_ucf_receipt_item_type
+        ,sc_com_m_ucf_money_type
+        WHERE ( sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no ) and
+        ( sc_com_m_receipt_item.item_type_id = sc_com_m_ucf_receipt_item_type.item_type_id ) and
+        ( sc_com_m_receipt.receipt_status = '0' ) AND
+        ( sc_com_m_ucf_receipt_item_type.group_item &lt;&gt; 'LON' ) AND
+        ( sc_com_m_receipt_item.item_amount &lt;&gt; 0 )
+        and sc_com_m_ucf_money_type.money_type_id = sc_com_m_receipt.money_type_id
+        and    sc_com_m_ucf_money_type.account_type =   'FBK'
+        /*and sc_com_m_receipt.receipt_date = '20/1/2016'*/
+        GROUP BY sc_com_m_ucf_receipt_item_type.item_type_id,
+        sc_com_m_ucf_receipt_item_type.item_type_name ,
+        sc_com_m_receipt.receipt_date
+        ,sc_com_m_receipt.money_type_id
+        ,sc_com_m_receipt.branch_id
+
+        ) tab_data
+        , sc_fin_m_close_day
+        ,sc_com_m_branch
+        where sc_fin_m_close_day.journal_date = tab_data.receipt_date
+        and	sc_fin_m_close_day.journal_date  = {0}
+
+        and	sc_com_m_branch.branch_id = sc_fin_m_close_day.branch_fin
+        and 	sc_com_m_branch.branch_id = tab_data.branch_id
+        and 	sc_com_m_branch.branch_id = {1}
+      </sql>
+    </r_ktm_receipt_payment_atm_nest>
+    <r_ktm_receipt_payment_atm_nest_verify>
+      <sql>
+        SELECT sc_fin_m_bank_payment.item_no,
+        sc_fin_m_bank_payment.item_amount,
+        sc_fin_m_bank.bank_fin,
+        sc_fin_m_bank.bank_name,
+        sc_fin_m_bank_statement.seq_no,
+        sc_fin_m_bank_statement.operate_date
+        FROM sc_fin_m_bank_payment,
+        sc_fin_m_bank,
+        sc_fin_m_bank_statement
+        WHERE ( sc_fin_m_bank.bank_fin = sc_fin_m_bank_payment.bank_fin ) and
+        ( sc_fin_m_bank_payment.bank_fin = sc_fin_m_bank_statement.bank_fin ) and
+        ( sc_fin_m_bank_payment.seq_no = sc_fin_m_bank_statement.seq_no ) and
+        ( ( sc_fin_m_bank_payment.finance_date = {0} ) AND
+        ( sc_fin_m_bank_statement.verify_amount &gt; 0 ) AND
+        ( sc_fin_m_bank_payment.pay_method = 'TSP' ) AND
+        ( sc_fin_m_bank_payment.cancel_status = '0' ) AND
+        ( sc_fin_m_bank_payment.entry_br = {1} ) )
+      </sql>
+    </r_ktm_receipt_payment_atm_nest_verify>
+  </sub>
+</root>

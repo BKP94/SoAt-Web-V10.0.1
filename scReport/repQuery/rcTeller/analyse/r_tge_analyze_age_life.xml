@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg />
+  <combo />
+  <sql>    select sum_share_amount as sum_shr_not_lon
+    ,count_share as count_shr_not_lon
+    ,pka_com_function.fp_get_thaidate(date_fr,'dd/mm/yyyy') as tdate_fr
+    ,seq_no
+    ,begin_condition
+    ,end_condition
+    ,count_member
+    ,sum_share_stock
+    ,sum_share_amount
+    ,deposit_type
+    ,rpt
+    ,date_fr
+    ,count_share
+    ,count_loan_emer
+    ,sum_loan_emer
+    ,count_loan_norm
+    ,sum_loan_norm
+    ,count_loan_special
+    ,sum_loan_special
+    ,loan_balance
+    from SC_REP_ANALYSE_SHARE
+    where rpt = 'TEL065011063'
+  </sql>
+  <sub />
+</root>

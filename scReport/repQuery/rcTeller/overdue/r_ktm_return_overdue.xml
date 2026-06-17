@@ -1,0 +1,65 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <receipt_effectdate text="วันที่คืน" table="sc_kep_t_monthly_receive" type="date" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT
+    sc_fin_ucf_keeping_group.member_group_keeping ,
+    sc_kep_t_monthly_receive.receipt_effectdate,
+    sc_fin_ucf_keeping_group.member_group_name as fin_group_name ,
+    sc_kep_t_monthly_receive.membership_no,
+    pka_com_function.fp_get_member_name(sc_kep_t_monthly_receive.membership_no)	as	member_fullname,
+    sc_mem_m_membership_registered.member_name,
+    sc_mem_m_membership_registered.member_surname  ,
+    PKA_KEP_MAGENT.fp_get_agent_amount_seq(  sc_kep_t_monthly_receive.membership_no , sc_kep_t_monthly_receive.receive_year , sc_kep_t_monthly_receive.receive_month , sc_kep_t_monthly_receive.seq_no )   as mproc_total_keep,
+    sc_mem_m_ucf_member_group.member_group_no,
+    sc_mem_m_ucf_member_group.member_group_name,
+    sc_kep_t_monthly_receive.kep_method_amount  ,
+    sc_kep_t_monthly_receive.amount_form_file
+    ,sc_kep_t_monthly_receive.total_keep_notinput
+    ,sc_mem_m_member_address.telephone
+    FROM sc_kep_t_monthly_receive,
+    sc_mem_m_membership_registered,
+    sc_mem_m_ucf_member_group,
+    sc_mem_m_ucf_member_type,
+    sc_mem_m_ucf_coop_control,
+    sc_fin_ucf_keeping_group
+    ,sc_mem_m_member_address
+    WHERE 1=1 and
+    ( sc_mem_m_membership_registered.membership_no = sc_kep_t_monthly_receive.membership_no ) and
+    ( sc_mem_m_ucf_member_group.member_group_no = sc_kep_t_monthly_receive.member_group_no ) and
+    ( sc_mem_m_ucf_member_type.mem_type_code = sc_mem_m_membership_registered.mem_type ) and
+    ( sc_mem_m_ucf_member_group.control_id = sc_mem_m_ucf_coop_control.control_id ) and
+    ( sc_mem_m_ucf_member_group.keeping_fingroup = sc_fin_ucf_keeping_group.member_group_keeping )
+    and sc_mem_m_member_address.membership_no = sc_mem_m_membership_registered.membership_no
+    and sc_mem_m_member_address.address_type = '0'
+    and sc_kep_t_monthly_receive.receipt_status = '2'
+
+    --ยอดที่เก็บได้ น้อยกว่ายอดเรียกเก็บ สถานะ 2 ไม่ได้แปลว่าเก็บไม่ได้เสมอไป เคส ดอกเบี้ยสัญญาเก่า น้อยกว่า ดอกเบี้ยสัญญาใหม่
+    and sc_kep_t_monthly_receive.kep_method_amount &lt;  PKA_KEP_MAGENT.fp_get_agent_amount_seq(  sc_kep_t_monthly_receive.membership_no ,
+    sc_kep_t_monthly_receive.receive_year , sc_kep_t_monthly_receive.receive_month , sc_kep_t_monthly_receive.seq_no )
+
+    /*WHERE*/
+    --and sc_kep_t_monthly_receive.receipt_effectdate = '29/7/2020'
+    order by sc_fin_ucf_keeping_group.member_group_keeping
+    ,sc_mem_m_ucf_member_group.member_group_no
+    ,sc_kep_t_monthly_receive.membership_no
+  </sql>
+  <sub>
+    <r_ktm_return_overdue_nest_coll>
+      <sql>
+        SELECT	pka_com_function.fp_form( pka_com_function.fp_get_member_group( sc_lon_m_contract_coll.ref_own_no ) ,'XXX-XXX' ) as coll_group_no ,sc_lon_m_contract_coll.ref_own_no ,sc_lon_m_contract_coll.collateral_description
+        FROM	sc_lon_m_loan_card, sc_lon_m_contract_coll ,sc_lon_m_contract
+        WHERE
+        ( sc_lon_m_loan_card.loan_contract_no = sc_lon_m_contract.loan_contract_no )
+        AND	( sc_lon_m_contract.loan_contract_no = sc_lon_m_contract_coll.loan_contract_no )
+        AND 	( sc_lon_m_contract_coll.status = '0' )
+        AND 	( sc_lon_m_contract.membership_no = {0} )
+        AND   ( sc_lon_m_loan_card.principal_balance &gt; 0 )
+        /*WHERE*/
+        ORDER BY sc_lon_m_contract_coll.collateral_no
+      </sql>
+    </r_ktm_return_overdue_nest_coll>
+  </sub>
+</root>

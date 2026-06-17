@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <loan_requestment_no align="center" special="memno" text="เลขที่คำขอกู้" table="sc_lon_m_req_coll" readonly="0" />
+  </arg>
+  <combo />
+  <sql>SELECT sc_lon_m_req_coll.loan_requestment_no
+,sc_lon_m_loan_request.loan_type
+,pka_com_function.fp_get_thaidate(sc_lon_m_loan_request.requestment_date ,'SD MONTH YYYY') as requestment_date_thai
+,pka_com_function.fp_get_thaidate(sc_lon_m_loan_request.requestment_date ,'SD/MM/YYYY') as requestment_date
+,sc_lon_m_req_coll.collateral_description
+,pka_com_function.fp_get_member_name(sc_lon_m_loan_request.membership_no) as memname
+,pka_lon_reqsrv.fp_calc_agetext_m_live(sc_mem_m_membership_registered.membership_no)as age_life_text
+,sc_lon_m_req_coll.ref_membership_no
+,pka_com_function.fp_form_idcard(sc_mem_m_membership_registered.id_card) as id_card
+,sc_mem_m_membership_registered.mem_type
+,pka_com_function.fp_get_member_position_long( sc_lon_m_req_coll.ref_membership_no ) as position_name
+,pka_com_function.fp_get_group_name_mem(sc_lon_m_req_coll.ref_membership_no) as member_group_name
+,sc_lon_m_req_coll.req_amount
+,pka_com_function.fp_get_moneythai(sc_lon_m_req_coll.req_amount) as req_amount_thai
+,sc_lon_m_loan_request.loan_request_amount
+,pka_com_function.fp_get_moneythai(sc_lon_m_loan_request.loan_request_amount) as loan_request_amount_thai
+    
+--ที่อยู่
+,sc_mem_m_member_address.address_no
+,sc_mem_m_member_address.moo
+,sc_mem_m_member_address.road
+,sc_mem_m_member_address.soi
+,pka_com_function.fp_get_sub_district_name(sc_mem_m_member_address.tambol) as tambol
+,pka_com_function.fp_get_district_name(sc_mem_m_member_address.province_code , sc_mem_m_member_address.district_code) as district_name
+,pka_com_function.fp_get_province_name(sc_mem_m_member_address.province_code) as province_name
+,sc_mem_m_member_address.postcode
+,pka_com_function.fp_get_member_address_tel(sc_lon_m_req_coll.ref_membership_no,1) as telephone
+,(select sc_mem_m_member_work_info.work_telephone from sc_mem_m_member_work_info where membership_no = sc_lon_m_req_coll.ref_membership_no) as work_telephone
+,sc_cnt_m_coop.coop_name
+
+FROM sc_lon_m_req_coll
+,sc_mem_m_membership_registered
+,sc_mem_m_member_address
+,sc_lon_m_loan_request
+,sc_cnt_m_coop
+
+    
+where sc_lon_m_req_coll.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+and sc_lon_m_req_coll.ref_membership_no = sc_mem_m_membership_registered.membership_no
+and sc_mem_m_membership_registered.membership_no = sc_mem_m_member_address.membership_no
+and sc_lon_m_req_coll.collateral_type_code = '01'
+and sc_mem_m_member_address.address_type = '1'
+
+/*WHERE*/
+</sql>
+  <sub />
+</root>

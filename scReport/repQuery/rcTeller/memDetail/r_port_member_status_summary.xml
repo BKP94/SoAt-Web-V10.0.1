@@ -1,0 +1,142 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <membership_no align="center" special="memno" text="ทะเทียน" table="sc_mem_m_membership_registered" readonly="0" comboreplace="0" combowhere="0" />
+    <member_group_no text="หน่วย" table="sc_mem_m_ucf_member_group" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select  sc_mem_m_ucf_prename.prename||sc_mem_m_membership_registered.member_name||' '||sc_mem_m_membership_registered.member_surname as member_name
+,       sc_mem_m_membership_registered.membership_no
+,       sc_mem_m_ucf_member_group.member_group_no
+,       sc_mem_m_ucf_member_group.member_group_name
+,       sc_mem_m_share_mem.share_stock
+,       trim(pka_com_function.fp_get_member_address_letter( sc_mem_m_membership_registered.membership_no , '0' , '1' ) ||
+        pka_com_function.fp_get_member_address_letter( sc_mem_m_membership_registered.membership_no , '0' , '2' ) ||
+        pka_com_function.fp_get_member_address_letter( sc_mem_m_membership_registered.membership_no , '0' , '3' ) || 
+        pka_com_function.fp_get_member_address_letter( sc_mem_m_membership_registered.membership_no , '0' , '4' )) as member_address
+from    sc_mem_m_membership_registered
+,       sc_mem_m_ucf_prename
+,       sc_mem_m_share_mem
+,       sc_mem_m_ucf_member_group
+where   sc_mem_m_membership_registered.member_status_code = '0'
+and     sc_mem_m_membership_registered.prename_code = sc_mem_m_ucf_prename.prename_code
+and     sc_mem_m_share_mem.membership_no = sc_mem_m_membership_registered.membership_no
+and     sc_mem_m_ucf_member_group.member_group_no = sc_mem_m_membership_registered.member_group_no
+/*WHERE*/
+--and     sc_mem_m_ucf_member_group.member_group_no = '100'
+order by sc_mem_m_ucf_member_group.member_group_no
+,        sc_mem_m_membership_registered.membership_no</sql>
+  <sub>
+    <r_port_member_status_summary_nest_coll>
+      <sql>select  sc_lon_m_contract_coll.loan_contract_no
+,       sc_lon_m_loan_card.membership_no
+,       pka_com_function.fp_get_member_name( sc_lon_m_loan_card.membership_no ) as membername
+from    sc_lon_m_contract_coll 
+,       sc_lon_m_loan_card
+where   sc_lon_m_contract_coll.loan_contract_no =  sc_lon_m_loan_card.loan_contract_no
+and     sc_lon_m_loan_card.principal_balance &gt; 0
+and     sc_lon_m_contract_coll.status = '0'
+and     sc_lon_m_contract_coll.collateral_type_code = '01'
+and     sc_lon_m_contract_coll.ref_own_no = {0}
+/*WHERE*/
+order by sc_lon_m_contract_coll.loan_contract_no</sql>
+    </r_port_member_status_summary_nest_coll>
+    <r_port_member_status_summary_nest_loan>
+      <sql>select  ROW_NUMBER () OVER (PARTITION BY sc_lon_m_loan_card.loan_contract_no ORDER BY sc_lon_m_loan_card.loan_contract_no , sc_lon_m_contract_coll.ref_own_no ASC) as row_no
+,       sc_lon_m_loan_card.loan_contract_no
+,       sc_lon_m_loan_card.membership_no
+,       pka_com_function.fp_get_member_name( sc_lon_m_loan_card.membership_no ) as membername
+,       sc_lon_m_loan_card.principal_balance
+,       sc_lon_m_contract.loan_approve_amount
+,       pka_com_function.fp_get_thaidate( sc_lon_m_contract.begining_of_contract ) begining_of_contract_thai
+,       sc_lon_m_contract_coll.ref_own_no
+,       pka_com_function.fp_get_member_name( sc_lon_m_contract_coll.ref_own_no ) as collname
+from    sc_lon_m_contract_coll 
+,       sc_lon_m_loan_card
+,       sc_lon_m_contract
+where   sc_lon_m_contract_coll.loan_contract_no =  sc_lon_m_loan_card.loan_contract_no
+and     sc_lon_m_contract.loan_contract_no = sc_lon_m_loan_card.loan_contract_no
+and     sc_lon_m_loan_card.principal_balance &gt; 0
+and     sc_lon_m_contract_coll.status = '0'
+and     sc_lon_m_contract_coll.collateral_type_code = '01'
+and     sc_lon_m_loan_card.membership_no = {0}
+/*WHERE*/
+--and     sc_lon_m_loan_card.membership_no = '05955'
+order by sc_lon_m_contract_coll.loan_contract_no
+,        sc_lon_m_contract_coll.ref_own_no</sql>
+    </r_port_member_status_summary_nest_loan>
+    <r_port_member_status_summary_nest_gain>
+      <sql>select  sc_mem_m_member_recrieve_gain.membership_no
+,       trim(sc_mem_m_member_recrieve_gain.gain_name||' '||sc_mem_m_member_recrieve_gain.gain_surname) as gainname
+,       sc_mem_m_ucf_concern.related_na
+from    sc_mem_m_member_recrieve_gain
+,       sc_mem_m_ucf_concern
+where   sc_mem_m_member_recrieve_gain.conceern_code = sc_mem_m_ucf_concern.conceern_code
+and     sc_mem_m_member_recrieve_gain.membership_no = {0}
+/*WHERE*/
+--and     sc_mem_m_member_recrieve_gain.membership_no = '01960'
+order by sc_mem_m_member_recrieve_gain.rec_no</sql>
+    </r_port_member_status_summary_nest_gain>
+    <r_port_member_status_summary_nest_dep>
+      <sql>select  sc_dep_m_creditor.membership_no
+,       sc_dep_m_creditor.deposit_balance
+,       pka_com_function.fp_form_depno( sc_dep_m_creditor.deposit_account_no ) as deposit_account_no_form
+,       pka_com_function.fp_get_thaidate( sc_dep_m_creditor.deposit_opened_date) as deposit_opened_tdate
+from    sc_dep_m_creditor
+,       sc_dep_m_rule
+where   ( sc_dep_m_creditor.deposit_type_code = sc_dep_m_rule.deposit_type_code )
+and     ( ( sc_dep_m_creditor.close_status is NULL )
+or      ( sc_dep_m_creditor.close_status &lt;&gt; 'C' )
+and     ( sc_dep_m_rule.insure_status = '0' ) )
+and     sc_dep_m_rule.invest_status = '0'
+and     sc_dep_m_creditor.membership_no = {0}
+/*WHERE*/
+order by sc_dep_m_creditor.membership_no
+,        sc_dep_m_creditor.deposit_account_no
+  </sql>
+    </r_port_member_status_summary_nest_dep>
+    <r_port_member_status_summary_nest_crem>
+      <sql>select  *
+from    (
+
+select  membership_no
+,       crem_type
+,       crem_name_shot
+,       crem_number
+from    view_tel_det_crem_gain_01
+
+union
+
+select  membership_no
+,       crem_type
+,       crem_name_shot
+,       crem_number
+from    view_tel_det_crem_gain_02
+
+union
+
+select  membership_no
+,       crem_type
+,       crem_name_shot
+,       crem_number
+from    view_tel_det_crem_gain_03
+
+union
+
+select  membership_no
+,       crem_type
+,       crem_name_shot
+,       crem_number
+from    view_tel_det_crem_gain_04
+
+) tab
+where   1=1
+and     membership_no = {0}
+/*WHERE*/
+--and     membership_no = '01960'
+order by membership_no
+,        crem_type
+,        crem_number</sql>
+    </r_port_member_status_summary_nest_crem>
+  </sub>
+</root>

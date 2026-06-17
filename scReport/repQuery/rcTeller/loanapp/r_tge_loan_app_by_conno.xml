@@ -1,0 +1,149 @@
+<root>
+  <arg>
+    <ref_contract_no text="ประเภทเงินกู้" table="sc_lon_m_rule" column="ref_contract_no" combo="sc_lon_m_rule2" readonly="0" />
+    <begining_of_contract text="วันที่" table="sc_lon_m_contract" type="date" column="begining_of_contract" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    SELECT PKA_COM_FUNCTION.fp_get_member_name( sc_lon_m_contract.membership_no ) as membername
+    ,sc_lon_m_contract.membership_no
+
+    ,( select nvl(sum( amount ),0)
+    from sc_lon_m_req_fee
+    where 1=1
+    and sc_lon_m_req_fee.fee_type in ( '01' )
+    and sc_lon_m_req_fee.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
+
+    ) as  insurance_amount /*ค่าประกันอัคคีภัย*/
+
+    ,( select nvl(sum( amount ),0)
+    from sc_lon_m_req_fee
+    where 1=1
+    and sc_lon_m_req_fee.fee_type in ( '02' )
+    and sc_lon_m_req_fee.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
+
+    ) as  loan_amount /*ค่าประกันสินเชื่อ*/
+
+    ,( select nvl(sum( amount ),0)
+    from sc_lon_m_req_fee
+    where 1=1
+    and sc_lon_m_req_fee.fee_type in ( '03' )
+    and sc_lon_m_req_fee.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
+
+    ) as app_land_amount /*ค่าประเมินที่ดิน*/
+
+    ,( select nvl(sum( amount ),0)
+    from sc_lon_m_req_fee
+    where 1=1
+    and sc_lon_m_req_fee.fee_type in ( '04','05','06' )
+    and sc_lon_m_req_fee.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
+
+    ) as cks_amount /*หักเงิน ชคส*/
+
+    ,( select nvl(sum( amount ),0)
+    from sc_lon_m_req_fee
+    where 1=1
+    and sc_lon_m_req_fee.fee_type in ( '07' )
+    and sc_lon_m_req_fee.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
+
+    ) as  crem_amount /*หักเงิน สมาคมฌาปนกิจ*/
+
+
+
+    , FPB_GET_LOAN_TYPE_REF(  sc_lon_m_contract.loan_type ) as loan_type ,
+    FPB_GET_LOAN_TYPE_DESC( FPB_GET_LOAN_TYPE_REF(  sc_lon_m_contract.loan_type ))  as loan_type_description ,
+
+    sc_lon_m_loan_request.buy_share,
+    sc_lon_m_loan_request.total_share_value,
+    sc_lon_m_contract.loan_requestment_no ,
+    sc_lon_m_contract.begining_of_contract ,
+    sc_lon_m_loan_request.requestment_date,
+    to_tdate(sc_lon_m_contract.begining_of_contract , 'dd month')||' '||'พ.ศ.'||to_tdate(sc_lon_m_contract.begining_of_contract , 'yyyy') as thia_begining_of_contract,
+    sc_lon_m_contract.loan_payment_type_code ,
+    sc_lon_m_contract.loan_approve_amount ,
+    sc_lon_m_contract.loan_installment_amount ,
+    sc_lon_m_contract.period_payment_amount ,
+    sc_lon_m_contract.start_keep_date ,
+    sc_lon_m_contract.real_recieve ,
+    sc_lon_m_contract.loan_contract_no ,
+    sc_lon_m_contract.appove_officer ,
+    sc_lon_m_contract.rec_rep_status,
+
+    sc_lon_m_loan_request.salary_amount ,
+    sc_lon_m_loan_request.entry_id ,
+
+    sc_mem_m_ucf_member_group.member_group_no
+
+    ,(   SELECT   sum( sc_com_m_receipt_item.principal_amount )
+    FROM  sc_com_m_receipt,
+    sc_com_m_receipt_item
+    WHERE ( sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no ) and
+    ( sc_com_m_receipt.loan_contract_no = sc_lon_m_contract.loan_contract_no ) AND
+    ( sc_com_m_receipt.money_type_id in( 'CLR' , 'TRL' ) ) AND
+    ( sc_com_m_receipt_item.item_type_id = 'PL' ) AND
+    ( sc_com_m_receipt.receipt_status = '0' )
+    ) as principal_amount
+
+    ,(   SELECT   sum( sc_com_m_receipt_item.interest_amount )
+    FROM  sc_com_m_receipt,
+    sc_com_m_receipt_item
+    WHERE ( sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no ) and
+    ( sc_com_m_receipt.loan_contract_no = sc_lon_m_contract.loan_contract_no ) AND
+    ( sc_com_m_receipt.money_type_id in( 'CLR' , 'TRL' ) ) AND
+    ( sc_com_m_receipt_item.item_type_id = 'PL' ) AND
+    ( sc_com_m_receipt.receipt_status = '0' )
+    ) as interest_amount
+
+    FROM   sc_lon_m_loan_request ,
+    sc_mem_m_membership_registered ,
+    sc_mem_m_ucf_member_group ,
+    sc_lon_m_rule ,
+    sc_lon_m_contract,
+    sc_lon_m_loan_card
+
+    WHERE  ( sc_mem_m_membership_registered.member_group_no  = sc_mem_m_ucf_member_group.member_group_no )
+    and    ( sc_lon_m_contract.loan_requestment_no     = sc_lon_m_loan_request.loan_requestment_no )
+    and    ( sc_mem_m_membership_registered.membership_no  = sc_lon_m_contract.membership_no )
+    and    ( sc_lon_m_contract.loan_type        = sc_lon_m_rule.loan_type )
+    and    ( sc_lon_m_loan_card.loan_contract_no = sc_lon_m_contract.loan_contract_no )
+    and    ( sc_lon_m_loan_request.approve_status = '1' )
+    /*WHERE*/
+    --and sc_lon_m_contract.begining_of_contract = '22/04/2020'
+    order by FPB_GET_LOAN_TYPE_REF(  sc_lon_m_contract.loan_type )  ,
+    sc_lon_m_contract.begining_of_contract ,
+    sc_lon_m_contract.loan_contract_no
+  </sql>
+  <sub>
+    <r_ktm_app_by_conno_nest>
+      <sql>
+        SELECT sc_lon_m_contract_coll.collateral_type_code,
+        ( case collateral_type_code
+        when '01' then  PKA_COM_FUNCTION.fp_get_member_name( sc_lon_m_contract_coll.ref_own_no )
+        when '02' then 'กู้ไม่เกินหุ้นที่ชำระแล้ว'
+        when '03' then 'เงินฝากเลขที่ '||ref_own_no
+        else  'ที่ดินเลขที่ '||collateral_description end) as case_collateral_type_code,
+        sc_lon_m_contract_coll.ref_own_no,
+        sc_lon_m_contract_coll.collateral_description
+        FROM sc_lon_m_contract_coll
+        WHERE ( sc_lon_m_contract_coll.loan_contract_no = {0} ) AND
+        ( sc_lon_m_contract_coll.status = '0' )
+      </sql>
+    </r_ktm_app_by_conno_nest>
+    <r_ktm_loan_paid_cash_nest_loan_old_conno>
+      <sql>SELECT sc_com_m_receipt_item.description,
+        sc_com_m_receipt_item.principal_amount ,
+        sc_com_m_receipt_item.interest_amount,
+        sc_com_m_receipt_item.loan_type,
+        sc_com_m_receipt_item.item_amount
+FROM sc_com_m_receipt,
+        sc_com_m_receipt_item,
+        sc_com_m_ucf_receipt_item_type
+WHERE ( sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no ) and
+        ( sc_com_m_receipt_item.item_type_id = sc_com_m_ucf_receipt_item_type.item_type_id ) and
+        ( sc_com_m_receipt.loan_contract_no = {0} ) AND
+        ( sc_com_m_receipt.money_type_id in( 'CLR' , 'TRL' ) ) AND
+        ( sc_com_m_receipt_item.item_type_id = 'PL' ) AND
+        ( sc_com_m_receipt.receipt_status = '0' )</sql>
+    </r_ktm_loan_paid_cash_nest_loan_old_conno>
+  </sub>
+</root>

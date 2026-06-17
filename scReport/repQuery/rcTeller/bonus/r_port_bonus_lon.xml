@@ -1,0 +1,17 @@
+<root>
+  <arg>
+  </arg>
+  <combo />
+  <sql>select  vr_bon_lon.*
+,       pka_com_function.fp_get_member_name( membership_no ) as member_name
+,       pka_com_function.fp_get_member_group( membership_no ) as member_group_no
+,       pka_com_function.fp_get_group_name_mem( membership_no ) as member_group_name
+from    vr_bon_lon
+where   1=1
+/*WHERE*/
+order by loan_type
+,        membership_no</sql>
+  <sub>
+  </sub>
+  <mis />
+</root>

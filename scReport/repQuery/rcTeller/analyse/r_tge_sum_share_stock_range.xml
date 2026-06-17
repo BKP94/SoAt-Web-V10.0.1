@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <confirm_date align="center" text="วันที่" table="sc_cls_confirm_data" type="date" column="confirm_date" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select  (case when  data_balance &lt;= 100000 then 1
+        when  data_balance between 100001 and 200000 then 2
+        when  data_balance between 200001 and 300000 then 3
+        when  data_balance between 300001 and 400000 then 4
+        when  data_balance between 400001 and 500000 then 5
+        when  data_balance between 500001 and 600000 then 6
+        when  data_balance between 600001 and 700000 then 7
+        when  data_balance between 700001 and 800000 then 8
+        when  data_balance between 800001 and 900000 then 9
+        when  data_balance between 900001 and 1000000 then 10
+        when  data_balance between 1000001 and 5000000 then 11
+        when  data_balance between 5000001 and 10000000 then 12
+        when  data_balance &gt; 10000000 then 13
+        end
+        ) as share_range
+,       data_balance        
+,       membership_no
+,       confirm_date
+,       sysdate
+from    sc_cls_confirm_data
+where   data_group = 'SHR'
+and     data_balance &gt; '0'
+--and     confirm_date = '30/05/2023'
+/*WHERE*/
+
+</sql>
+  <sub />
+</root>

@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <receipt_date text="วันที่ใบเสร็จ" table="sc_com_m_receipt" type="date" column="receipt_date" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select  sc_com_m_receipt.receipt_no
+    ,       sc_com_m_receipt.membership_no
+    ,       pka_com_function.fp_get_member_name(sc_com_m_receipt.membership_no) as mem_name
+    ,       sc_com_m_receipt.member_group_no
+    ,       pka_com_function.fp_get_group_name(sc_com_m_receipt.member_group_no) as group_name
+    ,       sc_com_m_receipt.recept_amount
+    ,       '( '||pka_com_function.fp_get_moneythai(sc_com_m_receipt.recept_amount)||' )' as thai_recept_amount
+    ,       pka_com_function.fp_get_thaidate(sc_com_m_receipt.receipt_date , 'DD/MM/YYYY   ') as receipt_date
+    ,       sc_com_m_receipt.share_stock
+    ,       '( '||pka_com_function.fp_get_moneythai(sc_com_m_receipt.share_stock)||' )' as thai_share_stock
+    ,       si_security_user.user_name
+    ,       (select sc_mem_m_ucf_resign_cause.resign_cause_name
+from    sc_mem_m_ucf_resign_cause
+    where   sc_mem_m_ucf_resign_cause.resign_cause_code = sc_mem_m_membership_registered.resign_code
+    )as resign_cause_name
+    from    sc_com_m_receipt
+    ,       si_security_user
+    ,       sc_mem_m_membership_registered
+where   si_security_user.user_id = sc_com_m_receipt.entry_id
+and     sc_mem_m_membership_registered.membership_no = sc_com_m_receipt.membership_no
+and     sc_com_m_receipt.money_type_id = 'TNL'
+/*WHERE*/
+--and   sc_com_m_receipt.receipt_no = 'พ65006855'
+order by sc_com_m_receipt.receipt_no
+  </sql>
+  <sub />
+</root>

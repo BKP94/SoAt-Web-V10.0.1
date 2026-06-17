@@ -1,0 +1,77 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+  </arg>
+  <combo />
+  <sql>        SELECT sc_mem_m_resign_requestment.resign_doc_no,
+        sc_mem_m_resign_requestment.membership_no,
+        sc_mem_m_resign_requestment.different_shareloan,
+        sc_mem_m_resign_requestment.resign_date  ,
+        sc_mem_m_membership_registered.approve_date ,
+        PKA_COM_FUNCTION.fp_get_thaidate( sc_mem_m_resign_requestment.resign_date ) as resign_date_tdate ,
+        PKA_COM_FUNCTION.fp_get_member_name( sc_mem_m_resign_requestment.membership_no ) as membername,
+        sc_mem_m_resign_requestment.approve_result ,
+
+        sc_mem_m_resign_share.shr_qty,
+        sc_mem_m_resign_share.shr_value,
+
+        sc_mem_m_ucf_resign_cause.resign_cause_name,
+
+        sc_mem_m_ucf_member_group.member_group_no,
+        sc_mem_m_ucf_member_group.member_group_name,
+        sc_mem_m_ucf_member_group.member_group_control ,
+        sc_mem_m_ucf_member_group.control_id,
+
+        sc_com_m_branch.branch_id,
+        sc_com_m_branch.branch_name,
+        sc_mem_m_resign_requestment.entry_id
+        ,sc_mem_m_membership_registered.sex
+        ,sc_mem_m_membership_registered.mem_type
+
+        ,decode( sc_mem_m_membership_registered.mem_type , '01' , 1 , 0 ) as count_01
+        ,decode( sc_mem_m_membership_registered.mem_type , '01' , decode( sc_mem_m_membership_registered.sex , 'M' , 1 , 0  ) , 0 ) as count_01_m
+        ,decode( sc_mem_m_membership_registered.mem_type , '02' , 1 , 0 ) as count_02
+        ,decode( sc_mem_m_membership_registered.mem_type , '02' , decode( sc_mem_m_membership_registered.sex , 'M' , 1 , 0  ) , 0 ) as count_02_m
+        ,decode( sc_mem_m_membership_registered.mem_type , '03' , 1 , 0 ) as count_03
+        ,decode( sc_mem_m_membership_registered.mem_type , '03' , decode( sc_mem_m_membership_registered.sex , 'M' , 1 , 0  ) , 0 ) as count_03_m
+
+        FROM  sc_mem_m_resign_requestment,
+        sc_mem_m_resign_share,
+        sc_mem_m_ucf_resign_cause,
+        sc_mem_m_ucf_member_group,
+        sc_com_m_branch  ,
+        sc_mem_m_membership_registered
+        WHERE  ( sc_mem_m_resign_share.resign_doc_no = sc_mem_m_resign_requestment.resign_doc_no ) and
+        ( sc_mem_m_ucf_resign_cause.resign_cause_code = sc_mem_m_resign_requestment.resign_code ) and
+        ( sc_mem_m_ucf_member_group.member_group_no = sc_mem_m_resign_requestment.member_group_no ) and
+        ( sc_mem_m_resign_requestment.entry_br = sc_com_m_branch.branch_id )    and
+        ( sc_mem_m_resign_requestment.membership_no = sc_mem_m_membership_registered.membership_no) and
+        (sc_mem_m_resign_requestment.cancel_status = '0')
+/*WHERE*/
+    </sql>
+  <sub>
+    <r_ktm_resign_loan_old_mol_nest>
+      <sql>
+                SELECT sc_mem_m_resign_loan.contract_no, sc_mem_m_resign_loan.principal_balance
+                FROM 	sc_mem_m_resign_loan
+                where sc_mem_m_resign_loan.resign_doc_no ={0}
+            </sql>
+    </r_ktm_resign_loan_old_mol_nest>
+    <r_ktm_resign_lon_coll_name_mol_nest>
+      <sql>
+                select sc_lon_m_contract_coll.ref_own_no
+                ,  sc_lon_m_contract_coll.loan_contract_no
+                ,sc_lon_m_loan_card.membership_no as membership_no
+                ,pka_com_function.fp_get_member_name(sc_lon_m_loan_card.membership_no) as membername
+                from sc_lon_m_contract_coll
+                ,sc_lon_m_loan_card
+                where (sc_lon_m_contract_coll.loan_contract_no = sc_lon_m_loan_card.loan_contract_no)
+                and (sc_lon_m_contract_coll.status = '0')
+                and (sc_lon_m_loan_card.principal_balance &gt; 0)
+                and sc_lon_m_contract_coll.collateral_type_code = '01'
+                and sc_lon_m_contract_coll.ref_own_no = {0}
+
+            </sql>
+    </r_ktm_resign_lon_coll_name_mol_nest>
+  </sub>
+</root>

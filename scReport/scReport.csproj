@@ -13,6 +13,23 @@
     <ProjectReference Include="..\sc\SoAt.Core\SoAt.Core.csproj" />
   </ItemGroup>
 
+  <!-- ทำให้ Visual Studio รู้จักไฟล์รายงานเป็น XtraReport (เปิด Report Designer ได้) +
+       ซ้อน Designer.cs/.resx ใต้ไฟล์หลัก ตั้งแต่ load project — ไม่ต้องเปิดไฟล์ทีละตัว.
+       SDK-style glob ไม่ใส่ metadata นี้ให้เอง จึงประกาศด้วย Update (ลอกพฤติกรรมจาก legacy
+       non-SDK csproj ที่ใส่ <SubType>Component</SubType> + <DependentUpon> ต่อไฟล์). ครอบทุก
+       โฟลเดอร์ใน Reports\ อัตโนมัติ (รวมโฟลเดอร์ rcTeller ที่จะ migrate เพิ่มภายหลัง) -->
+  <ItemGroup>
+    <Compile Update="Reports\**\*.Designer.cs">
+      <DependentUpon>$([System.String]::Copy('%(Filename)').Replace('.Designer','')).cs</DependentUpon>
+    </Compile>
+    <Compile Update="Reports\**\*.cs" Condition="!$([System.String]::Copy('%(Filename)').EndsWith('.Designer'))">
+      <SubType>Component</SubType>
+    </Compile>
+    <EmbeddedResource Update="Reports\**\*.resx">
+      <DependentUpon>%(Filename).cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+
   <!-- repQuery XML → copy เข้า output (sc.report.rcReport อ่านจาก AppContext.BaseDirectory\repQuery)
        Deviation จาก legacy: legacy แชร์ C:\SoAt\repQuery\ กลางทุก IIS site; โครงใหม่ repQuery
        อยู่ในตัว project scReport แล้ว copy ตามไปกับ output -->
@@ -29,6 +46,8 @@
     <!-- Native Blazor Report Viewer (DxReportViewer) — reuse legacy XtraReport บน net10.
          ดึง DevExpress.Drawing (engine ของ DX เอง) แทน System.Drawing.Common -->
     <PackageReference Include="DevExpress.Blazor.Reporting.Viewer" Version="25.2.7" />
+    <!-- XtraReport .resx บางตัวฝัง non-string resource (รูป/logo embedded) → ต้องการ assembly นี้ตอน build/runtime (MSB3822) -->
+    <PackageReference Include="System.Resources.Extensions" Version="10.0.0" />
   </ItemGroup>
 
 </Project>

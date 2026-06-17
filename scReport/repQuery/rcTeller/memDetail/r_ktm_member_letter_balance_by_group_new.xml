@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <member_group_no text="หน่วย" table="sc_mem_m_ucf_member_group" column="member_group_no" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    SELECT DISTINCT sc_mem_m_membership_registered.membership_no,
+    sc_mem_m_membership_registered.member_group_no,
+    sc_mem_m_ucf_prename.prename,
+    sc_mem_m_membership_registered.member_name,
+    sc_mem_m_membership_registered.member_surname,
+    sc_mem_m_ucf_member_group.group_name_show
+    FROM sc_mem_m_membership_registered,
+    sc_mem_m_ucf_prename,
+    sc_mem_m_ucf_member_group,
+    sc_dep_m_creditor
+    WHERE ( sc_mem_m_membership_registered.prename_code = sc_mem_m_ucf_prename.prename_code )
+    and   ( sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no )
+    and   ( sc_dep_m_creditor.membership_no = sc_mem_m_membership_registered.membership_no )
+    AND   ( sc_dep_m_creditor.deposit_balance &gt; 0 )
+    AND   ( sc_dep_m_creditor.deposit_type_code = '20' )
+    /*WHERE*/
+    --and   ( sc_mem_m_membership_registered.member_group_no between '011001' and '011001' )
+    /*WHERE*/
+    order by sc_mem_m_membership_registered.member_group_no
+    ,sc_mem_m_membership_registered.membership_no
+  </sql>
+  <sub />
+</root>

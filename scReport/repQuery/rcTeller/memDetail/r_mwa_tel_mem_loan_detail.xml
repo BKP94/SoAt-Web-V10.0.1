@@ -1,0 +1,127 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <loan_contract_no align="center" text="เลขที่สัญญา" table="sc_lon_m_contract" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_lon_m_contract.loan_contract_no,
+    sc_lon_m_contract.membership_no,
+    pka_com_function.fp_get_member_name(sc_lon_m_contract.membership_no) as member_name,
+    sc_lon_m_contract.loan_type,
+    sc_lon_m_contract.loan_approve_amount,
+    sc_lon_m_contract.period_payment_amount,
+    sc_lon_m_loan_card.last_period,
+    sc_lon_m_loan_card.principal_balance,
+    sc_lon_m_loan_card.pending_amount,
+    sc_lon_m_loan_card.interest_arrear,
+    sc_lon_m_contract.loan_request_amount,
+    sc_lon_m_contract.loan_payment_type_code,
+    '' as c_colldetail,
+    sc_lon_m_loan_card.total_interest,
+    sc_lon_m_loan_card.period_compomise,
+    sc_lon_m_loan_card.date_compomise,
+    sc_lon_m_loan_card.share_coll_amount,
+    sc_lon_m_loan_card.year_total_interest,
+    sc_lon_m_contract.contract_interest_rate,
+    sc_lon_m_loan_card.accu_compomise,
+    pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract,'dd/mm/yyyy') as begining_of_contract_tdate,
+    pka_com_function.fp_get_thaidate(sc_lon_m_loan_card.last_access_date,'dd/mm/yyyy') as last_access_date_tdate,
+    pka_com_function.fp_get_thaidate(sc_lon_m_loan_card.last_calcint_date,'dd/mm/yyyy') as last_calcint_date_tdate,
+    pka_com_function.fp_get_thaidate(sc_lon_m_loan_card.date_compomise,'dd/mm/yyyy') as date_compomise_tdate,
+    sc_lon_m_loan_card.contact_status,
+    sc_lon_m_loan_card.drop_payment_status,
+    sc_lon_m_loan_card.pending_interest,
+    sc_lon_m_loan_card.close_status,
+
+    (select sum(interest_amout)
+     from sc_lon_m_loan_card_detail
+     where sc_lon_m_loan_card.loan_contract_no = sc_lon_m_loan_card_detail.loan_contract_no
+     ) as interest_amout,
+
+    case
+    when sc_lon_m_loan_card.close_status = 'T' then 'โอนหนี้ไปให้ผู้ค้ำ'
+    when sc_lon_m_loan_card.close_status = '1' then 'ปิดบัญชี'
+    else  'สัญญาปกติ'
+    end as close_status_des,
+
+    sc_lon_m_contract.welfare_status,
+    sc_lon_m_contract.loan_objective_code,
+    sc_lon_m_ucf_loan_obj.loan_objective_description,
+
+    (select sc_lon_m_contract_coll.ref_own_no
+    from sc_lon_m_contract_coll
+    where sc_lon_m_contract_coll.loan_contract_no = sc_lon_m_contract.loan_contract_no
+    and collateral_type_code = '02'
+    ) as coll_no,
+
+    (select sc_lon_m_contract_coll.collateral_description
+    from sc_lon_m_contract_coll
+    where sc_lon_m_contract_coll.loan_contract_no = sc_lon_m_contract.loan_contract_no
+    and collateral_type_code = '02'
+    ) as coll_name,
+
+    (select sc_lon_m_contract_coll.remark
+    from sc_lon_m_contract_coll
+    where sc_lon_m_contract_coll.loan_contract_no = sc_lon_m_contract.loan_contract_no
+    and collateral_type_code = '02'
+    ) as remark,
+    f_lon_get_intrate(sc_lon_m_loan_card.loan_type,sysdate)*100 as lon_int_rate,
+    pkb_amnat.fp_get_memcoll_str(sc_lon_m_contract.membership_no) as mem_coll,
+    pka_rep_loan.fp_rep_collateral_type(sc_lon_m_contract.loan_contract_no, ',') as type_collateral,
+    pka_rep_loan.fp_rep_req_fee(sc_lon_m_contract.loan_contract_no, ',') as type_fee
+
+    FROM sc_lon_m_contract,
+    sc_lon_m_loan_card,
+    sc_lon_m_ucf_loan_obj
+    WHERE ( sc_lon_m_loan_card.loan_contract_no = sc_lon_m_contract.loan_contract_no )
+    and sc_lon_m_contract.loan_objective_code = sc_lon_m_ucf_loan_obj.loan_objective_code
+    and sc_lon_m_contract.loan_type = sc_lon_m_ucf_loan_obj.loan_type
+    --and sc_lon_m_contract.loan_contract_no = 'ฉอ00024256'
+    --and ( ( sc_lon_m_contract.loan_contract_no = '13209' ) )
+
+    /*WHERE*/
+/*รายงานตัวนี้ มีใช้ formatting rules ในส่วนของ nest นะคะ*/</sql>
+  <sub>
+    <r_mwa_tel_mem_loan_detail_nest>
+      <sql>SELECT   sc_lon_m_loan_card_detail.loan_contract_no,
+        sc_lon_m_loan_card_detail.seq_no,
+        sc_lon_m_loan_card_detail.loan_payment_date,
+        pka_com_function.fp_get_thaidate(sc_lon_m_loan_card_detail.loan_payment_date,'dd/mm/yyyy') as loan_payment_date_tdate,
+        sc_lon_m_loan_card_detail.item_type_code,
+        sc_lon_m_loan_card_detail.ref_loan_doc_no,
+        sc_lon_m_loan_card_detail.principal_balance,
+        sc_lon_m_loan_card_detail.payment_amount,
+        sc_lon_m_loan_card_detail.interest_from,
+        sc_lon_m_loan_card_detail.interest_payment,
+        sc_lon_m_loan_card_detail.interest_arrear,
+        sc_lon_m_loan_card_detail.fine_amount,
+        sc_lon_m_loan_card_detail.interest_to,
+        sc_lon_m_loan_card_detail.fine_payment,
+        sc_lon_m_loan_card_detail.fine_arrear,
+        sc_lon_m_loan_card_detail.last_interate_date,
+        sc_lon_m_loan_card_detail.interest_return,
+        sc_lon_m_loan_card_detail.period,
+        sc_lon_m_loan_card_detail.interest_amout,
+        sc_lon_m_ucf_loan_card_item.sign_status  ,
+        balance_receipt,
+        sc_lon_m_loan_card_detail.status   ,
+        sc_lon_m_loan_card_detail.share_coll_amount,
+        sc_lon_m_loan_card_detail.remark,
+        pka_com_function.fp_get_thaidate(sc_lon_m_loan_card_detail.interest_from,'dd/mm/yyyy') as interest_from_tdate,
+        pka_com_function.fp_get_thaidate(sc_lon_m_loan_card_detail.interest_to,'dd/mm/yyyy') as interest_to_tdate,
+        entry_id,
+        entry_date,
+        pka_com_function.fp_get_thaidate(entry_date,'dd/mm/yyyy') as entry_date_tdate,
+        client_name
+        FROM     sc_lon_m_loan_card_detail,
+        sc_lon_m_ucf_loan_card_item
+        WHERE    ( sc_lon_m_loan_card_detail.item_type_code  = sc_lon_m_ucf_loan_card_item.item_type_code) and
+        (sc_lon_m_loan_card_detail.status = '0' or sc_lon_m_loan_card_detail.status is null ) and
+        (sc_lon_m_loan_card_detail.item_type_code not in ('RC'))
+        and( ( sc_lon_m_loan_card_detail.loan_contract_no = {0}) )
+order by sc_lon_m_loan_card_detail.loan_contract_no
+        ,sc_lon_m_loan_card_detail.loan_payment_date
+        ,sc_lon_m_loan_card_detail.seq_no</sql>
+    </r_mwa_tel_mem_loan_detail_nest>
+  </sub>
+</root>

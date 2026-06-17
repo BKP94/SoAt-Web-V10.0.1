@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <membership_no special="memno" text="ทะเบียน" table="sc_mem_m_membership_registered" column="membership_no" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_cnt_m_coop.coop_name,
+    sc_cnt_m_coop.address,
+
+    sc_cnt_m_coop.tumbol_name,
+    sc_cnt_m_coop.district_code,
+    sc_cnt_m_coop.province_code,
+    sc_cnt_m_coop.postcode,
+    sc_cnt_m_coop.telephone_no,
+    sc_cnt_m_coop.fax_no,
+    sc_cnt_m_coop.manager_name,
+
+    sc_mem_m_membership_registered.membership_no,
+    PKA_COM_FUNCTION.fp_get_member_name( sc_mem_m_membership_registered.membership_no ) as membername,
+    sc_mem_m_ucf_member_group.member_group_no,
+    sc_mem_m_ucf_member_group.member_group_name,
+
+    '' as certificate_date,
+    '' as data_group,
+    '' as data_type,
+    '' as data_balance,
+    '' as data_refno ,
+    '' as data_monthly
+
+    , '' as dep_name
+
+    , '' as loan_name
+
+    , '' as est_int
+
+    FROM sc_mem_m_membership_registered,
+    sc_cnt_m_coop,
+    sc_mem_m_ucf_member_group
+    WHERE ( sc_mem_m_ucf_member_group.member_group_no 	= sc_mem_m_membership_registered.member_group_no )
+    /*WHERE*/
+
+  </sql>
+  <sub />
+</root>

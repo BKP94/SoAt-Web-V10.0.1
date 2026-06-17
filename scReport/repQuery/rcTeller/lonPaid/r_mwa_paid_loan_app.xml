@@ -1,0 +1,95 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <loan_type align="center" text="ประเภทเงินกู้" table="sc_lon_m_contract" column="loan_type" combo="sc_lon_m_rule2" readonly="0" />
+    <begining_of_contract align="center" text="วันที่เริ่มสัญญา" table="sc_lon_m_contract" type="date" column="begining_of_contract" operator="bt" readonly="0" />
+    <manager_no align="center" default="0041" text="ฝ่ายจัดการ" column="manager_no" combo="sc_hr_off_member_official" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <official_no align="center" default="10480" text="ผู้อนุมัติ" column="official_no" combo="sc_hr_off_member_commitee" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <create_loan_status align="center" default="2" text="สถานะ" table="sc_lon_m_contract" combo="create_loan_status" readonly="0" />
+  </arg>
+  <combo />
+  <sql>SELECT  sc_lon_m_contract.loan_contract_no
+    ,sc_lon_m_contract.membership_no --เลขทะเบียน
+    ,pka_com_function.fp_get_member_name(sc_lon_m_contract.membership_no) as memname --ชื่อ
+    ,sc_lon_m_rule.loan_type -- id หนี้
+    ,sc_lon_m_rule.loan_type_description   --ประเภทหนี้
+    ,sc_lon_m_contract.loan_approve_amount --จำนวนเงิน
+    ,sc_lon_m_contract.real_recieve --รับสุทธิ
+    
+    ,(select sc_lon_m_ucf_loan_approver.approver_code 
+    from sc_lon_m_loan_request,sc_lon_m_ucf_loan_approver 
+    where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_contract.loan_requestment_no 
+    and sc_lon_m_loan_request.approver_code = sc_lon_m_ucf_loan_approver.approver_code
+    )as approver_code --id ผู้อนุมัติ
+    
+        ,(select sc_lon_m_ucf_loan_approver.approver_desc 
+    from sc_lon_m_loan_request,sc_lon_m_ucf_loan_approver 
+    where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_contract.loan_requestment_no 
+    and sc_lon_m_loan_request.approver_code = sc_lon_m_ucf_loan_approver.approver_code
+    )as approver_desc --ชื่อผู้อนุมัติ
+    
+    ,pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract ,'DD/MM/YYYY') as begining_of_contract  --วันที่เริ่มสัญญา
+
+    ,(select sc_lon_m_loan_request_mpaid.bank_acc_no 
+    from sc_lon_m_loan_request_mpaid
+    ,sc_lon_m_loan_request
+    where sc_lon_m_loan_request_mpaid.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+    and sc_lon_m_contract.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+    and sc_lon_m_loan_request_mpaid.seq_no = (select min(sc_lon_m_loan_request_mpaid.seq_no)
+                                             from sc_lon_m_loan_request_mpaid
+                                                 ,sc_lon_m_loan_request
+                                              where sc_lon_m_loan_request_mpaid.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+                                              and sc_lon_m_contract.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+                                              )
+    ) as bank_acc_no
+
+    
+       ,nvl((select sum(item_amount) 
+    from sc_com_m_receipt
+    ,sc_com_m_receipt_item 
+    where sc_lon_m_contract.loan_contract_no = sc_com_m_receipt.loan_contract_no 
+    and sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no
+    and item_type_id = 'PL'
+    ),0) as loan_pay --ชำระหนี้
+
+        ,nvl((select sum(item_amount)
+    from sc_com_m_receipt
+    ,sc_com_m_receipt_item 
+    where sc_lon_m_contract.loan_contract_no = sc_com_m_receipt.loan_contract_no 
+    and sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no
+    and item_type_id = 'IS'
+    ),0) as dep_amount --โอนเงินเข้าธนาคาร
+    
+        ,nvl((select sum(item_amount) 
+    from sc_com_m_receipt
+    ,sc_com_m_receipt_item 
+    where sc_lon_m_contract.loan_contract_no = sc_com_m_receipt.loan_contract_no 
+    and sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no
+    and item_type_id = 'F17'
+    ),0) as isu_amount --ค่าเบี้ยประกัน
+
+    ,sc_lon_m_contract.rec_rep_status --จ่ายแล้ว
+    ,sc_lon_m_contract.create_loan_status --หักกลบไปแล้ว
+    ,sc_cnt_m_coop.coop_name
+    
+    ,pka_hr.fp_get_hr_name( '!official_no!'  )  as  approve_name 
+    ,pka_hr.fp_get_hr_position_by_offno(  '!official_no!' )   as approve_position
+
+    ,pka_hr.fp_get_hr_name( '!manager_no!'  )  as  manager_name
+    ,pka_hr.fp_get_hr_position_by_offno(  '!manager_no!' )   || decode( '!manager_no!'  , '0041' , '' , '  รักษาการแทน ' )       as manager_position
+    ,decode( '!manager_no!'  , '0041' , '' , ' ผู้จัดการ' )  as manager_position_2
+
+FROM sc_lon_m_contract
+,sc_lon_m_rule
+,sc_cnt_m_coop
+
+WHERE sc_lon_m_contract.loan_type = sc_lon_m_rule.loan_type
+and sc_lon_m_contract.rec_rep_status = '1' --จ่ายแล้ว
+
+/*WHERE*/
+
+order by sc_lon_m_rule.loan_type
+,sc_lon_m_contract.begining_of_contract
+,sc_lon_m_contract.loan_contract_no</sql>
+  <sub />
+</root>

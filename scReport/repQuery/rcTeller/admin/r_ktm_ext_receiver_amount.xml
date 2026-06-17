@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <sydate_tdate text="วันที่" type="date" column="sydate_tdate" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <membership_no special="memno" text="ทะเบียน ข้าพเจ้า" table="sc_mem_m_membership_registered" nulltext="ระบุทะเบียนเท่านั้น" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <mem_name text="ชื่อ ข้าพเจ้า" column="as_address" nulltext="พิมพ์ชื่อ เท่านั้น" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <as_address text="ที่อยู่" column="as_address" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <as_position text="ตำแหน่ง" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <as_description text="ได้รับเงินค่า" column="as_description" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <adc_amount text="จำนวนเงิน" type="decimal2" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <as_receiver special="memno" text="ผู้รับเงิน" table="sc_mem_m_membership_registered" column="membership_no" nulltext="ระบุทะเบียนเท่านั้น" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <name align="center" control="ASPxCheckBox" text="นางสาว ศรีประภา  กลางประพันธ์" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    SELECT sc_mem_m_membership_registered.membership_no,
+    '!mem_name_1!' as mem_name,
+    pka_com_function.fp_get_thaidate( '!sydate_tdate!', 'SD MONTH YYYY') as sydate_tdate,
+    pka_com_function.fp_get_thaidate('!sydate_tdate!', 'SD') as date_tdate ,
+    pka_com_function.fp_get_thaidate( '!sydate_tdate!' , 'MONTH') as month_tdate ,
+    pka_com_function.fp_get_thaidate( '!sydate_tdate!' , 'YYYY') as year_tdate ,
+    (select pka_com_function.fp_get_member_name('!membership_no_1!')||' ( '||pka_com_function.fp_form_idcard(id_card)||' ) ' from sc_mem_m_membership_registered where membership_no = '!membership_no_1!') as as_memname,
+    ( case '!name_1!' when '1' then 'นางสาว ศรีประภา  กลางประพันธ์' end ) as name,
+    trim('!as_address!') as as_address,
+    trim('!as_position!') as as_position,
+    trim('!as_description!') as as_description,
+    to_snumber( '!adc_amount!') as adc_amount,
+    pka_com_function.fp_get_moneythai ( '!adc_amount!' ) as thai_adc_amount,
+    ( select pka_com_function.fp_get_member_name('!membership_no_1!')||' ( '||pka_com_function.fp_form_idcard(id_card)||' ) ' from sc_mem_m_membership_registered where membership_no = '!membership_no_1!') as as_receiver
+    FROM sc_mem_m_membership_registered
+    WHERE 1 = 1
+    /*WHERE*/
+    and sc_mem_m_membership_registered.membership_no = '080702'
+  </sql>
+  <sub />
+</root>

@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+  </arg>
+  <combo />
+  <sql>    select
+    -- กลุ่มข้าราชการ
+    
+    pkb_ktm.fp_get_count_age_memno(sysdate,5,'1') as age_year5_1
+    ,pkb_ktm.fp_get_count_age_memno(sysdate,10,'1') as age_year10_1
+    ,pkb_ktm.fp_get_count_age_memno(sysdate,15,'1') as age_year15_1
+    ,pkb_ktm.fp_get_count_age_memno(sysdate,20,'1') as age_year20_1
+    ,pkb_ktm.fp_get_count_age_memno(sysdate,25,'1') as age_year25_1
+    ,pkb_ktm.fp_get_count_age_memno(sysdate,30,'1') as age_year30_1
+    ,pkb_ktm.fp_get_count_age_memno(sysdate,35,'1') as age_year35_1
+    ,pkb_ktm.fp_get_count_age_memno(sysdate,99,'1') as age_year99_1
+    -- กลุ่มลูกจ้าง
+    ,pkb_ktm.fp_get_count_age_memno(sysdate,5,'2') as age_year5_2
+    ,pkb_ktm.fp_get_count_age_memno(sysdate,10,'2') as age_year10_2
+    ,pkb_ktm.fp_get_count_age_memno(sysdate,15,'2') as age_year15_2
+    ,pkb_ktm.fp_get_count_age_memno(sysdate,20,'2') as age_year20_2
+    ,pkb_ktm.fp_get_count_age_memno(sysdate,25,'2') as age_year25_2
+    ,pkb_ktm.fp_get_count_age_memno(sysdate,30,'2') as age_year30_2
+    ,pkb_ktm.fp_get_count_age_memno(sysdate,35,'2') as age_year35_2
+    ,pkb_ktm.fp_get_count_age_memno(sysdate,99,'2') as age_year99_2
+    from dual
+  </sql>
+  <sub />
+</root>

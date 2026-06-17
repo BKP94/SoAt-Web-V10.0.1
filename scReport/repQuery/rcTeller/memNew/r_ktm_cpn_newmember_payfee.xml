@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<root>
+  <arg>
+    <recrieve_date text="วันที่" table="sc_mem_m_member_reg_no_control" type="date" column="recrieve_date" operator="bt" readonly="0" />   
+  </arg>
+  <sql>
+    SELECT  pka_com_function.fp_get_member_name(sc_mem_m_member_reg_no_control.membership_no ) as memname,
+    sc_mem_m_member_reg_no_control.membership_no,
+    sc_mem_m_member_reg_no_control.recrieve_docno
+    --    	    sc_mem_m_member_reg_no_control.recrieve_date
+    FROM sc_mem_m_member_reg_no_control
+    WHERE  sc_mem_m_member_reg_no_control.recrieve_status = '1'
+    -- 	and sc_mem_m_member_reg_no_control.recrieve_date >  to_date('11/09/2017','dd/mm/yyyy')
+    /*WHERE*/
+    GROUP BY
+    --   sc_mem_m_member_reg_no_control.recrieve_date,
+    sc_mem_m_member_reg_no_control.membership_no,
+    sc_mem_m_member_reg_no_control.recrieve_docno
+  </sql>
+</root>

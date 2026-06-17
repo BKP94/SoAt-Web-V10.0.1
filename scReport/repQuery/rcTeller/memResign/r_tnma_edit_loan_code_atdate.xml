@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+  </arg>
+  <combo />
+  <sql>SELECT  sc_fin_vourcher_detail.account_id
+    ,   sc_acc_m_account_master.account_name
+    ,   sc_fin_vourcher_detail.account_tr
+    ,   ( select  account_name from sc_acc_m_account_master where account_id =  account_tr ) as account_trname
+    ,   sc_fin_vourcher_head.vourcher_owner as membership_no
+    ,   sc_fin_vourcher_head.vourcher_name  as membername
+    ,   pka_com_function.fp_get_member_group(sc_fin_vourcher_head.vourcher_owner)as member_group
+    ,   pka_com_function.fp_get_group_name_mem(sc_fin_vourcher_head.vourcher_owner)as member_group_name
+    ,   sc_fin_vourcher_detail.ref_docno as  loan_contract_no
+    ,   sc_fin_vourcher_detail.item_amount as principal_balance
+    ,   sc_mem_m_ucf_member_type.mem_type_code
+    ,   sc_mem_m_ucf_member_type.mem_type_desc
+    
+    ,   (  select   sc_lon_m_ucf_loan_code.loan_code 
+    
+            from    sc_lon_m_loan_card 
+                ,   sc_lon_m_ucf_loan_code   
+                
+            where   sc_lon_m_loan_card.loan_contract_no = sc_fin_vourcher_detail.ref_docno
+            and     sc_lon_m_ucf_loan_code.loan_code = sc_lon_m_loan_card.loan_code  
+         ) as loan_code
+     
+    ,   (  select   sc_lon_m_ucf_loan_code.loan_code_desc 
+    
+            from    sc_lon_m_loan_card 
+                ,   sc_lon_m_ucf_loan_code   
+                
+            where   sc_lon_m_loan_card.loan_contract_no = sc_fin_vourcher_detail.ref_docno
+            and     sc_lon_m_ucf_loan_code.loan_code = sc_lon_m_loan_card.loan_code
+         ) as loan_code_desc
+,sc_fin_vourcher_head.entry_id
+FROM    sc_fin_vourcher_head
+    ,   sc_fin_vourcher_detail
+    ,   sc_acc_m_account_master
+    ,   sc_mem_m_membership_registered
+    ,   sc_mem_m_ucf_member_type
+
+WHERE   sc_fin_vourcher_head.vourcher_no = sc_fin_vourcher_detail.vourcher_no 
+and     sc_acc_m_account_master.account_id = sc_fin_vourcher_detail.account_id
+and     sc_mem_m_membership_registered.membership_no = sc_fin_vourcher_head.vourcher_owner
+and     sc_mem_m_ucf_member_type.mem_type_code = sc_mem_m_membership_registered.mem_type
+and     sc_fin_vourcher_head.vourcher_group = 'LONADJ'
+and     sc_fin_vourcher_head.journal_date = to_date(sysdate,'dd/mm/yyyy')
+
+/*WHERE*/
+
+ORDER BY    sc_fin_vourcher_detail.account_id
+    ,       sc_fin_vourcher_detail.account_tr
+    ,       sc_fin_vourcher_detail.ref_docno
+</sql>
+  <sub />
+</root>

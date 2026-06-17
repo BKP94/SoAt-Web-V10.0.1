@@ -20,7 +20,8 @@
       "runtimeExecutable": "dotnet",
       "runtimeArgs": ["run", "--project", "scReport", "--no-launch-profile", "--urls", "http://localhost:5360"],
       "env": { "ASPNETCORE_ENVIRONMENT": "Development" },
-      "port": 5360
+      "port": 5360,
+      "autoPort": false
     }
   ]
 }

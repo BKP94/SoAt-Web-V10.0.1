@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <operate_date text="วันที่" table="sc_mem_edit_group" type="date" operator="bt" readonly="0" />
+    <user_id text="ผู้บันทึก" table="si_security_user" combo="si_security_user2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    select sc_mem_edit_group.operate_date
+    ,sc_mem_edit_group.membership_no
+    ,pka_com_function.fp_get_member_name(sc_mem_edit_group.membership_no) as memname
+    ,sc_mem_edit_group.pre_member_group_no
+    ,pka_com_function.fp_get_group_name(sc_mem_edit_group.pre_member_group_no) as group_old_name
+    ,sc_mem_edit_group.member_group_no
+    ,pka_com_function.fp_get_group_name(sc_mem_edit_group.member_group_no) as group_new_name
+    ,sc_mem_edit_group.entry_id
+    ,si_security_user.user_name
+    from sc_mem_edit_group
+    ,si_security_user
+    where si_security_user.user_id = sc_mem_edit_group.entry_id
+    /*WHERE*/
+    --and sc_mem_edit_group.operate_date between '31/03/2021' and '31/03/2021'
+    order by sc_mem_edit_group.operate_date
+    ,sc_mem_edit_group.membership_no
+  </sql>
+  <sub />
+</root>

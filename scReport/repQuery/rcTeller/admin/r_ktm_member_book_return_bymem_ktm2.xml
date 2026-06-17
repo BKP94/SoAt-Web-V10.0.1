@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <receipt_effectdate text="วันที่คืน" table="sc_kep_t_monthly_receive" type="date" column="receipt_effectdate" operator="bt" readonly="0" />
+    <membership_no special="memno" text="ทะเบียนผู้กู้" table="sc_mem_m_membership_registered" readonly="0" />
+    <as_name default="นางชุติมา  พุ่มบุบผา" text="ผู้ช่วยฯ" combo="sc_cnt_m_committee_list3" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_mem_m_membership_registered.membership_no,
+    pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as member_name,
+    sc_kep_t_monthly_receive.member_group_no,
+    sc_mem_m_membership_registered.coop_position,
+    pka_com_function.fp_get_member_position_long(sc_mem_m_membership_registered.membership_no) as position_long,
+    pka_com_function.fp_get_group_name(sc_kep_t_monthly_receive.member_group_no) as member_group_name,
+    sc_kep_t_monthly_receive_det.money_amount,
+    pka_com_function.fp_get_moneythai(sc_kep_t_monthly_receive_det.money_amount) as thai_money_amount,
+    '!as_name_1!' as ass_name,
+    sc_kep_t_monthly_receive_det.period,
+    sc_kep_t_monthly_receive_det.receive_description,
+    sc_lon_m_contract_coll.ref_own_no,
+    pka_com_function.fp_get_member_group(sc_lon_m_contract_coll.ref_own_no) as coll_group_no,
+    pka_com_function.fp_get_member_name(sc_lon_m_contract_coll.ref_own_no) as coll_mem_name,
+    sc_lon_m_contract.loan_approve_amount,
+    pka_com_function.fp_get_moneythai(sc_lon_m_contract.loan_approve_amount) as thai_loan_approve_amount,
+    sc_lon_m_contract.begining_of_contract  ,
+    sc_lon_m_contract.loan_contract_no ,
+    sc_lon_m_contract.loan_installment_amount ,
+    sc_lon_m_contract.period_payment_amount ,
+    pka_com_function.fp_get_moneythai(sc_lon_m_contract.period_payment_amount) as thai_period_payment_amount,
+    pka_com_function.fp_get_month_name(sc_kep_t_monthly_receive.receive_month,'LT') as receive_month_thai,
+    pka_com_function.fp_get_thaidate(sc_kep_t_monthly_receive.receipt_date , 'DD/MM/YYYY') as tdate_due,
+    pka_com_function.fp_get_thaidate(sc_rep_kep_return_month.book_date , 'SD MONTH YYYY') as book_date_tdate,
+    (select coop_name from sc_cnt_m_coop) as coop_name
+
+    FROM sc_mem_m_membership_registered,
+    sc_kep_t_monthly_receive,
+    sc_kep_t_monthly_receive_det,
+    sc_lon_m_contract ,
+    sc_lon_m_contract_coll ,
+    sc_rep_kep_return_month
+
+    WHERE  sc_mem_m_membership_registered.membership_no = sc_kep_t_monthly_receive.membership_no
+    AND	sc_kep_t_monthly_receive.membership_no = sc_kep_t_monthly_receive_det.membership_no
+    AND	sc_kep_t_monthly_receive.receive_year = sc_kep_t_monthly_receive_det.receive_year
+    AND	sc_kep_t_monthly_receive.receive_month = sc_kep_t_monthly_receive_det.receive_month
+    AND	sc_lon_m_contract.loan_contract_no = trim( sc_kep_t_monthly_receive_det.receive_description )
+    AND	sc_lon_m_contract.loan_contract_no = sc_lon_m_contract_coll.loan_contract_no
+    AND	sc_rep_kep_return_month.membership_no	=	sc_kep_t_monthly_receive.membership_no
+    AND	sc_rep_kep_return_month.count_month	= 1
+    AND	sc_kep_t_monthly_receive.receipt_status = '2'
+    AND sc_lon_m_contract_coll.status = '0'
+
+    AND	sc_lon_m_contract_coll.ref_own_no not in (  select sc_mem_m_resign_requestment.membership_no
+    from  sc_mem_m_resign_requestment
+    where sc_mem_m_resign_requestment.membership_no = sc_lon_m_contract_coll.ref_own_no
+    and   sc_mem_m_resign_requestment.resign_code = '01'
+    and	  sc_mem_m_resign_requestment.approve_result = '1' )
+
+    --    AND	sc_lon_m_contract_coll.ref_own_no in (  select tab_coll.ref_own_no
+    --                                                from  sc_lon_m_contract_coll tab_coll
+    --                                                where tab_coll.ref_own_no = sc_lon_m_contract_coll.ref_own_no
+    --                                                and   tab_coll.ref_own_no = sc_mem_m_membership_registered.membership_no )
+    and  sc_rep_kep_return_month.rep_type = 'BOK'
+
+    /*WHERE*/
+    --    and ( sc_kep_t_monthly_receive.receive_year = 2020  )
+    --    and (  sc_kep_t_monthly_receive.receive_month = 6  )
+    --    and  (	sc_mem_m_membership_registered.membership_no	=	'072838')
+    order by sc_kep_t_monthly_receive.member_group_no ,
+    sc_mem_m_membership_registered.membership_no ,
+    sc_lon_m_contract_coll.ref_own_no
+  </sql>
+  <sub />
+</root>

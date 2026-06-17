@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <mem_no align="center" special="memno" text="ช่วงทะเบียน" operator="bt" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <age_mem align="center" text="ช่วงอายุการเป็นสมาชิก" operator="bt" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <mem_status align="center" text="สถานะ" combo="member_status_code" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <age_life align="center" text="ช่วงอายุของสมาชิก" operator="bt" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <sex align="center" text="เพศ" combo="sex" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <mem_salary align="center" text="ช่วงเงินเดือน" operator="bt" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <period_share align="center" text="ช่วงงวดหุ้น" operator="bt" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>SELECT  sc_mem_m_membership_registered.membership_no
+,       '!mem_no!' as mem_no
+,       '!mem_no_1!' as mem_no1
+,       '!mem_no_2!' as mem_no2
+
+,       '!age_mem!' as age_mem
+,       '!age_mem_1!' as age_mem1
+,       '!age_mem_2!' as age_mem2
+
+,       '!mem_status!' as mem_status
+
+,       '!age_life!' as age_life
+,       '!age_life_1!' as age_life1
+,       '!age_life_2!' as age_life2
+
+,       '!sex!' as sex
+
+,       '!mem_salary!' as mem_salary
+,       '!mem_salary_1!' as mem_salary1
+,       '!mem_salary_2!' as mem_salary2
+
+,       '!period_share!' as period_share
+,       '!period_share_1!' as period_share1
+,       '!period_share_2!' as period_share2
+
+,       sc_mem_m_membership_registered.membership_no
+,       trim(sc_mem_m_ucf_prename.prename)||trim(sc_mem_m_membership_registered.member_name)||' '||trim(sc_mem_m_membership_registered.member_surname)as member_name
+,       trim(sc_mem_m_ucf_member_group.member_group_no)||' - '||trim(sc_mem_m_ucf_member_group.member_group_name)as member_group_name
+,       trim(substr(pka_lon_reqsrv.fp_calc_agetext(pka_lon_reqsrv.fp_calc_install_m_age(sc_mem_m_membership_registered.membership_no)),0,3)) as mem_age /*อายุการเป็นสมาชิก*/
+,       trim(substr(pka_lon_reqsrv.fp_calc_agetext_m_live(sc_mem_m_membership_registered.membership_no),0,3)) as life_age /*อายุชีวิต*/
+,       decode(sc_mem_m_membership_registered.sex,'M','ชาย','หญิง')as sex_name
+,       sc_mem_m_ucf_member_status.member_status_name
+,       sc_mem_m_member_work_info.salary_amount
+,       sc_mem_m_share_mem.period_recrieve
+,       decode(sc_mem_m_membership_registered.id_card,null,null,pka_com_function.fp_form_idcard(sc_mem_m_membership_registered.id_card))as id_card
+
+FROM    sc_mem_m_membership_registered
+,       sc_mem_m_share_mem
+,       sc_mem_m_member_work_info
+,       sc_mem_m_ucf_member_group
+,       sc_mem_m_ucf_prename
+,       sc_mem_m_ucf_member_status
+
+WHERE   sc_mem_m_membership_registered.membership_no = sc_mem_m_share_mem.membership_no
+AND     sc_mem_m_member_work_info.membership_no = sc_mem_m_membership_registered.membership_no
+AND     sc_mem_m_ucf_member_group.member_group_no = sc_mem_m_membership_registered.member_group_no
+AND     sc_mem_m_ucf_prename.prename_code = sc_mem_m_membership_registered.prename_code
+AND     sc_mem_m_ucf_member_status.member_status_code = sc_mem_m_membership_registered.member_status_code
+
+AND     decode('!mem_no!',null,(select all(tab.membership_no) from sc_mem_m_membership_registered tab where tab.membership_no = sc_mem_m_membership_registered.membership_no),(select tab.membership_no from sc_mem_m_membership_registered tab where tab.membership_no = sc_mem_m_membership_registered.membership_no and tab.membership_no between '!mem_no_1!' and '!mem_no_2!'))= decode((select tab.membership_no from sc_mem_m_membership_registered tab where tab.membership_no = sc_mem_m_membership_registered.membership_no and tab.membership_no between '!mem_no_1!' and '!mem_no_2!') , null , 
+        (select all(tab.membership_no) from sc_mem_m_membership_registered tab where tab.membership_no = sc_mem_m_membership_registered.membership_no),(select tab.membership_no from sc_mem_m_membership_registered tab where tab.membership_no = sc_mem_m_membership_registered.membership_no and tab.membership_no between '!mem_no_1!' and '!mem_no_2!'))
+
+AND     decode('!age_mem!',null,(select all(trim(substr(pka_lon_reqsrv.fp_calc_agetext(pka_lon_reqsrv.fp_calc_install_m_age(sc_mem_m_membership_registered.membership_no)),0,3))) from sc_mem_m_membership_registered tab where tab.membership_no = sc_mem_m_membership_registered.membership_no),(select trim(substr(pka_lon_reqsrv.fp_calc_agetext(pka_lon_reqsrv.fp_calc_install_m_age(sc_mem_m_membership_registered.membership_no)),0,3)) from sc_mem_m_membership_registered tab where tab.membership_no = sc_mem_m_membership_registered.membership_no and trim(substr(pka_lon_reqsrv.fp_calc_agetext(pka_lon_reqsrv.fp_calc_install_m_age(sc_mem_m_membership_registered.membership_no)),0,3)) between '!age_mem_1!' and '!age_mem_2!'))= decode((select trim(substr(pka_lon_reqsrv.fp_calc_agetext(pka_lon_reqsrv.fp_calc_install_m_age(sc_mem_m_membership_registered.membership_no)),0,3)) from sc_mem_m_membership_registered tab where tab.membership_no = sc_mem_m_membership_registered.membership_no and trim(substr(pka_lon_reqsrv.fp_calc_agetext(pka_lon_reqsrv.fp_calc_install_m_age(sc_mem_m_membership_registered.membership_no)),0,3)) between '!age_mem_1!' and '!age_mem_2!') , null , 
+        (select all(trim(substr(pka_lon_reqsrv.fp_calc_agetext(pka_lon_reqsrv.fp_calc_install_m_age(sc_mem_m_membership_registered.membership_no)),0,3))) from sc_mem_m_membership_registered tab where tab.membership_no = sc_mem_m_membership_registered.membership_no),(select trim(substr(pka_lon_reqsrv.fp_calc_agetext(pka_lon_reqsrv.fp_calc_install_m_age(sc_mem_m_membership_registered.membership_no)),0,3)) from sc_mem_m_membership_registered tab where tab.membership_no = sc_mem_m_membership_registered.membership_no and trim(substr(pka_lon_reqsrv.fp_calc_agetext(pka_lon_reqsrv.fp_calc_install_m_age(sc_mem_m_membership_registered.membership_no)),0,3)) between '!age_mem_1!' and '!age_mem_2!'))
+
+AND     decode('!mem_status!',null,(select all(tab.member_status_code) from sc_mem_m_membership_registered tab where tab.membership_no = sc_mem_m_membership_registered.membership_no),(select tab.member_status_code from sc_mem_m_membership_registered tab where tab.membership_no = sc_mem_m_membership_registered.membership_no and tab.member_status_code = '!mem_status!'))= decode((select tab.member_status_code from sc_mem_m_membership_registered tab where tab.membership_no = sc_mem_m_membership_registered.membership_no and tab.member_status_code = '!mem_status!') , null , 
+        (select all(tab.member_status_code) from sc_mem_m_membership_registered tab where tab.membership_no = sc_mem_m_membership_registered.membership_no),(select tab.member_status_code from sc_mem_m_membership_registered tab where tab.membership_no = sc_mem_m_membership_registered.membership_no and tab.member_status_code = '!mem_status!'))
+
+AND     decode('!age_life!',null,(select all(trim(substr(pka_lon_reqsrv.fp_calc_agetext_m_live(sc_mem_m_membership_registered.membership_no),0,3))) from sc_mem_m_membership_registered tab where tab.membership_no = sc_mem_m_membership_registered.membership_no),(select trim(substr(pka_lon_reqsrv.fp_calc_agetext_m_live(sc_mem_m_membership_registered.membership_no),0,3)) from sc_mem_m_membership_registered tab where tab.membership_no = sc_mem_m_membership_registered.membership_no and trim(substr(pka_lon_reqsrv.fp_calc_agetext_m_live(sc_mem_m_membership_registered.membership_no),0,3)) between '!age_life_1!' and '!age_life_2!'))= decode((select trim(substr(pka_lon_reqsrv.fp_calc_agetext_m_live(sc_mem_m_membership_registered.membership_no),0,3)) from sc_mem_m_membership_registered tab where tab.membership_no = sc_mem_m_membership_registered.membership_no and trim(substr(pka_lon_reqsrv.fp_calc_agetext_m_live(sc_mem_m_membership_registered.membership_no),0,3)) between '!age_life_1!' and '!age_life_2!') , null , 
+        (select all(trim(substr(pka_lon_reqsrv.fp_calc_agetext_m_live(sc_mem_m_membership_registered.membership_no),0,3))) from sc_mem_m_membership_registered tab where tab.membership_no = sc_mem_m_membership_registered.membership_no),(select trim(substr(pka_lon_reqsrv.fp_calc_agetext_m_live(sc_mem_m_membership_registered.membership_no),0,3)) from sc_mem_m_membership_registered tab where tab.membership_no = sc_mem_m_membership_registered.membership_no and trim(substr(pka_lon_reqsrv.fp_calc_agetext_m_live(sc_mem_m_membership_registered.membership_no),0,3)) between '!age_life_1!' and '!age_life_2!'))
+
+AND     decode('!sex!',null,(select all(tab.sex) from sc_mem_m_membership_registered tab where tab.membership_no = sc_mem_m_membership_registered.membership_no),(select tab.sex from sc_mem_m_membership_registered tab where tab.membership_no = sc_mem_m_membership_registered.membership_no and tab.sex = '!sex!'))= decode((select tab.sex from sc_mem_m_membership_registered tab where tab.membership_no = sc_mem_m_membership_registered.membership_no and tab.sex = '!sex!') , null , 
+        (select all(tab.sex) from sc_mem_m_membership_registered tab where tab.membership_no = sc_mem_m_membership_registered.membership_no),(select tab.sex from sc_mem_m_membership_registered tab where tab.membership_no = sc_mem_m_membership_registered.membership_no and tab.sex = '!sex!'))
+
+AND     decode('!mem_salary!',null,(select all(tab.salary_amount) from sc_mem_m_member_work_info tab where tab.membership_no = sc_mem_m_membership_registered.membership_no),(select tab.salary_amount from sc_mem_m_member_work_info tab where tab.membership_no = sc_mem_m_membership_registered.membership_no and tab.salary_amount between '!mem_salary_1!' and '!mem_salary_2!'))= decode((select trim(pka_com_function.fp_get_member_salary(sc_mem_m_membership_registered.membership_no)) from sc_mem_m_membership_registered tab where tab.membership_no = sc_mem_m_membership_registered.membership_no and trim(pka_com_function.fp_get_member_salary(sc_mem_m_membership_registered.membership_no)) between '!mem_salary_1!' and '!mem_salary_2!') , null , 
+        (select all(tab.salary_amount) from sc_mem_m_member_work_info tab where tab.membership_no = sc_mem_m_membership_registered.membership_no),(select tab.salary_amount from sc_mem_m_member_work_info tab where tab.membership_no = sc_mem_m_membership_registered.membership_no and tab.salary_amount between '!mem_salary_1!' and '!mem_salary_2!'))
+
+AND     decode('!period_share!',null,(select all(tab.period_recrieve) from sc_mem_m_share_mem tab where tab.membership_no = sc_mem_m_membership_registered.membership_no),(select tab.period_recrieve from sc_mem_m_share_mem tab where tab.membership_no = sc_mem_m_membership_registered.membership_no and tab.period_recrieve between '!period_share_1!' and '!period_share_2!'))= decode((select tab.period_recrieve from sc_mem_m_share_mem tab where tab.membership_no = sc_mem_m_membership_registered.membership_no and tab.period_recrieve between '!period_share_1!' and '!period_share_2!') , null , 
+        (select all(tab.period_recrieve) from sc_mem_m_share_mem tab where tab.membership_no = sc_mem_m_membership_registered.membership_no),(select tab.period_recrieve from sc_mem_m_share_mem tab where tab.membership_no = sc_mem_m_membership_registered.membership_no and tab.period_recrieve between '!period_share_1!' and '!period_share_2!'))
+
+/*WHERE*/
+ORDER BY sc_mem_m_membership_registered.membership_no</sql>
+  <sub />
+</root>

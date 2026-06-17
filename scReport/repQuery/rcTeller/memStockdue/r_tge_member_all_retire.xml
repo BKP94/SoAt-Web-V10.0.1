@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <date_of_birth text="วันเกิด" table="sc_mem_m_membership_registered" type="date" column="date_of_birth" operator="bt" sqlreplace="1" readonly="0" />
+    <membership_no text="เลขทะเบียน" table="sc_mem_m_membership_registered" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select  pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as membername
+,       sc_mem_m_membership_registered.membership_no
+,       pka_com_function.fp_get_group_name(sc_mem_m_membership_registered.member_group_no) as groupname
+,       sc_mem_m_membership_registered.date_of_birth
+,       '!date_of_birth_1!' as date_of_birth_1
+,       '!date_of_birth_2!' as date_of_birth_2
+,       pka_com_function.fp_get_thaidate(sysdate) as sys_date
+,       sc_mem_m_ucf_member_status.member_status_name
+from    sc_mem_m_membership_registered
+,       sc_mem_m_ucf_member_status
+where   sc_mem_m_membership_registered.member_status_code = sc_mem_m_ucf_member_status.member_status_code
+and     sc_mem_m_membership_registered.member_status_code = '0'
+and     sc_mem_m_membership_registered.mem_type = '01'
+--and     sc_mem_m_membership_registered.date_of_birth between '01/10/1961' and '02/10/1962'
+/*WHERE*/
+order by sc_mem_m_membership_registered.membership_no
+</sql>
+  <sub />
+</root>

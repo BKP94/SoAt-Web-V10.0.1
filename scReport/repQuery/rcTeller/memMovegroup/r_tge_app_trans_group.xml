@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <entry_date text="วันที่" table="sc_mem_edit_group" type="date" operator="bt" sqlwhere="0" sqlreplace="1" mustvalue="1" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>    select  sc_mem_edit_group.membership_no
+    ,       pka_com_function.fp_get_member_name(sc_mem_edit_group.membership_no) as memname
+    ,       trim(sc_mem_edit_group.pre_member_group_no)||' '||trim(pka_com_function.fp_get_group_name(sc_mem_edit_group.pre_member_group_no)) as group_old_name
+    ,       trim(sc_mem_edit_group.member_group_no)||' '||trim(pka_com_function.fp_get_group_name(sc_mem_edit_group.member_group_no)) as group_new_name
+    ,       sc_mem_edit_group.entry_id
+    ,       pka_com_function.fp_get_thaidate(sc_mem_edit_group.entry_date,'DD/MM/YYYY')as entry_date
+    ,       pka_com_function.fp_get_thaidate(sc_mem_edit_group.entry_date,'HH24:MI:SS')as entry_time
+    from    sc_mem_edit_group
+    where   1=1
+    --and     sc_mem_edit_group.membership_no = '023808'
+    
+/*---------------------[  วันที่  ]------------------------*/
+ and to_date(sc_mem_edit_group.entry_date) between to_date('!entry_date_1!','dd/mm/yyyy') and to_date('!entry_date_2!','dd/mm/yyyy')
+/*WHERE*/
+    order by pka_com_function.fp_get_thaidate(sc_mem_edit_group.entry_date,'DD/MM/YYYY')
+    ,        sc_mem_edit_group.membership_no
+    ,        pka_com_function.fp_get_thaidate(sc_mem_edit_group.entry_date,'HH24:MI:SS')</sql>
+  <sub />
+</root>

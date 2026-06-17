@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="T060" rep_text="รายงานแสดงการกู้ตามวัตถุประสงค์ ตามประเภทเงินกู้">
+  <arg>
+    <begining_of_contract text="วันที่" table="sc_lon_m_contract" type="date" column="begining_of_contract" operator="bt" />
+    <loan_type text="ประเภทเงินกู้" table="sc_lon_m_contract" combo="sc_lon_m_rule" />
+  </arg>
+  <combo />
+  <sql>SELECT sc_lon_m_ucf_loan_obj.loan_objective_description,
+    sc_lon_m_ucf_loan_obj.loan_objective_code,
+    sum(  sc_lon_m_contract.loan_approve_amount ) as loan_approve_amount,
+    sum( sc_lon_m_contract.real_recieve  ) as real_receive
+    FROM sc_lon_m_contract,
+    sc_lon_m_loan_card,
+    sc_lon_m_loan_request,
+    sc_lon_m_ucf_loan_obj
+    WHERE ( sc_lon_m_contract.loan_contract_no = sc_lon_m_loan_card.loan_contract_no ) 
+    and   ( sc_lon_m_contract.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no )
+    and   ( sc_lon_m_loan_request.loan_type = sc_lon_m_ucf_loan_obj.loan_type )
+    and   ( sc_lon_m_loan_request.loan_objective_code = sc_lon_m_ucf_loan_obj.loan_objective_code ) 
+    /*and ( sc_lon_m_contract.begining_of_contract between :adt_datefrom and :adt_dateto ) 
+    and  sc_lon_m_contract.loan_type = :as_loantype*/
+    /*WHERE*/
+    GROUP BY sc_lon_m_ucf_loan_obj.loan_objective_code,
+    sc_lon_m_ucf_loan_obj.loan_objective_description
+    ORDER BY sc_lon_m_ucf_loan_obj.loan_objective_code ASC,
+    sc_lon_m_ucf_loan_obj.loan_objective_description ASC
+  </sql>
+  <sub />
+</root>

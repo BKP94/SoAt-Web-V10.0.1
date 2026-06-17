@@ -1,0 +1,309 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <loan_requestment_no align="center" text="เลขสัญญา" table="sc_lon_m_loan_request" column="loan_requestment_no" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>select sc_lon_m_loan_request.loan_requestment_no
+,sc_lon_m_rule.loan_type
+,sc_lon_m_rule.loan_type_description
+
+,pka_com_function.fp_get_member_name(sc_lon_m_loan_request.membership_no) as name_fp
+,sc_lon_m_loan_request.membership_no
+,sc_mem_m_membership_registered.member_group_no
+,pka_com_function.fp_get_group_name_mem( sc_mem_m_membership_registered.membership_no )  as position_name
+
+,sc_lon_m_loan_request.loan_request_amount
+,sc_lon_m_loan_request.period_payment_amount
+,sc_lon_m_loan_request.loan_installment_amount
+,sc_lon_m_loan_request.last_payment_amount
+,((select loan_interest_rate
+from sc_lon_m_int_step_rate
+where effective_date = (
+    select max(effective_date)
+    from sc_lon_m_int_step_rate
+    where loan_type = sc_lon_m_rule.loan_type
+)
+and loan_type = sc_lon_m_rule.loan_type) * 100) as loan_interest_rate
+
+--เงินเดือน
+,(select salary_amount from sc_mem_m_member_work_info where sc_mem_m_member_work_info.membership_no = sc_lon_m_loan_request.membership_no) as salary_amount
+--เงินประจำตำแหน่ง
+,nvl((select case academic_salary
+when 9900 then academic_salary * 2
+when 5600 then academic_salary * 2
+else academic_salary
+end as academic_salary
+from sc_mem_m_member_work_info
+where membership_no = sc_mem_m_membership_registered.membership_no
+),0) as academic_salary
+--ค่าตอบแทน
+,nvl((select remuneration_amount
+from sc_mem_m_member_work_info
+where membership_no = sc_mem_m_membership_registered.membership_no
+),0) as remuneration_amount
+,(select (nvl(case academic_salary
+when 9900 then academic_salary * 2
+when 5600 then academic_salary * 2
+else academic_salary
+end,0) + nvl(remuneration_amount,0) + nvl(salary_amount,0)) as exp 
+from sc_mem_m_member_work_info where sc_mem_m_member_work_info.membership_no = sc_lon_m_loan_request.membership_no) as exp_amount
+
+,decode(sc_mem_m_membership_registered.sex,'M','ชาย','หญิง') as sex
+,sc_mem_m_membership_registered.date_of_birth
+,pka_lon_reqsrv.fp_calc_agetext_m_live(sc_mem_m_membership_registered.membership_no) as agetext_live
+,sc_mem_m_membership_registered.approve_date
+,substr(pka_lon_reqsrv.fp_calc_agetext(pka_lon_reqsrv.fp_calc_install_m_age(sc_mem_m_membership_registered.membership_no)),1,30) as age_mem_text
+,mem_request_amount - total_old_loan - total_oldint - fee_amount - buy_share - decode(sc_lon_m_loan_request.payint_firstperiod_status,'1',interest_first,0) as paid_amount /*รับจริง*/
+
+,nvl(( select sum( item_amount )
+from sc_lon_m_req_salnet_inc
+where  sc_lon_m_req_salnet_inc.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no ),0) as sum_inc_amount /*รายได้*/
+
+,nvl(( select sum( item_amount )
+from sc_lon_m_req_salnet_exp
+where  sc_lon_m_req_salnet_exp.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no ),0) as sum_exp_amount /*รายจ่าย*/
+
+--รายเดือนรวมหักกลบ
+,(select sum(tab.money_amount)
+from (
+    select 1 as sort
+    ,0 as seq_no
+    ,'เงินฝาก' as receive_description
+    ,monthdep as money_amount
+    from sc_lon_m_loan_request sr
+    where sr.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+
+    union all
+    
+    select 1 as sort
+    ,1 as seq_no
+    ,'เงินกู้' as receive_description
+    ,monthloan as money_amount
+    from sc_lon_m_loan_request sr
+    where sr.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+
+    union all
+    
+    select 1 as sort
+    ,2 as seq_no
+    ,'หุ้น' as receive_description
+    ,monthshare as money_amount
+    from sc_lon_m_loan_request sr
+    where sr.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+
+    union all
+    
+    select 2 as sort
+        , sc_lon_m_req_salnet_exp.seq_no
+        , sc_lon_m_ucf_req_salnet_type.item_code_desc as receive_description
+        , sc_lon_m_req_salnet_exp.item_amount as money_amount
+    from sc_lon_m_req_salnet_exp
+    , sc_lon_m_ucf_req_salnet_type
+    where sc_lon_m_req_salnet_exp.item_code = sc_lon_m_ucf_req_salnet_type.item_code
+    and sc_lon_m_req_salnet_exp.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+    
+    union all
+    
+    select 3 as sort
+    ,0 as seq_no
+    ,'ชำระ/งวด' as receive_description
+    ,period_payment_amount as money_amount
+    from sc_lon_m_loan_request sr
+    where sr.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+    
+    union all
+    
+    select 4 as sort
+    ,0 as seq_no
+    ,'ดอกเบี้ยงวดแรก' as receive_description
+    ,interest_first as money_amount
+    from sc_lon_m_loan_request sr
+    where sr.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+    
+    union all
+    
+    select 5 as sort
+    ,0 as seq_no
+    ,'ค่าสงเคราะห์ศพรายเดือน' as receive_description
+    ,PKA_LON_CALCLOAN_PERMIT.fp_get_insur_skk_amount (sc_lon_m_loan_request.membership_no,sc_lon_m_loan_request.requestment_date) as money_amount
+    from sc_lon_m_loan_request sr
+    where sr.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+    
+) tab
+where tab.money_amount &gt; 0) as month
+
+,(select salary_amount + nvl(sc_lon_m_loan_request.academic_salary,0) 
+from sc_mem_m_member_work_info where sc_mem_m_member_work_info.membership_no = sc_lon_m_loan_request.membership_no) * 0.30 as percent_salary_30
+
+,nvl(sc_lon_m_loan_request.balance_salary,0) as balance_salary
+,sc_lon_m_loan_request.interest_first
+,sc_lon_m_loan_request.remark
+,(select sc_mem_m_member_work_info.working_date from sc_mem_m_member_work_info 
+where sc_mem_m_member_work_info.membership_no = sc_mem_m_membership_registered.membership_no
+and sc_mem_m_member_work_info.position_long &lt;&gt; 'ข้าราชการบำนาญ') as working_date
+,pka_lon_reqsrv.fp_calc_agetext((select sc_mem_m_member_work_info.working_date from sc_mem_m_member_work_info 
+where sc_mem_m_member_work_info.membership_no = sc_mem_m_membership_registered.membership_no
+and sc_mem_m_member_work_info.position_long &lt;&gt; 'ข้าราชการบำนาญ')) as age_working_text
+--สวัสดิการ
+,(select sum(tab.amount)
+        from (
+            select 0 as sort
+            ,'ทุนเรือนหุ้น' as description
+            ,sc_mem_m_share_mem.share_stock as amount
+            from sc_mem_m_share_mem
+            where sc_mem_m_share_mem.membership_no = sc_mem_m_membership_registered.membership_no
+            
+            union all
+            
+            select 1 as sort
+            ,sc_mem_m_insure_rule.insurance_desc as description
+            ,sc_mem_m_insure.insurance_cost as amount
+            from sc_mem_m_insure
+            ,sc_mem_m_insure_rule
+            where sc_mem_m_insure.insurance_type = sc_mem_m_insure_rule.insurance_type
+            and sc_mem_m_insure.membership_no = sc_mem_m_membership_registered.membership_no
+            and sc_mem_m_insure.insurance_status = '0'
+            
+            union all
+            
+            select 2 as sort
+            ,sc_mem_m_member_crem_type.crem_name_shot as description
+            ,sc_mem_m_member_crem_type.default_cost as amount
+            from sc_mem_m_member_cremation
+            ,sc_mem_m_member_crem_type
+            where sc_mem_m_member_cremation.crem_type = sc_mem_m_member_crem_type.crem_type
+            and sc_mem_m_member_cremation.membership_no = sc_mem_m_membership_registered.membership_no
+            
+            union all
+            
+            select 3 as sort
+            ,'สวัสดิการสมาชิกเสียชีวิต' as description
+            ,pka_lon_calcloan_permit.fp_get_welf_amount ( sc_mem_m_membership_registered.membership_no , sc_lon_m_loan_request.requestment_date ) as amount
+            from dual
+            
+            union all
+            
+            select 4 as sort
+            ,'สมาคมฌาปณกิจครูสุรินทร์' as description
+            ,pka_lon_calcloan_permit.fp_get_insur_skk ( sc_mem_m_membership_registered.membership_no , sc_lon_m_loan_request.requestment_date ) as amount
+            from dual
+            
+            union all
+            
+            select 5 as sort
+            ,'ชมรมเจ้าหน้าที่' as description
+            ,pka_lon_calcloan_permit.fp_get_insur_chomrom ( sc_mem_m_membership_registered.membership_no , sc_lon_m_loan_request.requestment_date ) as amount
+            from dual
+        ) tab
+) as insurance_amount
+
+,sc_lon_m_loan_request.requestment_date
+,nvl((select sum(sc_lon_m_loan_history.principal_of_loan) as pricipal_balance
+from sc_lon_m_loan_history
+where sc_lon_m_loan_history.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+and sc_lon_m_loan_history.clear_target &lt;&gt; 1),0) as amount_not_clear
+
+,sc_mem_m_member_work_info.retire_date
+,PKA_LON_REQSRV.fp_calc_agetext( PKA_SRV_DATETIME.fp_monthsafter( sysdate , sc_mem_m_member_work_info.retire_date )) as agetext_retire
+,decode(sc_mem_m_member_work_info.position_long,'ข้าราชการบำนาญ','&lt;&gt;',pka_lon_reqsrv.fp_calc_agetext(
+    pka_srv_datetime.fp_monthsafter(sc_mem_m_member_work_info.working_date,sc_mem_m_member_work_info.retire_date))
+) as age_retire_text
+
+,(select pka_com_function.fp_get_member_name(si_security_user.membership_no)
+from si_security_user
+where si_security_user.user_id = sc_lon_m_loan_request.entry_id) as entry_id
+
+,nvl((select sum(sc_lon_m_req_fee.prakan_atm)
+from sc_lon_m_req_fee
+,sc_lon_m_ucf_fee
+where sc_lon_m_req_fee.fee_type = sc_lon_m_ucf_fee.fee_type
+and sc_lon_m_ucf_fee.insur_status = '1' --สมัครใหม่
+and sc_lon_m_req_fee.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no),0) as fee_insure_1
+
+,nvl((select sum(principal_balance_of_loan)
+from sc_lon_m_loan_history
+where 1=1
+and sc_lon_m_loan_history.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+and clear_target = '1'),0) as pricipal_balance_1
+,nvl((select sum(interest_amount)
+from sc_lon_m_loan_history
+where 1=1
+and sc_lon_m_loan_history.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+and clear_target = '1'),0) as interest_amount_1
+
+,(select period_recrieve from sc_mem_m_share_mem where sc_mem_m_share_mem.membership_no = sc_lon_m_loan_request.membership_no) as period_recrieve
+
+,(select sum(tab.total)
+from (
+select loan_requestment_no
+,(principal_balance_of_loan + interest_amount) as total
+from sc_lon_m_loan_history
+where 1=1
+and clear_target = '1'
+
+union all
+
+select loan_requestment_no
+,buy_share as total
+from sc_lon_m_loan_request
+where 1=1
+
+union all
+
+select sc_lon_m_req_fee.loan_requestment_no
+,sc_lon_m_req_fee.amount as total
+from sc_lon_m_req_fee
+,sc_lon_m_ucf_fee
+where 1=1
+and sc_lon_m_req_fee.fee_type = sc_lon_m_ucf_fee.fee_type
+
+union all
+
+select sc_lon_m_loan_request.loan_requestment_no
+,sc_lon_m_loan_request.interest_first as total
+from sc_lon_m_loan_request
+where 1=1
+
+) tab
+where 1=1
+and tab.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no) as paid_total
+
+,greatest(
+    nvl((
+        SELECT SUM(smp.paid_amount)
+        FROM sc_lon_m_loan_request_mpaid smp
+        WHERE smp.type_pay_money = 'TRD'
+        AND smp.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
+    ), 0),
+    0
+) AS paid_amount_dep
+
+    ,   (   select  sc_mem_m_membership_registered.membership_no
+            from    sc_mem_m_membership_registered
+            where   sc_mem_m_membership_registered.membership_no = sc_lon_m_loan_request.membership_no
+            and     sc_mem_m_membership_registered.member_status_code = '0'
+            and     sc_mem_m_membership_registered.mem_type &lt;&gt; '02'
+            and     sc_mem_m_membership_registered.membership_no not in (   select  sc_dep_m_creditor.membership_no
+                                                                            from    sc_dep_m_creditor
+                                                                            where   1=1
+                                                                            and     sc_dep_m_creditor.close_status &lt;&gt; 'C'
+                                                                            and     sc_dep_m_creditor.deposit_account_name  not like '%%เพื่อ%%'
+                                                                            and     sc_dep_m_creditor.deposit_account_name  not like '%%โดย%%'
+                                                                            and     sc_dep_m_creditor.deposit_account_name  not like '%%-%%'
+                                                                        )  
+         ) AS none_dep
+
+from sc_lon_m_loan_request
+,sc_mem_m_membership_registered
+,sc_lon_m_rule
+,sc_mem_m_member_work_info
+where sc_mem_m_membership_registered.membership_no = sc_lon_m_loan_request.membership_no
+and sc_mem_m_member_work_info.membership_no = sc_mem_m_membership_registered.membership_no
+and sc_lon_m_rule.loan_type = sc_lon_m_loan_request.loan_type
+/*WHERE*/
+--and loan_requestment_no = '6710000005'
+</sql>
+  <sub>
+  </sub>
+</root>

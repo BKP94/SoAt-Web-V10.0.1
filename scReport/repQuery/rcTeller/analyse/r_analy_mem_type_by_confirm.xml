@@ -1,0 +1,115 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <confirm_date text="วันที่" table="sc_cls_confirm_data" type="date" readonly="0" />
+  </arg>
+  <combo />
+  <sql>  SELECT  sc_cls_confirm_mem.mem_type  
+, ( select  mem_type_desc from sc_mem_m_ucf_member_type  where mem_type_code =  sc_cls_confirm_mem.mem_type   ) as mem_type_desc
+, count( 1 ) as count_share
+,sum( sc_cls_confirm_data.data_balance ) as c_share 
+, (
+select count( distinct tab_data.membership_no  )
+from sc_cls_confirm_data  tab_data
+,sc_cls_confirm_mem tab_mem
+where 1=1
+and tab_mem.membership_no = tab_data.membership_no
+and tab_mem.confirm_date = tab_data.confirm_date
+and tab_mem.confirm_date = tab_data.confirm_date
+and tab_data.data_group  =  'DEP' 
+
+and tab_mem.mem_type = sc_cls_confirm_mem.mem_type
+and tab_mem.confirm_date = sc_cls_confirm_mem.confirm_date
+
+) count_dep
+
+, (
+select count( distinct tab_data.membership_no  )
+from sc_cls_confirm_data  tab_data
+,sc_cls_confirm_mem tab_mem
+where 1=1
+and tab_mem.membership_no = tab_data.membership_no
+and tab_mem.confirm_date = tab_data.confirm_date
+and tab_mem.confirm_date = tab_data.confirm_date
+and tab_data.data_group  =  'DEP' 
+and tab_mem.membership_no not in (  
+												select tab_not.membership_no
+												from sc_cls_confirm_data  tab_not
+												where tab_not.data_group  =  'LON'
+												and  tab_not.confirm_date = sc_cls_confirm_mem.confirm_date
+												 )
+
+and tab_mem.mem_type = sc_cls_confirm_mem.mem_type
+and tab_mem.confirm_date = sc_cls_confirm_mem.confirm_date
+
+) count_dep_only
+
+, (
+select count( distinct tab_data.membership_no  )
+from sc_cls_confirm_data  tab_data
+,sc_cls_confirm_mem tab_mem
+where 1=1
+and tab_mem.membership_no = tab_data.membership_no
+and tab_mem.confirm_date = tab_data.confirm_date
+and tab_mem.confirm_date = tab_data.confirm_date
+and tab_data.data_group  =  'LON' 
+
+and tab_mem.mem_type = sc_cls_confirm_mem.mem_type
+and tab_mem.confirm_date = sc_cls_confirm_mem.confirm_date
+
+) count_lon
+
+, (
+select count( distinct tab_data.membership_no  )
+from sc_cls_confirm_data  tab_data
+,sc_cls_confirm_mem tab_mem
+where 1=1
+and tab_mem.membership_no = tab_data.membership_no
+and tab_mem.confirm_date = tab_data.confirm_date
+and tab_mem.confirm_date = tab_data.confirm_date
+and tab_data.data_group  =  'LON' 
+and tab_mem.membership_no not in (  
+												select tab_not.membership_no
+												from sc_cls_confirm_data  tab_not
+												where tab_not.data_group  =  'DEP'
+												and  tab_not.confirm_date = sc_cls_confirm_mem.confirm_date
+												 )
+
+and tab_mem.mem_type = sc_cls_confirm_mem.mem_type
+and tab_mem.confirm_date = sc_cls_confirm_mem.confirm_date
+
+) count_lon_only
+
+, (
+select count( distinct tab_data.membership_no  )
+from sc_cls_confirm_data  tab_data
+,sc_cls_confirm_mem tab_mem
+where 1=1
+and tab_mem.membership_no = tab_data.membership_no
+and tab_mem.confirm_date = tab_data.confirm_date
+and tab_mem.confirm_date = tab_data.confirm_date
+and tab_data.data_group  in ( 'LON' , 'DEP' )
+
+and tab_mem.mem_type = sc_cls_confirm_mem.mem_type
+and tab_mem.confirm_date = sc_cls_confirm_mem.confirm_date
+
+) count_lon_dep
+
+    FROM sc_cls_confirm_data,   
+         sc_cls_confirm_mem  
+   WHERE ( sc_cls_confirm_data.membership_no = sc_cls_confirm_mem.membership_no ) and  
+	( sc_cls_confirm_data.confirm_date = sc_cls_confirm_mem.confirm_date ) and 
+	( sc_cls_confirm_data.data_balance &gt; 0 ) AND
+	( sc_cls_confirm_data.data_group = 'SHR' )    
+
+/*WHERE*/  
+--AND         (  sc_cls_confirm_data.confirm_date = '28/2/2022' )   
+
+GROUP BY sc_cls_confirm_mem.confirm_date
+, sc_cls_confirm_mem.mem_type   
+
+ORDER BY sc_cls_confirm_mem.confirm_date
+, sc_cls_confirm_mem.mem_type   
+</sql>
+  <sub />
+</root>

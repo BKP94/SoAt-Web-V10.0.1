@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg />
+  <combo />
+  <sql>
+    select sum_share_amount as sum_lon_amount
+    ,pka_com_function.fp_get_thaidate(date_fr,'dd/mm/yyyy') as tdate_fr
+    ,SC_REP_ANALYSE_SHARE.*
+    from SC_REP_ANALYSE_SHARE
+    where rpt = 'TEL065011053'
+  </sql>
+  <sub />
+</root>

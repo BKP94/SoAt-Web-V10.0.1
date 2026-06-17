@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+  </arg>
+  <combo />
+  <sql>SELECT sc_lon_m_rule.loan_group_code,   
+       count(  sc_lon_m_contract.loan_contract_no ) as count_contract,   
+       sum(sc_lon_m_loan_card.principal_balance  ) as principal_balance
+         
+         ,( select  count(membership_no)
+            from	  sc_mem_m_membership_registered
+            where	  (sc_mem_m_membership_registered.member_group_no between '0000' and '9500') 
+            and    (member_status_code &lt;&gt;'3')) as c_count_mem
+          
+        ,(  select 	nvl(sum(sc_mem_m_share_mem.share_stock),0)   
+            from 	sc_mem_m_share_mem,   	
+                  sc_mem_m_membership_registered  
+            where ( sc_mem_m_membership_registered.membership_no = sc_mem_m_share_mem.membership_no ) 
+            and   (sc_mem_m_membership_registered.member_status_code  = '0') 
+            and  	(sc_mem_m_membership_registered.member_group_no  not in ('a8000', 'a8100'))) as c_share_stock_mem_code_0
+            
+         ,( select 	nvl(sum(sc_mem_m_share_mem.share_stock),0)  
+            from 	sc_mem_m_share_mem,   
+                  sc_mem_m_membership_registered  
+            Where ( sc_mem_m_membership_registered.membership_no = sc_mem_m_share_mem.membership_no ) 
+            and		(sc_mem_m_membership_registered.member_group_no  = 'a8000')) as c_share_stock_mem_code_1
+            
+          ,case loan_group_code when '01' then 'เงินกู้ฉุกเฉิน' when '02' then 'เงินกู้สามัญ' when '03' then 'เงินกู้พิเศษ' end as c_loan_group_code
+            
+FROM sc_lon_m_loan_card,   
+         sc_lon_m_rule,   
+         sc_lon_m_contract,   
+         sc_mem_m_membership_registered  
+WHERE ( sc_lon_m_contract.loan_type = sc_lon_m_rule.loan_type ) and  
+         ( sc_lon_m_contract.loan_contract_no = sc_lon_m_loan_card.loan_contract_no ) and  
+         ( sc_lon_m_contract.membership_no = sc_mem_m_membership_registered.membership_no ) and  
+         ( ( sc_lon_m_loan_card.principal_balance &gt; 0 ) AND   
+         ( sc_mem_m_membership_registered.member_group_no not in ( '9650' , '9988' ) ) )   
+and  sc_mem_m_membership_registered.membership_no not in ('fundmem')
+GROUP BY sc_lon_m_rule.loan_group_code   </sql>
+  <sub>
+    <r_mwa_loan_balance_all_by_group_nest_fund>
+      <sql>select	sum (total_balance) as fund_amount ,
+		count (loan_contract_no) as count_conno
+from	sc_fund_mem
+where	close_status = '0'
+and	        total_balance &gt; 0</sql>
+    </r_mwa_loan_balance_all_by_group_nest_fund>
+    <r_mwa_loan_balance_all_by_group_nest_speed>
+      <sql> SELECT sc_lon_m_rule.loan_group_code,   
+         count(  sc_lon_m_contract.loan_contract_no ) as count_contract,   
+         sum(sc_lon_m_loan_card.principal_balance  ) as principal_balance  
+    FROM sc_lon_m_loan_card,   
+         sc_lon_m_rule,   
+         sc_lon_m_contract,   
+         sc_mem_m_membership_registered  
+   WHERE ( sc_lon_m_contract.loan_type = sc_lon_m_rule.loan_type ) and  
+         ( sc_lon_m_contract.loan_contract_no = sc_lon_m_loan_card.loan_contract_no ) and  
+         ( sc_lon_m_contract.membership_no = sc_mem_m_membership_registered.membership_no ) and  
+         ( ( sc_lon_m_loan_card.principal_balance &gt; 0 ) AND  
+         ( sc_mem_m_membership_registered.member_status_code &lt;&gt; '3' ) AND  
+         ( sc_mem_m_membership_registered.member_group_no &lt;&gt; '9650' ) )   
+and	sc_lon_m_contract.loan_type = 'ฉอ'
+GROUP BY sc_lon_m_rule.loan_group_code</sql>
+    </r_mwa_loan_balance_all_by_group_nest_speed>
+  </sub>
+</root>

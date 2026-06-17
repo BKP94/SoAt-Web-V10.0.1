@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <ref_contract_no text="ประเภทเงินกู้" table="sc_lon_m_rule" combo="sc_lon_m_rule2" column="ref_contract_no" />
+    <last_access_date text="วันที่ชำระหนี้หมด" table="sc_lon_m_loan_card" type="date" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    SELECT sc_lon_m_contract.membership_no,
+    sc_lon_m_contract.loan_type,
+    sc_lon_m_contract.begining_of_contract,
+    to_tdate(sc_lon_m_contract.begining_of_contract, 'yyyy') as year_contract,
+    sc_lon_m_contract.loan_approve_amount,
+    sc_lon_m_contract.loan_installment_amount,
+    sc_lon_m_contract.period_payment_amount,
+    sc_lon_m_contract.loan_contract_no,
+    sc_lon_m_rule.loan_type_description,
+    sc_lon_m_loan_card.last_period,
+    sc_lon_m_loan_card.principal_balance,
+    PKA_COM_FUNCTION.fp_get_member_name( sc_mem_m_membership_registered.membership_no ) as membername,
+    sc_lon_m_loan_card.last_access_date
+    ,case
+    when  sc_lon_m_contract.begining_of_contract  &gt;=  sc_acc_m_account_year.beginning_of_account
+    and sc_lon_m_contract.begining_of_contract &lt;=sc_acc_m_account_year.ending_of_account
+    then 543 + sc_acc_m_account_year.account_year
+    else
+    sc_acc_m_account_year.account_year	 + 1
+    end as 		account_year
+
+    FROM sc_mem_m_membership_registered,
+    sc_lon_m_rule,
+    sc_lon_m_contract,
+    sc_lon_m_loan_card,
+    sc_acc_m_account_year
+    WHERE ( sc_mem_m_membership_registered.membership_no = sc_lon_m_contract.membership_no ) and
+    ( sc_lon_m_contract.loan_type = sc_lon_m_rule.loan_type ) and
+    ( sc_lon_m_contract.loan_contract_no = sc_lon_m_loan_card.loan_contract_no ) and
+    ( ( sc_lon_m_loan_card.principal_balance = 0 ) AND
+    ( sc_lon_m_rule.user_current = '0' ) AND
+    ( sc_acc_m_account_year.account_year =  to_number( to_char( sc_lon_m_contract.begining_of_contract  , 'YYYY' ) ) ) )
+    /*WHERE*/
+    --and sc_lon_m_rule.ref_contract_no = '4'
+    --and sc_lon_m_loan_card.last_access_date between '01/01/2020' and '21/05/2020'
+    order by sc_acc_m_account_year.account_year
+    ,sc_lon_m_contract.loan_type
+    ,sc_lon_m_contract.begining_of_contract
+    ,sc_lon_m_contract.loan_contract_no
+  </sql>
+  <sub />
+</root>

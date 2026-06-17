@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <member_group_no text="หน่วย" table="sc_mem_m_membership_registered" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+    <member_status_code text="สถานะสมาชิก" table="sc_mem_m_membership_registered" combo="member_status_code" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>select  sc_mem_m_membership_registered.membership_no
+    ,   pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as mem_name
+    ,   sc_mem_m_ucf_member_group.member_group_no
+    ,   sc_mem_m_ucf_member_group.member_group_name
+    ,   sc_mem_m_member_address.address_no
+    ,   sc_mem_m_member_address.moo
+    ,   sc_mem_m_member_address.road
+    ,   sc_mem_m_member_address.soi
+
+    ,   (   select  subdistrict_name
+            from    sc_mem_m_ucf_subdistrict  
+            where 1=1
+            and sc_mem_m_ucf_subdistrict.subdistrict_code = sc_mem_m_member_address.tambol
+            and sc_mem_m_ucf_subdistrict.district_code = sc_mem_m_member_address.district_code
+        ) AS tambol_name
+        
+    ,   (   select  district_name
+            from    sc_mem_m_ucf_district  
+            where 1=1
+            and sc_mem_m_ucf_district.district_code = sc_mem_m_member_address.district_code
+            and sc_mem_m_ucf_district.province_code = sc_mem_m_member_address.province_code
+        ) AS district_name
+
+    ,   (   select  province_name
+            from    sc_mem_m_ucf_province  
+            where 1=1
+            and sc_mem_m_ucf_province.province_code = sc_mem_m_member_address.province_code
+        ) AS province_name
+
+    ,   sc_mem_m_member_address.postcode
+    ,   sc_mem_m_member_address.telephone
+
+from    sc_mem_m_membership_registered
+    ,   sc_mem_m_ucf_member_group
+    ,   sc_mem_m_member_address
+
+where   sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no 
+and     sc_mem_m_membership_registered.membership_no = sc_mem_m_member_address.membership_no
+and     sc_mem_m_member_address.address_type = '0'
+/*WHERE*/
+ORDER BY    sc_mem_m_ucf_member_group.member_group_no 
+    ,       sc_mem_m_membership_registered.membership_no</sql>
+  <sub />
+</root>

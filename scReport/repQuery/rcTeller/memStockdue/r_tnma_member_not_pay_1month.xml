@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <receive_year align="center" special="year" text="ปี" table="sc_mem_kep_return_head" type="integer2" column="year_receive" readonly="0" comboreplace="0" combowhere="0" />
+    <receive_month text="เดือน" table="sc_mem_kep_return_head" type="integer2" column="month_receive" combo="monthThShot" readonly="0" comboreplace="0" combowhere="0" />
+    <member_group_no text="หน่วย" table="sc_mem_m_membership_registered" operator="bt" combo="sc_mem_m_ucf_member_group" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>SELECT sc_mem_m_membership_registered.membership_no
+    ,pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as membername
+	,sc_mem_m_membership_registered.member_group_no
+	,sc_mem_m_ucf_member_group.member_group_name
+	,sum(sc_mem_kep_return_head.total_amount) AS c_money_amount
+	,sc_mem_m_ucf_member_group.member_group_control
+	,sc_mem_m_membership_registered.doc_place_status
+	,sum(sc_mem_kep_return_head.total_keep_amount) AS c_money_pay
+	,sc_mem_m_ucf_member_group.group_section
+FROM sc_mem_m_membership_registered
+	,sc_mem_m_ucf_member_group
+	,sc_cnt_m_coop
+	,sc_mem_kep_return_head
+	,sc_mem_m_share_mem
+WHERE (sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no)
+	AND (sc_mem_m_membership_registered.membership_no = sc_mem_kep_return_head.membership_no)
+	AND (sc_mem_m_share_mem.membership_no = sc_mem_m_membership_registered.membership_no)
+    AND (sc_mem_m_share_mem.share_stock &gt; 0)
+--	AND (sc_mem_kep_return_head.year_receive = 2025)
+--		AND (sc_mem_kep_return_head.month_receive = 01)
+		AND (sc_mem_m_share_mem.share_stock &gt; 0)
+	--	AND ( sc_mem_m_membership_registered.member_group_no between :as_bgrp and :as_egrp )
+        AND	sc_mem_kep_return_head.total_amount &gt; sc_mem_kep_return_head.total_keep_amount
+		AND (	sc_mem_kep_return_head.payment_status = '0'		OR (sc_mem_kep_return_head.payment_status IS NULL)		)	
+ /*WHERE*/
+GROUP BY sc_mem_m_membership_registered.membership_no
+	,sc_mem_m_membership_registered.member_group_no
+	,sc_mem_m_ucf_member_group.member_group_name
+	,sc_mem_m_ucf_member_group.member_group_control
+	,sc_mem_m_membership_registered.doc_place_status
+	,sc_mem_m_ucf_member_group.group_section
+</sql>
+  <sub />
+</root>

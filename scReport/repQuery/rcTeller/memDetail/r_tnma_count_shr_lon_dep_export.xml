@@ -1,0 +1,62 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <confirm_date align="center" text="วันที่" table="sc_cls_confirm_data" type="date" readonly="0" comboreplace="0" combowhere="0" />
+    <member_group_no text="หน่วยงาน" table="sc_cls_confirm_mem" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" comboreplace="0" combowhere="0" />
+    <membership_no text="เลขทะเบียน" table="sc_cls_confirm_data" operator="bt" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql> select sc_cls_confirm_mem.membership_no 
+    ,sc_cls_confirm_mem.member_fullname
+ ,sc_cls_confirm_mem.member_group_no
+    ,FP_GET_GROUP_CONTROL(sc_cls_confirm_mem.member_group_no) as GROUP_CONTROL
+    ,pka_com_function.fp_get_group_name( trim(FP_GET_GROUP_CONTROL(sc_cls_confirm_mem.member_group_no)) ) as group_name
+    ,    CASE 
+        WHEN sc_cls_confirm_data.data_group = 'SHR' THEN 'ค่าหุ้น'
+        WHEN sc_cls_confirm_data.data_group = 'LON' THEN 'เงินกู้'
+        WHEN sc_cls_confirm_data.data_group = 'DEP' THEN 'เงินฝาก'
+        ELSE sc_cls_confirm_data.data_group
+        
+    END AS data_group_name
+    
+    ,    CASE 
+        WHEN sc_cls_confirm_data.data_group = 'LON' THEN pka_com_function.fp_form_conno(sc_cls_confirm_data.data_refno)
+        WHEN sc_cls_confirm_data.data_group = 'DEP' THEN pka_com_function.fp_form_depno(sc_cls_confirm_data.data_refno)
+        ELSE sc_cls_confirm_data.data_group
+    END AS data_refno_format
+    
+    ,(SELECT sc_dep_m_rule.deposit_name
+     FROM sc_dep_m_rule
+     WHERE sc_dep_m_rule.deposit_type_code = sc_cls_confirm_data.data_type
+     AND ROWNUM = 1) AS deposit_name
+    
+    ,sc_cls_confirm_data.data_refno
+    ,sc_cls_confirm_data.data_type
+    ,sc_cls_confirm_data.data_balance
+    from sc_cls_confirm_data
+    ,sc_cls_confirm_mem
+    where sc_cls_confirm_data.membership_no = sc_cls_confirm_mem.membership_no
+    and  sc_cls_confirm_data.confirm_date = sc_cls_confirm_mem.confirm_date
+   and sc_cls_confirm_mem.member_status_code = '0'
+and sc_cls_confirm_data.data_group not in 'ISU'
+/*WHERE*/
+    --and sc_cls_confirm_data.membership_no = '067327'
+  -- and sc_cls_confirm_mem.member_group_no  BETWEEN '!member_group_no_1!' AND '!member_group_no_2!'
+   -- and sc_cls_confirm_data.confirm_date =  '!confirm_date_1!'
+
+group by sc_cls_confirm_mem.membership_no 
+,sc_cls_confirm_mem.member_fullname
+ ,sc_cls_confirm_mem.member_group_no
+,FP_GET_GROUP_CONTROL(sc_cls_confirm_mem.member_group_no)
+,pka_com_function.fp_get_group_name( trim(FP_GET_GROUP_CONTROL(sc_cls_confirm_mem.member_group_no)) )
+,sc_cls_confirm_data.data_group
+  ,sc_cls_confirm_data.data_refno
+    ,sc_cls_confirm_data.data_type
+    ,sc_cls_confirm_data.data_balance
+ORDER BY
+   sc_cls_confirm_mem.member_group_no
+,sc_cls_confirm_mem.membership_no 
+,sc_cls_confirm_data.data_group desc
+,sc_cls_confirm_data.data_type</sql>
+  <sub />
+</root>

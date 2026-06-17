@@ -1,0 +1,89 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="T080" rep_text="หนังสือยืนยันยอด">
+  <arg>
+    <confirm_date align="center" text="ข้อมูล ณ วันที่" table="sc_cls_confirm_data" type="date" readonly="0" comboreplace="0" combowhere="0" />
+    <membership_no align="center" special="memno" text="ทะเบียน" table="sc_cls_confirm_data" readonly="0" comboreplace="0" combowhere="0" />
+    <currency align="center" text="สกุลเงิน" sqlwhere="0" sqlreplace="1" mustvalue="1" readonly="0" comboreplace="0" combowhere="0" />
+    <value_money align="center" text="ค่าเงิน" type="decimal2" sqlwhere="0" sqlreplace="1" mustvalue="1" readonly="0" comboreplace="0" combowhere="0" />
+    <sponsor_name align="center" text="คนที่สนับสนุน" sqlwhere="0" sqlreplace="1" mustvalue="1" readonly="0" comboreplace="0" combowhere="0" />
+    <book_no align="center" text="ที่ สอ.กทท." sqlwhere="0" sqlreplace="1" mustvalue="1" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo>
+  </combo>
+  <sql>select  (case when sc_cls_confirm_data.data_group = 'DEP' and sc_cls_confirm_data.data_type in ('25','55') then 'Saving Deposit'
+              when sc_cls_confirm_data.data_group = 'DEP' and sc_cls_confirm_data.data_type = '32' then 'Fixed Deposit'
+        end
+        ) as deposit_type      
+
+,       replace(pka_com_function.fp_get_member_name_eng( sc_cls_confirm_data.membership_no ),'  ' , ' ' ) as member_name_eng
+,       sc_cls_confirm_data.membership_no
+,       pka_com_function.fp_form( sc_cls_confirm_data.data_refno , 'XX-XXXXXXXXXX' ) as deposit_account_number
+,       to_snumber(sc_cls_confirm_data.data_balance) as deposit_balance
+,       to_snumber(sc_cls_confirm_data.data_balance/'!value_money!') as deposit_balance_currency
+
+,       (select to_snumber(sum(data_balance))
+        from    sc_cls_confirm_data tab
+        where   membership_no = sc_mem_m_membership_registered.membership_no
+        and     confirm_date = sc_cls_confirm_data.confirm_date
+        and     data_group = 'SHR'
+        ) as capital_stock
+        
+,       (select to_snumber(sum(data_balance)/'!value_money!')
+        from    sc_cls_confirm_data tab
+        where   membership_no = sc_mem_m_membership_registered.membership_no
+        and     confirm_date = sc_cls_confirm_data.confirm_date
+        and     data_group = 'SHR'
+        ) as capital_stock_currency
+        
+ ,       (select to_snumber(sum(data_balance))
+        from    sc_cls_confirm_data tab
+        where   membership_no = sc_mem_m_membership_registered.membership_no
+        and     confirm_date = sc_cls_confirm_data.confirm_date
+        and     data_group in ('SHR','DEP')
+        and     data_type not in ('27','30','38','42','44','46','90','91')
+        ) as sum_data_balance
+        
+,       (select to_snumber(sum(data_balance)/'!value_money!')
+        from    sc_cls_confirm_data tab
+        where   membership_no = sc_mem_m_membership_registered.membership_no
+        and     confirm_date = sc_cls_confirm_data.confirm_date
+        and     data_group in ('SHR','DEP')
+        and     data_type not in ('27','30','38','42','44','46','90','91')
+        ) as sum_data_balance_currency        
+
+,       sc_cls_confirm_data.confirm_date
+,       pka_com_function.fp_get_month_name( extract(month from sc_cls_confirm_data.confirm_date ) , 'LE' )||' '||extract(day from sc_cls_confirm_data.confirm_date )||', '||extract(year from sc_cls_confirm_data.confirm_date ) as confirm_edate
+,       sc_cls_confirm_data.data_group
+,       sc_cls_confirm_data.data_type
+,       pka_com_function.fp_get_month_name( extract(month from sysdate ) , 'LE' )||' '||extract(day from sysdate )||', '||extract(year from sysdate ) as book_edate
+,       '!book_no!' as book_no
+,       '!sponsor_name!' as sponsor_name
+
+,       pka_com_function.fp_get_month_name( extract(month from sc_mem_m_membership_registered.approve_date ) , 'LE' )||' '||extract(day from sc_mem_m_membership_registered.approve_date )||', '||extract(year from sc_mem_m_membership_registered.approve_date ) as approve_edate
+,       decode(sc_mem_m_membership_registered.sex,'M','He','She') as pronoun
+
+,       pka_com_function.fp_get_month_name( extract(month from sc_mem_m_membership_registered.approve_date ) , 'LE' )||' '||extract(day from sc_mem_m_membership_registered.approve_date )||', '||extract(year from sc_mem_m_membership_registered.approve_date ) as approve_edate
+
+,       '!currency!' as currency
+,       '!value_money!' as value_money
+
+from    sc_cls_confirm_data
+,       sc_mem_m_membership_registered
+where   sc_cls_confirm_data.membership_no = sc_mem_m_membership_registered.membership_no
+and     sc_mem_m_membership_registered.member_status_code = '0'
+and     sc_cls_confirm_data.data_balance &gt; '0'
+and     sc_cls_confirm_data.data_group = 'DEP'
+and     sc_cls_confirm_data.data_type not in (select data_type
+                                             from    sc_cls_confirm_data tab
+                                             where   membership_no = sc_mem_m_membership_registered.membership_no
+                                             and     confirm_date = sc_cls_confirm_data.confirm_date
+                                             and     data_group = 'DEP'
+                                             and     data_type in ('27','30','38','42','44','46','90','91')
+                                             ) 
+/*WHERE*/
+--and     sc_cls_confirm_data.membership_no = '02075'
+--and     sc_cls_confirm_data.confirm_date = '09/06/2024'
+order by sc_cls_confirm_data.data_refno</sql>
+  <sub>
+  </sub>
+</root>

@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <agr>
+  </agr>
+  <arg>
+    <begining_of_contract text="วันที่" table="sc_lon_m_contract" type="date" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    select sc_mem_m_membership_registered.membership_no
+    ,pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as member_name
+    ,sc_mem_m_member_work_info.salary_amount
+    ,sc_mem_m_ucf_member_group.member_group_name
+    ,sc_lon_m_contract.loan_requestment_no
+    ,sc_lon_m_contract.loan_request_amount
+    ,sc_lon_m_contract.loan_approve_amount
+    ,sc_lon_m_contract.loan_contract_no
+    ,sc_lon_m_contract.appove_officer
+    ,sc_lon_m_contract.loan_installment_amount
+    ,sc_lon_m_contract.period_payment_amount
+    ,pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract,'dd/mm/yyyy')as begining_of_contract
+    ,sc_lon_m_contract.loan_payment_type_code
+    ,substr(pka_lon_reqsrv.fp_calc_agetext_m_live(sc_mem_m_membership_registered.membership_no),1,6) as age_life_text
+    ,pka_com_function.fp_get_thaidate(pka_lon_reqsrv.fp_calc_member_retire(sc_mem_m_membership_registered.membership_no,sc_mem_m_membership_registered.date_of_birth,60), 'YYYY') as retire_year
+
+    ,case
+    when sc_lon_m_contract.loan_payment_type_code = 01 then 'คงต้น'
+    when sc_lon_m_contract.loan_payment_type_code = 02 then 'คงยอด'
+    else null
+    end loan_payment_type_desc
+
+    ,pka_com_function.fp_get_thaidate(sc_lon_m_contract.start_keep_date,'dd/mm/yyyy')as start_keep_date
+    ,(select sc_lon_m_loan_request.total_old_loan
+    from sc_lon_m_loan_request
+    where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
+    ) as total_old_loan
+    ,(select sc_lon_m_loan_request.total_oldint
+    from sc_lon_m_loan_request
+    where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
+    ) as total_oldint
+    ,(select sc_lon_m_loan_request.buy_share
+    from sc_lon_m_loan_request
+    where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
+    ) as buy_share
+    ,(select sum(sc_lon_m_req_fee.amount)
+    from sc_lon_m_req_fee
+    where sc_lon_m_req_fee.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
+    and	fee_type in ('05','06')
+    )as fee_amount
+    ,sc_lon_m_contract.real_recieve
+    ,(select entry_id
+    from sc_lon_m_loan_request
+    where loan_requestment_no = sc_lon_m_contract.loan_requestment_no
+    ) as entry_id
+
+    ,(select loan_objective_description
+    from sc_lon_m_ucf_loan_obj
+    where loan_objective_code = sc_lon_m_contract.loan_objective_code
+    and loan_type = sc_lon_m_contract.loan_type
+    ) as loan_objective_description
+
+    ,(select sc_lon_m_loan_request_mpaid.bank_acc_no 
+    from sc_lon_m_loan_request_mpaid
+    where sc_lon_m_loan_request_mpaid.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
+    ) as bank_acc_no
+
+    ,(select sc_acc_m_ucf_bank.bank_name            
+    from sc_acc_m_ucf_bank
+    ,sc_lon_m_loan_request_mpaid
+    where sc_acc_m_ucf_bank.bank_id = sc_lon_m_loan_request_mpaid.bank_code
+    and sc_lon_m_loan_request_mpaid.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
+    ) as bank_name
+    
+    ,nvl((select sc_lon_m_loan_request_mpaid.type_pay_money            
+    from sc_lon_m_loan_request_mpaid
+    where sc_lon_m_loan_request_mpaid.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
+    ),'null') as type_pay_money
+    
+    ,(select sc_cnt_m_coop.coop_name from sc_cnt_m_coop) as coop_name
+
+    from sc_mem_m_membership_registered
+    ,sc_lon_m_loan_card
+    ,sc_lon_m_contract
+    ,sc_mem_m_member_work_info
+    ,sc_mem_m_ucf_member_group
+
+    where  sc_mem_m_membership_registered.membership_no = sc_lon_m_loan_card.membership_no
+    and sc_mem_m_ucf_member_group.member_group_no = sc_mem_m_membership_registered.member_group_no
+    and sc_mem_m_member_work_info.membership_no = sc_mem_m_membership_registered.membership_no
+    and sc_lon_m_contract.membership_no = sc_mem_m_membership_registered.membership_no
+    and  sc_lon_m_contract.loan_contract_no = sc_lon_m_loan_card.loan_contract_no
+    --and sc_lon_m_contract.begining_of_contract between '20/06/2024' and '28/06/2024'
+   /*WHERE*/
+    order by sc_lon_m_contract.loan_type , sc_lon_m_contract.begining_of_contract ,sc_lon_m_contract.loan_contract_no
+
+
+
+  </sql>
+  <sub />
+</root>

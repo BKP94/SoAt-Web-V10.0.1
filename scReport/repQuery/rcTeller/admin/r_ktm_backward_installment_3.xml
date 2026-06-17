@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root procedure="PKA_REP_KEP.sp_process_kep_return_rep({receive_year_1},{receive_month_1})">
+  <arg>
+    <receive_year special="year" text="ปี" table="sc_kep_t_monthly_receive" type="integer2" sqlreplace="1" readonly="0" />
+    <receive_month special="month" text="เดือน" table="sc_kep_t_monthly_receive" type="integer2" combo="monthThLong" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    select nvl(money_amount,0) - nvl(money_amount_not,0) - ppm_amout as  unkeep_real /*คงค้าง*/ ,tab.*
+    from (
+    select sc_kep_t_monthly_receive.membership_no
+    ,pka_com_function.fp_get_member_name( sc_kep_t_monthly_receive.membership_no ) as member_name
+    ,pka_com_function.fp_form( sc_kep_t_monthly_receive.member_group_no, 'XXX-XXX' ) as member_group_no
+    ,sc_rep_kep_return_month.count_month
+    ,sc_kep_t_monthly_receive.receive_month
+    ,sc_kep_t_monthly_receive.seq_no
+    ,sum(sc_kep_t_monthly_receive_det.money_amount) as money_amount /*ยอดเรียกเก็บ*/
+    ,sum(sc_kep_t_monthly_receive_det.money_amount_not) as money_amount_not /*ยอดที่เก็บได้*/
+    ,(  select  max( receipt_date )
+    from  sc_com_m_receipt
+    where  receipt_mode = 'R'
+    and   receipt_status = '0'
+    and  month_receipt_no = sc_kep_t_monthly_receive.receipt_no
+    ) as ppm_date /*ตามมาชำระ*/
+
+    ,(  select  nvl( sum( recept_amount ) , 0 )
+    from  sc_com_m_receipt
+    where  receipt_mode = 'R'
+    and   receipt_status = '0'
+    and  month_receipt_no = sc_kep_t_monthly_receive.receipt_no
+    ) as ppm_amout /*ตามมาชำระ(บาท)*/
+
+    from sc_kep_t_monthly_receive_det
+    ,sc_kep_t_monthly_receive
+    ,sc_rep_kep_return_month
+    where ( sc_kep_t_monthly_receive_det.membership_no = sc_kep_t_monthly_receive.membership_no )
+    and   ( sc_kep_t_monthly_receive_det.receive_year = sc_kep_t_monthly_receive.receive_year )
+    and   ( sc_kep_t_monthly_receive_det.receive_month = sc_kep_t_monthly_receive.receive_month )
+    and   ( sc_kep_t_monthly_receive.seq_no = sc_kep_t_monthly_receive_det.seq_no )
+    and   ( sc_kep_t_monthly_receive.membership_no = sc_rep_kep_return_month.membership_no )
+    and   ( ( sc_kep_t_monthly_receive_det.money_amount &gt; 0 )
+    AND   ( sc_kep_t_monthly_receive.receipt_status = '2' ) )
+    --ยอดที่เก็บได้ น้อยกว่ายอดเรียกเก็บ สถานะ 2 ไม่ได้แปลว่าเก็บไม่ได้เสมอไป เคส ดอกเบี้ยสัญญาเก่า น้อยกว่า ดอกเบี้ยสัญญาใหม่
+    and sc_kep_t_monthly_receive.kep_method_amount &lt;  PKA_KEP_MAGENT.fp_get_agent_amount_seq(  sc_kep_t_monthly_receive.membership_no ,
+    sc_kep_t_monthly_receive.receive_year , sc_kep_t_monthly_receive.receive_month , sc_kep_t_monthly_receive.seq_no )
+    and sc_rep_kep_return_month.rep_type = 'REP'
+    /*WHERE*/
+    -- and sc_kep_t_monthly_receive.receipt_effectdate between '31/08/2020' and '31/08/2020'
+    --and sc_mem_m_ucf_member_group.member_group_type between '13' and '14'
+    -- and sc_kep_t_monthly_receive.receive_year = 2020
+    -- and sc_kep_t_monthly_receive.receive_month = 8
+    -- and sc_kep_t_monthly_receive.membership_no = '059120'
+    group by sc_kep_t_monthly_receive.membership_no
+    ,sc_kep_t_monthly_receive.receive_month
+    ,sc_kep_t_monthly_receive.seq_no
+    ,sc_kep_t_monthly_receive.receipt_no
+    ,sc_kep_t_monthly_receive.member_group_no
+    ,sc_rep_kep_return_month.count_month
+    order by sc_kep_t_monthly_receive.member_group_no
+    ,sc_kep_t_monthly_receive.membership_no
+    )tab
+  </sql>
+  <sub>
+    <r_ktm_backward_installment_3_nest_coll>
+      <sql>
+        SELECT	pka_com_function.fp_form( pka_com_function.fp_get_member_group( sc_lon_m_contract_coll.ref_own_no ) ,'XXX-XXX' ) as coll_group_no ,sc_lon_m_contract_coll.ref_own_no ,sc_lon_m_contract_coll.collateral_description
+        FROM	sc_lon_m_loan_card, sc_lon_m_contract_coll ,sc_lon_m_contract
+        WHERE
+        ( sc_lon_m_loan_card.loan_contract_no = sc_lon_m_contract.loan_contract_no )
+        AND	( sc_lon_m_contract.loan_contract_no = sc_lon_m_contract_coll.loan_contract_no )
+        AND 	( sc_lon_m_contract_coll.status = '0' )
+        AND 	( sc_lon_m_contract.membership_no = {0} )
+        AND   ( sc_lon_m_loan_card.principal_balance &gt; 0 )
+        /*WHERE*/
+        ORDER BY sc_lon_m_contract_coll.collateral_no
+      </sql>
+    </r_ktm_backward_installment_3_nest_coll>
+  </sub>
+</root>

@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <journal_date text="วันที่" table="sc_fin_m_close_day" type="date" column="journal_date" readonly="0" />
+  </arg>
+  <combo />
+  <sql> SELECT DISTINCT sc_mem_m_ucf_member_group_a.member_group_control
+, sc_mem_m_ucf_member_group_b.member_group_name
+
+, pkb_amnat.fp_grade_count_by_groupcon( sc_fin_m_close_day.journal_date   , 'A',  sc_mem_m_ucf_member_group_a.member_group_control)  as count_a 
+, pkb_amnat.fp_grade_count_by_groupcon(sc_fin_m_close_day.journal_date  ,   'B',  sc_mem_m_ucf_member_group_a.member_group_control)  as count_b
+, pkb_amnat.fp_grade_count_by_groupcon(sc_fin_m_close_day.journal_date   ,   'C',  sc_mem_m_ucf_member_group_a.member_group_control)  as count_c
+, pkb_amnat.fp_grade_count_by_groupcon( sc_fin_m_close_day.journal_date   , '00',  sc_mem_m_ucf_member_group_a.member_group_control)  as count_0
+, sc_fin_m_close_day.journal_date
+FROM sc_mem_m_ucf_member_group sc_mem_m_ucf_member_group_a
+, sc_mem_m_ucf_member_group sc_mem_m_ucf_member_group_b  
+,sc_fin_m_close_day
+WHERE  sc_mem_m_ucf_member_group_a.member_group_control = sc_mem_m_ucf_member_group_b.member_group_no 
+and sc_mem_m_ucf_member_group_a.member_group_no in (  select  member_group_no 
+from sc_rep_mem_share_loan_bal
+where share_balance  &gt; 0  
+ and mem_type = '01'
+and balance_date = sc_fin_m_close_day.journal_date
+
+ )
+/*WHERE*/
+--and sc_fin_m_close_day.journal_date = '31/12/2021'
+ORDER BY sc_mem_m_ucf_member_group_a.member_group_control ASC   </sql>
+  <sub />
+</root>

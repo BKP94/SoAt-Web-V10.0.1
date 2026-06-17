@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <balance_date text="วันที่" table="sc_rep_mem_share_loan_bal" type="date" noheader="1" nestreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_lon_m_ucf_loan_code.loan_code,
+    sc_lon_m_ucf_loan_code.loan_code_desc,
+    sc_acc_m_account_master.account_id,
+    sc_acc_m_account_master.account_name,
+    sc_lon_m_rule.loan_type,
+    sc_lon_m_rule.loan_type_description,
+    count( sc_rep_mem_share_loan_bal.emer_contract ) as c_count,
+    sum( sc_rep_mem_share_loan_bal.emer_balance ) as c_balance,
+    sum( sc_rep_mem_share_loan_bal.emer_intarr ) as c_intarr,
+    sum( sc_rep_mem_share_loan_bal.emer_shot ) as c_shot,
+    sum( sc_rep_mem_share_loan_bal.emer_long ) as c_long,
+    sc_rep_mem_share_loan_bal.balance_date,
+    sc_rep_mem_share_loan_bal.intarr_date
+
+    --, FPB_SKL_GET_MEMLOAN_BY_DATE( sc_rep_mem_share_loan_bal.balance_date , sc_lon_m_ucf_loan_code.loan_code  )  as c_mem_loan
+    , to_char( FPB_SKL_GET_MEMLOAN_BY_DATE( sc_rep_mem_share_loan_bal.balance_date , sc_lon_m_ucf_loan_code.loan_code ),'999,999,999,999')  as c_mem_loan
+
+    FROM sc_rep_mem_share_loan_bal,
+    sc_lon_m_rule,
+    sc_lon_m_ucf_loan_code,
+    sc_acc_m_account_master
+    WHERE ( sc_rep_mem_share_loan_bal.emer_loantype = sc_lon_m_rule.loan_type ) and
+    ( sc_rep_mem_share_loan_bal.emer_loan_code = sc_lon_m_ucf_loan_code.loan_code ) and
+    ( sc_lon_m_rule.account_id = sc_acc_m_account_master.account_id ) and
+    ( ( sc_rep_mem_share_loan_bal.client_id = '000' ) )
+and sc_lon_m_rule.invest_status = '0'
+    /*WHERE*/
+    GROUP BY sc_lon_m_ucf_loan_code.loan_code,
+    sc_lon_m_ucf_loan_code.loan_code_desc,
+    sc_acc_m_account_master.account_id,
+    sc_acc_m_account_master.account_name,
+    sc_lon_m_rule.loan_type,
+    sc_lon_m_rule.loan_type_description,
+    sc_rep_mem_share_loan_bal.balance_date,
+    sc_rep_mem_share_loan_bal.intarr_date
+  </sql>
+  <sub>
+    <r_ktm_mem_share_loan_bal1c_sum_nest>
+      <sql>
+        SELECT sc_mem_m_ucf_member_type.mem_type_code,
+        sc_mem_m_ucf_member_type.mem_type_desc,
+        sc_mem_m_ucf_member_status.member_status_code,
+        sc_mem_m_ucf_member_status.member_status_name,
+        count( 1 ) as c_count,
+        sum( sc_rep_mem_share_loan_bal.share_balance ) as share_balance,
+        sum( decode( sc_mem_m_membership_registered.sex , 'M' , 1 , 0 ) ) as c_man,
+        '!balance_date_1!' as adtm_date
+        FROM sc_rep_mem_share_loan_bal,
+        sc_mem_m_membership_registered,
+        sc_mem_m_ucf_member_type,
+        sc_mem_m_ucf_member_status
+        WHERE ( sc_rep_mem_share_loan_bal.membership_no = sc_mem_m_membership_registered.membership_no ) and
+        ( sc_mem_m_ucf_member_type.mem_type_code = sc_mem_m_membership_registered.mem_type ) and
+        ( sc_rep_mem_share_loan_bal.member_status_code = sc_mem_m_ucf_member_status.member_status_code ) and
+        ( ( sc_rep_mem_share_loan_bal.client_id = '000' ) AND
+        ( sc_rep_mem_share_loan_bal.balance_date = {0} ) AND
+        ( sc_rep_mem_share_loan_bal.share_balance &gt; 0 ) )
+        GROUP BY sc_mem_m_ucf_member_type.mem_type_code,
+        sc_mem_m_ucf_member_type.mem_type_desc,
+        sc_mem_m_ucf_member_status.member_status_code,
+        sc_mem_m_ucf_member_status.member_status_name
+      </sql>
+    </r_ktm_mem_share_loan_bal1c_sum_nest>
+    <r_ktm_mem_share_loan_bal1c_sum_nest_fund>
+      <sql>SELECT sc_mem_m_insure_rule.insurance_type,
+sc_mem_m_insure_rule.insurance_desc ,
+count( 1 ) as c_count,
+sum( sc_cls_confirm_data.data_balance ) as fund_amount ,
+        '!balance_date_1!' as adtm_date
+        FROM sc_cls_confirm_data 
+,sc_mem_m_insure_rule
+        WHERE sc_cls_confirm_data.data_type = sc_mem_m_insure_rule.insurance_type  and
+( sc_cls_confirm_data.data_group = 'ISU' ) AND
+        sc_cls_confirm_data.confirm_date =  {0}  AND
+        sc_cls_confirm_data.data_balance &gt; 0
+group by sc_mem_m_insure_rule.insurance_type,
+sc_mem_m_insure_rule.insurance_desc 
+order by  sc_mem_m_insure_rule.insurance_type      </sql>
+    </r_ktm_mem_share_loan_bal1c_sum_nest_fund>
+  </sub>
+</root>

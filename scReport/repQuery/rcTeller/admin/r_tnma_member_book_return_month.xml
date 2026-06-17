@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <miss_year special="year" text="ปี" table="sc_mem_m_member_memo" type="integer" readonly="0" comboreplace="0" combowhere="0" />
+    <miss_month special="month" text="เดือน" table="sc_mem_m_member_memo" type="integer" combo="monthThLong" readonly="0" comboreplace="0" combowhere="0" />
+    <as_text_1 align="center" default="68ครั้งที่ 26/68" text="มติชุดที่" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <op_date_1 align="center" text="วันที่หนังสือ" type="date" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>
+    select sc_mem_m_member_memo.membership_no
+    ,   pka_com_function.fp_get_member_name(sc_mem_m_member_memo.membership_no)as member_name
+    ,   sc_mem_m_ucf_member_group.member_group_no
+    ,   sc_mem_m_ucf_member_group.member_group_name
+    ,   sc_mem_m_member_memo.miss_year + 543 as year_th
+    ,   pka_com_function.fp_get_month_name(sc_mem_m_member_memo.miss_month)as month_th
+    ,   pka_com_function.fp_get_thaidate(to_date('!op_date_1!','dd/mm/yyyy'),'dd month')as thai_date
+    ,   pka_com_function.fp_get_thaidate(to_date('!op_date_1!','dd/mm/yyyy'),'DAY')as thai_day
+    ,	'!as_text_1!'as text
+    ,   (select count(*)
+    from sc_mem_m_member_memo member_memo
+    where sc_mem_m_member_memo.miss_month = member_memo.miss_month
+    and sc_mem_m_member_memo.miss_year = member_memo.miss_year)as count_mem
+    from sc_mem_m_member_memo
+    ,   sc_mem_m_membership_registered
+    ,   sc_mem_m_ucf_member_group
+    where 1=1
+    and sc_mem_m_membership_registered.membership_no = sc_mem_m_member_memo.membership_no
+    and sc_mem_m_ucf_member_group.member_group_no = sc_mem_m_membership_registered.member_group_no
+    --and sc_mem_m_member_memo.miss_year = 2025
+    --and sc_mem_m_member_memo.miss_month = 11
+    /*WHERE*/
+    order by sc_mem_m_ucf_member_group.member_group_no
+
+  </sql>
+  <sub>
+   
+  </sub>
+</root>

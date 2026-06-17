@@ -1,0 +1,154 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <confirm_date align="center" text="วันที่สิ้นเดือน ปัจจุบัน" table="sc_cls_confirm_mem" type="date" nestreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <last_confirm_date align="center" text="วันที่สิ้นเดือน ยกมา" type="date" sqlwhere="0" nestreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>select  sc_mem_m_ucf_member_group.member_group_no
+,       sc_mem_m_ucf_member_group.member_group_name
+,       sc_cls_confirm_mem.confirm_date
+,       count(sc_cls_confirm_mem.membership_no) as count_mem
+,       pka_com_function.fp_get_month_name( extract(month from sc_cls_confirm_mem.confirm_date) , 'LT' ) as confirm_month_full
+,       pka_com_function.fp_get_month_name( extract(month from sc_cls_confirm_mem.confirm_date) , 'ST' ) as confirm_month_short
+,       extract(year from sc_cls_confirm_mem.confirm_date)+ 543 as confirm_year
+
+,       (select count(sc_mem_m_membership_registered.membership_no)
+        from    sc_mem_m_membership_registered
+        where   membership_no = sc_mem_m_membership_registered.membership_no
+        and     sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+        and     extract(month from approve_date) = extract(month from '!confirm_date!')
+        and     extract(year from approve_date) = extract(year from '!confirm_date!')
+        ) as count_new
+
+,       (select count(sc_mem_m_membership_registered.membership_no)
+        from    sc_mem_m_resign_requestment
+        ,       sc_mem_m_ucf_resign_cause
+        ,       sc_mem_m_membership_registered
+        where   sc_mem_m_resign_requestment.membership_no = sc_mem_m_membership_registered.membership_no
+        and     sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+        and     sc_mem_m_resign_requestment.resign_code = sc_mem_m_ucf_resign_cause.resign_cause_code
+        and     resign_group = 'RESIGN'
+        and     extract(month from sc_mem_m_resign_requestment.approve_date) = extract(month from '!confirm_date!')
+        and     extract(year from sc_mem_m_resign_requestment.approve_date) = extract(year from '!confirm_date!')
+        ) as count_resign
+        
+,       (select count(sc_mem_m_membership_registered.membership_no)
+        from    sc_mem_m_resign_requestment
+        ,       sc_mem_m_ucf_resign_cause
+        ,       sc_mem_m_membership_registered
+        where   sc_mem_m_resign_requestment.membership_no = sc_mem_m_membership_registered.membership_no
+        and     sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+        and     sc_mem_m_resign_requestment.resign_code = sc_mem_m_ucf_resign_cause.resign_cause_code
+        and     resign_group = 'DEAD'
+        and     extract(month from sc_mem_m_resign_requestment.approve_date) = extract(month from '!confirm_date!')
+        and     extract(year from sc_mem_m_resign_requestment.approve_date) = extract(year from '!confirm_date!')
+        ) as count_dead        
+        
+FROM    sc_cls_confirm_mem
+,       sc_mem_m_ucf_member_group 
+,       sc_mem_m_ucf_member_type
+,       sc_cls_confirm_data
+WHERE   ( sc_cls_confirm_mem.member_group_no = sc_mem_m_ucf_member_group.member_group_no ) 
+AND     ( ( sc_cls_confirm_mem.member_status_code = '0' ) )   
+AND     sc_mem_m_ucf_member_type.mem_type_code = sc_cls_confirm_mem.mem_type
+AND     sc_cls_confirm_data.confirm_date = sc_cls_confirm_mem.confirm_date
+AND     sc_cls_confirm_data.membership_no = sc_cls_confirm_mem.membership_no
+AND     sc_cls_confirm_data.data_group = 'SHR'
+AND     sc_cls_confirm_data.data_balance &gt; 0 
+/*WHERE*/ 
+--AND     sc_cls_confirm_mem.confirm_date = '31/05/2024'
+GROUP BY sc_cls_confirm_mem.confirm_date
+,        sc_mem_m_ucf_member_group.member_group_no
+,        sc_mem_m_ucf_member_group.member_group_name
+ORDER BY sc_mem_m_ucf_member_group.member_group_no</sql>
+  <sub>
+    <r_port_count_mem_by_month_nest_last>
+      <sql>select  sc_mem_m_ucf_member_group.member_group_no
+,       sc_mem_m_ucf_member_group.member_group_name
+,       sc_cls_confirm_mem.confirm_date
+,       count(sc_cls_confirm_mem.membership_no) as count_mem
+,       pka_com_function.fp_get_month_name( extract(month from sc_cls_confirm_mem.confirm_date) , 'LT' ) as confirm_month_full
+,       pka_com_function.fp_get_month_name( extract(month from sc_cls_confirm_mem.confirm_date) , 'ST' ) as confirm_month_short
+,       extract(year from sc_cls_confirm_mem.confirm_date)+ 543 as confirm_year
+FROM    sc_cls_confirm_mem
+,       sc_mem_m_ucf_member_group 
+,       sc_mem_m_ucf_member_type
+,       sc_cls_confirm_data
+WHERE   ( sc_cls_confirm_mem.member_group_no = sc_mem_m_ucf_member_group.member_group_no ) 
+AND     ( ( sc_cls_confirm_mem.member_status_code = '0' ) )   
+AND     sc_mem_m_ucf_member_type.mem_type_code = sc_cls_confirm_mem.mem_type
+AND     sc_cls_confirm_data.confirm_date = sc_cls_confirm_mem.confirm_date
+AND     sc_cls_confirm_data.membership_no = sc_cls_confirm_mem.membership_no
+AND     sc_cls_confirm_data.data_group = 'SHR'
+AND     sc_cls_confirm_data.data_balance &gt; 0
+AND     sc_cls_confirm_mem.confirm_date = '!last_confirm_date!'
+/*WHERE*/ 
+--AND     sc_cls_confirm_mem.confirm_date = '30/04/2024'
+GROUP BY sc_cls_confirm_mem.confirm_date
+,        sc_mem_m_ucf_member_group.member_group_no
+,        sc_mem_m_ucf_member_group.member_group_name
+ORDER BY sc_mem_m_ucf_member_group.member_group_no</sql>
+    </r_port_count_mem_by_month_nest_last>
+    <r_port_count_mem_by_month_nest_cause>
+      <sql>select  sc_mem_m_ucf_member_group.member_group_no
+,       sc_mem_m_ucf_member_group.member_group_name
+,       sc_cls_confirm_mem.confirm_date
+,       count(sc_cls_confirm_mem.membership_no) as count_mem
+,       pka_com_function.fp_get_month_name( extract(month from sc_cls_confirm_mem.confirm_date) , 'LT' ) as confirm_month_full
+,       pka_com_function.fp_get_month_name( extract(month from sc_cls_confirm_mem.confirm_date) , 'ST' ) as confirm_month_short
+,       extract(year from sc_cls_confirm_mem.confirm_date)+ 543 as confirm_year
+
+,       (select count(sc_mem_m_membership_registered.membership_no)
+        from    sc_mem_m_membership_registered
+        where   membership_no = sc_mem_m_membership_registered.membership_no
+        and     sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+        and     extract(month from approve_date) = extract(month from '!confirm_date!')
+        and     extract(year from approve_date) = extract(year from '!confirm_date!')
+        ) as count_new
+
+,       (select count(sc_mem_m_membership_registered.membership_no)
+        from    sc_mem_m_resign_requestment
+        ,       sc_mem_m_ucf_resign_cause
+        ,       sc_mem_m_membership_registered
+        where   sc_mem_m_resign_requestment.membership_no = sc_mem_m_membership_registered.membership_no
+        and     sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+        and     sc_mem_m_resign_requestment.resign_code = sc_mem_m_ucf_resign_cause.resign_cause_code
+        and     resign_group = 'RESIGN'
+        and     extract(month from sc_mem_m_resign_requestment.approve_date) = extract(month from '!confirm_date!')
+        and     extract(year from sc_mem_m_resign_requestment.approve_date) = extract(year from '!confirm_date!')
+        ) as count_resign
+        
+,       (select count(sc_mem_m_membership_registered.membership_no)
+        from    sc_mem_m_resign_requestment
+        ,       sc_mem_m_ucf_resign_cause
+        ,       sc_mem_m_membership_registered
+        where   sc_mem_m_resign_requestment.membership_no = sc_mem_m_membership_registered.membership_no
+        and     sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+        and     sc_mem_m_resign_requestment.resign_code = sc_mem_m_ucf_resign_cause.resign_cause_code
+        and     resign_group = 'DEAD'
+        and     extract(month from sc_mem_m_resign_requestment.approve_date) = extract(month from '!confirm_date!')
+        and     extract(year from sc_mem_m_resign_requestment.approve_date) = extract(year from '!confirm_date!')
+        ) as count_dead        
+        
+FROM    sc_cls_confirm_mem
+,       sc_mem_m_ucf_member_group 
+,       sc_mem_m_ucf_member_type
+,       sc_cls_confirm_data
+WHERE   ( sc_cls_confirm_mem.member_group_no = sc_mem_m_ucf_member_group.member_group_no ) 
+AND     ( ( sc_cls_confirm_mem.member_status_code = '0' ) )   
+AND     sc_mem_m_ucf_member_type.mem_type_code = sc_cls_confirm_mem.mem_type
+AND     sc_cls_confirm_data.confirm_date = sc_cls_confirm_mem.confirm_date
+AND     sc_cls_confirm_data.membership_no = sc_cls_confirm_mem.membership_no
+AND     sc_cls_confirm_data.data_group = 'SHR'
+AND     sc_cls_confirm_data.data_balance &gt; 0
+AND     sc_cls_confirm_mem.confirm_date = '!confirm_date!'
+/*WHERE*/ 
+--AND     sc_cls_confirm_mem.confirm_date = '31/05/2024'
+GROUP BY sc_cls_confirm_mem.confirm_date
+,        sc_mem_m_ucf_member_group.member_group_no
+,        sc_mem_m_ucf_member_group.member_group_name
+ORDER BY sc_mem_m_ucf_member_group.member_group_no</sql>
+    </r_port_count_mem_by_month_nest_cause>
+  </sub>
+</root>

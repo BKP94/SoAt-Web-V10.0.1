@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <resignation_approve_date text="วันที่" table="sc_mem_m_membership_registered" type="date" column="resignation_approve_date" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+      SELECT sc_mem_m_membership_registered.membership_no,
+      sc_mem_m_ucf_prename.prename||sc_mem_m_membership_registered.member_name||'  '||sc_mem_m_membership_registered.member_surname as c_name,
+      sc_cnt_m_coop.address,
+      sc_cnt_m_coop.tumbol_name,
+      sc_cnt_m_coop.coop_name,
+      pka_com_function.fp_get_thaidate(sysdate , 'SD MONTH YYYY') as sysdate_tdate,
+      '' as as_letter,
+      sc_cnt_m_coop.telephone_no,
+      sc_cnt_m_coop.manager_name,
+      '' as as_commit_del,
+      sc_cnt_m_coop.fax_no,
+      sc_mem_m_ucf_district_a.district_name,
+      sc_mem_m_ucf_district_a.post_code,
+      sc_mem_m_ucf_province_a.province_name,
+      sc_mem_m_membership_registered.member_group_no,
+      sc_mem_m_ucf_district_b.district_name,
+      sc_mem_m_ucf_district_b.post_code,
+      sc_mem_m_ucf_province_b.province_name,
+      sc_mem_m_ucf_member_group.member_group_no,
+      sc_mem_m_ucf_member_group.member_group_name,
+      sc_mem_m_ucf_member_group.member_group_control,
+      sc_mem_m_ucf_member_group.present_address,
+      sc_mem_m_ucf_member_group.present_road,
+      sc_mem_m_ucf_member_group.present_tambol
+      FROM sc_mem_m_membership_registered,
+      sc_mem_m_ucf_prename,
+      sc_cnt_m_coop,
+      sc_mem_m_ucf_district sc_mem_m_ucf_district_a,
+      sc_mem_m_ucf_province sc_mem_m_ucf_province_a,
+      sc_mem_m_ucf_district sc_mem_m_ucf_district_b,
+      sc_mem_m_ucf_province sc_mem_m_ucf_province_b,
+      sc_mem_m_ucf_member_group
+      WHERE ( sc_mem_m_membership_registered.prename_code = sc_mem_m_ucf_prename.prename_code ) and
+      ( sc_mem_m_ucf_district_a.province_code = sc_cnt_m_coop.province_code ) and
+      ( sc_mem_m_ucf_district_a.province_code = sc_cnt_m_coop.province_code ) and
+      ( sc_mem_m_ucf_district_b.province_code = sc_mem_m_ucf_province_b.province_code ) and
+      ( sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no ) and
+      ( sc_mem_m_ucf_province_a.province_code = sc_mem_m_ucf_district_a.province_code ) and
+      ( sc_mem_m_ucf_member_group.province_code = sc_mem_m_ucf_district_b.province_code ) and
+      ( sc_mem_m_ucf_member_group.district_code = sc_mem_m_ucf_district_b.district_code )
+      --         ( ( sc_mem_m_membership_registered.resignation_approve_date between :adtm_resign1 and :adtm_resign2 ) )
+      /*WHERE*/</sql>
+  <sub />
+</root>

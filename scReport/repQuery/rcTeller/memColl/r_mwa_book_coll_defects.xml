@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <approve_date align="center" text="วันที่อนุมัติ" table="vr_resign_coll" type="date" column="approve_date" operator="bt" readonly="0" />
+    <ref_own_no align="center" text="เลขทะเบียน" table="vr_resign_coll" column="ref_own_no" readonly="0" />
+    <book_no align="center" text="ที่   สอ.กปน.ว." sqlwhere="0" sqlreplace="1" readonly="0" />
+    <book_date text="วันที่ออกหนังสือ" type="date" column="book_date" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <day_in align="center" text="ระยะเวลา" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select (select coop_name from sc_cnt_m_coop) as coop_name
+    ,(select manager_name from sc_cnt_m_coop) as manager_name
+    
+    ,'!book_no_1!' as book_no
+    ,'!day_in!' as day_in
+    ,pka_com_function.fp_get_thaidate(sysdate, 'SD') as  sys_tdate_day
+    ,pka_com_function.fp_get_thaidate(sysdate, 'MONTH') as  sys_tdate_month
+    ,pka_com_function.fp_get_thaidate(sysdate, 'YYYY') as  sys_tdate_year
+    ,pka_com_function.fp_get_thaidate( '!book_date_1!'  , 'SD MONTH YYYY') as book_date_tdate
+
+    ,pka_com_function.fp_get_member_name( vr_resign_coll.membership_no ) as member_name 
+    ,pka_com_function.fp_get_member_name( vr_resign_coll.ref_own_no ) as coll_name 
+    ,pka_com_function.fp_get_thaidate(vr_resign_coll.begining_of_contract , 'SD MONTH YYYY') as begining_of_contract_tdate
+    ,pka_com_function.fp_get_moneythai (vr_resign_coll.loan_approve_amount) as thai_loan_approve_amount
+    ,to_snumber(vr_resign_coll.loan_approve_amount) as snu_loan_approve_amount
+    ,vr_resign_coll.*
+from vr_resign_coll
+where 1=1
+/*WHERE*/
+--and   approve_date between '1/6/2024' and '30/6/2024'
+  </sql>
+  <sub />
+</root>

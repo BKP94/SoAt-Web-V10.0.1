@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="T080" rep_text="หนังสือยืนยันยอด">
+  <arg>
+    <confirm_date align="center" text="ข้อมูล ณ วันที่" table="sc_cls_confirm_data" type="date" readonly="0" comboreplace="0" combowhere="0" />
+    <membership_no align="center" special="memno" text="ทะเบียน" table="sc_cls_confirm_data" readonly="0" comboreplace="0" combowhere="0" />
+    <book_no align="center" text="ที่ สอ.กทท." sqlwhere="0" sqlreplace="1" mustvalue="1" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo>
+  </combo>
+  <sql>select  'หนังสือฉบับนี้ออกให้เพื่อรับรองว่า ' || replace(pka_com_function.fp_get_member_name( sc_cls_confirm_data.membership_no ),'  ' , ' ' ) || ' เป็นสมาชิก' || (select coop_name from sc_cnt_m_coop) 
+        || ' เลขที่สมาชิก ' || sc_cls_confirm_data.membership_no || ' มีรายละเอียดทางการเงิน ณ วันที่ ' || pka_com_function.fp_get_thaidate( sc_cls_confirm_data.confirm_date , 'SD MONTH YYYY' ) || ' ดังนี้' as first_paragraph
+        
+,       (case when sc_cls_confirm_data.data_group = 'SHR' then 'ทุนเรือนหุ้น'
+              when sc_cls_confirm_data.data_group = 'LON' then replace((select loan_type_description from sc_lon_m_rule where loan_type = sc_cls_confirm_data.data_type),'  ' , ' ' ) || ' เลขที่สัญญา ' || pka_com_function.fp_form( sc_cls_confirm_data.data_refno , 'XX-XXXXXXXXXX' )
+              when sc_cls_confirm_data.data_group = 'DEP' then replace((select deposit_name from sc_dep_m_rule where deposit_type_code = sc_cls_confirm_data.data_type),'  ' , ' ' ) || ' เลขที่บัญชี ' || pka_com_function.fp_form( sc_cls_confirm_data.data_refno , 'XX-XXXXXXXXXX' )
+        end
+        ) as data_type_desc
+        
+,       (case when sc_cls_confirm_data.data_group = 'SHR' then '1'
+              when sc_cls_confirm_data.data_group = 'DEP' then '2'
+              when sc_cls_confirm_data.data_group = 'LON' then '3'
+        end
+        ) as data_type_sort        
+
+,       replace(pka_com_function.fp_get_member_name( sc_cls_confirm_data.membership_no ),'  ' , ' ' ) as member_name
+,       sc_cls_confirm_data.membership_no
+,       sc_cls_confirm_data.data_balance        
+,       sc_cls_confirm_data.confirm_date
+,       pka_com_function.fp_get_thaidate( sc_cls_confirm_data.confirm_date , 'SD MONTH YYYY' ) as confirm_tdate
+,       sc_cls_confirm_data.data_group
+,       sc_cls_confirm_data.data_type
+,       pka_com_function.fp_get_thaidate( sysdate , 'SD MONTH พ.ศ.YYYY' ) as book_tdate
+,       '!book_no!' as book_no
+,       (select coop_name from sc_cnt_m_coop) as coop_name
+,       (select manager_name from sc_cnt_m_coop) as manager_name
+,       (select manager_position from sc_cnt_m_coop) as manager_position
+
+from    sc_cls_confirm_data
+,       sc_mem_m_membership_registered
+where   sc_cls_confirm_data.membership_no = sc_mem_m_membership_registered.membership_no
+and     sc_mem_m_membership_registered.member_status_code = '0'
+and     sc_cls_confirm_data.data_balance &gt; '0'
+and     sc_cls_confirm_data.data_group in ('SHR','LON')
+/*WHERE*/
+--and     sc_cls_confirm_data.membership_no = '05955'
+--and     sc_cls_confirm_data.confirm_date = '09/06/2024'
+order by data_type_sort
+,        sc_cls_confirm_data.data_refno</sql>
+  <sub>
+  </sub>
+</root>

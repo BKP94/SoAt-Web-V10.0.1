@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <receipt_date align="center" text="วันที่" table="sc_com_m_receipt" type="date" operator="bt" readonly="0" comboreplace="0" combowhere="0" />
+    <LOAN_TYPE text="ประเภท" table="sc_com_m_receipt_item" column="loan_type" combo="sc_lon_m_rule2" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>
+    select sc_mem_m_ucf_member_group.member_group_control
+    ,pka_com_function.fp_get_group_name( sc_mem_m_ucf_member_group.member_group_control)as member_group_name
+    --, sc_mem_m_ucf_member_group.member_group_name
+    , sc_lon_m_rule.loan_type
+    , sc_lon_m_rule.loan_type_description
+    , sc_com_m_receipt_item.contact_status 
+    , sum(sc_com_m_receipt_item.principal_amount)as principal_amount
+    , sum(sc_com_m_receipt_item.interest_amount)as interest_amount
+    , sum(sc_com_m_receipt_item.item_amount)as item_amount
+
+    FROM sc_com_m_receipt
+    ,sc_com_m_receipt_item
+    ,sc_lon_m_rule
+    ,sc_com_m_ucf_receipt_item_type
+    ,sc_com_m_ucf_money_type
+    ,sc_mem_m_ucf_member_group
+    WHERE (sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no)
+    AND (sc_com_m_receipt_item.loan_type = sc_lon_m_rule.loan_type)
+    AND (sc_com_m_receipt_item.item_type_id = sc_com_m_ucf_receipt_item_type.item_type_id)
+    and sc_com_m_receipt.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+    AND (sc_com_m_receipt.receipt_status = '0')
+    AND (sc_com_m_ucf_receipt_item_type.group_item = 'LON')
+    AND (sc_com_m_receipt_item.item_amount &lt;&gt; 0)
+    AND sc_com_m_ucf_money_type.money_type_id = sc_com_m_receipt.money_type_id
+    and sc_com_m_ucf_money_type.money_type_id not in (  'TBK' , 'CLR' , 'AOP','TRL' ,'TNL' )
+    /*WHERE*/
+    --AND sc_com_m_receipt.receipt_date = '23/07/2025'
+    group by sc_mem_m_ucf_member_group.member_group_control
+    --, sc_mem_m_ucf_member_group.member_group_name
+    , sc_lon_m_rule.loan_type
+    , sc_lon_m_rule.loan_type_description
+    , sc_com_m_receipt_item.contact_status
+  </sql>
+  <sub>
+  </sub>
+</root>

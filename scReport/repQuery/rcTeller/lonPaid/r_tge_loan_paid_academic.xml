@@ -1,0 +1,40 @@
+<root>
+  <arg>
+    <begining_of_contract text="วันที่" table="sc_lon_m_contract" type="date" operator="bt" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select  sc_lon_m_rule.ref_contract_no
+,       sc_lon_m_contract.loan_contract_no
+,       sc_lon_m_contract.membership_no
+,       pka_com_function.fp_get_member_name ( sc_lon_m_contract.membership_no ) as member_name
+,       pka_com_function.fp_get_group_name ( sc_lon_m_contract.member_group_no ) as group_name
+,       pka_com_function.fp_get_member_sharestock ( sc_lon_m_contract.membership_no ) as share_stock
+,       pka_com_function.fp_get_moneythai ( sc_lon_m_contract.loan_request_amount ) as loan_request_amount_thai
+,       sc_lon_m_contract.loan_request_amount
+,       sc_lon_m_contract.loan_installment_amount
+,       sc_lon_m_contract.begining_of_contract
+,       sc_lon_m_contract.loan_type
+,       sc_lon_m_contract.period_payment_amount 
+,       (select   pka_com_function.fp_get_moneythai(sum(loan_request_amount))
+        from      sc_lon_m_contract 
+        where     loan_contract_no = sc_lon_m_contract.loan_contract_no 
+       /*WHERE*/
+        and       loan_type  in ('33','34','35')
+        ) as  sum_loan_request_amount_thai
+,       '!begining_of_contract_1!' as from_date 
+,       '!begining_of_contract_2!' as to_date
+,       (select   academic_salary
+        from      sc_lon_m_loan_request
+        where     loan_requestment_no = sc_lon_m_contract.loan_requestment_no
+        )as academic_salary
+from    sc_lon_m_contract
+,       sc_lon_m_rule
+where   sc_lon_m_contract.loan_type = sc_lon_m_rule.loan_type
+and     sc_lon_m_contract.create_loan_status = '1'
+and     sc_lon_m_contract.loan_type in ('33','34','35')
+--and     sc_lon_m_contract.begining_of_contract between '01 ก.พ. 2023' and '28 ก.พ. 2023'
+/*WHERE*/
+order by sc_lon_m_contract.membership_no</sql>
+  <sub>
+  </sub>
+</root>

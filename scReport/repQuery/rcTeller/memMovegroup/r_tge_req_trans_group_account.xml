@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <operate_date text="วันที่" table="sc_mem_m_tran_group" type="date" column="entry_date" operator="bt" readonly="0" />
+    <app_status text="สถานะ" table="sc_mem_m_tran_group" combo="approve_status" readonly="0" />
+  </arg>
+  <combo>
+  </combo>
+  <sql>    select  sc_mem_m_tran_group.entry_date
+    ,       sc_mem_m_tran_group.membership_no
+    ,       sc_mem_m_tran_group.remark
+    ,       pka_com_function.fp_get_member_name(sc_mem_m_tran_group.membership_no)as memname
+    ,       pka_com_function.fp_get_group_name_mem(sc_mem_m_tran_group.membership_no)as groupname
+    ,       decode(sc_mem_m_tran_group.bank_status , '1' , 'หักบัญชี' , null)as account
+    ,       decode(sc_mem_m_tran_group.resign_status , '1' , 'ลาออก' , null)as resign
+    ,       sc_mem_m_membership_registered.retire_id
+
+,sc_mem_m_tran_group.bank_id
+,pka_com_function.fp_form(  sc_mem_m_tran_group.bank_acc_no   ,'XXX-X-XXXXX-X')    as bank_acc_no   
+    from    sc_mem_m_tran_group
+    ,       sc_mem_m_membership_registered
+    where   sc_mem_m_tran_group.membership_no = sc_mem_m_membership_registered.membership_no
+    and     sc_mem_m_tran_group.bank_status = '1'
+    --and     sc_mem_m_tran_group.entry_date = '10/05/2023'
+    /*WHERE*/
+    order by sc_mem_m_tran_group.membership_no
+  </sql>
+  <sub />
+</root>

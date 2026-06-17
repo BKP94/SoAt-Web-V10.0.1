@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <member_group_no text="หน่วย" table="sc_mem_m_membership_registered" operator="bt" combo="sc_mem_m_ucf_member_group2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    select sc_mem_m_membership_registered.membership_no,
+    sc_mem_m_membership_registered.member_name,
+    sc_mem_m_membership_registered.member_surname,
+    sc_mem_m_membership_registered.id_card,
+    sc_mem_m_membership_registered.remark,
+    pka_com_function.fp_form_idcard(sc_mem_m_membership_registered.id_card) as as_id_card,
+    sc_mem_m_ucf_member_group.member_group_name,
+    sc_mem_m_ucf_prename.prename,
+    sc_mem_m_member_aml.aml_date,
+    sc_mem_m_member_aml.aml_prename,
+    sc_mem_m_member_aml.aml_name,
+    sc_mem_m_member_aml.aml_surname,
+    sc_mem_m_member_aml.aml_id,
+    sc_mem_m_member_aml.aml_bookno,
+    sc_mem_m_member_aml.aml_remark
+
+    from sc_mem_m_membership_registered,
+    sc_mem_m_ucf_prename,
+    sc_mem_m_ucf_member_group,
+    sc_mem_m_member_aml
+    where sc_mem_m_membership_registered.id_card = sc_mem_m_member_aml.aml_id and
+    sc_mem_m_membership_registered.prename_code = sc_mem_m_ucf_prename.prename_code and
+    sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+    /*WHERE*/
+    order by sc_mem_m_membership_registered.membership_no,
+    sc_mem_m_member_aml.aml_date
+  </sql>
+  <sub />
+</root>

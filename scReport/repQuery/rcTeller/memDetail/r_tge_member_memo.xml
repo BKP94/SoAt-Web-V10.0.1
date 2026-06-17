@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <entry_date align="center" text="วันที่" type="date" operator="bt" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <memo_code align="center" text="รหัส" table="sc_mem_m_ucf_memo" column="memo_code" operator="bt" combo="sc_mem_m_ucf_memo2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select  sum(tab.row_memno)over(order by tab.membership_no , tab.seq_no ) as rowno,  tab.*
+from    ( select decode(lag(sc_mem_m_member_memo.membership_no,1,null)over(  order by sc_mem_m_member_memo.membership_no , sc_mem_m_member_memo.seq_no ) ,sc_mem_m_member_memo.membership_no ,0,1 ) as row_memno
+,       sc_mem_m_ucf_prename.prename||sc_mem_m_membership_registered.member_name||' '||sc_mem_m_membership_registered.member_surname as member_name
+,       sc_mem_m_member_memo.membership_no
+,       sc_mem_m_member_memo.seq_no
+,       sc_mem_m_member_memo.memo_detail
+,       sc_mem_m_member_memo.drop_emer
+,       sc_mem_m_member_memo.drop_norm
+,       sc_mem_m_member_memo.drop_spec
+,       sc_mem_m_member_memo.drop_coll
+,       sc_mem_m_member_memo.lon_restruc
+,       sc_mem_m_member_memo.entry_date
+,       sc_mem_m_member_memo.entry_id
+,       sc_mem_m_ucf_memo.memo_code
+,       sc_mem_m_ucf_memo.memo_desc
+from    sc_mem_m_member_memo
+,       sc_mem_m_ucf_memo
+,       sc_mem_m_membership_registered
+,       sc_mem_m_ucf_prename
+where   sc_mem_m_member_memo.memo_code = sc_mem_m_ucf_memo.memo_code
+and     sc_mem_m_membership_registered.membership_no = sc_mem_m_member_memo.membership_no
+and     sc_mem_m_ucf_prename.prename_code = sc_mem_m_membership_registered.prename_code
+and     to_date(sc_mem_m_member_memo.entry_date) between '!entry_date_1!' and '!entry_date_2!'
+/*WHERE*/
+--and     sc_mem_m_member_memo.membership_no = '023808'
+--and     sc_mem_m_member_memo.entry_date between '01/08/2023' and '31/08/2023'
+order by sc_mem_m_member_memo.membership_no 
+,        sc_mem_m_member_memo.seq_no
+) tab</sql>
+  <sub />
+</root>

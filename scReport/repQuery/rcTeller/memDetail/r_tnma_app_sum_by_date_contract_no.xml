@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <begining_of_contract align="center" text="วันที่" table="sc_lon_m_contract" type="date" operator="bt" readonly="0" comboreplace="0" combowhere="0" />
+    <loan_type text="ประเภทเงินกู้" table="sc_lon_m_contract" combo="sc_lon_m_rule2" readonly="0" comboreplace="0" combowhere="0" />
+    <loan_contract_no text="เลขสัญญา" table="sc_lon_m_contract" operator="bt" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>SELECT  SC_MEM_M_UCF_MEMBER_GROUP_a.member_group_control ,
+   SUM(SC_LON_M_CONTRACT.loan_approve_amount) AS  C_AMOUNT,
+   SUM(SC_LON_M_LOAN_REQUEST.total_old_loan+SC_LON_M_LOAN_REQUEST.total_oldint+ decode( sc_lon_m_loan_request.payint_firstperiod_status ,'1' ,sc_lon_m_loan_request.interest_first , 0) ) AS C_OLDLOAN ,
+   SUM(SC_LON_M_LOAN_REQUEST.buy_share) AS  C_SHARE,
+   count(SC_LON_M_LOAN_REQUEST.loan_requestment_no) as c_loan,
+   sc_cnt_m_coop.coop_name ,
+   SC_MEM_M_UCF_MEMBER_GROUP_b.member_group_name ,
+   sum(SC_LON_M_LOAN_REQUEST.fee_amount) as c_fee    
+FROM SC_LON_M_CONTRACT ,
+   sc_mem_m_membership_registered ,
+   SC_MEM_M_UCF_MEMBER_GROUP SC_MEM_M_UCF_MEMBER_GROUP_a ,
+   SC_LON_M_LOAN_REQUEST ,
+   sc_cnt_m_coop ,
+   SC_MEM_M_UCF_MEMBER_GROUP SC_MEM_M_UCF_MEMBER_GROUP_b     
+WHERE ( sc_mem_m_membership_registered.member_group_no = SC_MEM_M_UCF_MEMBER_GROUP_a.member_group_no ) and          
+( SC_LON_M_CONTRACT.loan_requestment_no = SC_LON_M_LOAN_REQUEST.loan_requestment_no ) and         
+( SC_LON_M_CONTRACT.MEMBERSHIP_NO = sc_mem_m_membership_registered.membership_no ) and          
+( SC_MEM_M_UCF_MEMBER_GROUP_a.member_group_control = SC_MEM_M_UCF_MEMBER_GROUP_b.member_group_no ) and          
+( SC_LON_M_LOAN_REQUEST.approve_status = '1' )
+/*WHERE*/ 
+
+GROUP BY sc_cnt_m_coop.coop_name ,
+   SC_MEM_M_UCF_MEMBER_GROUP_a.member_group_control ,
+   SC_MEM_M_UCF_MEMBER_GROUP_b.member_group_name   
+</sql>
+  <sub>
+  </sub>
+</root>

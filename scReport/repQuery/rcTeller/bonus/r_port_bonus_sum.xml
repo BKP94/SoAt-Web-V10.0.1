@@ -1,0 +1,16 @@
+<root>
+  <arg>
+    <account_year align="center" special="year" text="ปี" table="vr_bon_sum" type="integer2" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>select  vr_bon_sum.*
+,       pka_com_function.fp_get_member_name( membership_no ) as member_name
+,       (select salary_id from sc_mem_m_member_work_info where membership_no = vr_bon_sum.membership_no) as salary_id
+from    vr_bon_sum
+where   1=1
+/*WHERE*/
+order by membership_no</sql>
+  <sub>
+  </sub>
+  <mis />
+</root>

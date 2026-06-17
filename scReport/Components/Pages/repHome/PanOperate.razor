@@ -20,6 +20,12 @@
     <span class="op-btn-label">จัดการรายงาน</span>
 </div>
 
+<div class="op-item">
+    <button type="button" class="op-btn" title="เพิ่ม/แก้ไขกลุ่มรายงาน (เปิดแท็บใหม่)"
+            disabled="@(!CanCategory)" @onclick="OnCategory">🗂️</button>
+    <span class="op-btn-label">จัดการกลุ่ม</span>
+</div>
+
 @code {
     /// เปิดได้เมื่อเลือกข้อรายงานที่มีตัวรายงาน (vs_path ไม่ว่าง)
     [Parameter] public bool CanOpen { get; set; }
@@ -27,7 +33,11 @@
     /// จัดการได้เมื่อเลือกข้อรายงาน (มี cat/rep) — ไม่ต้องมีไฟล์ก็เปิด editor เพื่อสร้างได้
     [Parameter] public bool CanManage { get; set; }
 
+    /// จัดการกลุ่มได้เมื่อเลือกระบบงานแล้ว
+    [Parameter] public bool CanCategory { get; set; }
+
     [Parameter] public EventCallback OnOpen { get; set; }
     [Parameter] public EventCallback OnFind { get; set; }
     [Parameter] public EventCallback OnManage { get; set; }
+    [Parameter] public EventCallback OnCategory { get; set; }
 }

@@ -1,0 +1,133 @@
+@page "/repCategory/{App}"
+@rendermode InteractiveServer
+@using scReport.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@inject RepCategoryService RepCat
+@inject NavigationManager Nav
+
+@* repCategory — หน้าจอ "เพิ่ม/แก้ไขกลุ่มรายงาน" (เลียน legacy scReport/repCategory)
+   2 กริด master-detail: กลุ่ม (si_rep_cats) → ข้อรายงาน (si_rep_reps) ของระบบงาน {App}
+   เปิดจาก repHome (ปุ่ม "จัดการกลุ่ม") → /repCategory/{app}
+   Page เป็นเจ้าของ model ตัวเดียว → ส่งลง PanHead ผ่าน [Parameter] (reference ร่วม)
+   PanOperate ยิง OnSave/OnMove กลับให้ Page จัดการ *@
+
+<PageTitle>จัดการกลุ่มรายงาน @App</PageTitle>
+
+<div class="rp-page">
+    <div class="nb-titlebar">
+        <div>
+            <h2 class="nb-title">เพิ่ม/แก้ไขกลุ่มรายงาน</h2>
+            <div class="nb-sub">ระบบงาน: @App</div>
+        </div>
+    </div>
+
+    @if (_loadError is not null)
+    {
+        <div class="rh-arg-error">@_loadError</div>
+    }
+    else if (_model is not null)
+    {
+        <PageRegions>
+            <HeaderContent>
+                <PanHead Model="_model" OnCatSelected="OnCatSelected" OnRepSelected="OnRepSelected" />
+            </HeaderContent>
+            <OperateContent>
+                <PanOperate CanMove="@(_model.SelectedRepId is not null)"
+                            OnSave="SaveClicked" OnMove="MoveClicked" />
+            </OperateContent>
+        </PageRegions>
+    }
+</div>
+
+<PopMoveCat @ref="_popMove" App="@App" OnMoved="OnMoved" />
+<ScMessage @ref="_msg" />
+
+@code {
+    [Parameter] public string App { get; set; } = string.Empty;
+    [CascadingParameter] Task<AuthenticationState>? AuthState { get; set; }
+
+    RepCategoryModel? _model;
+    string? _loadError;
+    ScMessage _msg = default!;
+    PopMoveCat _popMove = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var cats = await RepCat.LoadCatsAsync(App);
+            _model = new RepCategoryModel { App = App, Cats = cats };
+            // auto-select กลุ่มแรก → โหลดข้อรายงาน (เลียน legacy focus row แรก)
+            var first = cats.FirstOrDefault();
+            if (first is not null)
+            {
+                _model.SelectedCatId = first.CatId;
+                _model.Reps = await RepCat.LoadRepsAsync(first.CatId);
+            }
+        }
+        catch (Exception ex)
+        {
+            _loadError = sc.msg.C(ex.Message);
+        }
+    }
+
+    // เปลี่ยนกลุ่มที่เลือก → reload ข้อรายงานจาก DB (เลียน legacy ofLoadRep บน focused row change)
+    //   ⚠ เหมือน legacy: rep edits ที่ยังไม่ save ของกลุ่มก่อนหน้าจะหาย
+    async Task OnCatSelected(string catId)
+    {
+        if (_model is null || _model.SelectedCatId == catId) return;
+        _model.SelectedCatId = catId;
+        _model.SelectedRepId = null;
+        _model.DeletedRepKeys.Clear();
+        _model.Reps = await RepCat.LoadRepsAsync(catId);
+    }
+
+    // เลือกข้อรายงาน (focus row จาก PanHead) → เปิดปุ่ม "ย้ายกลุ่ม"
+    //   Page รับ callback เอง → re-render → CanMove อัปเดต
+    void OnRepSelected(string? repId)
+    {
+        if (_model is not null) _model.SelectedRepId = repId;
+    }
+
+    async Task SaveClicked()
+    {
+        if (_model is null) return;
+        try
+        {
+            await RepCat.SaveAsync(_model, await GetLoginUser());
+            await _msg.Success("บันทึกกลุ่มรายงานเรียบร้อย");
+        }
+        catch (Exception ex)
+        {
+            await _msg.Error(sc.msg.C(ex.Message));
+        }
+    }
+
+    // เปิด popup ย้ายข้อรายงานไปกลุ่มอื่น (เลียน legacy ofMove → popMoveCat)
+    async Task MoveClicked()
+    {
+        if (_model?.SelectedRepId is null || _model.SelectedCatId is null)
+        {
+            await _msg.Alert(sc.msg.C("กรุณาเลือกข้อรายงานที่ต้องการย้ายก่อน"));
+            return;
+        }
+        await _popMove.Open(_model.SelectedCatId, _model.SelectedRepId);
+    }
+
+    // หลังย้ายสำเร็จ → reload ข้อรายงานของกลุ่มปัจจุบัน
+    async Task OnMoved()
+    {
+        if (_model?.SelectedCatId is null) return;
+        await _msg.Success("ย้ายข้อรายงานเรียบร้อย");
+        _model.SelectedRepId = null;
+        _model.Reps = await RepCat.LoadRepsAsync(_model.SelectedCatId);
+        StateHasChanged();
+    }
+
+    async Task<string> GetLoginUser()
+    {
+        if (AuthState is null) return "";
+        var auth = await AuthState;
+        return auth.User.Identity?.Name ?? "";
+    }
+}

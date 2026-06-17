@@ -1,0 +1,116 @@
+@using scReport.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@inject RepCategoryService RepCat
+
+@* PopMoveCat (repCategory) — ย้ายข้อรายงานไปกลุ่มอื่น (เลียน legacy popMoveCat.ascx)
+   กลุ่ม/ข้อเดิม (อ่านอย่างเดียว) → เลือกกลุ่มปลายทาง → gen rep_id ใหม่อัตโนมัติ
+   เปิดแบบ imperative จาก Page: await _popMove.Open(oldCat, oldRep)
+   ย้ายสำเร็จ → ยิง OnMoved กลับให้ Page reload *@
+
+<DxPopup Visible="_visible" VisibleChanged="OnVisibleChanged" HeaderText="ย้ายข้อรายงานไปกลุ่มอื่น"
+         Width="480px" CloseOnEscape="true" ShowFooter="true">
+    <BodyContentTemplate>
+        <div class="rh-arg-form">
+            <div class="rh-arg-row">
+                <label class="rh-arg-label">กลุ่มเดิม</label>
+                <div class="rh-arg-inputs"><DxTextBox Text="@_oldCatId" ReadOnly="true" CssClass="rh-arg-ctl" /></div>
+            </div>
+            <div class="rh-arg-row">
+                <label class="rh-arg-label">ข้อเดิม</label>
+                <div class="rh-arg-inputs"><DxTextBox Text="@_oldRepId" ReadOnly="true" CssClass="rh-arg-ctl" /></div>
+            </div>
+            <div class="rh-arg-row">
+                <label class="rh-arg-label">กลุ่มปลายทาง</label>
+                <div class="rh-arg-inputs">
+                    <DxComboBox Data="_cats" TData="sc.ComboItem" TValue="string"
+                                ValueFieldName="@nameof(sc.ComboItem.Code)" TextFieldName="@nameof(sc.ComboItem.Name)"
+                                Value="@_newCatId" ValueChanged="@((string v) => OnNewCatChanged(v))"
+                                NullText="-- เลือกกลุ่มปลายทาง --" CssClass="rh-arg-ctl" />
+                </div>
+            </div>
+            <div class="rh-arg-row">
+                <label class="rh-arg-label">ข้อใหม่</label>
+                <div class="rh-arg-inputs"><DxTextBox @bind-Text="_newRepId" CssClass="rh-arg-ctl" /></div>
+            </div>
+        </div>
+        @if (_error is not null)
+        {
+            <div class="rh-arg-error">@_error</div>
+        }
+    </BodyContentTemplate>
+    <FooterContentTemplate>
+        <DxButton Text="ย้าย" RenderStyle="ButtonRenderStyle.Primary" Click="OnSaveClick" />
+        <DxButton Text="ยกเลิก" RenderStyle="ButtonRenderStyle.Secondary" Click="() => SetVisible(false)" />
+    </FooterContentTemplate>
+</DxPopup>
+
+@code {
+    [Parameter, EditorRequired] public string App { get; set; } = string.Empty;
+    [Parameter] public EventCallback OnMoved { get; set; }
+    [CascadingParameter] Task<AuthenticationState>? AuthState { get; set; }
+
+    bool _visible;
+    string _oldCatId = "", _oldRepId = "";
+    string? _newCatId, _newRepId, _error;
+    List<sc.ComboItem> _cats = new();
+
+    // เปิด popup สำหรับย้ายข้อรายงาน (cat/rep เดิมที่เลือกอยู่)
+    public async Task Open(string oldCatId, string oldRepId)
+    {
+        _oldCatId = oldCatId;
+        _oldRepId = oldRepId;
+        _newCatId = null;
+        _newRepId = null;
+        _error = null;
+        _cats = await RepCat.LoadMoveCatsAsync(App);
+        _visible = true;
+        StateHasChanged();
+    }
+
+    // เลือกกลุ่มปลายทาง → gen rep_id ใหม่ (เลียน legacy change_cat_id)
+    async Task OnNewCatChanged(string v)
+    {
+        _newCatId = v;
+        _newRepId = string.IsNullOrWhiteSpace(v) ? null : await RepCat.NextRepIdAsync(v);
+    }
+
+    async Task OnSaveClick()
+    {
+        _error = null;
+        if (string.IsNullOrWhiteSpace(_newCatId))
+        {
+            _error = sc.msg.C("กรุณาเลือกกลุ่มปลายทาง");
+            return;
+        }
+        if (_newCatId == _oldCatId)
+        {
+            _error = sc.msg.C("กลุ่มปลายทางต้องไม่ใช่กลุ่มเดิม");
+            return;
+        }
+        if (string.IsNullOrWhiteSpace(_newRepId))
+        {
+            _error = sc.msg.C("กรุณาระบุรหัสข้อใหม่");
+            return;
+        }
+        try
+        {
+            await RepCat.MoveAsync(_oldCatId, _oldRepId, _newCatId!, _newRepId!.Trim(), await GetLoginUser());
+            await SetVisible(false);
+            await OnMoved.InvokeAsync();
+        }
+        catch (Exception ex)
+        {
+            _error = sc.msg.C(ex.Message);
+        }
+    }
+
+    Task SetVisible(bool v) { _visible = v; StateHasChanged(); return Task.CompletedTask; }
+    void OnVisibleChanged(bool v) => _visible = v;
+
+    async Task<string> GetLoginUser()
+    {
+        if (AuthState is null) return "";
+        var auth = await AuthState;
+        return auth.User.Identity?.Name ?? "";
+    }
+}

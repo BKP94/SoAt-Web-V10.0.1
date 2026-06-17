@@ -587,3 +587,10 @@ h1:focus { outline: none; }
 .sc-msg--error   .sc-msg-icon { background: #dc2626; }
 .sc-msg--alert   .sc-msg-icon { background: #d97706; }
 .sc-msg--confirm .sc-msg-icon { background: #2563eb; }
+
+/* ── repCategory — 2 กริด master-detail (กลุ่ม บน / ข้อรายงาน ล่าง) layout เท่านั้น ── */
+.rc-grids { display: flex; flex-direction: column; gap: 18px; }
+.rc-grid-box { min-width: 0; }
+/* virtual scrolling ต้องกำหนดความสูง — แสดงทุกแถวแบบเลื่อน (ไม่มี pager) */
+.rc-catgrid { height: 300px; }
+.rc-repgrid { height: 340px; }

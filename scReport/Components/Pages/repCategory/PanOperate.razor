@@ -1,0 +1,23 @@
+@* PanOperate (repCategory) — แถบปุ่ม Operate แนวตั้ง ขวาของหน้า
+   เลียน legacy panOperate.ascx: btSave "บันทึก" + btMove "ย้ายกลุ่ม"
+   (btExport/btImport = เลื่อนไปเฟส 2)
+   ปุ่ม raise EventCallback กลับให้ Page จัดการ *@
+
+<div class="op-item">
+    <button type="button" class="op-btn" title="บันทึก" @onclick="OnSave">💾</button>
+    <span class="op-btn-label">บันทึก</span>
+</div>
+
+<div class="op-item">
+    <button type="button" class="op-btn" title="ย้ายข้อรายงานไปกลุ่มอื่น"
+            disabled="@(!CanMove)" @onclick="OnMove">↔️</button>
+    <span class="op-btn-label">ย้ายกลุ่ม</span>
+</div>
+
+@code {
+    /// ย้ายได้เมื่อเลือกข้อรายงานแล้ว
+    [Parameter] public bool CanMove { get; set; }
+
+    [Parameter] public EventCallback OnSave { get; set; }
+    [Parameter] public EventCallback OnMove { get; set; }
+}

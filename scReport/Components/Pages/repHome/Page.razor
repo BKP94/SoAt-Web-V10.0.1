@@ -51,8 +51,9 @@
                      OnRepActivate="OnRepActivate" />
         </HeaderContent>
         <OperateContent>
-            <PanOperate CanOpen="@CanOpen" CanManage="@CanManage"
-                        OnOpen="OpenClicked" OnFind="() => _findVisible = true" OnManage="ManageClicked" />
+            <PanOperate CanOpen="@CanOpen" CanManage="@CanManage" CanCategory="@CanCategory"
+                        OnOpen="OpenClicked" OnFind="() => _findVisible = true"
+                        OnManage="ManageClicked" OnCategory="CategoryClicked" />
         </OperateContent>
     </PageRegions>
 
@@ -96,6 +97,8 @@
     bool CanOpen => CurrentRep is { HasReport: true };
     // จัดการรายงาน: เปิดได้เมื่อเลือกข้อรายงาน (แม้ยังไม่มีไฟล์ — editor สร้างใหม่ได้)
     bool CanManage => CurrentRep is not null;
+    // จัดการกลุ่ม: เปิดได้เมื่อเลือกระบบงานแล้ว
+    bool CanCategory => CurrentApp is not null;
 
     protected override async Task OnInitializedAsync()
     {
@@ -178,6 +181,13 @@
     {
         if (CurrentRep is not { } rep) return;
         await JS.InvokeVoidAsync("open", $"repProgram/{rep.CatId}/{rep.RepId}", "_blank");
+    }
+
+    // จัดการกลุ่มรายงาน → เปิดแท็บใหม่ /repCategory/{app} (หน้าจอเพิ่ม/แก้ไขกลุ่มรายงาน)
+    async Task CategoryClicked()
+    {
+        if (CurrentApp is not { } app) return;
+        await JS.InvokeVoidAsync("open", $"repCategory/{app.AppName}", "_blank");
     }
 
     // ── เปิดรายงาน ──

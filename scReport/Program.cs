@@ -26,6 +26,9 @@ builder.Services.AddSingleton<scReport.Services.ReportRequestStore>();
 // โ”€โ”€ RepProgramService โ€” โหลด/บันทึกไฟล์ definition รายงาน (repProgram editor) โ”€โ”€
 builder.Services.AddScoped<scReport.Services.RepProgramService>();
 
+// โ”€โ”€ RepCategoryService โ€” เพิ่ม/แก้ไขกลุ่มรายงาน (repCategory: si_rep_cats/si_rep_reps) โ”€โ”€
+builder.Services.AddScoped<scReport.Services.RepCategoryService>();
+
 // โ”€โ”€ Backend services (sc.dbFactory, AppDbContext, application services) โ”€โ”€
 //   module เนเธกเนเธฃเธฑเธ deployers โ€” scCenter เน€เธเนเธเธเธ deploy DB
 builder.Services.AddInfrastructure(builder.Configuration);

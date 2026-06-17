@@ -1,0 +1,165 @@
+@using scReport.Services
+
+@* PanHead (repCategory) — 2 กริด edit-in-table (เลียน legacy panListCat + panListRep)
+   บน: กลุ่มรายงาน (si_rep_cats) | ล่าง: ข้อรายงานของกลุ่มที่เลือก (si_rep_reps)
+   focus row ที่กลุ่ม → ยิง OnCatSelected ให้ Page reload ข้อรายงาน (ไม่มีปุ่มเลือก)
+   dumb component: แก้ field ลง Model (reference ร่วม) ตรง เหมือน sctelnewbma tabs *@
+
+<div class="rc-grids">
+    @* ── กลุ่มรายงาน ── *@
+    <div class="rc-grid-box">
+        <div class="nb-grid-head">
+            <h3 class="nb-h3">กลุ่มรายงาน</h3>
+            <DxButton Text="+ เพิ่มกลุ่ม" RenderStyle="ButtonRenderStyle.Primary" Click="AddCat" />
+        </div>
+
+        @if (Model.Cats.Count == 0)
+        {
+            <div class="nb-empty">ยังไม่มีกลุ่มรายงาน — กด “เพิ่มกลุ่ม” เพื่อเริ่ม</div>
+        }
+        else
+        {
+            <DxGrid Data="Model.Cats" PageSize="0" CssClass="rc-catgrid"
+                    VirtualScrollingEnabled="true"
+                    FocusedRowEnabled="true" FocusedRowChanged="OnCatFocused"
+                    ColumnResizeMode="GridColumnResizeMode.NextColumn">
+                <Columns>
+                    <DxGridDataColumn Caption="รหัสกลุ่ม" Width="90px" AllowSort="false">
+                        <CellDisplayTemplate>
+                            @{ var r = (CatRow)context.DataItem; }
+                            <DxTextBox @bind-Text="r.CatId" NullText="cat_id" />
+                        </CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="ชื่อกลุ่ม" AllowSort="false">
+                        <CellDisplayTemplate>
+                            @{ var r = (CatRow)context.DataItem; }
+                            <DxTextBox @bind-Text="r.CatText" NullText="ชื่อกลุ่มรายงาน" />
+                        </CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="ใช้งาน" Width="60px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                        <CellDisplayTemplate>
+                            @{ var r = (CatRow)context.DataItem; }
+                            <DxCheckBox @bind-Checked="r.Active" />
+                        </CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="ลำดับ" Width="100px" AllowSort="false">
+                        <CellDisplayTemplate>
+                            @{ var r = (CatRow)context.DataItem; }
+                            <DxSpinEdit @bind-Value="r.SortNo" NullText="0" />
+                        </CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="" Width="56px" AllowSort="false">
+                        <CellDisplayTemplate>
+                            @{ var r = (CatRow)context.DataItem; }
+                            <DxButton Text="ลบ" RenderStyle="ButtonRenderStyle.Danger" Click="() => RemoveCat(r)" />
+                        </CellDisplayTemplate>
+                    </DxGridDataColumn>
+                </Columns>
+            </DxGrid>
+        }
+    </div>
+
+    @* ── ข้อรายงานของกลุ่มที่เลือก ── *@
+    <div class="rc-grid-box">
+        <div class="nb-grid-head">
+            <h3 class="nb-h3">ข้อรายงาน @(Model.SelectedCatId is { } c ? $"(กลุ่ม {c})" : "")</h3>
+            <DxButton Text="+ เพิ่มข้อ" RenderStyle="ButtonRenderStyle.Primary"
+                      Enabled="@(Model.SelectedCatId is not null)" Click="AddRep" />
+        </div>
+
+        @if (Model.SelectedCatId is null)
+        {
+            <div class="nb-empty">เลือกกลุ่มรายงานทางซ้ายก่อน</div>
+        }
+        else if (Model.Reps.Count == 0)
+        {
+            <div class="nb-empty">กลุ่มนี้ยังไม่มีข้อรายงาน — กด “เพิ่มข้อ”</div>
+        }
+        else
+        {
+            <DxGrid Data="Model.Reps" PageSize="0" CssClass="rc-repgrid"
+                    VirtualScrollingEnabled="true"
+                    FocusedRowEnabled="true" FocusedRowChanged="OnRepFocused"
+                    ColumnResizeMode="GridColumnResizeMode.NextColumn">
+                <Columns>
+                    <DxGridDataColumn Caption="รหัส" Width="90px" AllowSort="false">
+                        <CellDisplayTemplate>
+                            @{ var r = (RepRow)context.DataItem; }
+                            <DxTextBox @bind-Text="r.RepId" NullText="rep_id" />
+                        </CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="ชื่อข้อรายงาน" AllowSort="false">
+                        <CellDisplayTemplate>
+                            @{ var r = (RepRow)context.DataItem; }
+                            <DxTextBox @bind-Text="r.RepText" NullText="ชื่อข้อรายงาน" />
+                        </CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="vs_path" AllowSort="false">
+                        <CellDisplayTemplate>
+                            @{ var r = (RepRow)context.DataItem; }
+                            <DxTextBox @bind-Text="r.VsPath" NullText="path ไฟล์รายงาน" />
+                        </CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="ใช้งาน" Width="60px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                        <CellDisplayTemplate>
+                            @{ var r = (RepRow)context.DataItem; }
+                            <DxCheckBox @bind-Checked="r.Active" />
+                        </CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="ลำดับ" Width="100px" AllowSort="false">
+                        <CellDisplayTemplate>
+                            @{ var r = (RepRow)context.DataItem; }
+                            <DxSpinEdit @bind-Value="r.SortNo" NullText="0" />
+                        </CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="" Width="56px" AllowSort="false">
+                        <CellDisplayTemplate>
+                            @{ var r = (RepRow)context.DataItem; }
+                            <DxButton Text="ลบ" RenderStyle="ButtonRenderStyle.Danger" Click="() => RemoveRep(r)" />
+                        </CellDisplayTemplate>
+                    </DxGridDataColumn>
+                </Columns>
+            </DxGrid>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public RepCategoryModel Model { get; set; } = default!;
+    [Parameter] public EventCallback<string> OnCatSelected { get; set; }
+    [Parameter] public EventCallback<string?> OnRepSelected { get; set; }
+
+    // ── กลุ่ม: focus row → เลือกกลุ่ม (ยิง event ให้ Page โหลดข้อรายงาน) ──
+    async Task OnCatFocused(GridFocusedRowChangedEventArgs e)
+    {
+        if (e.DataItem is CatRow r && r.CatId != Model.SelectedCatId)
+            await OnCatSelected.InvokeAsync(r.CatId);
+    }
+
+    // ── กลุ่ม: add / delete ──
+    void AddCat() => Model.Cats.Add(new CatRow { Active = true });
+
+    void RemoveCat(CatRow r)
+    {
+        if (!r.IsNew) Model.DeletedCatKeys.Add(r.OrigCatId!);  // row ที่โหลดจาก DB → ยิง DELETE ตอน save
+        Model.Cats.Remove(r);
+    }
+
+    // ── ข้อรายงาน: focus row → เลือกข้อ (ยิง event ให้ Page เปิดปุ่มย้ายกลุ่ม) ──
+    async Task OnRepFocused(GridFocusedRowChangedEventArgs e)
+    {
+        if (e.DataItem is RepRow r && r.RepId != Model.SelectedRepId)
+            await OnRepSelected.InvokeAsync(r.RepId);
+    }
+
+    // ── ข้อรายงาน: add / delete ──
+    void AddRep() =>
+        Model.Reps.Add(new RepRow { CatId = Model.SelectedCatId ?? "", Active = true });
+
+    void RemoveRep(RepRow r)
+    {
+        if (!r.IsNew) Model.DeletedRepKeys.Add((r.OrigCatId!, r.OrigRepId!));
+        Model.Reps.Remove(r);
+        if (Model.SelectedRepId == r.RepId) Model.SelectedRepId = null;
+    }
+}

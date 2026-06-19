@@ -234,6 +234,12 @@
             var meta = sc.report.getReportArgs(vsPath);
             var composed = sc.report.composeReportSql(vsPath, meta, values);
 
+            // ── driver-proc: รายงานที่มี procedure="..." ต้องรัน proc populate staging ก่อน ──
+            //   (เลียน legacy ofExecuteProcedure แล้วค่อย ofCreateReport). db dispose = commit
+            //   → staging เห็นได้จาก repView connection แยกที่จะมา fill ทีหลัง
+            await using (var dbProc = DbFactory.create())
+                sc.report.executeProcedure(vsPath, meta, values, dbProc);
+
             // resolve meta หัวรายงานจาก vs_path (ครอบทั้ง path เปิดปกติ + ค้นหาข้ามกลุ่ม)
             var repRow = _allReps.FirstOrDefault(r => r.VsPath == vsPath) ?? CurrentRep;
             var repText = repRow?.RepText ?? "";

@@ -79,6 +79,60 @@ namespace sc
 
             return string.Empty;
         }
+
+        // ── executeProcedure — port 1:1 จาก popArgument.ascx.cs:ofExecuteProcedure (:802) ──
+        //   driver-proc pattern: รายงานที่มี procedure="pkg.sp_xxx({key})" ต้อง EXECUTE proc
+        //   (populate staging SC_REP_*) ก่อน แล้วค่อยรัน <sql> ที่ SELECT จาก staging นั้น.
+        //   แทน token {id}/{id_1}=col1, {id_2}=col2 ด้วย dbValueT(value, type) — *ไม่หัก 543*
+        //   (proc รับ พ.ศ. แล้วหักภายในเอง ต่างจาก SQL '!key!' ที่หัก 543 ใน composeReportSql).
+        //   หมายเหตุ faithful: ต้องเรียกบน db ที่ commit ก่อน repView เปิด fill ผ่าน connection แยก
+        public static void executeProcedure(string vs_path, IEnumerable<ReportArg> argsMeta,
+            IDictionary<string, ReportArgInput> values, sc.db db)
+        {
+            var procedure = getProcedure(vs_path);
+            if (string.IsNullOrWhiteSpace(procedure)) return;
+
+            foreach (var arg in argsMeta)
+            {
+                if (!values.TryGetValue(arg.Key, out var inp) || inp == null) continue;
+                var id = arg.Key;
+
+                // colType → Type (mirror composeReportSql L266-268; legacy = getValue("col-"+type)+dbValueT)
+                Type? t = arg.Type == "date" ? typeof(DateTime)
+                        : (arg.Type == "integer" || arg.Type == "integer2"
+                           || arg.Type == "decimal" || arg.Type == "decimal2") ? typeof(decimal)
+                        : null;
+
+                // col1 — แทนเมื่อมี token (faithful: legacy gate ที่ valr.ContainsKey("1") ไม่ใช่ null)
+                if (procedure.Contains("{" + id + "}") || procedure.Contains("{" + id + "_1}"))
+                {
+                    var dbValue = sc.value.dbValueT(inp.Value1, t);
+                    procedure = procedure.Replace("{" + id + "}", dbValue)
+                                         .Replace("{" + id + "_1}", dbValue);
+                }
+
+                // col2 — แทนเมื่อ form มี col2 (legacy gate ที่ valr.ContainsKey("2") = HasCol2)
+                if (inp.HasCol2 && procedure.Contains("{" + id + "_2}"))
+                {
+                    procedure = procedure.Replace("{" + id + "_2}", sc.value.dbValueT(inp.Value2, t));
+                }
+            }
+
+            // Execute Procedure (เลียน legacy try/catch C336)
+            try
+            {
+                db.pkProcedure(procedure);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("C336: ไม่สามารถประมวลผลเพื่อออกรายงาน " + Environment.NewLine
+                    + "-----------------------------------------" + Environment.NewLine
+                    + procedure + Environment.NewLine
+                    + "-----------------------------------------" + Environment.NewLine
+                    + ex.Message);
+            }
+        }
+
         public static string getColFocus(string vs_path)
         {
             object[]? xmlObject = rcReport(vs_path);

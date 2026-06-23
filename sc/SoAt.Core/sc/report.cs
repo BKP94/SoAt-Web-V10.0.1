@@ -496,8 +496,9 @@ namespace sc
                 // ── Deviation จาก legacy (เหมือน rcReport) ────────────────────
                 // legacy: shared C:\SoAt\repQuery\repArguments.xml (ถอย BaseDirectory ขึ้น 1 ชั้น)
                 // ใหม่: repQuery\repArguments.xml ใน output ของ report host
-                //   ⚠️ repArguments.xml ยังไม่ถูกย้ายมา (เป็น dependency ของ arg-class expansion
-                //      ที่ใช้ตอน Step 5 — pilot นี้ <arg> ไม่มี class= จึงยังไม่ถูกเรียก)
+                //   repArguments.xml migrate มาแล้ว (scReport\repQuery\repArguments.xml —
+                //   byte-identical กับ legacy, csproj copy เข้า output ผ่าน <None Include="repQuery\**\*.xml">).
+                //   arg-class expansion (getReportArgs) เรียกไฟล์นี้ผ่าน repArgumentObject() ได้แล้ว
                 // ──────────────────────────────────────────────────────────────
                 string dirBase = AppContext.BaseDirectory;
 

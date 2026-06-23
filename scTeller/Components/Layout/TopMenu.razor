@@ -9,7 +9,6 @@
    route แปลงจาก s_url legacy ("../sctelnewbma/page.aspx" → "/sctelnewbma")
    custom markup (NavLink) คุมสีเองได้ — ไม่ใช้ DxMenu เพราะ sidebar เป็นโทน navy
    (CLAUDE.md ห้าม override สี/focus ของ DevExpress component)
-   group กางด้วย native <details> → ทำงานแบบ static SSR ไม่ต้องพึ่ง interactivity
    เมนูที่ยัง migrate ไม่ถึง → disabled (อยู่ใน _implemented เท่านั้นที่คลิกได้)
    group กางแบบ "flyout" — เอาเมาส์ชี้หัว group แล้วเมนูย่อยลอยออกมาด้านขวา (pure CSS :hover)
    ไม่ใช้ <details> click + ไม่ใช้ interactivity → ทำงานบน static SSR *@

@@ -48,13 +48,16 @@ html, body {
     color: var(--ink-on-navy);
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    /* visible เพื่อให้ flyout เมนูย่อยลอยออกพ้นขอบขวา sidebar ได้ (ดู .nav-sublist) */
+    overflow: visible;
     transition: flex-basis .22s ease, width .22s ease;
     position: sticky;
     top: 0;
     height: 100vh;
+    z-index: 100;   /* ให้ flyout เมนูย่อยลอยทับ main content ได้ (sidebar เป็น stacking context) */
 }
-.tel-nav-toggle:checked ~ .app-sidebar { flex-basis: 0; width: 0; }
+/* ตอนพับ sidebar ค่อย clip เนื้อหา (กันสไลด์เนื้อหาโผล่ตอน width → 0) */
+.tel-nav-toggle:checked ~ .app-sidebar { flex-basis: 0; width: 0; overflow: hidden; }
 
 .sidebar-brand {
     display: flex; align-items: center; gap: .6rem;
@@ -79,7 +82,8 @@ html, body {
 }
 .sidebar-collapse:hover { background: rgba(255, 255, 255, .1); color: #fff; }
 
-.sidebar-nav { flex: 1 1 auto; overflow-y: auto; padding: .75rem .6rem; }
+/* overflow: visible (ไม่ใช่ auto) เพื่อไม่ clip flyout ทางขวา — เมนูระดับบนสั้นพอจะอยู่ใน 1 จอ */
+.sidebar-nav { flex: 1 1 auto; overflow: visible; padding: .75rem .6rem; }
 
 .sidebar-foot {
     flex: 0 0 auto; padding: .8rem 1.1rem;
@@ -90,6 +94,7 @@ html, body {
 /* ── Custom vertical nav (TopMenu.razor) — คุมสีเองได้ ────────── */
 .nav-list, .nav-sublist { list-style: none; margin: 0; padding: 0; }
 .nav-item, .nav-group { margin: 2px 0; }
+.nav-group { position: relative; }
 
 .nav-link {
     display: flex; align-items: center; gap: .6rem;
@@ -118,19 +123,37 @@ html, body {
     flex: 0 0 auto; width: 14px; font-size: .7rem; color: var(--ink-on-navy-muted);
     transition: transform .15s ease;
 }
-.nav-group-head { justify-content: flex-start; }
-.nav-group summary { list-style: none; }
-.nav-group summary::-webkit-details-marker { display: none; }
-.nav-group summary::marker { content: ""; }
-.nav-group[open] > summary { color: #fff; }
-.nav-group[open] > summary .nav-caret { transform: rotate(90deg); }
+.nav-group-head { justify-content: flex-start; user-select: none; }
+.nav-group--active > .nav-group-head,
+.nav-group:hover > .nav-group-head { color: #fff; }
+.nav-group:hover > .nav-group-head { background: rgba(255, 255, 255, .08); }
+.nav-group:hover .nav-caret { transform: translateX(2px); color: #fff; }
 
-.nav-sublist { margin: 2px 0 4px; padding-left: 1.3rem; }
+/* ── Flyout panel: เมนูย่อยลอยออกด้านขวาเมื่อ hover หัว group ───── */
+.nav-sublist {
+    position: absolute;
+    top: -.4rem;
+    left: calc(100% - 4px);          /* เหลื่อมเล็กน้อยเป็นสะพาน hover กันเมนูหาย */
+    min-width: 210px;
+    margin: 0; padding: .4rem;
+    /* สว่างกว่า sidebar (navy-800) เพื่อให้แผง flyout แยกชั้นชัด + แถบ accent ด้านซ้าย */
+    background: #2d4d77;
+    border: 1px solid rgba(255, 255, 255, .16);
+    border-left: 3px solid var(--accent);
+    border-radius: 10px;
+    box-shadow: 0 14px 34px rgba(0, 0, 0, .45);
+    opacity: 0; visibility: hidden;
+    transform: translateX(-6px);
+    transition: opacity .14s ease, transform .14s ease, visibility .14s;
+    z-index: 60;
+}
+.nav-group:hover > .nav-sublist {
+    opacity: 1; visibility: visible; transform: translateX(0);
+}
 .nav-sublink {
     display: block; padding: .42rem .7rem;
     color: var(--ink-on-navy-muted); text-decoration: none;
     font-size: .88rem; border-radius: 8px;
-    border-left: 1px solid rgba(255, 255, 255, .12);
     transition: background .15s ease, color .15s ease;
 }
 .nav-sublink:hover { background: rgba(255, 255, 255, .06); color: #fff; }

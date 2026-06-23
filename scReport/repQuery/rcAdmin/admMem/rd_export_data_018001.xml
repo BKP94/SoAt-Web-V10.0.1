@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <lon_year align="center" special="year" text="ปีปันผล" table="sc_mem_m_capital_rate" type="integer2" column="lon_year" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_mem_m_capital_rate.lon_year,
+    '  ' as c_div_code,
+    sc_mem_m_capital_rate.share_rate,
+    sc_share_m_constant.share_value_perunit,
+    sc_mem_m_capital_rate.entry_date,
+    sc_mem_m_capital_rate.entry_id,
+    sc_acc_m_account_year.beginning_of_account,
+    sc_acc_m_account_year.ending_of_account,
+    sc_acc_m_account_year.close_account_status
+    FROM sc_mem_m_capital_rate,
+    sc_share_m_constant,
+    sc_acc_m_account_year
+    WHERE ( sc_acc_m_account_year.account_year = sc_mem_m_capital_rate.lon_year )
+    /*WHERE*/
+    ORDER BY sc_mem_m_capital_rate.lon_year ASC
+  </sql>
+  <sub />
+</root>

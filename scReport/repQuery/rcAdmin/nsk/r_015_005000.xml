@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <receive_year special="year" default="select  present_account_year  + 543  from sc_acc_m_account_constant" text="ปี" type="integer2" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <receive_month special="month" text="เดือน" type="integer2" operator="bt" combo="monthThLong" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <member_group_no text="หน่วยงาน" table="sc_mem_m_ucf_member_group" operator="bt" combo="sc_mem_m_ucf_member_group4" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>  SELECT vr_nsk_015_005000.membership_no,   
+         vr_nsk_015_005000.prename,   
+         vr_nsk_015_005000.member_name,   
+         vr_nsk_015_005000.member_surname,   
+         vr_nsk_015_005000.receive_month_year,   
+         vr_nsk_015_005000.receipt_no,   
+         vr_nsk_015_005000.period_of_share,   
+         vr_nsk_015_005000.money_of_share,   
+         vr_nsk_015_005000.deposit_amount,   
+         vr_nsk_015_005000.emer_type,   
+         vr_nsk_015_005000.contract_of_emer_loan,   
+         vr_nsk_015_005000.period_of_emer_loan,   
+         vr_nsk_015_005000.principal_of_emer_loan,   
+         vr_nsk_015_005000.interest_of_emer_loan,   
+         vr_nsk_015_005000.emer_bal,   
+         vr_nsk_015_005000.norm_type,   
+         vr_nsk_015_005000.contract_of_norm_loan,   
+         vr_nsk_015_005000.period_of_norm_loan,   
+         vr_nsk_015_005000.principal_of_norm_loan,   
+         vr_nsk_015_005000.interest_of_norm_loan,   
+         vr_nsk_015_005000.norm_bal,   
+         vr_nsk_015_005000.special_type,   
+         vr_nsk_015_005000.contract_of_special_loan,   
+         vr_nsk_015_005000.period_of_special_loan,   
+         vr_nsk_015_005000.principal_of_special_loan,   
+         vr_nsk_015_005000.interest_of_special_loan,   
+         vr_nsk_015_005000.spec_bal,   
+         vr_nsk_015_005000.receive_year ,
+        vr_nsk_015_005000.receive_month,
+        vr_nsk_015_005000.member_group_no
+    FROM vr_nsk_015_005000
+,sc_mem_m_ucf_member_group
+where   1=1
+and vr_nsk_015_005000.receive_year  = '!receive_year_1!'
+and  vr_nsk_015_005000.receive_month between '!receive_month_1!' and '!receive_month_2!'
+and  vr_nsk_015_005000.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+
+/*WHERE*/</sql>
+  <sub />
+</root>

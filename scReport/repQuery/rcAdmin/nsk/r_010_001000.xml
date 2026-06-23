@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <receipt_date text="วันที่ใบเสร็จ" type="date" operator="bt" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>  SELECT vr_nsk_010_001000.membership_no,   
+         vr_nsk_010_001000.memname,   
+         vr_nsk_010_001000.receipt_date,   
+         vr_nsk_010_001000.kep_amount,   
+         vr_nsk_010_001000.kep_method_amount,   
+         vr_nsk_010_001000.unkeep_amount,   
+         vr_nsk_010_001000.ppm_desc,   
+         vr_nsk_010_001000.ppm_date  
+    FROM vr_nsk_010_001000  
+where   vr_nsk_010_001000.receipt_date   between   '!receipt_date_1!'  and    '!receipt_date_2!' 
+  /*WHERE*/
+</sql>
+  <sub />
+</root>

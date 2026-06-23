@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <loan_type align="center" text="ประเภทเงินกู้" table="sc_lon_m_rule" column="loan_type" combo="sc_lon_m_rule" readonly="0" />
+    <membership_no align="center" special="memno" text="ทะเบียน" table="sc_lon_m_loan_card" column="membership_no" operator="bt" readonly="0" />
+    <loan_payment_date align="center" text="วันที่" table="sc_lon_m_loan_card_detail" type="date" column="loan_payment_date" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_lon_m_loan_card_detail.loan_contract_no,
+    sc_lon_m_rule.loan_type_description,
+    sc_lon_m_loan_card_detail.loan_payment_date,
+    sc_lon_m_loan_card_detail.item_type_code,
+    sc_lon_m_loan_card_detail.ref_loan_doc_no,
+    sc_lon_m_loan_card_detail.payment_amount,
+    sc_lon_m_loan_card_detail.interest_to,
+    sc_lon_m_loan_card_detail.entry_id,
+    sc_lon_m_loan_card_detail.entry_date,
+    sc_lon_m_loan_card_detail.interest_amout,
+    sc_lon_m_loan_card.membership_no
+    FROM sc_lon_m_loan_card,
+    sc_lon_m_loan_card_detail,
+    sc_lon_m_rule
+    WHERE ( sc_lon_m_loan_card_detail.loan_contract_no = sc_lon_m_loan_card.loan_contract_no ) and
+    ( sc_lon_m_loan_card.loan_type = sc_lon_m_rule.loan_type )
+    /*WHERE*/
+    ORDER BY sc_lon_m_loan_card.membership_no ASC
+  </sql>
+  <sub />
+</root>

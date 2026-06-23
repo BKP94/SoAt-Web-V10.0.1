@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+  </arg>
+  <combo />
+  <sql>  SELECT sc_cnt_m_document_no_control.document_code,   
+         sc_cnt_m_document_no_control.document_name,   
+         sc_cnt_m_document_no_control.last_document_no,   
+         sc_cnt_m_document_no_control.document_year,   
+         sc_cnt_m_document_no_control.application,   
+         sc_cnt_m_document_no_control.visible_status,   
+         sc_cnt_m_document_no_control.life_time  
+    FROM sc_cnt_m_document_no_control   
+order by sc_cnt_m_document_no_control.life_time 
+,sc_cnt_m_document_no_control.document_code</sql>
+  <sub />
+</root>

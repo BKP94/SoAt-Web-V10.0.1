@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <loan_payment_date default="select  beginning_of_account  from sc_acc_m_account_constant" text="วันที่" type="date" operator="bt" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <member_group_no text="หน่วย" table="sc_mem_m_ucf_member_group" operator="bt" combo="sc_mem_m_ucf_member_group4" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>  SELECT vr_nsk_015_006000.membership_no,   
+         vr_nsk_015_006000.loan_contract_no,   
+         vr_nsk_015_006000.member_name,   
+         vr_nsk_015_006000.member_surname,   
+         vr_nsk_015_006000.seq_no,   
+         vr_nsk_015_006000.loan_payment_date,   
+         vr_nsk_015_006000.interest_from,   
+         vr_nsk_015_006000.interest_to,   
+         vr_nsk_015_006000.period,   
+         vr_nsk_015_006000.item_type_code,   
+         vr_nsk_015_006000.payment_amount,   
+         vr_nsk_015_006000.interest_amout,   
+         vr_nsk_015_006000.principal_balance,   
+         vr_nsk_015_006000.interest_calulate,   
+         vr_nsk_015_006000.interest_arrear_bal,   
+         vr_nsk_015_006000.sign_status  ,
+         vr_nsk_015_006000.loan_type ,
+         vr_nsk_015_006000.loan_type_description ,
+         vr_nsk_015_006000.member_group_no
+    FROM vr_nsk_015_006000
+,sc_mem_m_ucf_member_group
+where   1=1
+and vr_nsk_015_006000.loan_payment_date between   '!loan_payment_date_1!' and '!loan_payment_date_2!'
+and  vr_nsk_015_006000.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+
+/*WHERE*/</sql>
+  <sub />
+</root>

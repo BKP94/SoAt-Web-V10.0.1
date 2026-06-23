@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+  </arg>
+  <combo />
+  <sql>SELECT sc_mem_m_share_mem.membership_no,          
+         sc_mem_m_share_mem.share_stock  
+    FROM sc_mem_m_share_mem  
+   WHERE  1=1
+and sc_mem_m_share_mem.share_stock   &lt;&gt; 0 
+order by sc_mem_m_share_mem.membership_no</sql>
+  <sub />
+</root>

@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <balance_date default="select max( balance_date )from sc_rep_mem_share_loan_bal" text="ณ วันที่" type="date" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>  SELECT vr_nsk_010_006000.balance_date,   
+         vr_nsk_010_006000.member_group_no,   
+         vr_nsk_010_006000.member_group_name,   
+         vr_nsk_010_006000.member_status_code,   
+         vr_nsk_010_006000.member_status_name,   
+         vr_nsk_010_006000.count_mem,   
+         vr_nsk_010_006000.share_balance  
+    FROM vr_nsk_010_006000
+  where   1=1
+and vr_nsk_010_006000.balance_date = '!balance_date_1!'
+/*WHERE*/</sql>
+  <sub />
+</root>

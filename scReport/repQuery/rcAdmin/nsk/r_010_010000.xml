@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <monthly_date default="select max(  monthly_date )from sc_cls_mon_dep_accno" text="ณ วันที่" type="date" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>  SELECT vr_nsk_010_010000.monthly_date,   
+         vr_nsk_010_010000.member_status_code,   
+         vr_nsk_010_010000.member_status_name,   
+         vr_nsk_010_010000.mem_type_code,   
+         vr_nsk_010_010000.mem_type_desc,   
+         vr_nsk_010_010000.deposit_type_code,   
+         vr_nsk_010_010000.deposit_name,   
+         vr_nsk_010_010000.count_dep,   
+         vr_nsk_010_010000.deposit_balance,   
+         vr_nsk_010_010000.int_arrear  
+    FROM vr_nsk_010_010000
+where   1=1
+and  vr_nsk_010_010000.monthly_date = '!monthly_date_1!'
+/*WHERE*/</sql>
+  <sub />
+</root>

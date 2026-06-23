@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <withdraw_date text="วันที่" type="date" operator="bt" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>  SELECT vr_nsk_010_022000.withdraw_doc_no,   
+         vr_nsk_010_022000.withdraw_date,   
+         vr_nsk_010_022000.withdraw_status ,   
+         vr_nsk_010_022000.entry_id,   
+         vr_nsk_010_022000.share_withdraw ,   
+         vr_nsk_010_022000.membership_no,   
+         vr_nsk_010_022000.memname,   
+         vr_nsk_010_022000.member_group_no,   
+         vr_nsk_010_022000.member_group_name,   
+         vr_nsk_010_022000.mem_type_code,   
+         vr_nsk_010_022000.mem_type_desc  
+    FROM vr_nsk_010_022000 
+where   1=1
+and   vr_nsk_010_022000.withdraw_date  between   '!withdraw_date_1!'  and  '!withdraw_date_2!'
+/*WHERE*/</sql>
+  <sub />
+</root>

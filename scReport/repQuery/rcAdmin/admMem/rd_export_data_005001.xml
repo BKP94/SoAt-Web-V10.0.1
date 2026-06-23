@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <loan_type align="center" text="ประเภทเงินกู้" table="sc_lon_m_rule" column="loan_type" combo="sc_lon_m_rule" readonly="0" />
+    <membership_no align="center" special="memno" text="ผู้กู้" table="sc_lon_m_contract" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_lon_m_contract.loan_contract_no,
+    sc_lon_m_rule.loan_type_description,
+    sc_mem_m_ucf_doc_place.doc_place,
+    sc_lon_m_contract.loan_installment_amount,
+    sc_lon_m_contract.loan_approve_amount,
+    sc_lon_m_ucf_loan_obj.loan_objective_description,
+    sc_lon_m_loan_card.principal_balance,
+    sc_lon_m_loan_card.interest_arrear,
+    sc_lon_m_contract.appove_officer,
+    '' as collateral_description,
+    0 as used_amount,
+    sc_lon_m_loan_card.last_calcint_date,
+    sc_lon_m_contract.begining_of_contract,
+    pka_com_function.fp_get_member_name( sc_lon_m_contract.membership_no ) as memname,
+    sc_lon_m_contract.membership_no
+    FROM sc_lon_m_contract,
+    sc_mem_m_membership_registered,
+    sc_lon_m_ucf_loan_obj,
+    sc_lon_m_loan_card,
+    sc_lon_m_rule,
+    sc_mem_m_ucf_doc_place
+    WHERE ( sc_mem_m_membership_registered.membership_no = sc_lon_m_contract.membership_no ) and
+    ( sc_lon_m_contract.loan_objective_code = sc_lon_m_ucf_loan_obj.loan_objective_code ) and
+    ( sc_lon_m_contract.loan_type = sc_lon_m_ucf_loan_obj.loan_type ) and
+    ( sc_lon_m_contract.loan_contract_no = sc_lon_m_loan_card.loan_contract_no ) and
+    ( sc_lon_m_loan_card.loan_type = sc_lon_m_rule.loan_type ) and
+    ( sc_mem_m_membership_registered.doc_place_status = sc_mem_m_ucf_doc_place.item_code )
+    /*WHERE*/
+    ORDER BY sc_lon_m_contract.membership_no ASC,
+    sc_lon_m_contract.loan_contract_no ASC
+  </sql>
+  <sub />
+</root>

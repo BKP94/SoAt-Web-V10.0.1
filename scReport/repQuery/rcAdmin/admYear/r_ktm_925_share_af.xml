@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <operate_date text="วันที่" table="sc_mem_m_share_holding_detail" type="date" readonly="0" />
+  </arg>
+  <combo />
+  <sql>  SELECT sc_mem_m_share_holding_detail.membership_no,   
+         sc_mem_m_share_holding_detail.operate_date,   
+         sc_mem_m_share_holding_detail.item_type,   
+         sc_mem_m_share_holding_detail.share_value,   
+         sc_mem_m_share_holding_detail.share_stock  
+,sc_mem_m_share_mem.share_stock as mem_stock
+    FROM sc_mem_m_share_holding_detail  
+,sc_mem_m_share_mem
+   WHERE sc_mem_m_share_mem.membership_no = sc_mem_m_share_holding_detail.membership_no
+and  sc_mem_m_share_holding_detail.item_type = 'BF'    
+    /*WHERE*/</sql>
+  <sub />
+</root>

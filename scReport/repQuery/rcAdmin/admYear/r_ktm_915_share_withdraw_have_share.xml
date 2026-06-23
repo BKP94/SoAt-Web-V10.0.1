@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <account_year special="year" text="ปี" table="sc_acc_m_account_year" type="integer2" readonly="0" />
+  </arg>
+  <combo />
+  <sql> SELECT sc_mem_m_share_mem.membership_no,   
+pka_com_function.fp_get_member_name( sc_mem_m_share_mem.membership_no  ) as memname , 
+         sc_mem_m_share_mem.share_stock
+    FROM sc_mem_m_share_mem
+,sc_acc_m_account_year
+   WHERE  1=1
+and sc_mem_m_share_mem.share_stock &gt; 0
+    and sc_mem_m_share_mem.membership_no in ( select  membership_no from sc_mem_m_share_holding_detail
+    where item_type = 'WD'
+    and operate_date  between  sc_acc_m_account_year.beginning_of_account and  sc_acc_m_account_year.ending_of_account   )
+    /*WHERE*/
+  </sql>
+  <sub />
+</root>

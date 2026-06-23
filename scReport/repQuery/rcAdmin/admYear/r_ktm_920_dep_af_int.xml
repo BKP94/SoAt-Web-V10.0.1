@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+  </arg>
+  <combo />
+  <sql>  SELECT sc_dep_m_creditor.deposit_account_no,   
+         sc_dep_m_creditor.deposit_type_code,   
+         sc_dep_m_creditor.membership_no,   
+         sc_dep_m_creditor.deposit_balance,   
+         sc_dep_m_creditor.accumulate_interest,   
+         sc_dep_m_creditor.last_calcint_date  
+    FROM sc_dep_m_creditor,   
+         sc_dep_m_rule  
+   WHERE ( sc_dep_m_creditor.deposit_type_code = sc_dep_m_rule.deposit_type_code ) and  
+         ( ( sc_dep_m_creditor.deposit_balance &gt; 0 ) AND  
+         ( sc_dep_m_rule.deposit_group_code = '01' ) )    </sql>
+  <sub />
+</root>

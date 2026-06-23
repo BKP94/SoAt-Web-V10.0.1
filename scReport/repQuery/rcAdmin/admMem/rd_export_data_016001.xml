@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>    
+  </arg>
+  <combo />
+  <sql>
+    select	'(' || trim(sc_acc_m_account_master.account_group_id) || ') ' || sc_acc_m_ucf_account_group.account_group_name ,
+    sc_acc_m_account_master.account_id ,
+    sc_acc_m_account_master.account_name ,
+    sc_acc_m_ucf_account_type.account_type_name ,
+    case
+    when  sc_acc_m_account_master.account_type_id = '3'  then
+    'แสดง'
+    else
+    ''
+    end	as		fin_bud_show ,
+    sc_acc_m_account_master.account_control_id ,
+    ' '	as		project_code ,
+    ' '	as		cost_center_code ,
+    ' '	as		account_balance  ,
+    (	select 	sc_acc_m_account_constant.beginning_of_account
+    from		sc_acc_m_account_constant
+    )	as beginning_of_account ,
+
+    (case when sc_acc_m_account_master.nature = 'DR' then coalesce( (	SELECT		sc_acc_m_account_begin.balance_begin
+    FROM		sc_acc_m_account_begin ,
+    sc_acc_m_account_constant
+    WHERE 	sc_acc_m_account_begin.account_year = sc_acc_m_account_constant.present_account_year
+    AND			sc_acc_m_account_begin.account_id = sc_acc_m_account_master.account_id
+    ) , 0 )
+    else null end )	as	balance_begin_dr ,
+
+    (case when sc_acc_m_account_master.nature = 'CR' then coalesce( (	SELECT		sc_acc_m_account_begin.balance_begin
+    FROM		sc_acc_m_account_begin ,
+    sc_acc_m_account_constant
+    WHERE 	sc_acc_m_account_begin.account_year = sc_acc_m_account_constant.present_account_year
+    AND			sc_acc_m_account_begin.account_id = sc_acc_m_account_master.account_id
+    ) , 0 )
+    else null end )	as	balance_begin_cr ,
+    (case when sc_acc_m_account_master.cancel_status = '1' then 'ปิดใช้งาน' else 'ใช้งาน' end) as account_status ,
+    ' '	as		delete_account_status  ,
+    ' '	as		entry_date  ,
+    ' '	as		entry_id
+
+    from 		sc_acc_m_account_master,
+    sc_acc_m_ucf_account_group,
+    sc_acc_m_ucf_account_type
+    where 	sc_acc_m_account_master.account_group_id = sc_acc_m_ucf_account_group.account_group_id
+    and 		sc_acc_m_account_master.account_type_id = sc_acc_m_ucf_account_type.account_type_id
+    /*WHERE*/
+  </sql>
+  <sub />
+</root>

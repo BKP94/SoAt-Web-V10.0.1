@@ -1,0 +1,62 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <monthly_date default="select max(  monthly_date )from sc_cls_mon_dep_accno" text="ระหว่าง" type="date" operator="bt" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <deposit_type_code text="ประเภท" table="sc_dep_m_rule" operator="bt" combo="sc_dep_m_rule2" readonly="0" comboreplace="0" combowhere="0" />
+    <deposit_account_no text="เลขที่บัญชี" table="sc_dep_m_creditor" operator="bt" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>select  tb.monthly_date,   
+tb.deposit_account_no,   
+tb.item_type,   
+tb.membership_no,   
+tb.deposit_type_code,   
+tb.deposit_name,   
+tb.deposit_account_name,   
+( tb.deposit_balance   - tb.dca_amount + tb.wca_amount )  as  begin_balance,   
+tb.dca_amount,   
+tb.wca_amount,   
+tb.deposit_balance  
+from 
+( 
+ SELECT vr_nsk_015_011000.monthly_date,   
+         vr_nsk_015_011000.deposit_account_no,   
+         vr_nsk_015_011000.item_type,   
+         vr_nsk_015_011000.membership_no,   
+         vr_nsk_015_011000.deposit_type_code,   
+         vr_nsk_015_011000.deposit_name,   
+         vr_nsk_015_011000.deposit_account_name,         
+         coalesce( (   SELECT sum( sc_dep_m_creditor_item.deposit_balance  ) 
+              FROM sc_dep_m_creditor_item,   
+              sc_dep_m_ucf_dep_item_type  
+             WHERE  sc_dep_m_creditor_item.item_type = sc_dep_m_ucf_dep_item_type.deposit_item_type
+            and sc_dep_m_ucf_dep_item_type.sign_flag = 1   
+            and sc_dep_m_creditor_item.deposit_account_no =   vr_nsk_015_011000.deposit_account_no
+            and sc_dep_m_creditor_item.working_day between    '!monthly_date_1!' and    '!monthly_date_2!' ) , 0 )  as dca_amount,   
+
+         coalesce( (   SELECT sum( sc_dep_m_creditor_item.deposit_balance  ) 
+              FROM sc_dep_m_creditor_item,   
+              sc_dep_m_ucf_dep_item_type  
+             WHERE  sc_dep_m_creditor_item.item_type = sc_dep_m_ucf_dep_item_type.deposit_item_type
+            and sc_dep_m_ucf_dep_item_type.sign_flag = -1   
+            and sc_dep_m_creditor_item.deposit_account_no =   vr_nsk_015_011000.deposit_account_no
+            and sc_dep_m_creditor_item.working_day between    '!monthly_date_1!' and    '!monthly_date_2!' ) , 0 )  as wca_amount,   
+
+         vr_nsk_015_011000.deposit_balance  
+    FROM vr_nsk_015_011000
+
+where   1=1
+and  vr_nsk_015_011000.monthly_date =  '!monthly_date_2!'
+
+)  tb
+,sc_dep_m_rule
+,sc_dep_m_creditor
+where 1=1
+and   tb.deposit_type_code  = sc_dep_m_rule.deposit_type_code
+and   tb.deposit_account_no = sc_dep_m_creditor.deposit_account_no
+
+/*WHERE*/
+
+</sql>
+  <sub />
+</root>

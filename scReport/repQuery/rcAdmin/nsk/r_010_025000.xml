@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <resignation_approve_date text="วันที่" type="date" operator="bt" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>  SELECT vr_nsk_010_025000.resignation_approve_date,  
+         vr_nsk_010_025000.resignation_approve_id,    
+         vr_nsk_010_025000.membership_no,   
+         vr_nsk_010_025000.memname,   
+         vr_nsk_010_025000.member_group_no,   
+         vr_nsk_010_025000.member_group_name,   
+         vr_nsk_010_025000.approve_date,   
+         vr_nsk_010_025000.mem_type_code,   
+         vr_nsk_010_025000.mem_type_desc  
+    FROM vr_nsk_010_025000
+where   1=1
+and resignation_approve_date between  '!resignation_approve_date_1!'  and '!resignation_approve_date_2!'
+/*WHERE*/</sql>
+  <sub />
+</root>

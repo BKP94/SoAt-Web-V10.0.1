@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <account_year special="year" text="ปี" table="sc_mem_m_capital_stock_detail" type="integer2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>SELECT sc_mem_m_capital_stock_detail.membership_no,   
+         sc_mem_m_capital_stock_detail.incr_1st_month,   
+         sc_mem_m_capital_stock_detail.incr_2nd_month,   
+         sc_mem_m_capital_stock_detail.incr_3rd_month,   
+         sc_mem_m_capital_stock_detail.incr_4th_month,   
+         sc_mem_m_capital_stock_detail.incr_5th_month,   
+         sc_mem_m_capital_stock_detail.incr_6th_month,   
+         sc_mem_m_capital_stock_detail.incr_7th_month,   
+         sc_mem_m_capital_stock_detail.incr_8th_month,   
+         sc_mem_m_capital_stock_detail.incr_9th_month,   
+         sc_mem_m_capital_stock_detail.incr_10th_month,   
+         sc_mem_m_capital_stock_detail.incr_11th_month,   
+         sc_mem_m_capital_stock_detail.incr_12th_month,   
+         sc_mem_m_capital_stock_detail.ending_balance  
+    FROM sc_mem_m_capital_stock_detail   
+where (    sc_mem_m_capital_stock_detail.membership_no::numeric   &lt; 0 or
+         sc_mem_m_capital_stock_detail.incr_1st_month  &lt; 0 or    
+         sc_mem_m_capital_stock_detail.incr_2nd_month  &lt; 0 or    
+         sc_mem_m_capital_stock_detail.incr_3rd_month  &lt; 0 or    
+         sc_mem_m_capital_stock_detail.incr_4th_month  &lt; 0 or    
+         sc_mem_m_capital_stock_detail.incr_5th_month  &lt; 0 or    
+         sc_mem_m_capital_stock_detail.incr_6th_month  &lt; 0 or    
+         sc_mem_m_capital_stock_detail.incr_7th_month  &lt; 0 or    
+         sc_mem_m_capital_stock_detail.incr_8th_month  &lt; 0 or    
+         sc_mem_m_capital_stock_detail.incr_9th_month  &lt; 0 or    
+         sc_mem_m_capital_stock_detail.incr_10th_month  &lt; 0 or    
+         sc_mem_m_capital_stock_detail.incr_11th_month  &lt; 0 or    
+         sc_mem_m_capital_stock_detail.incr_12th_month  &lt; 0 or    
+         sc_mem_m_capital_stock_detail.ending_balance  &lt; 0   )
+    /*WHERE*/
+  </sql>
+  <sub />
+</root>

@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <operate_date default="select  beginning_of_account  from sc_acc_m_account_constant" text="วันที่" type="date" operator="bt" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <member_group_no text="หน่วย" table="sc_mem_m_ucf_member_group" operator="bt" combo="sc_mem_m_ucf_member_group4" readonly="0" comboreplace="0" combowhere="0" />
+    <membership_no special="memno" text="ทะเบียน" table="sc_mem_m_membership_registered" operator="bt" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>  SELECT vr_nsk_015_007000.membership_no,   
+         vr_nsk_015_007000.memname,   
+         vr_nsk_015_007000.seq_no,   
+         vr_nsk_015_007000.mem_type_desc,   
+         vr_nsk_015_007000.operate_date,   
+         vr_nsk_015_007000.item_type,   
+         vr_nsk_015_007000.period,   
+         vr_nsk_015_007000.share_value,   
+         vr_nsk_015_007000.share_stock,   
+         vr_nsk_015_007000.sign_flag  ,
+        vr_nsk_015_007000.member_group_no
+    FROM vr_nsk_015_007000
+,sc_mem_m_ucf_member_group
+,sc_mem_m_membership_registered
+where   1=1
+and  vr_nsk_015_007000.operate_date between '!operate_date_1!' and '!operate_date_2!'
+and  vr_nsk_015_007000.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+and  vr_nsk_015_007000.membership_no= sc_mem_m_membership_registered.membership_no 
+
+/*WHERE*/</sql>
+  <sub />
+</root>

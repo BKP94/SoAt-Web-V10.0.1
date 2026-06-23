@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <operate_date default="select  beginning_of_account  from sc_acc_m_account_constant" text="วันที่" type="date" operator="bt" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <deposit_type_code text="ประเภท" table="sc_dep_m_rule" operator="bt" combo="sc_dep_m_rule2" readonly="0" comboreplace="0" combowhere="0" />
+    <deposit_account_no text="เลขที่บัญชี" table="sc_dep_m_creditor" operator="bt" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>  SELECT vr_nsk_015_009000.membership_no,   
+         vr_nsk_015_009000.deposit_account_no,   
+         vr_nsk_015_009000.deposit_account_name,   
+         vr_nsk_015_009000.fixed_due_status,   
+         vr_nsk_015_009000.interest_paid,   
+         vr_nsk_015_009000.operate_date,   
+         vr_nsk_015_009000.principal,   
+         vr_nsk_015_009000.new_prin,   
+         vr_nsk_015_009000.deposit_type_code,   
+         vr_nsk_015_009000.deposit_name  
+    FROM vr_nsk_015_009000 
+,sc_dep_m_rule
+,sc_dep_m_creditor
+where   1=1
+and   vr_nsk_015_009000.operate_date  between  '!operate_date_1!'  and '!operate_date_2!'
+and   vr_nsk_015_009000.deposit_type_code  = sc_dep_m_rule.deposit_type_code
+and   vr_nsk_015_009000.deposit_account_no = sc_dep_m_creditor.deposit_account_no
+
+/*WHERE*/
+
+</sql>
+  <sub />
+</root>

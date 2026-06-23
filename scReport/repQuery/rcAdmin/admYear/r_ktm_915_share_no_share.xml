@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+  </arg>
+  <combo />
+  <sql>  SELECT sc_mem_m_share_mem.membership_no,   
+pka_com_function.fp_get_member_name( sc_mem_m_share_mem.membership_no  ) as memname , 
+         sc_mem_m_share_mem.share_stock
+,sc_mem_m_membership_registered.member_status_code
+    FROM sc_mem_m_share_mem
+ ,sc_mem_m_membership_registered
+   WHERE  sc_mem_m_share_mem.membership_no    = sc_mem_m_membership_registered.membership_no    
+and sc_mem_m_share_mem.share_stock = 0 
+and sc_mem_m_membership_registered.member_status_code = '0'</sql>
+  <sub />
+</root>

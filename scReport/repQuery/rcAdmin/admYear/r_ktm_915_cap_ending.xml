@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <account_year special="year" text="ปี" table="sc_mem_m_capital_stock_detail" type="integer2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    SELECT sc_mem_m_capital_stock_detail.membership_no,
+    sc_mem_m_capital_stock_detail.ending_balance
+    , coalesce( ( select  share_stock
+    from  sc_mem_m_share_mem
+    where membership_no = sc_mem_m_capital_stock_detail.membership_no )   , 0 ) as share_stock
+
+    FROM sc_mem_m_capital_stock_detail
+
+    WHERE  1=1
+    /*WHERE*/
+  </sql>
+  <sub />
+</root>

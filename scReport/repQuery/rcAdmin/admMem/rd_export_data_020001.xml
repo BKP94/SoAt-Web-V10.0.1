@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <lon_year align="center" special="year" text="ปีเฉลี่ยคืน" table="sc_mem_m_capital_rate" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT 	sc_mem_m_capital_rate.lon_year ,
+    '  ' as c_div_code ,
+    sc_mem_m_capital_rate.lonint_rate ,
+    sc_lon_m_rule.loan_type_description,
+
+    sc_mem_m_capital_rate.entry_date ,
+    sc_mem_m_capital_rate.entry_id
+    ,sc_acc_m_account_year.beginning_of_account
+    ,sc_acc_m_account_year.ending_of_account
+    ,sc_acc_m_account_year.close_account_status
+    FROM 	sc_mem_m_capital_rate
+    ,sc_lon_m_rule
+    ,sc_acc_m_account_year
+    where sc_acc_m_account_year.account_year = sc_mem_m_capital_rate.lon_year
+    /*WHERE*/
+    order by sc_mem_m_capital_rate.lon_year
+    ,sc_lon_m_rule.loan_type
+  </sql>
+  <sub />
+</root>

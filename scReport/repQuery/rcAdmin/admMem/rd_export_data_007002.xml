@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <deposit_type_code align="center" text="ประเภทเงินฝาก" table="sc_dep_m_rule" column="deposit_type_code" combo="sc_dep_m_rule2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_dep_m_rule.deposit_type_code,
+    sc_dep_m_rule.deposit_name,
+    sc_acc_m_account_master.account_name,
+    sc_dep_m_rule.int_account_id,
+    sc_dep_m_int_step_rate.interest_rate,
+    '' as mix_interest_rate,
+    sc_dep_m_rule.keeping_group,
+    sc_dep_m_saving_deposit_cond.period_calculate_bonus,
+    sc_dep_m_fixed_deposit_cond.number_of_month_to_due,
+    case
+    when	sc_dep_m_rule.keeping_group = '01' then
+    sc_dep_m_saving_deposit_cond.period_calculate_bonus
+    when	sc_dep_m_rule.keeping_group = '02' then
+    sc_dep_m_fixed_deposit_cond.number_of_month_to_due
+    else
+    0
+    end	as	period_calculate ,
+    sc_dep_m_rule.minimum_balance_total,
+    '' as status_account,
+    sc_dep_m_int_step_rate.effective_date,
+    '' as latest_update,
+    '' as status_using,
+    '' as entry_id,
+    '' as entry_date
+    FROM sc_dep_m_rule,
+    sc_acc_m_account_master,
+    sc_dep_m_int_step_rate,
+    sc_dep_m_saving_deposit_cond,
+    sc_dep_m_fixed_deposit_cond
+    WHERE ( sc_acc_m_account_master.account_id = sc_dep_m_rule.int_account_id ) and
+    ( sc_dep_m_rule.deposit_type_code = sc_dep_m_int_step_rate.deposit_type_code ) and
+    ( sc_dep_m_saving_deposit_cond.deposit_type_code = sc_dep_m_rule.deposit_type_code ) and
+    ( sc_dep_m_fixed_deposit_cond.deposit_type_code = sc_dep_m_rule.deposit_type_code )
+    /*WHERE*/
+    ORDER BY sc_dep_m_rule.deposit_type_code ASC,
+    sc_dep_m_int_step_rate.effective_date ASC
+  </sql>
+  <sub />
+</root>

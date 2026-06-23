@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <membership_no align="center" special="memno" text="ทะเบียน" table="sc_mem_m_membership_registered" column="membership_no" operator="bt" readonly="0" />
+    <operate_date align="center" text="วันที่" table="sc_mem_m_share_holding_detail" type="date" column="operate_date" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_mem_m_membership_registered.membership_no,
+    pka_com_function.fp_get_member_name( sc_mem_m_membership_registered.membership_no ) as memname,
+    sc_mem_m_ucf_member_type.mem_type_desc,
+    sc_mem_m_ucf_share_item_type.item_type_description,
+    sc_mem_m_share_holding_detail.share_value,
+    sc_mem_m_share_holding_detail.operate_date,
+    sc_mem_m_share_holding_detail.doc_no,
+    sc_mem_m_share_holding_detail.share_stock,
+    sc_mem_m_share_holding_detail.entry_date,
+    '0' as c_status,
+    sc_mem_m_share_holding_detail.entry_id,
+    sc_mem_m_share_holding_detail.seq_no
+    FROM sc_mem_m_membership_registered,
+    sc_mem_m_ucf_member_type,
+    sc_mem_m_share_holding_detail,
+    sc_mem_m_ucf_share_item_type
+    WHERE ( sc_mem_m_membership_registered.mem_type = sc_mem_m_ucf_member_type.mem_type_code ) and
+    ( sc_mem_m_membership_registered.membership_no = sc_mem_m_share_holding_detail.membership_no ) and
+    ( sc_mem_m_ucf_share_item_type.item_type = sc_mem_m_share_holding_detail.item_type )
+    /*WHERE*/
+    ORDER BY sc_mem_m_membership_registered.membership_no ASC,
+    sc_mem_m_share_holding_detail.seq_no ASC
+  </sql>
+  <sub />
+</root>

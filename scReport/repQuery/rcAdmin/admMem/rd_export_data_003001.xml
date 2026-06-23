@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <deposit_type_code align="center" text="ประเภทเงินฝาก" table="sc_dep_m_rule" column="deposit_type_code" combo="sc_dep_m_rule2" readonly="0" />
+    <membership_no align="center" special="memno" text="ทะเบียน" table="sc_dep_m_creditor" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_dep_m_creditor.deposit_account_no,
+    sc_dep_m_creditor.deposit_opened_date,
+    sc_dep_m_creditor.deposit_account_name,
+    sc_dep_m_creditor.deposit_balance,
+    sc_dep_m_rule.deposit_name,
+    sc_dep_m_creditor.address,
+    sc_dep_m_creditor.loan_holding_amount,
+    sc_dep_m_creditor.accumulate_interest,
+    sc_dep_m_creditor.close_status,
+    sc_dep_m_creditor.last_calcint_date,
+    sc_dep_m_creditor.officer_id
+    FROM sc_dep_m_creditor,
+    sc_dep_m_rule
+    WHERE ( sc_dep_m_creditor.deposit_type_code = sc_dep_m_rule.deposit_type_code )
+    /*WHERE*/
+  </sql>
+  <sub />
+</root>

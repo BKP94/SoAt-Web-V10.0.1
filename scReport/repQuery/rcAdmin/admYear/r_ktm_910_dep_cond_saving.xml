@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+  </arg>
+  <combo />
+  <sql>  SELECT sc_dep_m_rule.deposit_type_code,   
+         sc_dep_m_rule.deposit_name,   
+         sc_dep_m_rule.minbalanceforint,   
+         sc_dep_m_rule.minimum_balance_total,   
+         sc_dep_m_rule.int_month_status,   
+         sc_dep_m_rule.min_balance_monthly_int,   
+         sc_dep_m_rule.op_monthly_date,   
+         sc_dep_m_rule.stm_monthly_date,   
+         sc_dep_m_saving_deposit_cond.period_calculate_bonus,   
+         sc_dep_m_saving_deposit_cond.op_compound_date,   
+         sc_dep_m_saving_deposit_cond.stm_compound_date  
+,coalesce( ( select count( 1) 
+from sc_dep_m_creditor
+where deposit_balance &gt; 0 
+and deposit_type_code =  sc_dep_m_rule.deposit_type_code
+) , 0 ) as c_count
+
+,coalesce( ( select count( 1) 
+from sc_dep_m_creditor
+where deposit_balance &gt; 0
+and deposit_type_code =  sc_dep_m_rule.deposit_type_code
+-- and deposit_balance &lt; sc_dep_m_rule.minimum_balance_total
+and deposit_balance &lt; sc_dep_m_rule.minbalanceforint
+) , 0 ) as c_count_not
+    FROM sc_dep_m_rule,   
+         sc_dep_m_saving_deposit_cond  
+   WHERE ( sc_dep_m_rule.deposit_type_code = sc_dep_m_saving_deposit_cond.deposit_type_code ) and  
+         ( ( sc_dep_m_rule.deposit_group_code = '01' ) )    
+and   sc_dep_m_rule.deposit_type_code in ( select deposit_type_code   from sc_dep_m_creditor  where deposit_balance  &lt;&gt;  0 ) </sql>
+  <sub />
+</root>

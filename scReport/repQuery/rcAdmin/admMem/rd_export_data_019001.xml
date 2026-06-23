@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <account_year align="center" special="year" text="ปีปันผล" table="sc_mem_m_capital_pay" type="integer2" column="account_year" readonly="0" />
+    <membership_no align="center" special="memno" text="ทะเบียน" table="sc_mem_m_membership_registered" column="membership_no" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_mem_m_membership_registered.membership_no,
+    pka_com_function.fp_get_member_name( sc_mem_m_membership_registered.membership_no ) as memname,
+    sc_mem_m_ucf_member_group.member_group_no,
+    sc_mem_m_ucf_member_group.member_group_name,
+    sc_mem_m_capital_stock_detail.ending_balance,
+    sc_mem_m_capital_rate.share_rate,
+    sc_mem_m_capital_stock_detail.dividend,
+    sc_mem_m_capital_stock_detail.drop_dividend,
+    sc_mem_m_capital_stock_detail.entry_date,
+    sc_mem_m_capital_stock_detail.entry_id,
+    sc_mem_m_capital_pay.post_date,
+    sc_acc_m_account_year.beginning_of_account,
+    sc_acc_m_account_year.ending_of_account
+    FROM sc_mem_m_membership_registered,
+    sc_mem_m_ucf_member_group,
+    sc_mem_m_capital_pay,
+    sc_mem_m_capital_rate,
+    sc_mem_m_capital_stock_detail,
+    sc_acc_m_account_year
+    WHERE ( sc_mem_m_capital_stock_detail.member_group_no = sc_mem_m_ucf_member_group.member_group_no ) and
+    ( sc_mem_m_capital_pay.membership_no = sc_mem_m_membership_registered.membership_no ) and
+    ( sc_mem_m_capital_rate.lon_year = sc_mem_m_capital_pay.account_year ) and
+    ( sc_mem_m_membership_registered.membership_no = sc_mem_m_capital_stock_detail.membership_no ) and
+    ( sc_mem_m_capital_stock_detail.account_year = sc_mem_m_capital_pay.account_year ) and
+    ( sc_acc_m_account_year.account_year = sc_mem_m_capital_rate.lon_year ) and
+    ( ( sc_mem_m_capital_pay.seq_no = '1' ) )
+    /*WHERE*/
+    ORDER BY sc_mem_m_capital_stock_detail.account_year ASC
+  </sql>
+  <sub />
+</root>

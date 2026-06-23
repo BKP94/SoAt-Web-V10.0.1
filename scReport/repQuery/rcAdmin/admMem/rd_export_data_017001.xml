@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <account_year align="center" special="year" text="ปีบัญชี" table="sc_acc_m_general_ledger" type="integer2" readonly="0" />
+    <journal_date align="center" text="วันที่ทำรายการ" table="sc_acc_m_general_ledger" type="date" column="journal_date" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_acc_m_general_ledger.account_year,
+    sc_acc_m_general_ledger.doc_no,
+    sc_acc_m_general_ledger.gl_date,
+    sc_acc_m_general_ledger.journal_date,
+    case
+    when  sc_acc_m_general_ledger.acc_book_type_id = 'PV' then
+    'ใบสำคัญจ่าย'
+    when  sc_acc_m_general_ledger.acc_book_type_id = 'RV' then
+    'ใบสำคัญรับ'
+    when  sc_acc_m_general_ledger.acc_book_type_id = 'JV' then
+    'ใบสำคัญรายวัน'
+    else
+    ''
+    end	as		acc_book_type_name,
+    sc_acc_m_general_ledger.account_id,
+    case
+    when  sc_acc_m_general_ledger.dr_amount &gt; 0 then
+    'เดบิต'
+    when  sc_acc_m_general_ledger.cr_amount &gt; 0 then
+    'เครดิต'
+    else
+    ''
+    end	as		nature,
+    '' item_amount,
+    sc_acc_m_general_ledger.desc_journal_detail,
+    sc_acc_m_general_ledger.item_close_status,
+    sc_acc_m_general_ledger.entry_date,
+    sc_acc_m_general_ledger.entry_id
+    FROM sc_acc_m_general_ledger
+    WHERE 1=1
+/*WHERE*/
+  </sql>
+  <sub />
+</root>

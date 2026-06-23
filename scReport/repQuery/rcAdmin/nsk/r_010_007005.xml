@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <balance_date default="select max( balance_date )from sc_rep_mem_share_loan_bal" text="ณ วันที่" type="date" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <member_group_no text="หน่วย" table="sc_mem_m_ucf_member_group" operator="bt" combo="sc_mem_m_ucf_member_group4" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>
+    SELECT vr_nsk_010_007005.balance_date,
+    vr_nsk_010_007005.loan_code,
+    vr_nsk_010_007005.loan_code_desc,
+    vr_nsk_010_007005.member_status_code,
+    vr_nsk_010_007005.member_status_name,
+    vr_nsk_010_007005.member_group_no,
+    vr_nsk_010_007005.member_group_name,
+    vr_nsk_010_007005.membership_no,
+    vr_nsk_010_007005.memname,
+    vr_nsk_010_007005.emer_contract,
+    vr_nsk_010_007005.emer_loantype,
+    vr_nsk_010_007005.emer_paycode,
+    vr_nsk_010_007005.emer_installment,
+    vr_nsk_010_007005.emer_period,
+    vr_nsk_010_007005.emer_balance,
+    vr_nsk_010_007005.emer_intarr,
+    vr_nsk_010_007005.emer_shot,
+    vr_nsk_010_007005.emer_long,
+    vr_nsk_010_007005.emer_last_date,
+    vr_nsk_010_007005.emer_last_cal
+    ,sc_mem_m_ucf_member_group.member_group_control
+    ,(select sc_lon_m_loan_card.year_total_interest
+    from sc_lon_m_loan_card
+    where 1=1
+    and sc_lon_m_loan_card.loan_contract_no = vr_nsk_010_007005.emer_contract)as year_total_interest
+    FROM vr_nsk_010_007005
+    ,sc_mem_m_ucf_member_group
+    where   vr_nsk_010_007005.balance_date  = '!balance_date_1!'
+    --where vr_nsk_010_007005.balance_date  = to_date('01/12/2025','dd/mm/yyyy')
+    and       vr_nsk_010_007005.member_group_no = sc_mem_m_ucf_member_group.member_group_no
+    /*WHERE*/
+  </sql>
+  <sub />
+</root>

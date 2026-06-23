@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <account_year special="year" text="ปี" table="sc_acc_m_account_year" type="integer2" column="account_year" readonly="0" />
+  </arg>
+  <combo />
+  <sql>  SELECT sc_lon_m_loan_card.loan_contract_no,   
+         sc_lon_m_loan_card.loan_type,   
+         sc_lon_m_loan_card.membership_no,   
+         sc_lon_m_loan_card.year_total_interest,   
+         sc_acc_m_account_year.account_year,   
+         sc_acc_m_account_year.beginning_of_account,   
+         sc_acc_m_account_year.ending_of_account   
+,coalesce( (
+		select 	sum( -1 * sc_lon_m_loan_card_detail.interest_amout * sc_lon_m_ucf_loan_card_item.sign_status)
+		from 		sc_lon_m_loan_card_detail,
+					sc_lon_m_ucf_loan_card_item
+		where 	sc_lon_m_ucf_loan_card_item.item_type_code 		= 	sc_lon_m_loan_card_detail.item_type_code
+		and 		sc_lon_m_loan_card.loan_contract_no 				= 	sc_lon_m_loan_card_detail.loan_contract_no		
+		and 		sc_lon_m_loan_card_detail.interest_amout 			&gt; 	0
+    and 		sc_lon_m_loan_card_detail.loan_payment_date 	between sc_acc_m_account_year.beginning_of_account and  sc_acc_m_account_year.ending_of_account
+
+    ) , 0 )  as sum_int
+    FROM sc_lon_m_loan_card,
+    sc_acc_m_account_year
+    WHERE sc_lon_m_loan_card.loan_contract_no in (  SELECT sc_lon_m_loan_card_detail.loan_contract_no
+    FROM sc_lon_m_loan_card_detail
+    WHERE sc_lon_m_loan_card_detail.loan_payment_date between  sc_acc_m_account_year.beginning_of_account and  sc_acc_m_account_year.ending_of_account   )
+    /*WHERE*/
+    and sc_lon_m_loan_card.membership_no between '059498' and '073976'
+    /*and sc_acc_m_account_year.account_year = 2019*/</sql>
+  <sub />
+</root>

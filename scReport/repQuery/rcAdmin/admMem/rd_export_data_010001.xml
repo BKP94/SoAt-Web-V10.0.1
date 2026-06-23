@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <receipt_date align="center" text="วันที่ทำรายการ" table="sc_com_m_receipt" type="date" column="receipt_date" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_com_m_receipt.receipt_no,
+    sc_com_m_receipt.receipt_print,
+    sc_com_m_receipt.receipt_date,
+    sc_com_m_receipt.membership_no,
+    sc_com_m_receipt.recept_amount,
+    sc_com_m_receipt.receipt_status,
+    sc_com_m_receipt.cancel_date,
+    sc_com_m_receipt_item.item_amount,
+    sc_com_m_receipt_item.balance,
+    sc_com_m_receipt_item.item_type_id,
+    security_users.names as users_name,
+    sc_mem_m_ucf_member_type.mem_type_desc,
+    sc_mem_m_ucf_member_status.member_status_name,
+    sc_fin_vourcher_head.journal_date,
+    '' as fines_amount,
+    '' as reason_cancel,
+    sc_com_m_receipt.calcint_date
+    FROM sc_com_m_receipt_item,
+    sc_com_m_receipt,
+    security_users,
+    sc_mem_m_membership_registered,
+    sc_mem_m_ucf_member_type,
+    sc_mem_m_ucf_member_status,
+    sc_fin_vourcher_head
+    WHERE ( sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no ) and
+    ( sc_com_m_receipt.membership_no = sc_mem_m_membership_registered.membership_no ) and
+    ( security_users.names = sc_com_m_receipt.entry_id ) and
+    ( sc_mem_m_membership_registered.mem_type = sc_mem_m_ucf_member_type.mem_type_code ) and
+    ( sc_mem_m_membership_registered.member_status_code = sc_mem_m_ucf_member_status.member_status_code ) and
+    ( sc_com_m_receipt.vourcher_no = sc_fin_vourcher_head.vourcher_no )
+    /*WHERE*/
+    ORDER BY sc_com_m_receipt.receipt_no ASC
+  </sql>
+  <sub />
+</root>

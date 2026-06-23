@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <receipt_date text="วันที่ " type="date" operator="bt" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>  SELECT vr_nsk_010_021000.receipt_no,   
+         vr_nsk_010_021000.receipt_date,   
+         vr_nsk_010_021000.money_type_id,   
+         vr_nsk_010_021000.money_type_name,   
+         vr_nsk_010_021000.receipt_status,   
+         vr_nsk_010_021000.entry_id,   
+         vr_nsk_010_021000.membership_no,   
+         vr_nsk_010_021000.memname,   
+         vr_nsk_010_021000.seq_no,   
+         vr_nsk_010_021000.item_type_id,   
+         vr_nsk_010_021000.description,   
+         vr_nsk_010_021000.principal_amount,   
+         vr_nsk_010_021000.interest_amount,   
+         vr_nsk_010_021000.item_amount  ,
+vr_nsk_010_021000.loan_contract_no
+    FROM vr_nsk_010_021000
+where   1=1
+and vr_nsk_010_021000.receipt_date between   '!receipt_date_1!'  and '!receipt_date_2!'
+/*WHERE*/</sql>
+  <sub />
+</root>

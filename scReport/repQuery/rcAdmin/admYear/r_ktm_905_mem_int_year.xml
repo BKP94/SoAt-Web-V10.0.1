@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <ard>
+  </ard>
+  <arg />
+  <combo />
+  <sql>    SELECT sc_mem_m_membership_registered.membership_no,
+    sc_mem_m_membership_registered.total_loan_int
+    ,coalesce( (  select sum( year_total_interest  )
+    from sc_lon_m_loan_card
+    where sc_lon_m_loan_card.membership_no = sc_mem_m_membership_registered.membership_no
+    ) , 0 )  as sum_int
+    FROM sc_mem_m_membership_registered
+    where 1=1
+  </sql>
+  <sub />
+</root>

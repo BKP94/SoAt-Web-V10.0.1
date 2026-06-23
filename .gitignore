@@ -23,3 +23,6 @@ publish/
 # OS
 .DS_Store
 Thumbs.db
+
+# SQL migrations (apply เข้า PG จริง แต่ไม่ track — PG = source of truth)
+sql/

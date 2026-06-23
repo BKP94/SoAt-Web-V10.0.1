@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="D005" rep_text="กระดาษทำการสินทรัพย์ถาวรและค่าเสื่อมราคา ตามวันที่คำนวณ (เพิ่มเติม จาก 5.) Export">
+  <arg>
+    <first_used_day text="วันที่" table="sc_acc_m_expire" type="date" operator="bt" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_acc_m_expire_rep_export.seq_no,
+    sc_acc_m_expire_rep_export.doc_old,
+    sc_acc_m_expire_rep_export.description,
+    sc_acc_m_expire_rep_export.amount_value,
+    sc_acc_m_expire_rep_export.bf_amount,
+    sc_acc_m_expire_rep_export.diff_in_year,
+    sc_acc_m_expire_rep_export.item_amount,
+    sc_acc_m_expire_rep_export.rate_expire,
+    sc_acc_m_expire_rep_export.exp_amount,
+    sc_acc_m_expire_rep_export.forward_amount,
+    sc_acc_m_expire_rep_export.remark
+    FROM sc_acc_m_expire_rep_export,
+    sc_acc_m_expire,
+    sc_acc_m_ucf_group_exp
+    where 1=1
+    and sc_acc_m_ucf_group_exp.group_exp = sc_acc_m_expire.group_exp
+    /*WHERE*/
+    order by sc_acc_m_expire_rep_export.doc_old
+  </sql>
+  <sub />
+</root>

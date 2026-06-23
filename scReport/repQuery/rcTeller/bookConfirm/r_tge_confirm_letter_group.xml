@@ -19,7 +19,7 @@
 ,       sc_mem_m_ucf_member_group_addr.address_no
 ,       sc_mem_m_ucf_member_group_addr.tambol as tambol
 ,       (select district_name from sc_mem_m_ucf_district where district_code = sc_mem_m_ucf_member_group_addr.district_code) as district
-,       decode(sc_mem_m_ucf_member_group_addr.province_code,'','กรุงเทพมหานคร',(select province_name from sc_mem_m_ucf_province where province_code = sc_mem_m_ucf_member_group_addr.province_code)) as province
+,       (CASE sc_mem_m_ucf_member_group_addr.province_code WHEN '' THEN 'กรุงเทพมหานคร' ELSE (select province_name from sc_mem_m_ucf_province where province_code = sc_mem_m_ucf_member_group_addr.province_code) END) as province
 ,       sc_mem_m_ucf_member_group_addr.postcode
 ,       (select manager_name from sc_cnt_m_coop) as manager_name
 ,       '!book_no!' as book_no

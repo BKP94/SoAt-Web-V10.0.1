@@ -16,16 +16,12 @@
         ,monthly_date
         ,member_name
         ,( 'เลขทะเบียนที่ ' || membership_no || '                 สังกัด ' ||  member_group_no ) as mem_title
-        ,decode ( '!check_address!' , '01'
-		, ( select 'เลขที่ ' || address_no|| ' หมู่ ' || moo || ' ซอย ' || soi || ' ถนน ' || road || ' ต.' || tambol ||
+        ,(CASE '!check_address!' WHEN '01' THEN ( select 'เลขที่ ' || address_no|| ' หมู่ ' || moo || ' ซอย ' || soi || ' ถนน ' || road || ' ต.' || tambol ||
 		' อ.' || ( select district_name from sc_mem_m_ucf_district  where province_code = sc_mem_m_member_address.province_code and district_code = sc_mem_m_member_address.district_code ) || 
 		' จ.' || ( select province_name from sc_mem_m_ucf_province where province_code = sc_mem_m_member_address.province_code ) || ' ' || postcode 
 		from sc_mem_m_member_address 
 		where address_type ='0'
-		and membership_no = sc_cls_mon_mem_shr.membership_no )
-
-                  ,''
-                ) as address_title 
+		and membership_no = sc_cls_mon_mem_shr.membership_no ) ELSE '' END) as address_title 
  
        ,'!check_address!' as check_address
 
@@ -40,7 +36,7 @@ and          monthly_date = '!monthly_date!'
 </sql>
   <sub>
     <r_book_share_loan_deposit_atdate_dep_nest>
-      <sql>select decode(tx.item_group_pre,tx.item_group_now,null,tx.item_group_now||'.') as item_group,
+      <sql>select (CASE tx.item_group_pre WHEN tx.item_group_now THEN null ELSE tx.item_group_now||'.' END) as item_group,
     tx.item_dep_no , 
     tx.item_amount ,
     tx.item_name
@@ -69,7 +65,7 @@ where tx.row_no &lt;= tx.row_mx
 --where tx.row_no &gt; tx.row_mx</sql>
     </r_book_share_loan_deposit_atdate_dep_nest>
     <r_book_share_loan_deposit_atdate_dep_nest_02>
-      <sql>select decode(tx.item_group_pre,tx.item_group_now,null,tx.item_group_now||'.') as item_group,
+      <sql>select (CASE tx.item_group_pre WHEN tx.item_group_now THEN null ELSE tx.item_group_now||'.' END) as item_group,
     tx.item_dep_no , 
     tx.item_amount ,
     tx.item_name

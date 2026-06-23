@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<root cat_id="ACCA" rep_text="รายการประจำวัน (A3)" >
+  <arg>
+    <year text="ปีบัญชี" special="year" table="sc_acc_m_account_begin" column="account_year" type="integer"/>
+    <branch_id text="สาขา" table="sc_com_m_branch" combo="sc_com_m_branch"/>
+    <beginning_of_account text="ตั้งแต่"  tabe="sc_acc_m_account_year" operator="bt" type="date"/>
+  </arg>
+  <sql>
+    select sc_acc_journal_heading_firm.doc_type,
+    sc_acc_m_ucf_doc_type.doc_name,
+    sc_acc_journal_heading_firm.journal_date,
+    sc_acc_journal_heading_firm.branch_id  ,
+    sc_acc_journal_heading_firm.doc_no,
+    sc_acc_m_account_year.account_year
+    from sc_acc_journal_heading_firm,
+    sc_acc_m_ucf_doc_type,
+    sc_acc_m_account_begin,
+    sc_com_m_branch,
+    sc_acc_m_account_year
+    where  ( sc_acc_journal_heading_firm.doc_type = sc_acc_m_ucf_doc_type.doc_type )
+    and  sc_acc_m_account_begin.branch_id = sc_com_m_branch.branch_id
+    and  sc_acc_m_account_begin.account_year = sc_acc_m_account_year.account_year
+    /*and   ( ( sc_acc_journal_heading_firm.branch_id = :as_branchid )*/
+    /*and   ( sc_acc_journal_heading_firm.journal_date between :adtm_startdate and :adtm_enddate ) )*/
+    /*WHERE*/
+  </sql>
+</root>

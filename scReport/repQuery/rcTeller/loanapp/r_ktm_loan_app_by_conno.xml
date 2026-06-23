@@ -8,7 +8,7 @@
     SELECT PKA_COM_FUNCTION.fp_get_member_name( sc_lon_m_contract.membership_no ) as membername
     ,sc_lon_m_contract.membership_no
 
-    ,( select nvl(sum( amount ),0)
+    ,( select coalesce(sum( amount ),0)
     from sc_lon_m_req_fee
     where 1=1
     and sc_lon_m_req_fee.fee_type in ( '01' )
@@ -16,7 +16,7 @@
 
     ) as  insurance_amount /*ค่าประกันอัคคีภัย*/
 
-    ,( select nvl(sum( amount ),0)
+    ,( select coalesce(sum( amount ),0)
     from sc_lon_m_req_fee
     where 1=1
     and sc_lon_m_req_fee.fee_type in ( '02' )
@@ -24,7 +24,7 @@
 
     ) as  loan_amount /*ค่าประกันสินเชื่อ*/
 
-    ,( select nvl(sum( amount ),0)
+    ,( select coalesce(sum( amount ),0)
     from sc_lon_m_req_fee
     where 1=1
     and sc_lon_m_req_fee.fee_type in ( '03' )
@@ -32,7 +32,7 @@
 
     ) as app_land_amount /*ค่าประเมินที่ดิน*/
 
-    ,( select nvl(sum( amount ),0)
+    ,( select coalesce(sum( amount ),0)
     from sc_lon_m_req_fee
     where 1=1
     and sc_lon_m_req_fee.fee_type in ( '04','05','06' )
@@ -40,7 +40,7 @@
 
     ) as cks_amount /*หักเงิน ชคส*/
 
-    ,( select nvl(sum( amount ),0)
+    ,( select coalesce(sum( amount ),0)
     from sc_lon_m_req_fee
     where 1=1
     and sc_lon_m_req_fee.fee_type in ( '07' )
@@ -94,8 +94,8 @@
     ( sc_com_m_receipt.receipt_status = '0' )
     ) as interest_amount
 
-    , decode( sc_lon_m_loan_request.payint_firstperiod_status , '1' , sc_lon_m_loan_request.interest_first , 0 ) as c_interest_first
-    , nvl((select sum(sc_com_m_receipt_item.item_amount)
+    , (CASE sc_lon_m_loan_request.payint_firstperiod_status WHEN '1' THEN sc_lon_m_loan_request.interest_first ELSE 0 END) as c_interest_first
+    , coalesce((select sum(sc_com_m_receipt_item.item_amount)
     from sc_com_m_receipt
     ,sc_com_m_receipt_item
     ,sc_lon_m_ucf_fee
@@ -108,7 +108,7 @@
     and sc_com_m_receipt.receipt_date =  sc_lon_m_contract.begining_of_contract
     and sc_com_m_receipt.receipt_status = '0'
     ),0) as item_amount_fee
-    , nvl((select sum(sc_com_m_receipt_item.item_amount)
+    , coalesce((select sum(sc_com_m_receipt_item.item_amount)
     from sc_com_m_receipt
     ,sc_com_m_receipt_item
     ,sc_lon_m_ucf_fee
@@ -121,7 +121,7 @@
     and sc_com_m_receipt.receipt_date =  sc_lon_m_contract.begining_of_contract
     and sc_com_m_receipt.receipt_status = '0'
     ),0) as item_amount_oth
-    , nvl((select sum(sc_com_m_receipt_item.item_amount)
+    , coalesce((select sum(sc_com_m_receipt_item.item_amount)
     from sc_com_m_receipt
     ,sc_com_m_receipt_item
     where sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no
@@ -175,7 +175,7 @@
         sc_com_m_receipt_item.loan_type,
         sc_com_m_receipt_item.item_amount
         ,(sc_com_m_receipt_item.interest_amount
-        -  (select decode( sc_lon_m_loan_request.payint_firstperiod_status , '1' , sc_lon_m_loan_request.interest_first , 0 )
+        -  (select (CASE sc_lon_m_loan_request.payint_firstperiod_status WHEN '1' THEN sc_lon_m_loan_request.interest_first ELSE 0 END)
         from sc_lon_m_loan_request
         ,sc_lon_m_contract
         where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_contract.loan_requestment_no

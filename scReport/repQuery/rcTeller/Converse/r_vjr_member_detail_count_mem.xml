@@ -8,7 +8,7 @@
 ,       pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as member_name
 ,       sc_mem_m_membership_registered.id_card
 ,       sc_mem_m_membership_registered.deposit_account_id
-,       decode(sc_mem_m_membership_registered.sex , 'M' , 'ชาย' , 'หญิง') as sex_desc
+,       (CASE sc_mem_m_membership_registered.sex WHEN 'M' THEN 'ชาย' ELSE 'หญิง' END) as sex_desc
 ,       pka_com_function.fp_get_thaidate(sc_mem_m_membership_registered.date_of_birth) as tdate_of_birth
 ,       pka_com_function.fp_get_thaidate(sc_mem_m_membership_registered.approve_date) as approve_tdate
 ,       pka_lon_reqsrv.fp_calc_agetext_m_live(sc_mem_m_membership_registered.membership_no) as age_live
@@ -32,8 +32,8 @@ ORDER BY sc_mem_m_membership_registered.membership_no    </sql>
     <r_vjr_member_detail_count_mem_nest>
       <sql>SELECT  sc_mem_m_ucf_member_type.mem_type_code
 ,       sc_mem_m_ucf_member_type.mem_type_desc
-,       sum(decode(sc_mem_m_membership_registered.sex , 'M' , 1 , 0)) as count_male
-,       sum(decode(sc_mem_m_membership_registered.sex , 'F' , 1 , 0)) as count_female
+,       sum((CASE sc_mem_m_membership_registered.sex WHEN 'M' THEN 1 ELSE 0 END)) as count_male
+,       sum((CASE sc_mem_m_membership_registered.sex WHEN 'F' THEN 1 ELSE 0 END)) as count_female
 FROM    sc_mem_m_membership_registered
 ,       sc_mem_m_member_work_info
 ,       sc_mem_m_ucf_member_group

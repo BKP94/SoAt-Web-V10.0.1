@@ -15,19 +15,19 @@
         and     sc_lon_m_contract_multi_paid.type_pay_money = 'TRB'
         ) as bank_acc_no
 
-,       nvl((select sum(sc_lon_m_contract_multi_paid.paid_amount)
+,       coalesce((select sum(sc_lon_m_contract_multi_paid.paid_amount)
         from    sc_lon_m_contract_multi_paid
         where   sc_lon_m_contract_multi_paid.loan_contract_no = sc_lon_m_contract.loan_contract_no
         and     sc_lon_m_contract_multi_paid.type_pay_money = 'TRB'
         ),0) as trb_amount
 
-,       nvl((select sum(sc_lon_m_contract_multi_paid.paid_amount)
+,       coalesce((select sum(sc_lon_m_contract_multi_paid.paid_amount)
         from    sc_lon_m_contract_multi_paid
         where   sc_lon_m_contract_multi_paid.loan_contract_no = sc_lon_m_contract.loan_contract_no
         and     sc_lon_m_contract_multi_paid.type_pay_money in ('CHQ')
         ),0) as chq_amount
         
-,       nvl((select sum(sc_lon_m_contract_multi_paid.paid_amount)
+,       coalesce((select sum(sc_lon_m_contract_multi_paid.paid_amount)
         from    sc_lon_m_contract_multi_paid
         where   sc_lon_m_contract_multi_paid.loan_contract_no = sc_lon_m_contract.loan_contract_no
         and     sc_lon_m_contract_multi_paid.type_pay_money not in ('CHQ','TRB')

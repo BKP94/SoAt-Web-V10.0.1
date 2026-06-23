@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="D005" rep_text="กระดาษทำการสินทรัพย์ถาวรและค่าเสื่อมราคา ตามวันที่คำนวณ (เพิ่มเติม จาก 5.)">
+  <arg>
+    <operate_date text="วันที่" table="sc_acc_m_expire_detail" type="date" operator="bt" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+    SELECT sc_acc_m_expire.description,
+    sc_acc_m_expire_detail.meterial_id,
+    sc_acc_m_expire_detail.seq_no,
+    sc_acc_m_expire_detail.amount,
+    sc_acc_m_expire_detail.total_amount,
+    sc_acc_m_expire_detail.present_value,
+    sc_acc_m_expire_detail.cal_expire_date,
+    sc_acc_m_expire.rate_expire,
+    sc_acc_m_expire.amount_value,
+    sc_acc_m_expire_detail.operate_date,
+    sc_acc_m_expire_detail.item_type,
+    sc_acc_m_expire_detail.acc_exp,
+    sc_acc_m_expire_detail.day_cal,
+    sc_acc_m_expire.first_used_day,
+    sc_acc_m_expire.balance,
+    sc_acc_m_expire.remark,
+    sc_acc_m_ucf_group_exp.group_name,
+    sc_acc_m_expire.group_exp,
+    sc_acc_m_expire.cut_paid_status,
+    (case sc_acc_m_expire.cut_paid_status when 1 then 'ตัดเป็นค่าใช้จ่าย'||' '||to_tdate(sc_acc_m_expire.cutout_date,'dd/mm/yyyy')
+    when 2 then 'ขายทอดตลาด'||' '||to_tdate(sc_acc_m_expire.cutout_date,'dd/mm/yyyy')
+    when 3 then 'ชำรุด'||' '||to_tdate(sc_acc_m_expire.cutout_date,'dd/mm/yyyy')
+    when 4 then 'บริจาค'||' '||to_tdate(sc_acc_m_expire.cutout_date,'dd/mm/yyyy')
+    when 5 then 'เทิร์น'||' '||to_tdate(sc_acc_m_expire.cutout_date,'dd/mm/yyyy')
+    end) as paid_status ,
+    sc_acc_m_expire.accu_expire_amount,
+    sc_acc_m_expire.doc_old,
+    sc_acc_m_expire_detail.begin_exp,
+    sc_acc_m_expire.cutout_date  ,
+    substr(to_char(sc_acc_m_expire.cutout_date,'DD/MM/YYYY'),1,6)as  sub_day,
+    substr(to_char(sc_acc_m_expire.cutout_date,'DD/MM/YYYY'),7,5)::int + 543 as  sub_year,
+    sc_acc_m_expire.special_balance,
+    '!operate_date_2!' as adtm_enddate
+    FROM sc_acc_m_expire,
+    sc_acc_m_expire_detail,
+    sc_acc_m_ucf_group_exp
+    WHERE ( sc_acc_m_expire.material_id = sc_acc_m_expire_detail.meterial_id)
+    and   ( sc_acc_m_expire.group_exp = sc_acc_m_ucf_group_exp.group_exp )
+    /* and   ( ( sc_acc_m_expire_detail.cal_expire_date between :adtm_begindate and :adtm_enddate )*/
+    /*and   ( sc_acc_m_expire.first_used_day = (select sc_acc_m_account_year.ending_of_account  from sc_acc_m_account_year where sc_acc_m_account_year.account_year = year(:adtm_enddate)) )*/
+    /*and   (sc_acc_m_expire.cutout_date &gt;= :adtm_begindate OR    sc_acc_m_expire.cutout_date is null) */
+    and   sc_acc_m_expire.material_id not in ('4800374','4800375','4800689','4800376','4800529')
+    and   sc_acc_m_expire_detail.seq_no = (select max(a.seq_no) from sc_acc_m_expire_detail a where a.meterial_id = sc_acc_m_expire_detail.meterial_id)
+    and sc_acc_m_expire_detail.operate_date >= to_date('23/11/2017','DD/MM/YYYY')
+    /*WHERE*/
+    and sc_acc_m_expire_detail.operate_date between '!operate_date_1!' and '!operate_date_2!'
+    order by sc_acc_m_expire.doc_old
+  </sql>
+  <sub />
+</root>

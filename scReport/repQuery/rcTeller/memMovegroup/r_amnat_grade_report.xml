@@ -7,10 +7,10 @@
   <sql> SELECT DISTINCT sc_mem_m_ucf_member_group_a.member_group_control
 , sc_mem_m_ucf_member_group_b.member_group_name
 
-, pkb_amnat.fp_grade_count_by_groupcon( sc_fin_m_close_day.journal_date   , 'A',  sc_mem_m_ucf_member_group_a.member_group_control)  as count_a 
-, pkb_amnat.fp_grade_count_by_groupcon(sc_fin_m_close_day.journal_date  ,   'B',  sc_mem_m_ucf_member_group_a.member_group_control)  as count_b
-, pkb_amnat.fp_grade_count_by_groupcon(sc_fin_m_close_day.journal_date   ,   'C',  sc_mem_m_ucf_member_group_a.member_group_control)  as count_c
-, pkb_amnat.fp_grade_count_by_groupcon( sc_fin_m_close_day.journal_date   , '00',  sc_mem_m_ucf_member_group_a.member_group_control)  as count_0
+, pkb_amnat.fp_grade_count_by_groupcon( sc_fin_m_close_day.journal_date::date   , 'A',  sc_mem_m_ucf_member_group_a.member_group_control)  as count_a 
+, pkb_amnat.fp_grade_count_by_groupcon(sc_fin_m_close_day.journal_date::date  ,   'B',  sc_mem_m_ucf_member_group_a.member_group_control)  as count_b
+, pkb_amnat.fp_grade_count_by_groupcon(sc_fin_m_close_day.journal_date::date   ,   'C',  sc_mem_m_ucf_member_group_a.member_group_control)  as count_c
+, pkb_amnat.fp_grade_count_by_groupcon( sc_fin_m_close_day.journal_date::date   , '00',  sc_mem_m_ucf_member_group_a.member_group_control)  as count_0
 , sc_fin_m_close_day.journal_date
 FROM sc_mem_m_ucf_member_group sc_mem_m_ucf_member_group_a
 , sc_mem_m_ucf_member_group sc_mem_m_ucf_member_group_b  

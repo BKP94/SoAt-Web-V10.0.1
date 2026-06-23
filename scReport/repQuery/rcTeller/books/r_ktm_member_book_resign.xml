@@ -23,7 +23,7 @@
     sc_cnt_m_coop.fax_no,
     sc_mem_m_ucf_province.province_name,
     sc_mem_m_ucf_district.district_name,
-    pka_com_function.fp_get_thaidate(sysdate , 'SD MONTH YYYY') as sysdate_tdate,
+    pka_com_function.fp_get_thaidate(current_date , 'SD MONTH YYYY') as sysdate_tdate,
     PKA_COM_FUNCTION.fp_get_member_address_pres(sc_mem_m_membership_registered.membership_no) as mem_address,
     '!as_bookno!' as  as_bookno,
     '!as_board_group!' as  as_board_group,

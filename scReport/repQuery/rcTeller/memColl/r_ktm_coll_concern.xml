@@ -27,7 +27,7 @@
       <sql>
         select 	sc_lon_m_loan_card.loan_contract_no,
         sc_lon_m_contract_coll.ref_own_no,
-        decode( sc_lon_m_contract_coll.collateral_type_code , '01' ,  PKA_COM_FUNCTION.fp_get_member_name( sc_lon_m_contract_coll.ref_own_no ) , sc_lon_m_contract_coll.collateral_description  )as collname
+        (CASE sc_lon_m_contract_coll.collateral_type_code WHEN '01' THEN PKA_COM_FUNCTION.fp_get_member_name( sc_lon_m_contract_coll.ref_own_no ) ELSE sc_lon_m_contract_coll.collateral_description END)as collname
         ,           pka_com_function.fp_get_group_name(pka_com_function.fp_get_member_group(sc_lon_m_contract_coll.ref_own_no)) as member_group_name
         ,		pka_com_function.fp_get_member_group( sc_lon_m_contract_coll.ref_own_no ) as member_group_no
         from	sc_lon_m_loan_card,

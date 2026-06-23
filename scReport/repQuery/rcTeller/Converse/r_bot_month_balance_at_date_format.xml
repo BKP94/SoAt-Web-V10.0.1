@@ -7,7 +7,7 @@
   <combo />
   <sql>select sum(tab.row_memno)over( order by tab.member_group_control ,tab.member_group_no , tab.membership_no) as rowno,  tab.* 
 from ( SELECT sc_rep_mem_share_loan_year.client_id,
-    decode(lag(sc_rep_mem_share_loan_year.membership_no,1,null)over(  order by sc_mem_m_ucf_member_group.member_group_control , sc_mem_m_ucf_member_group.member_group_no , sc_rep_mem_share_loan_year.membership_no ) ,sc_rep_mem_share_loan_year.membership_no,0,1) as row_memno,
+    (CASE lag(sc_rep_mem_share_loan_year.membership_no,1,null)over(  order by sc_mem_m_ucf_member_group.member_group_control , sc_mem_m_ucf_member_group.member_group_no , sc_rep_mem_share_loan_year.membership_no ) WHEN sc_rep_mem_share_loan_year.membership_no THEN 0 ELSE 1 END) as row_memno,
     sc_rep_mem_share_loan_year.seq_no,
     sc_rep_mem_share_loan_year.membership_no,
     sc_rep_mem_share_loan_year.member_group_no,

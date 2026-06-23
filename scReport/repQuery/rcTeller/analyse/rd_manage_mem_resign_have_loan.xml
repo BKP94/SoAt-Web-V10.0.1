@@ -4,7 +4,7 @@
   </arg>
   <combo />
   <sql>select sum(tab.row_memno)over(order by tab.membership_no ) as rowno,  tab.*
-from (  select  decode(lag(sc_mem_m_membership_registered.membership_no,1,null)over(  order by sc_mem_m_membership_registered.membership_no ) ,sc_mem_m_membership_registered.membership_no,0,1) as row_memno,
+from (  select  (CASE lag(sc_mem_m_membership_registered.membership_no,1,null)over(  order by sc_mem_m_membership_registered.membership_no ) WHEN sc_mem_m_membership_registered.membership_no THEN 0 ELSE 1 END) as row_memno,
       sc_mem_m_membership_registered.membership_no,
 			PKA_COM_FUNCTION.fp_get_member_name( sc_mem_m_membership_registered.membership_no ) as membername ,
 			sc_mem_m_ucf_member_group.member_group_no,   

@@ -35,13 +35,13 @@
 ,sc_lon_m_loan_request.loan_type
 ,sc_mem_m_member_work_info.position_long
 ,sc_lon_m_loan_request.loan_request_amount
-,pka_com_function.fp_get_moneythai( sc_lon_m_loan_request.loan_request_amount ) as loan_request_amount_thai
+,pka_com_function.fp_get_moneythai((sc_lon_m_loan_request.loan_request_amount)::double precision) as loan_request_amount_thai
 ,sc_lon_m_loan_request.period_payment_amount
-,pka_com_function.fp_get_moneythai(sc_lon_m_loan_request.period_payment_amount) as period_payment_amount_thai
+,pka_com_function.fp_get_moneythai((sc_lon_m_loan_request.period_payment_amount)::double precision) as period_payment_amount_thai
 ,sc_lon_m_loan_request.loan_installment_amount
 ,pka_lon_intsrv.fp_intrate_table_loantype( sc_lon_m_loan_request.loan_type , sc_lon_m_loan_request.begining_of_contract ) * 100 as lon_int_rate
 ,sc_lon_m_loan_request.last_payment_amount
-,pka_com_function.fp_get_moneythai(sc_lon_m_loan_request.last_payment_amount) as last_payment_amount_thai
+,pka_com_function.fp_get_moneythai((sc_lon_m_loan_request.last_payment_amount)::double precision) as last_payment_amount_thai
 ,pka_com_function.fp_get_thaidate(sc_lon_m_loan_request.start_keep_date ,'MONTH YYYY') as start_keep_date --วันที่เริ่มงวด
 ,sc_lon_m_loan_request.loan_requestment_no
 ,pka_com_function.fp_get_thaidate(sc_lon_m_loan_request.requestment_date ,'SD MONTH YYYY') as requestment_date

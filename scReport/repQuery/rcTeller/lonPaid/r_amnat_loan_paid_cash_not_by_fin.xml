@@ -12,7 +12,7 @@
     sc_mem_m_ucf_member_group.member_group_type,
     sc_lon_m_loan_request.fee_amount as fee_amount
 
-    ,( select nvl(sum(fund_new),0)
+    ,( select coalesce(sum(fund_new),0)
     from sc_lon_m_req_fund_new
     where sc_lon_m_req_fund_new.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
     ) as fund_new
@@ -323,7 +323,7 @@
         sc_com_m_receipt_item.interest_amount,
         sc_com_m_receipt_item.loan_type,
         sc_com_m_receipt_item.item_amount,
-        decode(  sc_com_m_ucf_receipt_item_type.group_item , 'LON' , sc_com_m_receipt_item.loan_type , sc_com_m_ucf_receipt_item_type.item_type_name )  as loan_type_des,
+        (CASE sc_com_m_ucf_receipt_item_type.group_item WHEN 'LON' THEN sc_com_m_receipt_item.loan_type ELSE sc_com_m_ucf_receipt_item_type.item_type_name END)  as loan_type_des,
         sc_com_m_receipt.recept_amount,
         sc_com_m_ucf_receipt_item_type.group_item,
         sc_com_m_ucf_receipt_item_type.sort_order
@@ -398,14 +398,13 @@
         ,sc_com_m_ucf_money_type
         ,si_security_user
         ,sc_lon_m_contract_multi_paid
-        ,sc_acc_m_ucf_bank
+        left join sc_acc_m_ucf_bank on sc_lon_m_contract_multi_paid.bank_code = sc_acc_m_ucf_bank.bank_id
         WHERE ( sc_mem_m_membership_registered.member_group_no  = sc_mem_m_ucf_member_group.member_group_no )
         and  ( sc_lon_m_contract.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no )
         and  ( sc_mem_m_membership_registered.membership_no  = sc_lon_m_contract.membership_no )
         and  ( sc_lon_m_contract.loan_type = sc_lon_m_rule.loan_type )
         and  sc_com_m_ucf_money_type.money_type_id =  sc_lon_m_contract_multi_paid.type_pay_money
         and  si_security_user.user_id  = sc_lon_m_contract.appove_officer
-        and sc_lon_m_contract_multi_paid.bank_code = sc_acc_m_ucf_bank.bank_id(+)
         and  sc_lon_m_contract_multi_paid.type_pay_money not in (  'CSH' , 'ATM' )
         --    and   sc_lon_m_contract.begining_of_contract = '24/04/2024'
         and  sc_lon_m_contract_multi_paid.loan_contract_no = sc_lon_m_contract.loan_contract_no
@@ -432,14 +431,13 @@
         ,sc_com_m_ucf_money_type
         ,si_security_user
         ,sc_lon_m_contract_multi_paid
-        ,sc_acc_m_ucf_bank
+        left join sc_acc_m_ucf_bank on sc_lon_m_contract_multi_paid.bank_code = sc_acc_m_ucf_bank.bank_id
         WHERE ( sc_mem_m_membership_registered.member_group_no  = sc_mem_m_ucf_member_group.member_group_no )
         and  ( sc_lon_m_contract.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no )
         and  ( sc_mem_m_membership_registered.membership_no  = sc_lon_m_contract.membership_no )
         and  ( sc_lon_m_contract.loan_type = sc_lon_m_rule.loan_type )
         and  sc_com_m_ucf_money_type.money_type_id =  sc_lon_m_contract_multi_paid.type_pay_money
         and  si_security_user.user_id  = sc_lon_m_contract.appove_officer
-        and sc_lon_m_contract_multi_paid.bank_code = sc_acc_m_ucf_bank.bank_id(+)
         and  sc_lon_m_contract_multi_paid.type_pay_money not in (  'CSH' , 'ATM' )
         --    and   sc_lon_m_contract.begining_of_contract = '24/04/2024'
         and  sc_lon_m_contract_multi_paid.loan_contract_no = sc_lon_m_contract.loan_contract_no

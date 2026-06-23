@@ -14,7 +14,7 @@
 , pka_com_function.fp_get_member_name( sc_lon_m_contract.membership_no ) as memname
 , sc_lon_m_contract.membership_no as membership_no
 , sc_lon_m_contract.loan_approve_amount as loan_approve_amount
-, pka_com_function.fp_get_moneythai( sc_lon_m_contract.loan_approve_amount ) as loan_approve_amount_thai
+, pka_com_function.fp_get_moneythai((sc_lon_m_contract.loan_approve_amount)::double precision) as loan_approve_amount_thai
 , si_security_user.user_name as user_name
 , sc_cnt_m_coop.manager_name as managername
 , sc_mem_m_ucf_member_group.manager_name

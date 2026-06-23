@@ -1,0 +1,58 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="ACCC" rep_text="รายงาน - งบทดลอง ส่งกรม" procedure="pka_acc_worksheet.sp_proc({operate_date_1},{operate_date_2})">
+  <arg>
+    <operate_date text="ลงวันที่" type="date" operator="bt" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_acc_m_account_group_krom.group_krom as balsheet_group
+    ,sc_acc_m_account_group_krom.group_krom_desc as balsheet_name
+
+    ,sum( sc_acc_t_trial_balance_rep.dr_between) as dr_between
+    ,sum( sc_acc_t_trial_balance_rep.cr_between) as cr_between
+
+
+    ,case
+    when  sum( sc_acc_t_trial_balance_rep.dr_bb ) &gt; sum( sc_acc_t_trial_balance_rep.cr_bb ) then
+    sum(sc_acc_t_trial_balance_rep.dr_bb ) - sum(sc_acc_t_trial_balance_rep.cr_bb	)
+    else
+    0
+    end   as dr_bb
+
+ 
+    ,case
+    when  sum( sc_acc_t_trial_balance_rep.dr_bb ) &lt; sum( sc_acc_t_trial_balance_rep.cr_bb ) then
+		sum(sc_acc_t_trial_balance_rep.cr_bb ) - sum(sc_acc_t_trial_balance_rep.dr_bb	)
+	else				
+		0
+	end   as cr_bb  
+
+
+,case    
+	when  sum( sc_acc_t_trial_balance_rep.dr_amount ) &gt; sum( sc_acc_t_trial_balance_rep.cr_amount ) then
+		sum(sc_acc_t_trial_balance_rep.dr_amount ) - sum(sc_acc_t_trial_balance_rep.cr_amount	)
+	else				
+		0
+	end   as dr_amount
+
+
+,case    
+	when  sum( sc_acc_t_trial_balance_rep.dr_amount ) &lt; sum( sc_acc_t_trial_balance_rep.cr_amount ) then
+		sum(sc_acc_t_trial_balance_rep.cr_amount ) - sum(sc_acc_t_trial_balance_rep.dr_amount	)
+	else				
+		0
+	end   as cr_amount  
+
+
+    FROM sc_acc_m_account_group_krom
+         LEFT JOIN sc_acc_m_account_master
+           ON sc_acc_m_account_group_krom.group_krom = sc_acc_m_account_master.group_krom
+         LEFT JOIN sc_acc_t_trial_balance_rep
+           ON sc_acc_m_account_master.account_id = sc_acc_t_trial_balance_rep.account_id
+   WHERE 1=1
+/*WHERE*/
+GROUP BY sc_acc_m_account_group_krom.group_krom,   
+         sc_acc_m_account_group_krom.group_krom_desc  
+
+ORDER BY sc_acc_m_account_group_krom.group_krom ASC   </sql>
+  <sub />
+</root>

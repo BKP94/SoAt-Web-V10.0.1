@@ -12,25 +12,25 @@
     ,   sc_mem_m_membership_registered.id_card
     ,   PKA_COM_FUNCTION.fp_get_member_sharestock(sc_mem_m_membership_registered.membership_no) as share_stock
     
-    ,   NVL((   select  salary_amount
+    ,   coalesce((   select  salary_amount
                 from    sc_mem_m_member_work_info
                 where   1=1
                 and     membership_no = sc_mem_m_membership_registered.membership_no
            ),0) as  salary_amount   
     
-    ,   NVL((   select  academic_salary
+    ,   coalesce((   select  academic_salary
                 from    sc_mem_m_member_work_info
                 where   1=1
                 and     membership_no = sc_mem_m_membership_registered.membership_no
            ),0) as  academic_salary    
     
-    ,   NVL((   select  remuneration_amount
+    ,   coalesce((   select  remuneration_amount
                 from    sc_mem_m_member_work_info
                 where   1=1
                 and     membership_no = sc_mem_m_membership_registered.membership_no
            ),0) as  remuneration_amount  
     
-    ,   NVL((   select  salary_real
+    ,   coalesce((   select  salary_real
                 from    sc_mem_m_member_work_info
                 where   1=1
                 and     membership_no = sc_mem_m_membership_registered.membership_no
@@ -38,18 +38,18 @@
            
     
         -- ที่อยู่ปัจจุบัน
-    ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '6' ) , '-' , ''  , PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '6' ) )  AS address_pres_address_no
-    ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '8' ) , '-' , ''  , PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '8' ) )  AS address_pres_moo
-    ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '7' ) , '-' , ''  , PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '7' ) )  AS address_pres_mooban
-    ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '9' ) , '-' , ''  , PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '9' ) )  AS address_pres_road
-    ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '10' ) , '-' , '' , PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '10' ) ) AS address_pres_soi
-    ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '11' ) , '-' , '' , PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '11' ) ) AS address_pres_tambol
-    ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '12' ) , '-' , '' , PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '12' ) ) AS address_pres_district
-    ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '13' ) , '-' , '' , PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '13' ) ) AS address_pres_province
-    ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '14' ) , '-' , '' , PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '14' ) ) AS address_pres_post
-    ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '15' ) , '-' , '' , PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '15' ) ) AS address_pres_telephone
+    ,   (CASE PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '6' ) WHEN '-' THEN '' ELSE PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '6' ) END)  AS address_pres_address_no
+    ,   (CASE PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '8' ) WHEN '-' THEN '' ELSE PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '8' ) END)  AS address_pres_moo
+    ,   (CASE PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '7' ) WHEN '-' THEN '' ELSE PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '7' ) END)  AS address_pres_mooban
+    ,   (CASE PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '9' ) WHEN '-' THEN '' ELSE PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '9' ) END)  AS address_pres_road
+    ,   (CASE PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '10' ) WHEN '-' THEN '' ELSE PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '10' ) END) AS address_pres_soi
+    ,   (CASE PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '11' ) WHEN '-' THEN '' ELSE PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '11' ) END) AS address_pres_tambol
+    ,   (CASE PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '12' ) WHEN '-' THEN '' ELSE PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '12' ) END) AS address_pres_district
+    ,   (CASE PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '13' ) WHEN '-' THEN '' ELSE PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '13' ) END) AS address_pres_province
+    ,   (CASE PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '14' ) WHEN '-' THEN '' ELSE PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '14' ) END) AS address_pres_post
+    ,   (CASE PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '15' ) WHEN '-' THEN '' ELSE PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '15' ) END) AS address_pres_telephone
 
-    ,   decode(sc_mem_m_membership_registered.member_status_code,'0','เป็นสมาชิก','พ้นสภาพ') as member_status_code
+    ,   (CASE sc_mem_m_membership_registered.member_status_code WHEN '0' THEN 'เป็นสมาชิก' ELSE 'พ้นสภาพ' END) as member_status_code
     ,   pka_com_function.fp_get_loan_balance_by_mem(sc_mem_m_membership_registered.membership_no) as loan_balance_mem
 from sc_mem_m_membership_registered
  ,   sc_mem_m_ucf_member_group

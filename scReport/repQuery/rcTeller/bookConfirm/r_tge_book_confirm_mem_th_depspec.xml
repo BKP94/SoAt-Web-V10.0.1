@@ -13,7 +13,7 @@
     ,       ' มีเงินฝากออมทรัพย์พิเศษ บัญชีเลขที่ '||trim(sc_cls_confirm_data.data_refno)||' ซึ่งเปิดบัญชีไว้ที่'||trim(sc_cnt_m_coop.coop_name) as paragraph_3
     ,       ' เมื่อวันที่ '||trim(pka_com_function.fp_get_thaidate(sc_dep_m_creditor.deposit_opened_date , 'SD MONTH YYYY'))||' ชื่อบัญชี '||trim(sc_dep_m_creditor.deposit_account_name)||
     ' ณ วันที่ '||trim(pka_com_function.fp_get_thaidate(sc_cls_confirm_data.confirm_date , 'SD MONTH YYYY')) as paragraph_4
-    ,       ' มียอดเงินฝากคงเหลือทั้งสิ้น จำนวน '||to_snumber(sc_cls_confirm_data.data_balance)||' บาท ('||trim(pka_com_function.fp_get_moneythai(sc_cls_confirm_data.data_balance))||')' as paragraph_5
+    ,       ' มียอดเงินฝากคงเหลือทั้งสิ้น จำนวน '||to_snumber((sc_cls_confirm_data.data_balance)::bigint)||' บาท ('||trim(pka_com_function.fp_get_moneythai((sc_cls_confirm_data.data_balance)::double precision))||')' as paragraph_5
     ,       sc_mem_m_membership_registered.membership_no
     ,       '!book_no!'as book_no
     ,       '!book_date!'as book_date

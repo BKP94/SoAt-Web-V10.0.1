@@ -6,8 +6,7 @@
   </arg>
   <combo />
   <sql>select sc_lon_m_rule.loan_group_code
-,decode(sc_lon_m_rule.loan_group_code,'01','ฉุกเฉิน'
-    ,decode(sc_lon_m_rule.loan_group_code,'02','สามัญ','พิเศษ')) as loan_group_desc
+,(CASE sc_lon_m_rule.loan_group_code WHEN '01' THEN 'ฉุกเฉิน' ELSE (CASE sc_lon_m_rule.loan_group_code WHEN '02' THEN 'สามัญ' ELSE 'พิเศษ' END) END) as loan_group_desc
 ,sc_lon_m_rule.loan_type
 ,sc_lon_m_rule.loan_type_description
 ,sum(sc_rep_mem_share_loan_bal.emer_balance) as  emer_balance

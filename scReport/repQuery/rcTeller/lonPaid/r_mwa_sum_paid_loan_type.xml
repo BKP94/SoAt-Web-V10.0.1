@@ -18,7 +18,7 @@
     sum(sc_lon_m_contract.loan_approve_amount) as c_app_1,
 
     sum((
-        select nvl(sum(sc_com_m_receipt_item.item_amount),0)
+        select coalesce(sum(sc_com_m_receipt_item.item_amount),0)
         from sc_com_m_receipt_item,
              sc_com_m_receipt
         where sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no
@@ -29,7 +29,7 @@
     )) as old_loan,
 
 sum((SELECT 
-    nvl(sum(sc_lon_m_req_fee.amount),0)
+    coalesce(sum(sc_lon_m_req_fee.amount),0)
 FROM sc_com_m_receipt
 ,sc_com_m_receipt_item
 ,sc_lon_m_req_fee
@@ -41,7 +41,7 @@ and sc_lon_m_req_fee.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
 and sc_lon_m_req_fee.fee_type = '20')) as dep_amount_66,
 
     sum((
-        select nvl(sum(sc_com_m_receipt_item.interest_amount),0)
+        select coalesce(sum(sc_com_m_receipt_item.interest_amount),0)
         from sc_com_m_receipt_item,
              sc_com_m_receipt
         where sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no
@@ -59,9 +59,9 @@ from
 where
     sc_lon_m_contract.loan_contract_no = sc_lon_m_loan_card.loan_contract_no
     and sc_lon_m_loan_card.loan_type = sc_lon_m_rule.loan_type
-    and extract(year from to_date(sc_lon_m_contract.begining_of_contract)) = '!year_1!'
-    and extract(month from to_date(sc_lon_m_contract.begining_of_contract)) = '!month_1!'
-    and nvl(sc_lon_m_rule.loan_type_group,0) not in ('99') 
+    and extract(year from (sc_lon_m_contract.begining_of_contract)::date) = '!year_1!'
+    and extract(month from (sc_lon_m_contract.begining_of_contract)::date) = '!month_1!'
+    and coalesce(sc_lon_m_rule.loan_type_group,'0') not in ('99') 
 
 group by
     sc_lon_m_contract.begining_of_contract,

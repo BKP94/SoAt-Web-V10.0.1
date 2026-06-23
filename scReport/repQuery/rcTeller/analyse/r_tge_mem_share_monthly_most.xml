@@ -4,7 +4,7 @@
     <confirm_date text="วันที่" table="sc_cls_confirm_data" type="date" column="confirm_date" readonly="0" />
   </arg>
   <combo />
-  <sql>SELECT  to_char( rownum )
+  <sql>SELECT  (row_number() over ())::text
 ,       data_balance
 ,       data_monthly
 ,       confirm_date
@@ -16,7 +16,7 @@ SELECT sc_cls_confirm_data.data_balance
 ,     sc_cls_confirm_data.data_monthly
 ,     sc_cls_confirm_data.confirm_date
 ,     sc_mem_m_membership_registered.membership_no 
-,     sysdate
+,     current_date
 FROM  sc_mem_m_membership_registered 
 ,     sc_mem_m_share_mem     
 ,     sc_cls_confirm_data
@@ -30,6 +30,6 @@ AND   sc_cls_confirm_data.data_group = 'SHR'
 /*WHERE*/
 ORDER BY sc_cls_confirm_data.data_monthly DESC
 ) tab
-WHERE to_char( rownum ) &lt; = 10</sql>
+LIMIT 10</sql>
   <sub />
 </root>

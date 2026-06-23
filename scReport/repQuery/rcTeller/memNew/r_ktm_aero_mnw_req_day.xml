@@ -8,9 +8,9 @@
   <sql>    select sc_mem_m_application_form.application_form_no /*เลขที่คำขอ*/
     ,pka_mem_newmem.fp_member_name(sc_mem_m_application_form.application_form_no)  as memname /*ชื่อ - นามสกุล*/
     ,pka_com_function.fp_get_thaidate( sc_mem_m_application_form.apply_date , 'dd  month  yyyy') as apply_date_tdate /*วันที่ขอสมัครสมาชิก*/
-    ,pka_lon_reqsrv.fp_calc_agetext( sc_mem_m_application_form.date_of_birth )  as age /*อายุ*/
-    ,decode(sc_mem_m_application_form.sex,'M',1,0) as sex_m /*จำนวนผู้ชาย*/
-    ,decode(sc_mem_m_application_form.sex,'M',0,1) as sex_f /*จำนวนผู้หญิง*/
+    ,pka_lon_reqsrv.fp_calc_agetext( sc_mem_m_application_form.date_of_birth, localtimestamp)  as age /*อายุ*/
+    ,(CASE sc_mem_m_application_form.sex WHEN 'M' THEN 1 ELSE 0 END) as sex_m /*จำนวนผู้ชาย*/
+    ,(CASE sc_mem_m_application_form.sex WHEN 'M' THEN 0 ELSE 1 END) as sex_f /*จำนวนผู้หญิง*/
     ,sc_mem_m_application_form.apply_date /*วันที่ขอสมัคร*/
     ,sc_mem_m_application_form.entry_id /*ผู้ทำรายการ*/
     ,sc_mem_m_app_work_info.salary_amount /*เงินเดือน*/

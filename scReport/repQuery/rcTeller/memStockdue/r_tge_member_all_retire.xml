@@ -11,7 +11,7 @@
 ,       sc_mem_m_membership_registered.date_of_birth
 ,       '!date_of_birth_1!' as date_of_birth_1
 ,       '!date_of_birth_2!' as date_of_birth_2
-,       pka_com_function.fp_get_thaidate(sysdate) as sys_date
+,       pka_com_function.fp_get_thaidate(current_date) as sys_date
 ,       sc_mem_m_ucf_member_status.member_status_name
 from    sc_mem_m_membership_registered
 ,       sc_mem_m_ucf_member_status

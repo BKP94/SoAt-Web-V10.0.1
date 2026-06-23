@@ -11,7 +11,7 @@
     si_security_user.user_name,
     sc_mem_edit_salary.operate_date as operate_date,
     sc_mem_edit_salary.pre_salary_amount as old,
-    to_snumber(sc_mem_edit_salary.salary_amount) as new,
+    to_snumber((sc_mem_edit_salary.salary_amount)::bigint) as new,
 
     sc_mem_edit_address.pre_address_no,
     sc_mem_edit_address.pre_moo,

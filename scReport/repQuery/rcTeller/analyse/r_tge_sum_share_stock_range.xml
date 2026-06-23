@@ -22,7 +22,7 @@
 ,       data_balance        
 ,       membership_no
 ,       confirm_date
-,       sysdate
+,       current_date
 from    sc_cls_confirm_data
 where   data_group = 'SHR'
 and     data_balance &gt; '0'

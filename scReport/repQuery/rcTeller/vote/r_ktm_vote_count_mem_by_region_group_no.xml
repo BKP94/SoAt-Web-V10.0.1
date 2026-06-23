@@ -10,7 +10,7 @@
         , 	sc_mem_m_ucf_region_group.region_group_name
         , 	sc_mem_m_ucf_region_group.region_group_control
         ,	sc_rep_mem_share_loan_bal.balance_date
-        , pka_com_function.fp_get_thaidate(sysdate , 'SD MONTH YYYY') as sysdate_tdate
+        , pka_com_function.fp_get_thaidate(current_date , 'SD MONTH YYYY') as sysdate_tdate
         ,	sc_mem_m_ucf_member_group.member_group_no
         ,	sc_mem_m_ucf_member_group.member_group_name
         FROM sc_rep_mem_share_loan_bal,

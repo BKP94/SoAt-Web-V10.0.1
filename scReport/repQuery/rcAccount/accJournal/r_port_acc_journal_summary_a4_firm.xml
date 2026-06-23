@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="ACCA" rep_text="สรุปรายการประจำวัน (A4)">
+  <arg>
+    <year special="year" text="ปี" type="integer" sqlwhere="0" sqlreplace="1" />
+    <branch_id default="01" text="สาขา" table="sc_com_m_branch" combo="sc_com_m_branch2" readonly="0" />
+    <journal_date text="วันที่" table="sc_acc_journal_detail_firm" type="date" operator="bt" />
+  </arg>
+  <combo />
+  <sql>SELECT  sc_com_m_branch.branch_id
+,       sc_acc_journal_heading_firm.journal_date
+,       sc_acc_journal_detail_firm.account_id
+
+,       (select account_name from sc_acc_m_account_master where account_id = sc_acc_journal_detail_firm.account_id  ) as account_name 
+
+,       sc_acc_journal_detail_firm.dr_amount
+,       sc_acc_journal_detail_firm.cr_amount
+,       FPB_ACC_GET_JV_AMT (  sc_com_m_branch.branch_id   , sc_acc_journal_heading_firm.journal_date  , 'DR' ) as jv_amt
+
+FROM    sc_acc_journal_detail_firm
+,       sc_acc_journal_heading_firm
+,       sc_com_m_branch
+WHERE   1=1
+and     sc_acc_journal_heading_firm.doc_no = sc_acc_journal_detail_firm.doc_no
+and     sc_acc_journal_heading_firm.entry_br_id = sc_com_m_branch.branch_id 
+and     sc_acc_journal_heading_firm.cancel_status  = '0'
+/*WHERE*/
+--and     sc_com_m_branch.branch_id  = '01'
+--and     sc_acc_journal_heading_firm.journal_date between '01/02/2024' and '12/02/2024'
+ORDER BY sc_com_m_branch.branch_id  
+,        sc_acc_journal_heading_firm.journal_date
+,        sc_acc_journal_detail_firm.account_id
+</sql>
+  <sub />
+</root>

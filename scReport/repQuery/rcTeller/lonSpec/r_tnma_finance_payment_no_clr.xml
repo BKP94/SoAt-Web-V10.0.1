@@ -36,14 +36,14 @@ sc_com_m_receipt.member_group_no,
 sc_mem_m_membership_registered.membership_no||':'||(select prename from sc_mem_m_ucf_prename where prename_code = sc_mem_m_membership_registered.prename_code)||sc_mem_m_membership_registered.member_name||' '||sc_mem_m_membership_registered.member_surname as member_name,
 
 (
-select nvl(sum(sc_com_m_receipt_item.item_amount),0)
+select coalesce(sum(sc_com_m_receipt_item.item_amount),0)
 from sc_com_m_receipt_item
 where sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
 and (sc_com_m_receipt_item.item_type_id = 'FUN'
 or  sc_com_m_receipt_item.item_type_id = 'MFEE' )
 ) as fund_new, /*กองทุนใหม่*/
 (
-select nvl(sum(sc_com_m_receipt_item.item_amount),0)
+select coalesce(sum(sc_com_m_receipt_item.item_amount),0)
 from sc_com_m_receipt_item,
 sc_com_m_ucf_receipt_item_type
 where sc_com_m_receipt_item.item_type_id = sc_com_m_ucf_receipt_item_type.item_type_id
@@ -51,7 +51,7 @@ and sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
 and sc_com_m_ucf_receipt_item_type.group_item = 'SHR'
 ) as by_share, /*ซื้อหุ้นพิเศษ*/
 
-( select nvl(sum(sc_com_m_receipt_item.item_amount),0)
+( select coalesce(sum(sc_com_m_receipt_item.item_amount),0)
 from sc_com_m_receipt_item,
 sc_com_m_ucf_receipt_item_type
 where sc_com_m_receipt_item.item_type_id = sc_com_m_ucf_receipt_item_type.item_type_id
@@ -61,7 +61,7 @@ and sc_com_m_ucf_receipt_item_type.group_item = 'MFE'
 
 0.00 as crem_amount, /*ฌาปนกิจ*/
 
-(select  nvl(sum(sc_com_m_receipt_item.item_amount),0)as dep
+(select  coalesce(sum(sc_com_m_receipt_item.item_amount),0)as dep
 from  sc_com_m_receipt_item ,
 sc_com_m_ucf_receipt_item_type
 where sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
@@ -74,7 +74,7 @@ sc_mem_m_membership_registered.membership_no,
 sc_com_m_receipt.branch_id,
 
 (
-select nvl(sum(sc_com_m_receipt_item.principal_amount),0)
+select coalesce(sum(sc_com_m_receipt_item.principal_amount),0)
 from sc_com_m_receipt_item,
 sc_com_m_ucf_receipt_item_type,
 sc_lon_m_rule
@@ -87,7 +87,7 @@ and sc_com_m_receipt_item.item_amount &gt; 0
 ) as principal_amount_01,
 
 (
-select nvl(sum(sc_com_m_receipt_item.interest_amount),0)
+select coalesce(sum(sc_com_m_receipt_item.interest_amount),0)
 from sc_com_m_receipt_item,
 sc_com_m_ucf_receipt_item_type,
 sc_lon_m_rule
@@ -100,7 +100,7 @@ and sc_com_m_receipt_item.item_amount &gt; 0
 ) as interest_amount_01,
 
 (
-select nvl(sum(sc_com_m_receipt_item.interest_amount),0)
+select coalesce(sum(sc_com_m_receipt_item.interest_amount),0)
 from sc_com_m_receipt_item,
 sc_com_m_ucf_receipt_item_type,
 sc_lon_m_rule
@@ -114,7 +114,7 @@ and sc_com_m_receipt_item.item_amount &gt; 0
 
 
 (
-select nvl(sum(sc_com_m_receipt_item.principal_amount),0)
+select coalesce(sum(sc_com_m_receipt_item.principal_amount),0)
 from sc_com_m_receipt_item,
 sc_com_m_ucf_receipt_item_type,
 sc_lon_m_rule
@@ -127,7 +127,7 @@ and sc_com_m_receipt_item.item_amount &gt; 0
 ) as principal_amount_02,
 
 (
-select nvl(sum(sc_com_m_receipt_item.principal_amount),0)
+select coalesce(sum(sc_com_m_receipt_item.principal_amount),0)
 from sc_com_m_receipt_item,
 sc_com_m_ucf_receipt_item_type,
 sc_lon_m_rule
@@ -140,7 +140,7 @@ and sc_com_m_receipt_item.item_amount &gt; 0
 ) as principal_amount_03,
 
 (
-select nvl(sum(sc_com_m_receipt_item.interest_amount),0)
+select coalesce(sum(sc_com_m_receipt_item.interest_amount),0)
 from sc_com_m_receipt_item,
 sc_com_m_ucf_receipt_item_type,
 sc_lon_m_rule
@@ -153,7 +153,7 @@ and sc_com_m_receipt_item.item_amount &gt; 0
 ) as interest_amount_03,
 
 (
-select nvl(count(sc_com_m_receipt_item.description),0)
+select coalesce(count(sc_com_m_receipt_item.description),0)
 from sc_com_m_receipt_item,
 sc_com_m_ucf_receipt_item_type,
 sc_lon_m_rule
@@ -166,7 +166,7 @@ and sc_com_m_receipt_item.item_amount &gt; 0
 ) as count_01,
 
 (
-select nvl(count(sc_com_m_receipt_item.description),0)
+select coalesce(count(sc_com_m_receipt_item.description),0)
 from sc_com_m_receipt_item,
 sc_com_m_ucf_receipt_item_type,
 sc_lon_m_rule
@@ -179,7 +179,7 @@ and sc_com_m_receipt_item.item_amount &gt; 0
 ) as count_02,
 
 (
-select nvl(count(sc_com_m_receipt_item.description),0)
+select coalesce(count(sc_com_m_receipt_item.description),0)
 from sc_com_m_receipt_item,
 sc_com_m_ucf_receipt_item_type,
 sc_lon_m_rule
@@ -191,7 +191,7 @@ and sc_com_m_ucf_receipt_item_type.group_item = 'LON'
 and sc_com_m_receipt_item.item_amount &gt; 0
 ) as count_03,
 
-(select nvl(sum(sc_com_m_receipt_item.item_amount),0)
+(select coalesce(sum(sc_com_m_receipt_item.item_amount),0)
 from   sc_com_m_receipt_item
 where  sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
 and     sc_com_m_receipt_item.loan_type = 'FL') as free_amount
@@ -200,13 +200,13 @@ and     sc_com_m_receipt_item.loan_type = 'FL') as free_amount
 from    sc_com_m_receipt mr
 where   mr.receipt_no = sc_com_m_receipt.receipt_no) as receipt_month
 
-,(select   to_number(to_char(receipt_date ,'mm'))
+,(select   ((to_char(receipt_date ,'mm'))::numeric)
 from    sc_com_m_receipt mr
 where   mr.receipt_no = sc_com_m_receipt.receipt_no) as month_receipt_date
 
 --ส่วนสรุปหักเก็บไม่ได้--
 ,(
-select nvl(sum(sc_com_m_receipt_item.principal_amount),0)
+select coalesce(sum(sc_com_m_receipt_item.principal_amount),0)
 from sc_com_m_receipt_item,
 sc_com_m_ucf_receipt_item_type,
 sc_lon_m_rule
@@ -220,7 +220,7 @@ and sc_com_m_receipt_item.item_amount &gt; 0
 ) as R_principal_amount_01,
 
 (
-select nvl(sum(sc_com_m_receipt_item.interest_amount),0)
+select coalesce(sum(sc_com_m_receipt_item.interest_amount),0)
 from sc_com_m_receipt_item,
 sc_com_m_ucf_receipt_item_type,
 sc_lon_m_rule
@@ -234,7 +234,7 @@ and sc_com_m_receipt_item.item_amount &gt; 0
 ) as R_interest_amount_01,
 
 (
-select nvl(sum(sc_com_m_receipt_item.interest_amount),0)
+select coalesce(sum(sc_com_m_receipt_item.interest_amount),0)
 from sc_com_m_receipt_item,
 sc_com_m_ucf_receipt_item_type,
 sc_lon_m_rule
@@ -249,7 +249,7 @@ and sc_com_m_receipt_item.item_amount &gt; 0
 
 
 (
-select nvl(sum(sc_com_m_receipt_item.principal_amount),0)
+select coalesce(sum(sc_com_m_receipt_item.principal_amount),0)
 from sc_com_m_receipt_item,
 sc_com_m_ucf_receipt_item_type,
 sc_lon_m_rule
@@ -263,7 +263,7 @@ and sc_com_m_receipt_item.item_amount &gt; 0
 ) as R_principal_amount_02,
 
 (
-select nvl(sum(sc_com_m_receipt_item.principal_amount),0)
+select coalesce(sum(sc_com_m_receipt_item.principal_amount),0)
 from sc_com_m_receipt_item,
 sc_com_m_ucf_receipt_item_type,
 sc_lon_m_rule
@@ -277,7 +277,7 @@ and sc_com_m_receipt_item.item_amount &gt; 0
 ) as R_principal_amount_03,
 
 (
-select nvl(sum(sc_com_m_receipt_item.interest_amount),0)
+select coalesce(sum(sc_com_m_receipt_item.interest_amount),0)
 from sc_com_m_receipt_item,
 sc_com_m_ucf_receipt_item_type,
 sc_lon_m_rule
@@ -293,7 +293,7 @@ and sc_com_m_receipt_item.item_amount &gt; 0
     sc_mem_m_ucf_member_group.member_group_control,
     pka_com_function.fp_get_group_name(sc_mem_m_ucf_member_group.member_group_control) as member_group_control_name
 
-,(select  nvl(sum(sc_com_m_receipt_item.item_amount),0) as depe
+,(select  coalesce(sum(sc_com_m_receipt_item.item_amount),0) as depe
     from  sc_com_m_receipt_item ,
     sc_com_m_ucf_receipt_item_type
     where sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
@@ -345,8 +345,8 @@ sc_com_m_receipt.receipt_no
         sc_com_m_receipt_item.principal_amount,
         sc_com_m_receipt_item.interest_amount
         ,sc_com_m_receipt_item.contact_status as loan_code
-        --,decode(F_GET_CONTRACT_STATUS(sc_com_m_receipt_item.description),'D','P '||sc_com_m_receipt_item.description,sc_com_m_receipt_item.description) as description_new
-        ,decode(sc_com_m_receipt_item.contact_status,'1','P '||sc_com_m_receipt_item.description,sc_com_m_receipt_item.description) as description_new
+        --,(CASE F_GET_CONTRACT_STATUS(sc_com_m_receipt_item.description) WHEN 'D' THEN 'P '||sc_com_m_receipt_item.description ELSE sc_com_m_receipt_item.description END) as description_new
+        ,(CASE sc_com_m_receipt_item.contact_status WHEN '1' THEN 'P '||sc_com_m_receipt_item.description ELSE sc_com_m_receipt_item.description END) as description_new
         from sc_com_m_receipt,
         sc_com_m_receipt_item,
         sc_com_m_ucf_receipt_item_type,
@@ -375,7 +375,7 @@ order by sc_com_m_receipt_item.receipt_no
         tab_data.item_amount
         ,tab_data.loan_type_des
         ,tab_data.loan_code
-        ,( 	select nvl(sum( money_trans_return ),0)
+        ,( 	select coalesce(sum( money_trans_return ),0)
         from	sc_com_m_receipt , sc_com_m_ucf_money_type
         where sc_com_m_receipt.receipt_status ='0'
         and	sc_com_m_receipt.money_type_id = sc_com_m_ucf_money_type.money_type_id
@@ -407,7 +407,7 @@ order by sc_com_m_receipt_item.receipt_no
         ,sc_com_m_ucf_money_type
         WHERE ( sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no ) and
         ( sc_com_m_receipt_item.loan_type = sc_lon_m_rule.loan_type ) and
-        ( FPB_GET_KEEP_ACCOUNT_ID(  'ML'  , sc_com_m_receipt.membership_no ,  sc_com_m_receipt_item.description , sc_com_m_receipt_item.loan_type , nvl(sc_com_m_receipt_item.loan_code,0)  )  = sc_acc_m_account_master.account_id ) and
+        ( FPB_GET_KEEP_ACCOUNT_ID(  'ML'  , sc_com_m_receipt.membership_no ,  sc_com_m_receipt_item.description , sc_com_m_receipt_item.loan_type , coalesce(sc_com_m_receipt_item.loan_code,'0')  )  = sc_acc_m_account_master.account_id ) and
         ( sc_com_m_receipt_item.item_type_id = sc_com_m_ucf_receipt_item_type.item_type_id ) and
         ( sc_com_m_receipt.receipt_status = '0' ) AND
         ( sc_com_m_ucf_receipt_item_type.group_item = 'LON' ) AND
@@ -486,7 +486,7 @@ order by sc_com_m_receipt_item.receipt_no
         tab_data.item_amount
         ,tab_data.loan_type_des
         ,tab_data.loan_code
-        ,( 	select nvl(sum( money_trans_return ),0)
+        ,( 	select coalesce(sum( money_trans_return ),0)
         from	sc_com_m_receipt , sc_com_m_ucf_money_type
         where sc_com_m_receipt.receipt_status ='0'
         and sc_com_m_receipt.money_type_id not in (   'CLR' )

@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="D005" rep_text="รายงานรายการวัสดุของสหกรณ์ที่ประมวลค่าเสื่อมราคาแล้ว แยกตามปี">
+  <arg>
+    <account_year special="year" text="ตั้งแต่ปีบัญชี" table="sc_acc_m_account_begin" type="integer" operator="bt" />
+  </arg>
+  <combo />
+  <sql>    select distinct sc_acc_m_expire_detail.meterial_id,
+    sc_acc_m_expire.description,
+    sc_acc_m_expire_detail.seq_no,
+    sc_acc_m_expire_detail.amount,
+    sc_acc_m_expire_detail.total_amount,
+    sc_acc_m_expire_detail.present_value,
+    sc_acc_m_expire_detail.cal_expire_date,
+    sc_acc_m_expire.amount_value,
+    sc_acc_m_expire.entry_id,
+    sc_acc_m_expire_detail.operate_date,
+    sc_acc_m_expire_detail.rate_expire,
+    sc_acc_m_expire.status,
+    sc_acc_m_expire.doc_old,
+    sc_acc_m_account_begin.account_year,
+    case sc_acc_m_expire.status
+    when '1' then 'ปกติ'
+    when '0' then 'หมดอายุแล้ว'
+    end as status1
+    from sc_acc_m_expire,
+    sc_acc_m_expire_detail,
+    sc_acc_m_account_begin
+    where ( sc_acc_m_expire_detail.meterial_id = sc_acc_m_expire.material_id )
+    and   sc_acc_m_expire_detail.branch_id = sc_acc_m_account_begin.branch_id
+    /* and   ( ( year( sc_acc_m_expire_detail.cal_expire_date)   between :al_start  and :al_end ) )*/
+    /*WHERE*/
+    order by sc_acc_m_expire.doc_old
+  </sql>
+  <sub />
+</root>

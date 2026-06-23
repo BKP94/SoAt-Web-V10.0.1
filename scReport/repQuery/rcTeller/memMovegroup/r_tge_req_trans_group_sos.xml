@@ -9,8 +9,8 @@
     ,       sc_mem_m_tran_group.remark
     ,       pka_com_function.fp_get_member_name(sc_mem_m_tran_group.membership_no)as memname
     ,       pka_com_function.fp_get_group_name_mem(sc_mem_m_tran_group.membership_no)as groupname
-    ,       decode(sc_mem_m_tran_group.bank_status , '1' , 'หักบัญชี' , null)as account
-    ,       decode(sc_mem_m_tran_group.resign_status , '1' , 'ลาออก' , null)as resign
+    ,       (CASE sc_mem_m_tran_group.bank_status WHEN '1' THEN 'หักบัญชี' ELSE null END)as account
+    ,       (CASE sc_mem_m_tran_group.resign_status WHEN '1' THEN 'ลาออก' ELSE null END)as resign
     ,       sc_mem_m_membership_registered.retire_id
     ,       fpa_get_crem_memno(sc_mem_m_tran_group.membership_no)as crem_memno
     ,       fpa_get_crem_groupno(sc_mem_m_tran_group.membership_no)as crem_groupno

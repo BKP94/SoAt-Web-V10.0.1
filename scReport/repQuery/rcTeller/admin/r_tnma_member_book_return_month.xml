@@ -13,7 +13,7 @@
     ,   sc_mem_m_ucf_member_group.member_group_no
     ,   sc_mem_m_ucf_member_group.member_group_name
     ,   sc_mem_m_member_memo.miss_year + 543 as year_th
-    ,   pka_com_function.fp_get_month_name(sc_mem_m_member_memo.miss_month)as month_th
+    ,   pka_com_function.fp_get_month_name((sc_mem_m_member_memo.miss_month)::int)as month_th
     ,   pka_com_function.fp_get_thaidate(to_date('!op_date_1!','dd/mm/yyyy'),'dd month')as thai_date
     ,   pka_com_function.fp_get_thaidate(to_date('!op_date_1!','dd/mm/yyyy'),'DAY')as thai_day
     ,	'!as_text_1!'as text

@@ -40,7 +40,7 @@
     sc_rep_mem_share_loan_bal.intarr_date,
     sc_mem_m_ucf_member_group.member_group_type,
     sc_rep_mem_share_loan_bal.member_status_code,
-    nvl( sc_rep_mem_share_loan_bal.fund_amount , 0 ) as  fund_amount,
+    coalesce( sc_rep_mem_share_loan_bal.fund_amount , 0 ) as  fund_amount,
     ( select count(  distinct count_rep.membership_no )
     from sc_rep_mem_share_loan_bal count_rep
     where 	count_rep.member_group_no = sc_rep_mem_share_loan_bal.member_group_no

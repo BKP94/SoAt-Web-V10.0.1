@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="A010" rep_text="แบบรายงานที่ 7 - แบบรายงานฐานะสภาพคล่องสุทธิ" procedure="pka_rep_scq.sp_form5_mis65({operate_date_1})">
+  <arg>
+    <operate_date text="ณ วันที่" table="sc_rep_scq_form5_mis65" type="date" readonly="0" />
+  </arg>
+  <combo />
+  <sql>  SELECT operate_date,   
+         seq_no,   
+         col_01,   
+         col_02,   
+         col_03,   
+         col_04,   
+         col_05,   
+         col_06,   
+         col_07,   
+         col_08,   
+         col_09,   
+         col_10 ,
+col_11 
+    FROM sc_rep_scq_form5_mis65 
+where 1=1
+/*WHERE*/
+order by seq_no</sql>
+  <sub />
+  <mis />
+</root>

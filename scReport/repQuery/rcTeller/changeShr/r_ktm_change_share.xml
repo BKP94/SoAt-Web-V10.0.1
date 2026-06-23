@@ -16,11 +16,11 @@ from    (
                   (select prename from sc_mem_m_ucf_prename where prename_code = sc_mem_m_membership_registered.membership_no ) ||' ' ||member_name ||'  ' ||member_surname as member_name,
                   sc_mem_m_membership_registered.member_group_no || ' - ' || (select member_group_name from sc_mem_m_ucf_member_group where member_group_no = sc_mem_m_membership_registered.member_group_no ) as group_name,
                   sc_mem_m_chg_share_det.shr_value_new,
-                  decode(sc_mem_m_chg_share_det.drop_status_last,'0','ส่งเพิ่มขึ้น',decode(sc_mem_m_chg_share_det.drop_status_last,'1','งดส่ง','2','ส่งปกติ')) as status_old,
-                  decode(sc_mem_m_chg_share_det.drop_status,'1','งดส่ง','0','-',decode(sc_mem_m_chg_share_det.drop_status,'2','ส่งปกติ')) as status_new,
+                  (CASE sc_mem_m_chg_share_det.drop_status_last WHEN '0' THEN 'ส่งเพิ่มขึ้น' ELSE (CASE sc_mem_m_chg_share_det.drop_status_last WHEN '1' THEN 'งดส่ง' WHEN '2' THEN 'ส่งปกติ' END) END) as status_old,
+                  (CASE sc_mem_m_chg_share_det.drop_status WHEN '1' THEN 'งดส่ง' WHEN '0' THEN '-' ELSE (CASE sc_mem_m_chg_share_det.drop_status WHEN '2' THEN 'ส่งปกติ' END) END) as status_new,
                   sc_mem_m_chg_share_det.shr_value_old ,
                   sc_mem_m_chg_share_det.effactive_date
-                  ,decode(lag(sc_mem_m_membership_registered.membership_no,1,null)over(order by sc_mem_m_ucf_member_group.member_group_control ,sc_mem_m_ucf_member_group.member_group_no,sc_mem_m_membership_registered.membership_no) ,sc_mem_m_membership_registered.membership_no,0,1) as row_memno
+                  ,(CASE lag(sc_mem_m_membership_registered.membership_no,1,null)over(order by sc_mem_m_ucf_member_group.member_group_control ,sc_mem_m_ucf_member_group.member_group_no,sc_mem_m_membership_registered.membership_no) WHEN sc_mem_m_membership_registered.membership_no THEN 0 ELSE 1 END) as row_memno
           from    sc_mem_m_chg_share_det ,
                   sc_mem_m_membership_registered ,
                   sc_mem_m_chang_request,

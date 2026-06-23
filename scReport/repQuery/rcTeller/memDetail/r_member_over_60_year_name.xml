@@ -11,7 +11,7 @@
     ,(select sc_mem_m_ucf_prename.prename from   sc_mem_m_ucf_prename where sc_mem_m_ucf_prename.prename_code = sc_mem_m_membership_registered.prename_code)||sc_mem_m_membership_registered.member_name ||'  '||sc_mem_m_membership_registered.member_surname as member_name
     ,pka_com_function.fp_get_member_address( sc_mem_m_membership_registered.membership_no , '0' ) as address
     from    sc_mem_m_membership_registered
-    where       sc_mem_m_membership_registered.date_of_birth between to_date( ('!year!'-61) || '-10-2 0:0:0','yyyy-mm-dd hh24:mi:ss') and to_date(('!year!'-60) ||'-10-1 0:0:0','yyyy-mm-dd hh24:mi:ss')
+    where       sc_mem_m_membership_registered.date_of_birth between (('!year!'-61) || '-10-2 0:0:0')::date and (('!year!'-60) ||'-10-1 0:0:0')::date
     /*WHERE*/
     --and  sc_mem_m_membership_registered.member_group_no between  '011002' and '011002'
     order by sc_mem_m_membership_registered.member_group_no

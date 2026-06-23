@@ -13,8 +13,8 @@
     ,pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as fname
     ,pka_com_function.fp_get_member_name_eng(sc_mem_m_membership_registered.membership_no) as fname_en
     ,pka_com_function.fp_form_idcard(sc_mem_m_membership_registered.id_card) as id_card
-    ,to_snumber(pka_com_function.fp_get_member_sharestock(sc_mem_m_membership_registered.membership_no)) as sharestock
-    ,F_GET_NUMBER_TO_WORDS(pka_com_function.fp_get_member_sharestock(sc_mem_m_membership_registered.membership_no)) as number_eng
+    ,to_snumber((pka_com_function.fp_get_member_sharestock(sc_mem_m_membership_registered.membership_no))::bigint) as sharestock
+    ,F_GET_NUMBER_TO_WORDS(pka_com_function.fp_get_member_sharestock(sc_mem_m_membership_registered.membership_no)::bigint) as number_eng
     ,'!data_date!' as tdate
     ,pka_com_function.fp_get_member_name_eng('!name_en!') as name_en
     ,'!sponcor!' as sponcor

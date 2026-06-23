@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root procedure="pka_acc_worksheet.sp_proc({operate_date_1},{operate_date_2})">
+  <arg>
+    <operate_date text="ระหว่างวันที่  " type="date" operator="bt" sqlwhere="0" readonly="0" />
+  </arg>
+  <combo />
+  <sql>  SELECT 
+sc_acc_m_account_master.account_group_id,    
+sc_acc_m_ucf_account_group.account_group_name ,
+( select tnest.account_control_id from  sc_acc_m_account_master tnest where tnest.account_id = sc_acc_m_account_master.account_control_id ) as account_control_head	,
+( select tnest.account_name from  sc_acc_m_account_master tnest where tnest.account_id = ( select tnest.account_control_id from  sc_acc_m_account_master tnest where tnest.account_id = sc_acc_m_account_master.account_control_id ) ) as account_control_head_name	,
+
+
+
+sc_acc_m_account_master.account_control_id  ,
+( select tnest.account_name from  sc_acc_m_account_master tnest where tnest.account_id = sc_acc_m_account_master.account_control_id ) as account_control_name	,
+sc_acc_m_account_master.account_id,   
+sc_acc_m_account_master.account_name,         
+
+sc_acc_t_trial_balance_rep.dr_bb,   
+sc_acc_t_trial_balance_rep.cr_bb,   
+sc_acc_t_trial_balance_rep.dr_between,   
+sc_acc_t_trial_balance_rep.cr_between,   
+sc_acc_t_trial_balance_rep.dr_amount,   
+sc_acc_t_trial_balance_rep.cr_amount
+
+,         sc_acc_m_account_master.account_control_id,   
+         sc_acc_m_account_master.account_close_id,   
+         sc_acc_m_account_master.nature,   
+         sc_acc_m_account_master.asset_group,   
+         sc_acc_m_account_master.asset_old_group,   
+         sc_acc_m_account_master.balsheet_group,   
+         sc_acc_m_account_master.asset_group_2565,   
+         sc_acc_m_account_master.group_krom  
+
+FROM sc_acc_t_trial_balance_rep,   
+sc_acc_m_account_master  ,
+sc_acc_m_ucf_account_group
+   WHERE  sc_acc_t_trial_balance_rep.account_id = sc_acc_m_account_master.account_id    
+and sc_acc_m_account_master.account_group_id = sc_acc_m_ucf_account_group.account_group_id
+-- and sc_acc_t_trial_balance_rep.dr_bb &gt; 0
+and  ( dr_bb  &gt; 0 or cr_bb &gt; 0 or dr_between  &gt; 0 or cr_between &gt; 0 or 
+dr_amount &gt; 0 or cr_amount &gt; 0 or dr_adj &gt; 0 or cr_adj &gt; 0 ) 
+
+order by sc_acc_m_account_master.account_group_id ,          
+         sc_acc_m_account_master.account_control_id  ,
+sc_acc_m_account_master.account_id
+
+</sql>
+  <sub />
+</root>

@@ -25,18 +25,18 @@
 ,sum(sc_rep_mem_share_loan_year.spec_intarr) as spec_intarr
 ,sc_rep_mem_share_loan_year.balance_date
 ,sc_rep_mem_share_loan_year.intarr_date
-,sum(decode(sc_rep_mem_share_loan_year.norm_paycode,'01',sc_rep_mem_share_loan_year.emer_shot,0)) as emer_shot
-,sum(decode(sc_rep_mem_share_loan_year.norm_paycode,'01',sc_rep_mem_share_loan_year.emer_long,0)) as emer_long
-,sum(decode(sc_rep_mem_share_loan_year.norm_paycode,'01',sc_rep_mem_share_loan_year.norm_shot,0)) as norm_shot
-,sum(decode(sc_rep_mem_share_loan_year.norm_paycode,'01',sc_rep_mem_share_loan_year.norm_long,0)) as norm_long
-,sum(decode(sc_rep_mem_share_loan_year.spec_paycode,'01',sc_rep_mem_share_loan_year.spec_shot,0))  as spec_shot
-,sum(decode(sc_rep_mem_share_loan_year.spec_paycode,'01',sc_rep_mem_share_loan_year.spec_long,0)) as spec_long
+,sum((CASE sc_rep_mem_share_loan_year.norm_paycode WHEN '01' THEN sc_rep_mem_share_loan_year.emer_shot ELSE 0 END)) as emer_shot
+,sum((CASE sc_rep_mem_share_loan_year.norm_paycode WHEN '01' THEN sc_rep_mem_share_loan_year.emer_long ELSE 0 END)) as emer_long
+,sum((CASE sc_rep_mem_share_loan_year.norm_paycode WHEN '01' THEN sc_rep_mem_share_loan_year.norm_shot ELSE 0 END)) as norm_shot
+,sum((CASE sc_rep_mem_share_loan_year.norm_paycode WHEN '01' THEN sc_rep_mem_share_loan_year.norm_long ELSE 0 END)) as norm_long
+,sum((CASE sc_rep_mem_share_loan_year.spec_paycode WHEN '01' THEN sc_rep_mem_share_loan_year.spec_shot ELSE 0 END))  as spec_shot
+,sum((CASE sc_rep_mem_share_loan_year.spec_paycode WHEN '01' THEN sc_rep_mem_share_loan_year.spec_long ELSE 0 END)) as spec_long
 
 
-,sum(decode(sc_rep_mem_share_loan_year.norm_paycode,'02',sc_rep_mem_share_loan_year.norm_shot,0)) as normshotyod
-,sum(decode(sc_rep_mem_share_loan_year.spec_paycode,'02',sc_rep_mem_share_loan_year.spec_shot,0)) as specshotyod
-,sum(decode(sc_rep_mem_share_loan_year.norm_paycode,'02',sc_rep_mem_share_loan_year.norm_long,0)) as normlongyod
-,sum(decode(sc_rep_mem_share_loan_year.spec_paycode,'02',sc_rep_mem_share_loan_year.spec_long,0)) as speclongyod
+,sum((CASE sc_rep_mem_share_loan_year.norm_paycode WHEN '02' THEN sc_rep_mem_share_loan_year.norm_shot ELSE 0 END)) as normshotyod
+,sum((CASE sc_rep_mem_share_loan_year.spec_paycode WHEN '02' THEN sc_rep_mem_share_loan_year.spec_shot ELSE 0 END)) as specshotyod
+,sum((CASE sc_rep_mem_share_loan_year.norm_paycode WHEN '02' THEN sc_rep_mem_share_loan_year.norm_long ELSE 0 END)) as normlongyod
+,sum((CASE sc_rep_mem_share_loan_year.spec_paycode WHEN '02' THEN sc_rep_mem_share_loan_year.spec_long ELSE 0 END)) as speclongyod
 
 FROM sc_rep_mem_share_loan_year,
 sc_mem_m_membership_registered,

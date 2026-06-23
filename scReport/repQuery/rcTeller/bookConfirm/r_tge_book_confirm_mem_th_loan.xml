@@ -11,14 +11,14 @@
     ,       ' เป็นสมาชิก'||trim(sc_cnt_m_coop.coop_name)||' เลขทะเบียนสมาชิก '||trim(sc_mem_m_membership_registered.membership_no)||
     ' สังกัด' ||trim(pka_com_function.fp_get_group_name_mem(sc_mem_m_membership_registered.membership_no)) as paragraph_2
     ,       ' ณ วันที่ '||trim(pka_com_function.fp_get_thaidate('!data_date!','SD MONTH YYYY'))||' มีหนี้สินผูกพันกับสหกรณ์' as paragraph_3
-    ,       ' จำนวน '||(to_snumber((select  nvl(sum(pka_com_function.fp_lon_get_balance_atdate ( sc_lon_m_loan_card.loan_contract_no , '!data_date!' )),0)
+    ,       ' จำนวน '||(to_snumber(((select  coalesce(sum(pka_com_function.fp_lon_get_balance_atdate ( sc_lon_m_loan_card.loan_contract_no , '!data_date!' )),0)
     from    sc_lon_m_loan_card
     where   sc_lon_m_loan_card.membership_no = sc_mem_m_membership_registered.membership_no
-    )))||
-    ' บาท ('||pka_com_function.fp_get_moneythai((select  sum(pka_com_function.fp_lon_get_balance_atdate ( sc_lon_m_loan_card.loan_contract_no , '!data_date!' ))
+    ))::bigint))||
+    ' บาท ('||pka_com_function.fp_get_moneythai(((select  sum(pka_com_function.fp_lon_get_balance_atdate ( sc_lon_m_loan_card.loan_contract_no , '!data_date!' ))
     from    sc_lon_m_loan_card
     where   sc_lon_m_loan_card.membership_no = sc_mem_m_membership_registered.membership_no
-    ))||')' as paragraph_4
+    ))::double precision)||')' as paragraph_4
     ,       sc_mem_m_membership_registered.membership_no
     ,       '!data_date!'as data_date
     ,       '!book_no!'as book_no
@@ -29,7 +29,7 @@
     from    sc_mem_m_membership_registered
     ,       sc_cnt_m_coop
     where   1=1
-    and     ((select  nvl(sum(pka_com_function.fp_lon_get_balance_atdate ( sc_lon_m_loan_card.loan_contract_no , '!data_date!' )),0)
+    and     ((select  coalesce(sum(pka_com_function.fp_lon_get_balance_atdate ( sc_lon_m_loan_card.loan_contract_no , '!data_date!' )),0)
     from     sc_lon_m_loan_card
     where    sc_lon_m_loan_card.membership_no = sc_mem_m_membership_registered.membership_no
     ) &gt; 0)

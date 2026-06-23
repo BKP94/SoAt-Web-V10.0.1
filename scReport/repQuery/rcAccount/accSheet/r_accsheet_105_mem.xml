@@ -1,0 +1,130 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root procedure="pka_acc_worksheet.sp_proc({operate_date_1},{operate_date_2},{as_notbook_1})">
+  <arg>
+    <operate_date text="ระหว่างวันที่  " type="date" operator="bt" sqlwhere="0" sqlreplace="1" nestreplace="1" readonly="0" />
+    <as_notbook align="right" control="ASPxCheckBox" text="รวมปิดบัญชี      " sqlwhere="0" sqlreplace="1" readonly="0" />
+    <acc_super text="ชื่อผู้รับรองคนที่ 1" combo="si_security_user2" sqlwhere="0" sqlreplace="1" noheader="1" readonly="0" comboreplace="0" combowhere="0" />
+    <acc_super_position text="ตำแหน่งผู้รับรองคนที่ 1" sqlwhere="0" sqlreplace="1" noheader="1" readonly="0" comboreplace="0" combowhere="0" />
+    <manager_name text="ชื่อผู้รับรองคนที่ 2" combo="si_security_user2" sqlwhere="0" sqlreplace="1" noheader="1" readonly="0" comboreplace="0" combowhere="0" />
+    <manager_name_position text="ตำแหน่งผู้รับรองคนที่ 2" sqlwhere="0" sqlreplace="1" noheader="1" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>select tab.*
+from (
+select sc_acc_t_trial_balance_rep.account_id,
+    sc_acc_m_account_master.account_name,
+    sc_acc_m_ucf_account_group.account_group_id,
+    sc_acc_m_ucf_account_group.account_group_name,
+    sc_acc_t_trial_balance_rep.dr_bb,
+    sc_acc_t_trial_balance_rep.cr_bb,
+    sc_acc_t_trial_balance_rep.dr_between,
+    sc_acc_t_trial_balance_rep.cr_between,
+    sc_acc_t_trial_balance_rep.dr_amount,
+    sc_acc_t_trial_balance_rep.cr_amount,
+    ( select user_name from si_security_user where user_id =  '!acc_super_1!' ) as acc_super ,
+    '!acc_super_position_1!' as acc_super_position ,
+    ( select user_name from si_security_user where user_id =  '!manager_name_1!' ) as manager_name ,
+    '!manager_name_position_1!' as manager_name_position ,
+    --( select manager_name from sc_cnt_m_coop ) as manager_name,
+    ( select coop_name from sc_cnt_m_coop ) as coop_name ,
+   pka_com_function.fp_get_thaidate( '!operate_date_2!', 'SD MONTH พ.ศ YYYY')   as operate_tdate,
+   pka_com_function.fp_get_thaidate( '!operate_date_2!', 'MONTH YYYY')   as acc_month
+from sc_acc_t_trial_balance_rep,
+    sc_acc_m_account_master,
+    sc_acc_m_ucf_account_group
+where sc_acc_t_trial_balance_rep.account_id = sc_acc_m_account_master.account_id
+and sc_acc_m_account_master.account_group_id = sc_acc_m_ucf_account_group.account_group_id
+and (   sc_acc_t_trial_balance_rep.dr_bb &gt; 0 or
+    sc_acc_t_trial_balance_rep.cr_bb &gt; 0 or
+    sc_acc_t_trial_balance_rep.dr_between &gt; 0 or
+    sc_acc_t_trial_balance_rep.cr_between &gt; 0 or
+    sc_acc_t_trial_balance_rep.dr_amount  &gt; 0 or
+    sc_acc_t_trial_balance_rep.cr_amount  &gt; 0 )
+/*WHERE*/
+union all
+select '' as account_id,
+    '' as account_name,
+    '3.1' as account_group_id,
+    'รวมหนี้สินและทุน' as account_group_name,
+    sum(sc_acc_t_trial_balance_rep.dr_bb) as dr_bb,
+    sum(sc_acc_t_trial_balance_rep.cr_bb) as cr_bb,
+    sum(sc_acc_t_trial_balance_rep.dr_between) as dr_between,
+    sum(sc_acc_t_trial_balance_rep.cr_between) as cr_between,
+    sum(sc_acc_t_trial_balance_rep.dr_amount) as dr_amount,
+    sum(sc_acc_t_trial_balance_rep.cr_amount) as cr_amount,
+    '' as acc_super ,
+    '' as acc_super_position ,
+    '' as manager_name ,
+    '' as manager_name_position ,
+    '' as coop_name ,
+   ''   as operate_tdate,
+   '' as acc_month
+from sc_acc_t_trial_balance_rep,
+    sc_acc_m_account_master,
+    sc_acc_m_ucf_account_group
+where sc_acc_t_trial_balance_rep.account_id = sc_acc_m_account_master.account_id
+and sc_acc_m_account_master.account_group_id = sc_acc_m_ucf_account_group.account_group_id
+and sc_acc_m_ucf_account_group.account_group_id in ('2','3')
+and (   sc_acc_t_trial_balance_rep.dr_bb &gt; 0 or
+    sc_acc_t_trial_balance_rep.cr_bb &gt; 0 or
+    sc_acc_t_trial_balance_rep.dr_between &gt; 0 or
+    sc_acc_t_trial_balance_rep.cr_between &gt; 0 or
+    sc_acc_t_trial_balance_rep.dr_amount  &gt; 0 or
+    sc_acc_t_trial_balance_rep.cr_amount  &gt; 0 )
+)tab
+order by account_group_id , account_id</sql>
+  <sub>
+    <r_accsheet_105_mem_nest_sum>
+      <sql>
+        select   sc_acc_m_account_master.account_group_id,
+        sc_acc_t_trial_balance_rep.dr_amount,
+        sc_acc_t_trial_balance_rep.cr_amount ,
+        sc_acc_t_trial_balance_rep.dr_between,
+        sc_acc_t_trial_balance_rep.cr_between,
+        sc_acc_t_trial_balance_rep.dr_bb,
+        sc_acc_t_trial_balance_rep.cr_bb,
+        '!operate_date_2!' as operate_date,
+        pka_com_function.fp_get_thaidate( '!operate_date_2!', 'SD MONTH พ.ศ YYYY')   as operate_tdate,
+        pka_rep_acc.fp_get_income('1','Y', '!operate_date_1!'  ,  '!operate_date_2!' ) as  income
+        from sc_acc_t_trial_balance_rep,
+        sc_acc_m_account_master,
+        sc_acc_m_ucf_account_group
+        where sc_acc_t_trial_balance_rep.account_id = sc_acc_m_account_master.account_id
+        and sc_acc_m_account_master.account_group_id = sc_acc_m_ucf_account_group.account_group_id
+
+        and
+        (   sc_acc_t_trial_balance_rep.dr_bb &gt; 0 or
+        sc_acc_t_trial_balance_rep.cr_bb &gt; 0 or
+        sc_acc_t_trial_balance_rep.dr_between &gt; 0 or
+        sc_acc_t_trial_balance_rep.cr_between &gt; 0 or
+        sc_acc_t_trial_balance_rep.dr_amount  &gt; 0 or
+        sc_acc_t_trial_balance_rep.cr_amount  &gt; 0 )
+        and  sc_acc_m_account_master.account_group_id in ('4','5')
+        /*WHERE*/
+        order by sc_acc_m_account_master.account_group_id
+      </sql>
+    </r_accsheet_105_mem_nest_sum>
+    <r_accsheet_105_mem_nest_mem>
+      <sql>SELECT  tab.monthly_date , tab.mem_bf , tab.mem_new , tab.mem_fw , tab.mem_loan
+    ,   (   tab.mem_resign + tab.mem_fire + tab.mem_dead + tab.mem_tran ) AS mem_resign_all
+    
+FROM
+    (   
+        select  
+                ( select sum( cm.mem_bf )     from  sc_cls_mem cm where cm.mem_type_code in ( '01' , '02' ) and cm.monthly_date = sc_cls_mem.monthly_date ) AS  mem_bf
+            ,   ( select sum( cm.mem_new )    from  sc_cls_mem cm where mem_type_code in ( '01' , '02' ) and cm.monthly_date = sc_cls_mem.monthly_date ) AS mem_new
+            ,   ( select sum( cm.mem_resign ) from  sc_cls_mem cm where mem_type_code in ( '01' , '02' ) and cm.monthly_date = sc_cls_mem.monthly_date ) AS  mem_resign
+            ,   ( select sum( cm.mem_fired )  from  sc_cls_mem cm where mem_type_code in ( '01' , '02' ) and cm.monthly_date = sc_cls_mem.monthly_date ) AS  mem_fire
+            ,   ( select sum( cm.mem_dead )   from  sc_cls_mem cm where mem_type_code in ( '01' , '02' ) and cm.monthly_date = sc_cls_mem.monthly_date ) AS  mem_dead
+            ,   ( select sum( cm.mem_tran )   from  sc_cls_mem cm where mem_type_code in ( '01' , '02' ) and cm.monthly_date = sc_cls_mem.monthly_date ) AS  mem_tran
+            ,   ( select sum( cm.mem_fw )     from  sc_cls_mem cm where mem_type_code in ( '01' , '02' ) and cm.monthly_date = sc_cls_mem.monthly_date ) AS  mem_fw
+            ,   ( select sum( cm.mem_fw )     from  sc_cls_mem cm where mem_type_code  = 'LN' and cm.monthly_date = sc_cls_mem.monthly_date )  AS mem_loan   
+            ,   pka_com_function.fp_get_thaidate( monthly_date , 'SD MONTH YYYY') AS monthly_date
+
+        from    sc_cls_mem
+        where   monthly_date = '!operate_date_2!'
+        
+    )   tab</sql>
+    </r_accsheet_105_mem_nest_mem>
+  </sub>
+</root>

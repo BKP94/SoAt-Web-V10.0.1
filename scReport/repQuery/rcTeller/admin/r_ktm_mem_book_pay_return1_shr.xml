@@ -14,9 +14,9 @@
     ( select coop_name from sc_cnt_m_coop) as coop_name ,
     pka_com_function.fp_get_group_name(sc_kep_t_monthly_receive.member_group_no) as member_group_name,
     sc_mem_m_share_mem.share_amount,
-    pka_com_function.fp_get_month_name(sc_rep_kep_return_month.last_month,'LT') as last_month_thai,
+    pka_com_function.fp_get_month_name((sc_rep_kep_return_month.last_month)::int,'LT') as last_month_thai,
     sc_rep_kep_return_month.last_year + 543 as last_year_thai,
-    pka_com_function.fp_get_month_name(sc_kep_t_monthly_receive.receive_month,'LT') as receive_month_thai,
+    pka_com_function.fp_get_month_name((sc_kep_t_monthly_receive.receive_month)::int,'LT') as receive_month_thai,
     sc_kep_t_monthly_receive.receive_year + 543 as receive_year_thai,
     sc_rep_kep_return_month.count_month,
     ( select sc_kep_t_monthly_receive_det.unkeep_money_amount

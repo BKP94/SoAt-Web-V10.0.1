@@ -14,7 +14,7 @@
     extract ( year from ( sc_lon_m_contract.begining_of_contract )  ) + 543 as begin_year,
     pka_com_function.fp_get_member_name( sc_lon_m_contract.membership_no) as memname,
     sc_lon_m_contract.membership_no  ,
-    to_number(to_char( sc_lon_m_contract.begining_of_contract,'yyyy')) - to_number(to_char( sc_mem_m_membership_registered.date_of_birth  ,'yyyy')) as mem_age,
+    ((to_char( sc_lon_m_contract.begining_of_contract,'yyyy'))::numeric) - ((to_char( sc_mem_m_membership_registered.date_of_birth  ,'yyyy'))::numeric) as mem_age,
     sc_mem_m_member_work_info.position_long,
     sc_mem_m_ucf_member_group.member_group_name,
     sc_mem_m_member_address.address_no,

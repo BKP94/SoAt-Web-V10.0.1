@@ -21,17 +21,17 @@
     ,substr(pka_lon_reqsrv.fp_calc_agetext_m_live(sc_mem_m_membership_registered.membership_no),7,2) as age_life_text_month
     ,(select sc_mem_m_member_work_info.position_long from sc_mem_m_member_work_info where sc_mem_m_member_work_info.membership_no = sc_lon_m_loan_request.membership_no ) as position_long
     , sc_lon_m_loan_request.salary_amount
-    ,pka_com_function.fp_get_member_address_line(sc_mem_m_membership_registered.membership_no, '1') as address_home
-    , pka_com_function.fp_get_moneythai( sc_lon_m_loan_request.salary_amount ) as salary_amount_thai  
-    , to_snumber(sc_lon_m_loan_request.period_payment_amount) as period_payment_amount
-    , pka_com_function.fp_get_moneythai( sc_lon_m_loan_request.period_payment_amount ) as period_payment_amount_thai
+    ,pka_com_function.fp_get_member_address_line(sc_mem_m_membership_registered.membership_no,('1')::text) as address_home
+    , pka_com_function.fp_get_moneythai((sc_lon_m_loan_request.salary_amount)::double precision) as salary_amount_thai  
+    , to_snumber((sc_lon_m_loan_request.period_payment_amount)::bigint) as period_payment_amount
+    , pka_com_function.fp_get_moneythai((sc_lon_m_loan_request.period_payment_amount)::double precision) as period_payment_amount_thai
     , pka_lon_intsrv.fp_intrate_table_loantype( sc_lon_m_loan_request.loan_type , sc_lon_m_loan_request.begining_of_contract ) * 100 as lon_int_rate
     , sc_lon_m_loan_request.loan_installment_amount
-    , pka_com_function.fp_get_numberthai( sc_lon_m_loan_request.loan_installment_amount ) || 'งวด' as loan_installment_amount_thai
+    , pka_com_function.fp_get_numberthai((sc_lon_m_loan_request.loan_installment_amount)::text) || 'งวด' as loan_installment_amount_thai
     , sc_lon_m_loan_request.loan_request_amount
-    , pka_com_function.fp_get_moneythai( sc_lon_m_loan_request.loan_request_amount ) as loan_request_amount_thai
+    , pka_com_function.fp_get_moneythai((sc_lon_m_loan_request.loan_request_amount)::double precision) as loan_request_amount_thai
     , sc_lon_m_loan_request.last_payment_amount
-    , pka_com_function.fp_get_moneythai( sc_lon_m_loan_request.last_payment_amount ) as last_payment_amount_thai
+    , pka_com_function.fp_get_moneythai((sc_lon_m_loan_request.last_payment_amount)::double precision) as last_payment_amount_thai
     , sc_lon_m_loan_request.loan_type
     
     ,(select sc_hr_off_member.official_type from sc_hr_off_member where sc_hr_off_member.membership_no = sc_mem_m_membership_registered.membership_no) as official_type
@@ -41,8 +41,8 @@
     ,sc_cnt_m_coop.coop_name
     ,(select sc_mem_m_member_work_info.work_telephone from sc_mem_m_member_work_info where sc_mem_m_member_work_info.membership_no = sc_lon_m_loan_request.membership_no ) as work_telephone
     ,(select pka_com_function.fp_get_province_name(sc_mem_m_member_work_info.work_province_code) from sc_mem_m_member_work_info where sc_mem_m_member_work_info.membership_no = sc_lon_m_loan_request.membership_no) as work_province_name
-    ,pka_com_function.fp_get_thaidate(sysdate, 'DD/MM/YYYY') as book_date
-    ,pka_com_function.fp_get_thaidate(sysdate, 'DD MONTH YYYY') as book_date_th
+    ,pka_com_function.fp_get_thaidate(current_date, 'DD/MM/YYYY') as book_date
+    ,pka_com_function.fp_get_thaidate(current_date, 'DD MONTH YYYY') as book_date_th
     ,pka_insure_paysrv.fp_get_insure_approve (sc_mem_m_membership_registered.membership_no )  as insurance_pay --ค่าเบี้ยประกัน
     
     --หักบัญชีเงินฝาก
@@ -51,8 +51,8 @@
     
     ,sc_lon_m_loan_request_mpaid.type_pay_money --ประเภทรับเงิน
     ,pka_com_function.fp_form(sc_lon_m_loan_request_mpaid.bank_acc_no,'XXX-X-XXXXX-X') as bank_acc_no --เลขที่บัญชี
-    ,to_snumber(sc_lon_m_loan_request_mpaid.paid_amount) as paid_amount --เงินรับจริง
-    ,pka_com_function.fp_get_moneythai(sc_lon_m_loan_request_mpaid.paid_amount)as paid_amount_thai
+    ,to_snumber((sc_lon_m_loan_request_mpaid.paid_amount)::bigint) as paid_amount --เงินรับจริง
+    ,pka_com_function.fp_get_moneythai((sc_lon_m_loan_request_mpaid.paid_amount)::double precision)as paid_amount_thai
     
     --หุ้น
     ,sc_mem_m_share_mem.share_stock --มูลค่าหุ้น
@@ -67,8 +67,8 @@
     ,pka_com_function.fp_get_district_name(sc_mem_m_member_address.province_code,sc_mem_m_member_address.district_code) as district_name
     ,pka_com_function.fp_get_province_name(sc_mem_m_member_address.province_code) as province_name
     ,sc_mem_m_member_address.postcode
-    ,pka_com_function.fp_get_member_address_line(sc_lon_m_loan_request.membership_no,0) as mem_address
-    ,pka_com_function.fp_get_member_address_tel(sc_mem_m_membership_registered.membership_no, 0) as telephone 
+    ,pka_com_function.fp_get_member_address_line(sc_lon_m_loan_request.membership_no,(0)::text) as mem_address
+    ,pka_com_function.fp_get_member_address_tel(sc_mem_m_membership_registered.membership_no,(0)::text) as telephone 
     
     --หุ้นค้ำ
     ,(select collateral_type_code from sc_lon_m_req_coll where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no and collateral_type_code = '02') as share_coll
@@ -76,7 +76,7 @@
     --เงินฝากค้ำ
     ,(select ref_own_no from sc_lon_m_req_coll where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no and collateral_type_code ='03') as dep_coll_no
     ,(select collateral_description from sc_lon_m_req_coll where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no and collateral_type_code ='03') as dep_coll_name
-    ,nvl((select req_amount from sc_lon_m_req_coll where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no and collateral_type_code ='03'),0) as dep_coll_amount
+    ,coalesce((select req_amount from sc_lon_m_req_coll where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no and collateral_type_code ='03'),0) as dep_coll_amount
     
     --จำนองอสังหาริมทรัพย์
     ,(select collateral_description from sc_lon_m_req_coll where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no and collateral_type_code ='04') as land_coll_name

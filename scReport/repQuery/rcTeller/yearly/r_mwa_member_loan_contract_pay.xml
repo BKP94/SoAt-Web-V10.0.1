@@ -23,8 +23,8 @@
     ,pka_com_function.fp_get_thaidate(pka_lon_reqsrv.fp_calc_member_retire(sc_mem_m_membership_registered.membership_no,sc_mem_m_membership_registered.date_of_birth,60), 'YYYY') as retire_year
 
     ,case
-    when sc_lon_m_contract.loan_payment_type_code = 01 then 'คงต้น'
-    when sc_lon_m_contract.loan_payment_type_code = 02 then 'คงยอด'
+    when sc_lon_m_contract.loan_payment_type_code = '01' then 'คงต้น'
+    when sc_lon_m_contract.loan_payment_type_code = '02' then 'คงยอด'
     else null
     end loan_payment_type_desc
 
@@ -70,7 +70,7 @@
     and sc_lon_m_loan_request_mpaid.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
     ) as bank_name
     
-    ,nvl((select sc_lon_m_loan_request_mpaid.type_pay_money            
+    ,coalesce((select sc_lon_m_loan_request_mpaid.type_pay_money            
     from sc_lon_m_loan_request_mpaid
     where sc_lon_m_loan_request_mpaid.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
     ),'null') as type_pay_money

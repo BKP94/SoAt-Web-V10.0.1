@@ -26,7 +26,7 @@
     ,'!meet_1!' as meet
     ,'!years_1!' as years
     , PKA_COM_FUNCTION.fp_get_thaidate( '!meet_date_1!' , 'SD  MONTH  YYYY' ) as meet_date
-    ,PKA_COM_FUNCTION.fp_get_month_name('!month_1!') as month
+    ,PKA_COM_FUNCTION.fp_get_month_name(('!month_1!')::int) as month
     --    , sc_mem_m_member_address.postcode as post_code
     FROM sc_mem_m_application_form
     ,sc_mem_m_ucf_member_group

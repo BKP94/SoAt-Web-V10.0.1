@@ -24,9 +24,9 @@
     and	( sc_lon_m_contract_coll.collateral_type_code	 = 	'01'	)
     ) as count_mem_coll
     ,sc_mem_m_membership_registered.member_group_no
-    ,to_snumber ( pka_com_function.fp_get_member_sharestock(sc_mem_m_membership_registered.membership_no)) as share_stock
-    ,to_snumber ( pka_com_function.fp_lon_get_balance_atdate(sc_mem_m_membership_registered.membership_no,'2',sysdate)) as balance_norn
-    ,to_snumber ( pka_com_function.fp_lon_get_balance_atdate(sc_mem_m_membership_registered.membership_no,'9',sysdate)) as balance_emer
+    ,to_snumber((pka_com_function.fp_get_member_sharestock(sc_mem_m_membership_registered.membership_no))::bigint) as share_stock
+    ,to_snumber((pka_com_function.fp_lon_get_balance_atdate(sc_mem_m_membership_registered.membership_no,'2',current_date))::bigint) as balance_norn
+    ,to_snumber((pka_com_function.fp_lon_get_balance_atdate(sc_mem_m_membership_registered.membership_no,'9',current_date))::bigint) as balance_emer
     ,substr(sc_mem_m_membership_registered.member_group_no,0,3)||'-'||substr(sc_mem_m_membership_registered.member_group_no,4,6)||'-'||sc_mem_m_membership_registered.membership_no as memno
     ,(select prename from sc_mem_m_ucf_prename where prename_code = sc_mem_m_membership_registered.prename_code)||sc_mem_m_membership_registered.member_name||' '||sc_mem_m_membership_registered.member_surname as member_name
     ,pka_com_function.fp_get_thaidate('!sysdate_1!' , 'SD MONTH YYYY') as sysdate_tdate

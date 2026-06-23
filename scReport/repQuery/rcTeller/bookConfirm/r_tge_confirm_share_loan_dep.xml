@@ -6,7 +6,7 @@
   </arg>
   <combo />
   <sql>select sum(tab.row_memno)over(order by tab.member_group_no , tab.membership_no ) as rowno,  tab.*
-from (  SELECT 	decode(lag(sc_cls_confirm_mem.membership_no,1,null)over( order by sc_mem_m_ucf_member_group.member_group_no , sc_cls_confirm_mem.membership_no ) ,sc_cls_confirm_mem.membership_no ,0,1 ) as row_memno
+from (  SELECT 	(CASE lag(sc_cls_confirm_mem.membership_no,1,null)over( order by sc_mem_m_ucf_member_group.member_group_no , sc_cls_confirm_mem.membership_no ) WHEN sc_cls_confirm_mem.membership_no THEN 0 ELSE 1 END) as row_memno
 ,       sc_mem_m_ucf_member_group.member_group_no
 ,       sc_mem_m_ucf_member_group.member_group_name
 ,       sc_cls_confirm_mem.membership_no
@@ -16,7 +16,7 @@ from (  SELECT 	decode(lag(sc_cls_confirm_mem.membership_no,1,null)over( order b
 ,       extract(year from sc_cls_confirm_data.confirm_date)+543 as confirm_year
 ,       sc_cls_confirm_data.confirm_date
 
-,       (select nvl(sum(data_balance),0)
+,       (select coalesce(sum(data_balance),0)
         from    sc_cls_confirm_data tab
         ,       sc_lon_m_rule
         where   membership_no = sc_cls_confirm_data.membership_no
@@ -27,7 +27,7 @@ from (  SELECT 	decode(lag(sc_cls_confirm_mem.membership_no,1,null)over( order b
         and     data_balance &gt; '0'
         ) as sum_emer
 
-,       (select nvl(sum(data_balance),0)
+,       (select coalesce(sum(data_balance),0)
         from    sc_cls_confirm_data tab
         ,       sc_lon_m_rule
         where   membership_no = sc_cls_confirm_data.membership_no
@@ -38,7 +38,7 @@ from (  SELECT 	decode(lag(sc_cls_confirm_mem.membership_no,1,null)over( order b
         and     data_balance &gt; '0'
         ) as sum_norm
 
-,       (select nvl(sum(data_balance),0)
+,       (select coalesce(sum(data_balance),0)
         from    sc_cls_confirm_data tab
         ,       sc_lon_m_rule
         where   membership_no = sc_cls_confirm_data.membership_no
@@ -49,7 +49,7 @@ from (  SELECT 	decode(lag(sc_cls_confirm_mem.membership_no,1,null)over( order b
         and     data_balance &gt; '0'
         ) as sum_spec
 
-,       (select nvl(sum(data_balance),0)
+,       (select coalesce(sum(data_balance),0)
         from    sc_cls_confirm_data tab
         ,       sc_lon_m_rule
         where   membership_no = sc_cls_confirm_data.membership_no
@@ -60,7 +60,7 @@ from (  SELECT 	decode(lag(sc_cls_confirm_mem.membership_no,1,null)over( order b
         and     data_balance &gt; '0'
         ) as sum_krongkarn
 
-,       (select nvl(sum(data_balance),0)
+,       (select coalesce(sum(data_balance),0)
         from    sc_cls_confirm_data tab
         where   membership_no = sc_cls_confirm_data.membership_no
         and     confirm_date = sc_cls_confirm_data.confirm_date
@@ -68,7 +68,7 @@ from (  SELECT 	decode(lag(sc_cls_confirm_mem.membership_no,1,null)over( order b
         and     data_balance &gt; '0'
         ) as sum_all_loan
 
-,       (select nvl(sum(data_balance),0)
+,       (select coalesce(sum(data_balance),0)
         from    sc_cls_confirm_data tab
         where   membership_no = sc_cls_confirm_data.membership_no
         and     confirm_date = sc_cls_confirm_data.confirm_date
@@ -77,7 +77,7 @@ from (  SELECT 	decode(lag(sc_cls_confirm_mem.membership_no,1,null)over( order b
         and     data_balance &gt; '0'
         ) as sum_dep_00
 
-,       (select nvl(sum(data_balance),0)
+,       (select coalesce(sum(data_balance),0)
         from    sc_cls_confirm_data tab
         where   membership_no = sc_cls_confirm_data.membership_no
         and     confirm_date = sc_cls_confirm_data.confirm_date
@@ -86,7 +86,7 @@ from (  SELECT 	decode(lag(sc_cls_confirm_mem.membership_no,1,null)over( order b
         and     data_balance &gt; '0'
         ) as sum_dep_12
 
-,       (select nvl(sum(data_balance),0)
+,       (select coalesce(sum(data_balance),0)
         from    sc_cls_confirm_data tab
         where   membership_no = sc_cls_confirm_data.membership_no
         and     confirm_date = sc_cls_confirm_data.confirm_date
@@ -95,7 +95,7 @@ from (  SELECT 	decode(lag(sc_cls_confirm_mem.membership_no,1,null)over( order b
         and     data_balance &gt; '0'
         ) as sum_dep_40
 
-,       (select nvl(sum(data_balance),0)
+,       (select coalesce(sum(data_balance),0)
         from    sc_cls_confirm_data tab
         where   membership_no = sc_cls_confirm_data.membership_no
         and     confirm_date = sc_cls_confirm_data.confirm_date
@@ -104,7 +104,7 @@ from (  SELECT 	decode(lag(sc_cls_confirm_mem.membership_no,1,null)over( order b
         and     data_balance &gt; '0'
         ) as sum_dep_50
 
-,       (select nvl(sum(data_balance),0)
+,       (select coalesce(sum(data_balance),0)
         from    sc_cls_confirm_data tab
         where   membership_no = sc_cls_confirm_data.membership_no
         and     confirm_date = sc_cls_confirm_data.confirm_date
@@ -113,7 +113,7 @@ from (  SELECT 	decode(lag(sc_cls_confirm_mem.membership_no,1,null)over( order b
         and     data_balance &gt; '0'
         ) as sum_dep_60
 
-,       (select nvl(sum(data_balance),0)
+,       (select coalesce(sum(data_balance),0)
         from    sc_cls_confirm_data tab
         where   membership_no = sc_cls_confirm_data.membership_no
         and     confirm_date = sc_cls_confirm_data.confirm_date
@@ -122,7 +122,7 @@ from (  SELECT 	decode(lag(sc_cls_confirm_mem.membership_no,1,null)over( order b
         and     data_balance &gt; '0'
         ) as sum_dep_61
 
-,       (select nvl(sum(data_balance),0)
+,       (select coalesce(sum(data_balance),0)
         from    sc_cls_confirm_data tab
         where   membership_no = sc_cls_confirm_data.membership_no
         and     confirm_date = sc_cls_confirm_data.confirm_date
@@ -216,7 +216,7 @@ order by membership_no , seq_no</sql>
     </r_tge_confirm_share_loan_dep_nest_krongkarn>
     <r_tge_confirm_share_loan_dep_nest_dep>
       <sql>select  data_refno
-,       to_snumber(data_balance) as data_balance
+,       to_snumber((data_balance)::bigint) as data_balance
 ,       data_type
 from    sc_cls_confirm_data 
 where   1=1

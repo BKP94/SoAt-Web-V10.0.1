@@ -11,7 +11,7 @@
         sc_mem_m_membership_registered.membership_no,
         sc_mem_m_membership_registered.member_group_no,
         sc_mem_m_ucf_member_group.member_group_name,
-        pka_com_function.fp_get_thaidate(sysdate , 'SD MONTH YYYY') as sysdate_tdate,
+        pka_com_function.fp_get_thaidate(current_date , 'SD MONTH YYYY') as sysdate_tdate,
         (select coop_name from sc_cnt_m_coop) as coop_name,
         sc_mem_m_share_mem.share_stock
         FROM sc_mem_m_membership_registered,
@@ -30,7 +30,7 @@
     <r_ktm_book_assure_format02_nest>
       <sql>
           SELECT sc_lon_m_loan_card.principal_balance, sc_lon_m_loan_card.membership_no ,
-          pka_com_function.fp_get_moneythai (sc_lon_m_loan_card.principal_balance) as thai_principal_balance,
+          pka_com_function.fp_get_moneythai ((sc_lon_m_loan_card.principal_balance)::double precision) as thai_principal_balance,
           sc_lon_m_loan_card.loan_contract_no
           FROM sc_lon_m_loan_card
           WHERE ( sc_lon_m_loan_card.membership_no = {0} ) AND
@@ -40,7 +40,7 @@
     <r_ktm_book_assure_format02_nest2>
       <sql>
           SELECT sc_dep_m_creditor.deposit_account_no,  sc_dep_m_creditor.membership_no,
-          pka_com_function.fp_get_moneythai (sc_dep_m_creditor.deposit_account_no) as thai_deposit_account_no,
+          pka_com_function.fp_get_moneythai ((sc_dep_m_creditor.deposit_account_no)::double precision) as thai_deposit_account_no,
           sc_dep_m_creditor.deposit_account_name,
           sc_dep_m_creditor.deposit_balance
           FROM sc_dep_m_creditor

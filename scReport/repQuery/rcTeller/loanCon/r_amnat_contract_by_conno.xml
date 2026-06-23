@@ -14,7 +14,7 @@
     extract ( year from ( sc_lon_m_contract.begining_of_contract )  ) + 543 as begin_year,
     pka_com_function.fp_get_member_name(  sc_lon_m_contract.membership_no) as memname,
     sc_lon_m_contract.membership_no  ,
-    to_number(to_char( sc_lon_m_contract.begining_of_contract,'yyyy')) - to_number(to_char( sc_mem_m_membership_registered.date_of_birth  ,'yyyy')) as mem_age,
+    ((to_char( sc_lon_m_contract.begining_of_contract,'yyyy'))::numeric) - ((to_char( sc_mem_m_membership_registered.date_of_birth  ,'yyyy'))::numeric) as mem_age,
     sc_mem_m_member_work_info.position_long,
     sc_mem_m_ucf_member_group.member_group_name,
     pka_com_function.fp_get_district_name(  sc_mem_m_ucf_member_group_addr.province_code  , sc_mem_m_ucf_member_group_addr.district_code ) as group_distinct,
@@ -26,42 +26,36 @@
     pka_com_function.fp_get_district_name(  sc_mem_m_member_address.province_code  , sc_mem_m_member_address.district_code ) as add_distinct,
     pka_com_function.fp_get_province_name(  sc_mem_m_member_address.province_code  ) as add_province,
     sc_lon_m_contract.loan_approve_amount,
-    pka_com_function.fp_get_moneythai( sc_lon_m_contract.loan_approve_amount ) as loan_approve_amount_thai,
+    pka_com_function.fp_get_moneythai((sc_lon_m_contract.loan_approve_amount)::double precision) as loan_approve_amount_thai,
     F_LON_GET_INTRATE ( sc_lon_m_contract.loan_type , sc_lon_m_contract.begining_of_contract )  as loan_int_rate,
     sc_lon_m_contract.period_payment_amount,
-    pka_com_function.fp_get_moneythai( sc_lon_m_contract.period_payment_amount ) as period_payment_amount_thai,
+    pka_com_function.fp_get_moneythai((sc_lon_m_contract.period_payment_amount)::double precision) as period_payment_amount_thai,
     sc_lon_m_contract.loan_installment_amount,
     pka_com_function.fp_get_thaidate(  sc_lon_m_contract.start_keep_date  , 'MONTH') as start_keep_month,
     extract ( year from ( sc_lon_m_contract.start_keep_date )  ) + 543 as start_keep_year,
     sc_mem_m_ucf_member_group.manager_name as group_manager_name,
     sc_cnt_m_coop.president_name,
     
-    decode( sc_lon_m_contract.loan_type , 'ส' , sc_cnt_m_coop.assit_manager , sc_cnt_m_coop.manager_name ) as  manager_name,
+    (CASE sc_lon_m_contract.loan_type WHEN 'ส' THEN sc_cnt_m_coop.assit_manager ELSE sc_cnt_m_coop.manager_name END) as  manager_name,
     
-    decode(  sc_mem_m_membership_registered.marriage_status
-    , '1' , ( select prename || spouse_name || '  ' || spouse_surname
+    (CASE sc_mem_m_membership_registered.marriage_status WHEN '1' THEN ( select prename || spouse_name || '  ' || spouse_surname
     from sc_mem_m_member_spouse_info
     ,sc_mem_m_ucf_prename
     where 1=1
     and sc_mem_m_ucf_prename.prename_code = sc_mem_m_member_spouse_info.prename_code
-    and sc_mem_m_member_spouse_info.membership_no = sc_mem_m_membership_registered.membership_no )
-    , sc_mem_m_ucf_marriage_status.marriage_status ) as spouse_name  ,
+    and sc_mem_m_member_spouse_info.membership_no = sc_mem_m_membership_registered.membership_no ) ELSE sc_mem_m_ucf_marriage_status.marriage_status END) as spouse_name  ,
 
-    decode(  sc_mem_m_membership_registered.marriage_status
-    , '1' , ( select sc_mem_m_ucf_ocupation.occupation_description
+    (CASE sc_mem_m_membership_registered.marriage_status WHEN '1' THEN ( select sc_mem_m_ucf_ocupation.occupation_description
     from sc_mem_m_member_spouse_info
     ,sc_mem_m_ucf_ocupation
     where 1=1
     and sc_mem_m_ucf_ocupation.occupation_code = sc_mem_m_member_spouse_info.occupation_code
-    and sc_mem_m_member_spouse_info.membership_no = sc_mem_m_membership_registered.membership_no )
-    , '' ) as spouse_occupation  ,
+    and sc_mem_m_member_spouse_info.membership_no = sc_mem_m_membership_registered.membership_no ) ELSE '' END) as spouse_occupation  ,
 
-    decode(  sc_mem_m_membership_registered.marriage_status
-    , '1' , ( select salary_amount
+    (CASE sc_mem_m_membership_registered.marriage_status WHEN '1' THEN ( select salary_amount
     from sc_mem_m_member_spouse_info
     where 1=1
-    and sc_mem_m_member_spouse_info.membership_no = sc_mem_m_membership_registered.membership_no )
-    , 0 ) as spouse_salary ,
+    and sc_mem_m_member_spouse_info.membership_no = sc_mem_m_membership_registered.membership_no ) ELSE 0 END) as spouse_salary ,
 
     si_security_user.user_name
 

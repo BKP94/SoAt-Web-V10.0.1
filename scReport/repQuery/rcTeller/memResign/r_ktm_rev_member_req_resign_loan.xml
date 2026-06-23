@@ -31,10 +31,10 @@
     sc_com_m_branch.branch_id,
     sc_com_m_branch.branch_name
 
-    , (   		SELECT nvl(sum( sc_mem_m_resign_loan.principal_balance ),0)
+    , (   		SELECT coalesce(sum( sc_mem_m_resign_loan.principal_balance ),0)
     FROM 	sc_mem_m_resign_loan
     WHERE	( sc_mem_m_resign_loan.resign_doc_no =  sc_mem_m_resign_requestment.resign_doc_no )  ) as loan_bal
-    , (   		SELECT nvl(sum( sc_mem_m_resign_dep.dep_balance ),0)
+    , (   		SELECT coalesce(sum( sc_mem_m_resign_dep.dep_balance ),0)
     FROM 	sc_mem_m_resign_dep
     WHERE	( sc_mem_m_resign_dep.resign_doc_no =  sc_mem_m_resign_requestment.resign_doc_no )    ) as dep_bal
 
@@ -49,7 +49,7 @@
     ( sc_mem_m_resign_requestment.entry_br = sc_com_m_branch.branch_id )    and
     (sc_mem_m_resign_requestment.cancel_status = '0')
 
-    /*and sc_mem_m_resign_share.shr_value &lt;  (   SELECT nvl(sum( sc_mem_m_resign_loan.principal_balance ),0)
+    /*and sc_mem_m_resign_share.shr_value &lt;  (   SELECT coalesce(sum( sc_mem_m_resign_loan.principal_balance ),0)
     FROM 	sc_mem_m_resign_loan
     WHERE	( sc_mem_m_resign_share.resign_doc_no = sc_mem_m_resign_loan.resign_doc_no )
     or sc_mem_m_ucf_resign_cause.resign_cause_code = '01'					)*/

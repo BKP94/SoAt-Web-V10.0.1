@@ -42,25 +42,25 @@ and sc_hr_ucf_official_position.approve_loan_status = '1'</combo_approve_name>
     ,( select sc_lon_m_rule.loan_type_description from sc_lon_m_rule where sc_lon_m_loan_request.loan_type = sc_lon_m_rule.loan_type ) as loan_type_description
     ,sc_lon_m_loan_request_mpaid.paid_amount
     
-    ,nvl(( select sum(principal_balance_of_loan)
+    ,coalesce(( select sum(principal_balance_of_loan)
        from sc_lon_m_loan_history
        where sc_lon_m_loan_history.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
        and   (sc_lon_m_loan_history.clear_target = '1' or sc_lon_m_loan_history.clear_focus = '1')
      ),0) as principal_amount
      
-    ,nvl(( select sum(interest_amount)
+    ,coalesce(( select sum(interest_amount)
        from sc_lon_m_loan_history
        where sc_lon_m_loan_history.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
        and   (sc_lon_m_loan_history.clear_target = '1' or sc_lon_m_loan_history.clear_focus = '1')
      ),0) as interest_amount
           
-     ,nvl(( select sum(principal_balance_of_loan + interest_amount)
+     ,coalesce(( select sum(principal_balance_of_loan + interest_amount)
        from sc_lon_m_loan_history
        where sc_lon_m_loan_history.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
        and   (sc_lon_m_loan_history.clear_target = '1' or sc_lon_m_loan_history.clear_focus = '1')
      ),0) as total_clr
     
-,pka_com_function.fp_get_thaidate(sysdate,'DD MONTH YYYY') as  sysdate_tdate
+,pka_com_function.fp_get_thaidate(current_date,'DD MONTH YYYY') as  sysdate_tdate
 ,sc_lon_m_loan_request.cancel_status
 
 from sc_lon_m_loan_request

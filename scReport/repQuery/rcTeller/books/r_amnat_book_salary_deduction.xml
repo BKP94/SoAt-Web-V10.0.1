@@ -15,7 +15,7 @@
     pka_com_function.fp_get_user_name(sc_mem_m_resign_requestment.entry_id) as user_name,
     sc_cnt_m_coop.manager_name,
     sc_cnt_m_coop.coop_name,
-     pka_com_function.fp_get_thaidate(sysdate , 'SD MONTH YYYY') as sysdate_tdate
+     pka_com_function.fp_get_thaidate(current_date , 'SD MONTH YYYY') as sysdate_tdate
 
     FROM  sc_mem_m_resign_requestment,
     sc_mem_m_resign_share,

@@ -1,0 +1,97 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <monthly_date text="ณ วันที่" table="sc_cls_mon_dep" type="date" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select sc_cls_mon_dep.monthly_date
+,sc_dep_m_rule.deposit_type_code
+,sc_dep_m_rule.deposit_name
+
+,( select count( 1 )
+	from sc_cls_mon_dep_accno
+	where sc_cls_mon_dep_accno.monthly_date = PKA_SRV_DATETIME.fp_RelativeMonth(   sc_cls_mon_dep.monthly_date    , -1 )
+   and   sc_cls_mon_dep_accno.deposit_type_code = sc_dep_m_rule.deposit_type_code 
+ )   as count_bf
+
+,( select sum( deposit_balance )
+	from sc_cls_mon_dep_accno
+	where sc_cls_mon_dep_accno.monthly_date = PKA_SRV_DATETIME.fp_RelativeMonth(   sc_cls_mon_dep.monthly_date    , -1 )
+   and   sc_cls_mon_dep_accno.deposit_type_code = sc_dep_m_rule.deposit_type_code 
+ )  as bal_bf
+
+
+, ( select count( 1 )
+from sc_dep_t_deposit_slip
+,sc_dep_m_creditor
+where  sc_dep_t_deposit_slip.account_no = sc_dep_m_creditor.deposit_account_no 
+and cancel_status = '0' 
+and deposit_slip_type in ('OCA','DEP')
+and operate_date between PKA_SRV_DATETIME.fp_FirstDayOfMonth(   sc_cls_mon_dep.monthly_date::date  )  and sc_cls_mon_dep.monthly_date
+and sc_dep_m_creditor.deposit_type_code = sc_dep_m_rule.deposit_type_code 
+) as count_dep
+
+
+,coalesce( (  select sum( sc_dep_m_creditor_item.deposit_balance )
+from sc_dep_m_creditor_item
+, sc_dep_m_ucf_dep_item_type
+,sc_dep_m_creditor
+where sc_dep_m_creditor.deposit_account_no  = sc_dep_m_creditor_item.deposit_account_no
+and sc_dep_m_ucf_dep_item_type.deposit_item_type = sc_dep_m_creditor_item.item_type
+and sc_dep_m_ucf_dep_item_type.sign_flag =  1
+and sc_dep_m_creditor_item.working_day between PKA_SRV_DATETIME.fp_FirstDayOfMonth(   sc_cls_mon_dep.monthly_date::date  )  and sc_cls_mon_dep.monthly_date
+and sc_dep_m_creditor.deposit_type_code = sc_dep_m_rule.deposit_type_code 
+) , 0 ) as bal_dep
+
+, ( select count( 1 )
+from sc_dep_t_deposit_slip
+,sc_dep_m_creditor
+where  sc_dep_t_deposit_slip.account_no = sc_dep_m_creditor.deposit_account_no 
+and cancel_status = '0' 
+and deposit_slip_type not  in ('OCA','DEP')
+and operate_date between PKA_SRV_DATETIME.fp_FirstDayOfMonth(   sc_cls_mon_dep.monthly_date::date  )  and sc_cls_mon_dep.monthly_date
+and sc_dep_m_creditor.deposit_type_code = sc_dep_m_rule.deposit_type_code 
+) as count_withdraw
+
+,coalesce( (  select sum( sc_dep_m_creditor_item.deposit_balance )
+from sc_dep_m_creditor_item
+, sc_dep_m_ucf_dep_item_type
+,sc_dep_m_creditor
+where sc_dep_m_creditor.deposit_account_no  = sc_dep_m_creditor_item.deposit_account_no
+and sc_dep_m_ucf_dep_item_type.deposit_item_type = sc_dep_m_creditor_item.item_type
+and sc_dep_m_ucf_dep_item_type.sign_flag =  -1
+and sc_dep_m_creditor_item.working_day between PKA_SRV_DATETIME.fp_FirstDayOfMonth(   sc_cls_mon_dep.monthly_date::date  )  and sc_cls_mon_dep.monthly_date
+and sc_dep_m_creditor.deposit_type_code = sc_dep_m_rule.deposit_type_code 
+) , 0 )   as bal_withdraw
+
+,count( 1 ) as count_fw
+,sum( deposit_balance )  as bal_fw
+
+, ( select interest_rate
+from sc_dep_m_int_step_rate
+where deposit_type_code =  sc_dep_m_rule.deposit_type_code 
+and interest_rate &gt; 0 
+and effective_date = ( select max(effective_date )
+							from sc_dep_m_int_step_rate
+							where deposit_type_code =   sc_dep_m_rule.deposit_type_code 
+							and interest_rate &gt; 0   )
+) as int_rate 
+
+from sc_cls_mon_dep
+,sc_cls_mon_dep_accno
+,sc_dep_m_rule
+where 1=1
+and sc_cls_mon_dep.monthly_date = sc_cls_mon_dep_accno.monthly_date
+and sc_dep_m_rule.deposit_type_code = sc_cls_mon_dep_accno.deposit_type_code
+and sc_dep_m_rule.cat_id = '0'  -- บัญชีเงินของสมาชิก  
+/*WHERE*/
+--and sc_cls_mon_dep.monthly_date = '31/7/2019'
+
+group by sc_cls_mon_dep.monthly_date
+,sc_dep_m_rule.deposit_type_code
+,sc_dep_m_rule.deposit_name
+
+order by sc_dep_m_rule.deposit_type_code 
+ </sql>
+  <sub />
+</root>

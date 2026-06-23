@@ -29,7 +29,7 @@
 ,       pka_com_function.fp_get_thaidate( sc_cls_confirm_data.confirm_date , 'SD MONTH YYYY' ) as confirm_tdate
 ,       sc_cls_confirm_data.data_group
 ,       sc_cls_confirm_data.data_type
-,       pka_com_function.fp_get_thaidate( sysdate , 'SD MONTH พ.ศ.YYYY' ) as book_tdate
+,       pka_com_function.fp_get_thaidate( current_date , 'SD MONTH พ.ศ.YYYY' ) as book_tdate
 ,       '!book_no!' as book_no
 ,       (select coop_name from sc_cnt_m_coop) as coop_name
 ,       (select manager_name from sc_cnt_m_coop) as manager_name

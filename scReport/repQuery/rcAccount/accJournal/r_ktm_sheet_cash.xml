@@ -1,0 +1,90 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <journal_date text="ประจำวันที่" table="sc_fin_m_close_day" type="date" column="journal_date" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_cnt_m_coop.coop_name
+
+    ,sc_fin_m_close_day.journal_date
+    ,pka_com_function.fp_get_thaidate( sc_fin_m_close_day.journal_date,'SD MONTH YYYY') as journal_tdate
+    FROM sc_cnt_m_coop
+    , sc_fin_m_close_day
+    WHERE  sc_fin_m_close_day.close_status = '1'
+    and      sc_fin_m_close_day.branch_fin = '01'
+    and 	sc_fin_m_close_day.journal_date  in ( select   journal_date  from  sc_acc_journal_heading_firm  where cancel_status = '0'  and doc_type &lt;&gt; 'JV'  )
+    /*WHERE*/
+  </sql>
+  <sub>
+    <r_ktm_sheet_cash_nest_dr>
+      <sql>        SELECT sc_acc_journal_detail_firm.account_id,
+        sc_acc_m_account_master.account_name,
+        sum( sc_acc_journal_detail_firm.dr_amount) as dr_amount
+        FROM sc_acc_journal_detail_firm,
+        sc_acc_m_account_constant,
+        sc_acc_journal_heading_firm ,
+        sc_acc_m_account_master
+        WHERE ( sc_acc_journal_detail_firm.doc_type = sc_acc_journal_heading_firm.doc_type ) and
+        ( sc_acc_journal_detail_firm.doc_no = sc_acc_journal_heading_firm.doc_no ) and
+        ( sc_acc_journal_detail_firm.journal_date = sc_acc_journal_heading_firm.journal_date ) and
+        ( sc_acc_journal_detail_firm.branch_id = sc_acc_journal_heading_firm.branch_id ) and
+        ( ( sc_acc_journal_detail_firm.journal_date = {0}) AND
+        ( sc_acc_journal_detail_firm.dr_amount &gt; 0 ) AND
+        ( sc_acc_journal_detail_firm.account_id &lt;&gt; sc_acc_m_account_constant.cash_account_code ) AND
+        ( sc_acc_journal_detail_firm.doc_type &lt;&gt; 'JV' ) AND
+        ( sc_acc_journal_heading_firm.cancel_status = '0' ) )   and
+        ( sc_acc_m_account_master.account_id = sc_acc_journal_detail_firm.account_id)
+        GROUP BY sc_acc_journal_detail_firm.account_id,      
+        sc_acc_m_account_master.account_name
+order by sc_acc_journal_detail_firm.account_id
+      </sql>
+    </r_ktm_sheet_cash_nest_dr>
+    <r_ktm_sheet_cash_nest_cr>
+      <sql>        SELECT sc_acc_journal_detail_firm.account_id,
+        sc_acc_m_account_master.account_name,
+        sum( sc_acc_journal_detail_firm.cr_amount) as cr_amount
+        FROM sc_acc_journal_detail_firm,
+        sc_acc_m_account_constant,
+        sc_acc_journal_heading_firm  ,
+        sc_acc_m_account_master
+        WHERE ( sc_acc_journal_detail_firm.doc_type = sc_acc_journal_heading_firm.doc_type ) and
+        ( sc_acc_journal_detail_firm.doc_no = sc_acc_journal_heading_firm.doc_no ) and
+        ( sc_acc_journal_detail_firm.journal_date = sc_acc_journal_heading_firm.journal_date ) and
+        ( sc_acc_journal_detail_firm.branch_id = sc_acc_journal_heading_firm.branch_id ) and
+        ( ( sc_acc_journal_detail_firm.journal_date = {0} ) AND
+        ( sc_acc_journal_detail_firm.cr_amount &gt; 0 ) AND
+        ( sc_acc_journal_detail_firm.account_id &lt;&gt; sc_acc_m_account_constant.cash_account_code ) AND
+        ( sc_acc_journal_detail_firm.doc_type &lt;&gt; 'JV' ) AND
+        ( sc_acc_journal_heading_firm.cancel_status = '0' ) ) and
+        ( sc_acc_m_account_master.account_id = sc_acc_journal_detail_firm.account_id)
+        GROUP BY sc_acc_journal_detail_firm.account_id,      
+        sc_acc_m_account_master.account_name
+order by sc_acc_journal_detail_firm.account_id
+      </sql>
+    </r_ktm_sheet_cash_nest_cr>
+    <r_ktm_sheet_cash_nest_footer>
+      <sql>
+        SELECT sum( sc_acc_journal_detail_firm.cr_amount) as cr_amount,
+        sum( sc_acc_journal_detail_firm.dr_amount) as dr_amount,
+        sc_acc_m_account_constant.cash_account_code ,
+        ( SELECT sum( sc_fin_journal_head.balance_begin  )
+        FROM sc_fin_journal_head
+        WHERE sc_fin_journal_head.journal_date = sc_acc_journal_detail_firm.journal_date
+        ) as c_begin
+        FROM sc_acc_journal_detail_firm,
+        sc_acc_m_account_constant,
+        sc_acc_journal_heading_firm
+        WHERE ( sc_acc_journal_detail_firm.doc_type = sc_acc_journal_heading_firm.doc_type ) and
+        ( sc_acc_journal_detail_firm.doc_no = sc_acc_journal_heading_firm.doc_no ) and
+        ( sc_acc_journal_detail_firm.journal_date = sc_acc_journal_heading_firm.journal_date ) and
+        ( sc_acc_journal_detail_firm.branch_id = sc_acc_journal_heading_firm.branch_id ) and
+        ( ( sc_acc_journal_detail_firm.journal_date ={0} ) AND
+        ( sc_acc_journal_detail_firm.account_id &lt;&gt; sc_acc_m_account_constant.cash_account_code ) AND
+        ( sc_acc_journal_detail_firm.doc_type &lt;&gt; 'JV' ) AND
+        ( sc_acc_journal_heading_firm.cancel_status = '0' ) )
+        GROUP BY sc_acc_m_account_constant.cash_account_code   ,
+        sc_acc_journal_detail_firm.journal_date
+      </sql>
+    </r_ktm_sheet_cash_nest_footer>
+  </sub>
+</root>

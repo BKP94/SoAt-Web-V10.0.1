@@ -13,7 +13,7 @@
     ,pka_com_function.fp_get_thaidate( vr_loan_miss_lon.begining_of_contract , 'dd month yyyy') as begining_of_contract_tdate
     ,pka_com_function.fp_get_thaidate( vr_loan_miss_lon.last_access_date , 'dd month yyyy') as last_access_tdate
     ,pka_com_function.fp_get_thaidate( vr_loan_miss_lon.operate_date , 'SD MONTH YYYY') as operate_tdate
-    ,to_number('!day_cal!') as day_cal
+    ,(('!day_cal!')::numeric) as day_cal
     ,pka_com_function.fp_get_thaidate( '!operate_date!' - '!day_cal!' , 'MON YY')  as month_cal
 
     ,vr_loan_miss_lon.*

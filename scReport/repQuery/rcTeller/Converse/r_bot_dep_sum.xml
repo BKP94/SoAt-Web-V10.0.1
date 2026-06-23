@@ -6,7 +6,7 @@
   <sql>    SELECT sc_dep_m_rule.deposit_group_code,
     sc_dep_m_creditor.deposit_type_code,
     --(select last_close_day from sc_dep_m_constant ) as working_day ,
-    (select pka_com_function.fp_get_thaidate( sysdate , 'SD MONTH YYYY' ) from dual ) as working_tday ,
+    (select pka_com_function.fp_get_thaidate( current_date , 'SD MONTH YYYY' )  ) as working_tday ,
     sc_dep_m_rule.deposit_name,
     ( SELECT count( distinct sc_dep_m_creditor.membership_no )
     FROM sc_dep_m_creditor,

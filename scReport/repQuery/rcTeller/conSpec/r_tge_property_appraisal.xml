@@ -11,7 +11,7 @@
 ,       pka_com_function.fp_get_member_salary(sc_lon_req_coll_law_head.membership_no)as salary_amount
 ,       pka_com_function.fp_get_member_position_long(sc_lon_req_coll_law_head.membership_no)as position
 ,       pka_com_function.fp_get_group_name_mem(sc_lon_req_coll_law_head.membership_no)as group_name
-,       substr(pka_lon_reqsrv.fp_calc_agetext_m_live (sc_mem_m_membership_registered.membership_no),1,3) as age_live
+,       substr(pka_lon_reqsrv.fp_calc_agetext_m_live (sc_mem_m_membership_registered.membership_no)::text,1,3) as age_live
 ,       pka_com_function.fp_get_thaidate( sc_mem_m_membership_registered.date_of_birth  ) as date_of_birth
 ,       pka_com_function.fp_get_thaidate(pka_lon_reqsrv.fp_calc_member_retire(sc_mem_m_membership_registered.membership_no)) as retire_date
 ,       sc_mem_m_member_address.address_no
@@ -34,7 +34,7 @@
         where   membership_no = sc_mem_m_membership_registered.membership_no
         ) as spouse_member_no
         
-,       (select substr(pka_lon_reqsrv.fp_calc_install_m_live (date_of_birth)/12 ,1,2) 
+,       (select substr((pka_lon_reqsrv.fp_calc_install_m_live (date_of_birth)/12)::text ,1,2) 
         from    sc_mem_m_member_spouse_info 
         where   membership_no = sc_mem_m_membership_registered.membership_no
         ) as spouse_age
@@ -68,13 +68,13 @@
         /*ประวัติการส่งเงินสหกรณ์*/
 ,       pka_com_function.fp_get_member_sharestock(sc_lon_req_coll_law_head.membership_no)as share_stock
 
-,       (select nvl(sum(sc_lon_m_loan_history.principal_of_loan),0)
+,       (select coalesce(sum(sc_lon_m_loan_history.principal_of_loan),0)
         from   sc_lon_m_loan_history
         where  sc_lon_m_loan_history.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
         and    ( sc_lon_m_loan_history.clear_target = '1' or sc_lon_m_loan_history.clear_focus = '1')
         ) as deduct_norm
  
-,       (select nvl(sum(sc_lon_m_loan_history.principal_of_loan),0)
+,       (select coalesce(sum(sc_lon_m_loan_history.principal_of_loan),0)
         from   sc_lon_m_loan_history ,sc_lon_m_rule
         where  sc_lon_m_loan_history.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
         and    ( sc_lon_m_loan_history.clear_target = '1' or sc_lon_m_loan_history.clear_focus = '1')
@@ -82,7 +82,7 @@
         and    sc_lon_m_rule.account_id = '115140'  --หนี้โครงการ
         ) as deduct_krongkarn
 
-,       (select nvl(sum(sc_lon_m_loan_history.principal_of_loan),0)
+,       (select coalesce(sum(sc_lon_m_loan_history.principal_of_loan),0)
         from   sc_lon_m_loan_history ,sc_lon_m_rule
         where  sc_lon_m_loan_history.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
         and    ( sc_lon_m_loan_history.clear_target = '1' or sc_lon_m_loan_history.clear_focus = '1')
@@ -163,7 +163,7 @@
         where   doc_no = sc_lon_req_coll_law_head.doc_no
         ) as loan_building_amount
         
-,       (select nvl(sum(req_amount * 0.95),0)
+,       (select coalesce(sum(req_amount * 0.95),0)
         from    sc_lon_m_req_coll
         where   sc_lon_m_req_coll.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
         and     sc_lon_m_req_coll.collateral_type_code = '02' 
@@ -187,7 +187,7 @@
         )as type_pay_money
         
 ,       sc_lon_m_loan_request.loan_installment_amount
-,       to_snumber(sc_lon_m_loan_request.loan_installment_amount/12)as loan_installment_year
+,       to_snumber((sc_lon_m_loan_request.loan_installment_amount/12)::bigint)as loan_installment_year
 ,       sc_lon_m_loan_request.period_payment_amount
 ,       pka_lon_intsrv.fp_calint(null, sc_lon_m_loan_request.loan_type ,sc_lon_m_loan_request.loan_request_amount,sc_lon_m_loan_request.begining_of_contract,sc_lon_m_loan_request.start_keep_date, pka_lon_intsrv.fp_intrate_table_loantype( sc_lon_m_loan_request.loan_type , sc_lon_m_loan_request.begining_of_contract ) ,01,'1')  as interest_calculate
 ,       sc_lon_m_loan_request.monthshare

@@ -14,7 +14,7 @@
         ,sc_mem_m_chg_loan_det.loan_contract 
         ,sc_mem_m_chg_loan_det.pricipal 
         ,sc_mem_m_chg_loan_det.balance 
-        ,nvl(sc_mem_m_chg_loan_det.period_old,0) as period_old
+        ,coalesce(sc_mem_m_chg_loan_det.period_old,0) as period_old
         ,sc_mem_m_chg_loan_det.period_payment_old 
         ,sc_mem_m_chg_loan_det.period_payment_new 
         ,sc_mem_m_chg_loan_det.period_compomise 

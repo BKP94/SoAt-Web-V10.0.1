@@ -36,7 +36,7 @@
     sc_cnt_m_coop.telephone_no ,
     sc_cnt_m_coop.postcode ,
     sc_cnt_m_coop.fax_no,
-    pka_com_function.fp_get_thaidate(sysdate , 'SD MONTH YYYY') as sysdate_tdate
+    pka_com_function.fp_get_thaidate(current_date , 'SD MONTH YYYY') as sysdate_tdate
 
 
 

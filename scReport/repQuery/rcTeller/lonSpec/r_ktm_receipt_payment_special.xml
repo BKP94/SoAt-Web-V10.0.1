@@ -9,7 +9,7 @@
     ,pka_com_function.fp_get_member_name(membership_no) as member_name
     ,pka_com_function.fp_get_member_group(membership_no) as member_group_no
     ,pka_com_function.fp_get_group_name_mem(membership_no) as member_group_name
-    ,pka_com_function.fp_shr_get_balance_atdate(membership_no,sysdate) as share_stock
+    ,pka_com_function.fp_shr_get_balance_atdate(membership_no,current_date) as share_stock
     ,(select sc_mem_m_membership_registered.total_loan_int from sc_mem_m_membership_registered where sc_mem_m_membership_registered.membership_no = sc_dep_m_creditor.membership_no) as total_loan_int
     , sc_dep_m_creditor_item.deposit_account_no
     ,pka_com_function.fp_form_depno( sc_dep_m_creditor_item.deposit_account_no ) as form_depno
@@ -17,7 +17,7 @@
     ,sc_dep_m_ucf_dep_item_type.deposit_item_description
     , sc_dep_m_creditor_item.operate_date
     , sc_dep_m_creditor_item.deposit_balance
-    ,pka_com_function.fp_get_moneythai (sc_dep_m_creditor_item.deposit_balance) as thai_deposit_balance
+    ,pka_com_function.fp_get_moneythai ((sc_dep_m_creditor_item.deposit_balance)::double precision) as thai_deposit_balance
 
     from sc_dep_m_creditor_item
     , sc_dep_m_creditor

@@ -20,19 +20,18 @@
 ,       count(sc_lon_m_contract.membership_no) as membership_no
 ,       pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract,'sd month yyyy') as begining_contract_th
 ,       sc_lon_m_contract.begining_of_contract
-,       NVL(sum(sc_com_m_receipt.total_interest),0) as total_int
+,       coalesce(sum(sc_com_m_receipt.total_interest),0) as total_int
 ,       sc_lon_m_loan_request.document_status
 ,       sc_lon_m_loan_request.document_group
 ,       '!user_print!' as user_print
 ,       '!seq_doc!' as seq_doc
-from    sc_lon_m_contract
-,       sc_lon_m_loan_request
+from    sc_lon_m_loan_request
 ,       sc_lon_m_rule
 --,       sc_lon_m_loan_card
-,       sc_com_m_receipt
+,       sc_lon_m_contract
+left join sc_com_m_receipt on sc_com_m_receipt.receipt_no = sc_lon_m_contract.receipt_no
 --,       si_security_user
 where   sc_lon_m_contract.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
-and     sc_com_m_receipt.receipt_no(+) = sc_lon_m_contract.receipt_no
 --and     sc_lon_m_loan_card.loan_contract_no = sc_lon_m_contract.loan_contract_no
 and     sc_lon_m_rule.loan_type = sc_lon_m_contract.loan_type
 --and     si_security_user.user_id = sc_lon_m_contract.paid_loan_id

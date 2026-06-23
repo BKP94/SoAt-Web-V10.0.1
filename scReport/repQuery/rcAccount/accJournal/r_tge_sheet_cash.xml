@@ -1,0 +1,80 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <journal_date text="ประจำวันที่" table="sc_fin_m_close_day" type="date" column="journal_date" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_cnt_m_coop.coop_name
+
+    ,sc_fin_m_close_day.journal_date
+    ,pka_com_function.fp_get_thaidate( sc_fin_m_close_day.journal_date,'SD MONTH YYYY') as journal_tdate
+    FROM sc_cnt_m_coop
+    , sc_fin_m_close_day
+    WHERE  1=1
+    and      sc_fin_m_close_day.branch_fin = '01'    
+    /*WHERE*/
+  </sql>
+  <sub>
+    <r_tge_sheet_cash_nest_dr>
+      <sql>  SELECT sc_acc_m_account_master.account_id
+,sc_acc_m_account_master.account_name
+,sum( sc_fin_journal_detail.item_amount ) as dr_amount
+    FROM sc_fin_journal_detail,   
+         sc_fin_ucf_vourcher_group  
+,sc_acc_m_account_master
+   WHERE 1=1
+and sc_fin_ucf_vourcher_group.post_to_acc = '1' 
+and sc_acc_m_account_master.account_id = sc_fin_journal_detail.account_id
+and sc_fin_journal_detail.slip_group = sc_fin_ucf_vourcher_group.vourcher_group
+and sc_fin_journal_detail.journal_date = {0}
+and sc_fin_journal_detail.fin_book = '0' 
+and sc_fin_journal_detail.fin_sign = '-' 
+GROUP BY  sc_acc_m_account_master.account_id
+ ,sc_acc_m_account_master.account_name
+ORDER BY sc_acc_m_account_master.account_id
+      
+      </sql>
+    </r_tge_sheet_cash_nest_dr>
+    <r_tge_sheet_cash_nest_cr>
+      <sql>SELECT sc_acc_m_account_master.account_id
+,sc_acc_m_account_master.account_name
+,sum( sc_fin_journal_detail.item_amount ) as cr_amount
+    FROM sc_fin_journal_detail,   
+         sc_fin_ucf_vourcher_group  
+,sc_acc_m_account_master
+   WHERE 1=1
+and sc_fin_ucf_vourcher_group.post_to_acc = '1' 
+and sc_acc_m_account_master.account_id = sc_fin_journal_detail.account_id
+and sc_fin_journal_detail.slip_group = sc_fin_ucf_vourcher_group.vourcher_group
+and sc_fin_journal_detail.journal_date = {0}
+and sc_fin_journal_detail.fin_book = '0' 
+and sc_fin_journal_detail.fin_sign = '+' 
+GROUP BY  sc_acc_m_account_master.account_id
+ ,sc_acc_m_account_master.account_name
+ORDER BY sc_acc_m_account_master.account_id
+      </sql>
+    </r_tge_sheet_cash_nest_cr>
+    <r_tge_sheet_cash_nest_footer>
+      <sql> SELECT sum( CASE WHEN sc_fin_journal_detail.fin_sign = '+' THEN sc_fin_journal_detail.item_amount ELSE 0 END ) as cr_amount
+,sum( CASE WHEN sc_fin_journal_detail.fin_sign = '+' THEN 0 ELSE sc_fin_journal_detail.item_amount END ) as dr_amount
+,        ( SELECT sum( sc_fin_journal_head.balance_begin  )
+        FROM sc_fin_journal_head
+        WHERE sc_fin_journal_head.journal_date =  {0} 
+        ) as c_begin
+    FROM sc_fin_journal_detail,   
+         sc_fin_ucf_vourcher_group  
+,sc_acc_m_account_master
+   WHERE 1=1
+and sc_fin_ucf_vourcher_group.post_to_acc = '1' 
+and sc_acc_m_account_master.account_id = sc_fin_journal_detail.account_id
+and sc_fin_journal_detail.slip_group = sc_fin_ucf_vourcher_group.vourcher_group
+and sc_fin_journal_detail.journal_date = {0} 
+and sc_fin_journal_detail.fin_book = '0' 
+
+GROUP BY  sc_fin_journal_detail.journal_date 
+
+ 
+      </sql>
+    </r_tge_sheet_cash_nest_footer>
+  </sub>
+</root>

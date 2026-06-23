@@ -14,9 +14,9 @@
     sc_mem_m_application_form.application_form_no,
     sc_mem_m_application_form.apply_date,
     pka_com_function.fp_get_thaidate( sc_mem_m_application_form.apply_date ) as apply_date_tdate,
-    pka_lon_reqsrv.fp_calc_agetext( sc_mem_m_application_form.date_of_birth ) as age,
+    pka_lon_reqsrv.fp_calc_agetext( sc_mem_m_application_form.date_of_birth, localtimestamp) as age,
     PKA_COM_FUNCTION.fp_get_thaidate( sc_mem_m_application_form.date_of_birth ) as date_of_birth_tdate,
-    DECODE(sc_mem_m_application_form.sex,'M','ชาย','หญิง') as sex,
+    (CASE sc_mem_m_application_form.sex WHEN 'M' THEN 'ชาย' ELSE 'หญิง' END) as sex,
     sc_mem_m_application_form.approve_status,
     FPA_TEL_GET_MEMNO_BY_APPNO(sc_mem_m_application_form.application_form_no) as c_membership_no,
     --FPA_TEL_GET_BANK_NO_BY_APPNO(sc_mem_m_application_form.application_form_no)as c_bank_acc_no ,
@@ -34,7 +34,7 @@
     PKA_COM_FUNCTION.fp_get_thaidate( '!apply_date_2!' , 'MONTH YYYY' ) as apply_date_full
     --to_char('!apply_date_2!' , 'MM') as apply_month,
     --to_char('!apply_date_2!' , 'YYYY') as apply_year,
-    --pka_com_function.fp_get_month_name(to_char('!apply_date_2!' , 'MM')) as thai_month
+    --pka_com_function.fp_get_month_name((to_char('!apply_date_2!' , 'MM'))::int) as thai_month
 
     from sc_mem_m_application_form ,
     sc_mem_m_app_work_info ,

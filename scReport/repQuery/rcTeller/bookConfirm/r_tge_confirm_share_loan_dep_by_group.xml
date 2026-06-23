@@ -6,7 +6,7 @@
   </arg>
   <combo />
   <sql>select sum(tab.row_memno)over(order by tab.member_group_no , tab.membership_no ) as rowno,  tab.*
-from (  SELECT 	decode(lag(sc_mem_m_ucf_member_group.member_group_no,1,null)over( order by sc_mem_m_ucf_member_group.member_group_no , sc_cls_confirm_mem.membership_no ) ,sc_mem_m_ucf_member_group.member_group_no ,0,1 ) as row_memno
+from (  SELECT 	(CASE lag(sc_mem_m_ucf_member_group.member_group_no,1,null)over( order by sc_mem_m_ucf_member_group.member_group_no , sc_cls_confirm_mem.membership_no ) WHEN sc_mem_m_ucf_member_group.member_group_no THEN 0 ELSE 1 END) as row_memno
 ,       sc_mem_m_ucf_member_group.member_group_no
 ,       sc_mem_m_ucf_member_group.member_group_name
 ,       sc_cls_confirm_mem.membership_no
@@ -16,7 +16,7 @@ from (  SELECT 	decode(lag(sc_mem_m_ucf_member_group.member_group_no,1,null)over
 ,       extract(year from sc_cls_confirm_data.confirm_date)+543 as confirm_year
 ,       sc_cls_confirm_data.confirm_date
 
-,       (select nvl(sum(data_balance),0)
+,       (select coalesce(sum(data_balance),0)
         from    sc_cls_confirm_data tab
         where   membership_no = sc_cls_confirm_data.membership_no
         and     confirm_date = sc_cls_confirm_data.confirm_date
@@ -24,7 +24,7 @@ from (  SELECT 	decode(lag(sc_mem_m_ucf_member_group.member_group_no,1,null)over
         and     data_balance &gt; '0'
         ) as sum_all_loan
 
-,       (select nvl(count(distinct membership_no),0)
+,       (select coalesce(count(distinct membership_no),0)
         from    sc_cls_confirm_data tab
         where   membership_no = sc_cls_confirm_data.membership_no
         and     confirm_date = sc_cls_confirm_data.confirm_date
@@ -32,7 +32,7 @@ from (  SELECT 	decode(lag(sc_mem_m_ucf_member_group.member_group_no,1,null)over
         and     data_balance &gt; '0'
         ) as count_all_loan
 
-,       (select nvl(sum(data_balance),0)
+,       (select coalesce(sum(data_balance),0)
         from    sc_cls_confirm_data tab
         where   membership_no = sc_cls_confirm_data.membership_no
         and     confirm_date = sc_cls_confirm_data.confirm_date
@@ -41,7 +41,7 @@ from (  SELECT 	decode(lag(sc_mem_m_ucf_member_group.member_group_no,1,null)over
         and     data_balance &gt; '0'
         ) as sum_dep_00
 
-,       (select nvl(count(data_refno),0)
+,       (select coalesce(count(data_refno),0)
         from    sc_cls_confirm_data tab
         where   membership_no = sc_cls_confirm_data.membership_no
         and     confirm_date = sc_cls_confirm_data.confirm_date
@@ -50,7 +50,7 @@ from (  SELECT 	decode(lag(sc_mem_m_ucf_member_group.member_group_no,1,null)over
         and     data_balance &gt; '0'
         ) as count_dep_00
 
-,       (select nvl(sum(data_balance),0)
+,       (select coalesce(sum(data_balance),0)
         from    sc_cls_confirm_data tab
         where   membership_no = sc_cls_confirm_data.membership_no
         and     confirm_date = sc_cls_confirm_data.confirm_date
@@ -59,7 +59,7 @@ from (  SELECT 	decode(lag(sc_mem_m_ucf_member_group.member_group_no,1,null)over
         and     data_balance &gt; '0'
         ) as sum_dep_12
 
-,       (select nvl(count(data_refno),0)
+,       (select coalesce(count(data_refno),0)
         from    sc_cls_confirm_data tab
         where   membership_no = sc_cls_confirm_data.membership_no
         and     confirm_date = sc_cls_confirm_data.confirm_date
@@ -68,7 +68,7 @@ from (  SELECT 	decode(lag(sc_mem_m_ucf_member_group.member_group_no,1,null)over
         and     data_balance &gt; '0'
         ) as count_dep_12
 
-,       (select nvl(sum(data_balance),0)
+,       (select coalesce(sum(data_balance),0)
         from    sc_cls_confirm_data tab
         where   membership_no = sc_cls_confirm_data.membership_no
         and     confirm_date = sc_cls_confirm_data.confirm_date
@@ -77,7 +77,7 @@ from (  SELECT 	decode(lag(sc_mem_m_ucf_member_group.member_group_no,1,null)over
         and     data_balance &gt; '0'
         ) as sum_dep_40
 
-,       (select nvl(count(data_refno),0)
+,       (select coalesce(count(data_refno),0)
         from    sc_cls_confirm_data tab
         where   membership_no = sc_cls_confirm_data.membership_no
         and     confirm_date = sc_cls_confirm_data.confirm_date
@@ -86,7 +86,7 @@ from (  SELECT 	decode(lag(sc_mem_m_ucf_member_group.member_group_no,1,null)over
         and     data_balance &gt; '0'
         ) as count_dep_40
 
-,       (select nvl(sum(data_balance),0)
+,       (select coalesce(sum(data_balance),0)
         from    sc_cls_confirm_data tab
         where   membership_no = sc_cls_confirm_data.membership_no
         and     confirm_date = sc_cls_confirm_data.confirm_date
@@ -95,7 +95,7 @@ from (  SELECT 	decode(lag(sc_mem_m_ucf_member_group.member_group_no,1,null)over
         and     data_balance &gt; '0'
         ) as sum_dep_50
 
-,       (select nvl(count(data_refno),0)
+,       (select coalesce(count(data_refno),0)
         from    sc_cls_confirm_data tab
         where   membership_no = sc_cls_confirm_data.membership_no
         and     confirm_date = sc_cls_confirm_data.confirm_date
@@ -104,7 +104,7 @@ from (  SELECT 	decode(lag(sc_mem_m_ucf_member_group.member_group_no,1,null)over
         and     data_balance &gt; '0'
         ) as count_dep_50
 
-,       (select nvl(sum(data_balance),0)
+,       (select coalesce(sum(data_balance),0)
         from    sc_cls_confirm_data tab
         where   membership_no = sc_cls_confirm_data.membership_no
         and     confirm_date = sc_cls_confirm_data.confirm_date
@@ -113,7 +113,7 @@ from (  SELECT 	decode(lag(sc_mem_m_ucf_member_group.member_group_no,1,null)over
         and     data_balance &gt; '0'
         ) as sum_dep_60
 
-,       (select nvl(count(data_refno),0)
+,       (select coalesce(count(data_refno),0)
         from    sc_cls_confirm_data tab
         where   membership_no = sc_cls_confirm_data.membership_no
         and     confirm_date = sc_cls_confirm_data.confirm_date
@@ -122,7 +122,7 @@ from (  SELECT 	decode(lag(sc_mem_m_ucf_member_group.member_group_no,1,null)over
         and     data_balance &gt; '0'
         ) as count_dep_60
 
-,       (select nvl(sum(data_balance),0)
+,       (select coalesce(sum(data_balance),0)
         from    sc_cls_confirm_data tab
         where   membership_no = sc_cls_confirm_data.membership_no
         and     confirm_date = sc_cls_confirm_data.confirm_date
@@ -131,7 +131,7 @@ from (  SELECT 	decode(lag(sc_mem_m_ucf_member_group.member_group_no,1,null)over
         and     data_balance &gt; '0'
         ) as sum_dep_61
 
-,       (select nvl(count(data_refno),0)
+,       (select coalesce(count(data_refno),0)
         from    sc_cls_confirm_data tab
         where   membership_no = sc_cls_confirm_data.membership_no
         and     confirm_date = sc_cls_confirm_data.confirm_date
@@ -140,7 +140,7 @@ from (  SELECT 	decode(lag(sc_mem_m_ucf_member_group.member_group_no,1,null)over
         and     data_balance &gt; '0'
         ) as count_dep_61
 
-,       (select nvl(sum(data_balance),0)
+,       (select coalesce(sum(data_balance),0)
         from    sc_cls_confirm_data tab
         where   membership_no = sc_cls_confirm_data.membership_no
         and     confirm_date = sc_cls_confirm_data.confirm_date
@@ -149,7 +149,7 @@ from (  SELECT 	decode(lag(sc_mem_m_ucf_member_group.member_group_no,1,null)over
         and     data_balance &gt; '0'
         ) as sum_dep_62
 
-,       (select nvl(count(data_refno),0)
+,       (select coalesce(count(data_refno),0)
         from    sc_cls_confirm_data tab
         where   membership_no = sc_cls_confirm_data.membership_no
         and     confirm_date = sc_cls_confirm_data.confirm_date

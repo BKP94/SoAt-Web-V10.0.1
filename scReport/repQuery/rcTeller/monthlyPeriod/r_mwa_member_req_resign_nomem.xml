@@ -18,12 +18,12 @@
          pka_com_function.fp_get_thaidate( sc_mem_m_resign_requestment.approve_date , 'SD MONTH YYYY') as resign_approve_tdate,   
          sc_mem_m_resign_requestment.different_shareloan  
  
-         ,nvl(( select sum(sc_mem_m_resign_loan.principal_balance)
+         ,coalesce(( select sum(sc_mem_m_resign_loan.principal_balance)
             from sc_mem_m_resign_loan
             where sc_mem_m_resign_loan.resign_doc_no = sc_mem_m_resign_requestment.resign_doc_no
            ),0) as principal_balance
            
-         ,nvl(( select sum(sc_mem_m_resign_loncoll.coll_amount)
+         ,coalesce(( select sum(sc_mem_m_resign_loncoll.coll_amount)
             from sc_mem_m_resign_loncoll
             where sc_mem_m_resign_loncoll.resign_doc_no = sc_mem_m_resign_requestment.resign_doc_no
            ),0) as coll_amount
@@ -76,12 +76,12 @@ where sc_mem_m_resign_loncoll.resign_doc_no = {0}</sql>
     </r_mwa_member_req_resign_nomem_nest_resign_loncoll>
     <r_mwa_member_req_resign_nomem_nest_text>
       <sql>SELECT 'ไม่มีหนี้สิน' as text
-FROM dual
+
 where 1=1</sql>
     </r_mwa_member_req_resign_nomem_nest_text>
     <r_mwa_member_req_resign_nomem_nest_text_resige>
       <sql>SELECT 'ไม่ได้ค้ำประกันเงินกู้รายใด' as text
-FROM dual
+
 where 1=1</sql>
     </r_mwa_member_req_resign_nomem_nest_text_resige>
   </sub>

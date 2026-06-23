@@ -5,11 +5,11 @@
   </arg>
   <combo />
   <sql>SELECT  sc_dep_m_creditor_item.deposit_account_no
-,       to_snumber(sc_dep_m_creditor_item.deposit_balance) as deposit_balance
+,       to_snumber((sc_dep_m_creditor_item.deposit_balance)::bigint) as deposit_balance
 ,       sc_dep_m_creditor_item.working_day
 ,       sc_dep_m_rule.deposit_type_code
 ,       sc_dep_m_rule.deposit_name
-,       sysdate     
+,       current_date     
 FROM    sc_dep_m_creditor_item
 ,       sc_dep_m_ucf_dep_item_type
 ,       sc_dep_m_creditor

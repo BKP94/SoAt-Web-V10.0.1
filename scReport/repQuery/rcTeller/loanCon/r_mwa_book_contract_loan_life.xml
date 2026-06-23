@@ -3,6 +3,6 @@
   <arg>
   </arg>
   <combo />
-  <sql>select * from dual</sql>
+  <sql>select 1</sql>
   <sub />
 </root>

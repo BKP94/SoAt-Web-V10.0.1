@@ -75,7 +75,7 @@ sc_lon_m_contract.begining_of_contract ASC ,
          sc_com_m_ucf_receipt_item_type.sort_order,   
          sc_com_m_ucf_receipt_item_type.item_type_id,   
          sc_com_m_ucf_receipt_item_type.group_item,   
-         decode(  sc_com_m_ucf_receipt_item_type.group_item , 'LON' , sc_com_m_receipt.loan_contract_no ,  sc_com_m_ucf_receipt_item_type.item_type_name  )   as description,   
+         (CASE sc_com_m_ucf_receipt_item_type.group_item WHEN 'LON' THEN sc_com_m_receipt.loan_contract_no ELSE sc_com_m_ucf_receipt_item_type.item_type_name END)   as description,   
          sc_com_m_receipt_item.loan_type  
     FROM sc_com_m_receipt,   
          sc_com_m_receipt_item,   
@@ -106,7 +106,7 @@ ORDER BY sc_lon_m_contract_coll.collateral_no ASC
          sc_com_m_ucf_money_type.money_type_id,   
          sc_com_m_ucf_money_type.money_type_name,   
          sc_lon_m_contract_multi_paid.paid_amount,   
-         decode(  sc_com_m_ucf_money_type.account_type ,  'FBK' , pka_com_function.fp_form( sc_lon_m_contract_multi_paid.bank_acc_no ,'XXX-XXXXXX-XXXXXX')   ,  'DEP' , pka_com_function.fp_form( sc_lon_m_contract_multi_paid.bank_acc_no ,'XX-XXXXXXXXXXXXX') , '' ) as bank_acc_no  
+         (CASE sc_com_m_ucf_money_type.account_type WHEN 'FBK' THEN pka_com_function.fp_form( sc_lon_m_contract_multi_paid.bank_acc_no ,'XXX-XXXXXX-XXXXXX') WHEN 'DEP' THEN pka_com_function.fp_form( sc_lon_m_contract_multi_paid.bank_acc_no ,'XX-XXXXXXXXXXXXX') ELSE '' END) as bank_acc_no  
     FROM sc_lon_m_contract_multi_paid,   
          sc_com_m_ucf_money_type  
    WHERE ( sc_lon_m_contract_multi_paid.type_pay_money = sc_com_m_ucf_money_type.money_type_id ) and  

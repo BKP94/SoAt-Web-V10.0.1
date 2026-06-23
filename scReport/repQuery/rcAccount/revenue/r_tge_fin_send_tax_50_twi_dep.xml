@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <account_year align="center" special="year" default="select max( lon_year ) + 543 from sc_mem_m_capital_rate" text="ปีภาษีที่จ่าย" table="sc_acc_m_account_year" type="integer2" readonly="0" />
+    <book_date text="วันเดือนปีที่ออกหนังสือรับรอง" type="date" column="book_date" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <membership_no special="memno" text="ทะเบียน" table="sc_mem_m_membership_registered" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    select ai_year , id_card , member_name , address_pres , interest_paid , tax_paid , thai_tax_paid , membership_no
+,  (select coop_name from sc_cnt_m_coop) as coop_name
+,  (select manager_name from sc_cnt_m_coop) as manager_name
+,  (select manager_position  from sc_cnt_m_coop)   as position_name  --ตำแหน่งผู้เซ็นต์
+    from (
+    SELECT
+    sc_acc_m_account_year.account_year + 543    as ai_year
+    , sc_mem_m_membership_registered.id_card  as id_card
+    , pka_com_function.fp_get_member_name( sc_mem_m_membership_registered.membership_no )  as member_name
+    , sc_mem_m_member_address.address_no || ' ' ||
+    sc_mem_m_member_address.road || ' ' ||
+    PKA_COM_FUNCTION.fp_get_sub_district_name   (  sc_mem_m_member_address.tambol )   || ' ' ||
+    PKA_COM_FUNCTION.fp_get_district_name   (  sc_mem_m_member_address.province_code , sc_mem_m_member_address.district_code )    || ' ' ||
+    PKA_COM_FUNCTION.fp_get_province_name   ( sc_mem_m_member_address.province_code )  || ' ' ||
+    sc_mem_m_member_address.postcode   as address_pres
+    ,  coalesce( sum( VIEW_FIN_TAX_DEP.PAID_AMOUNT ),0)  as interest_paid
+    ,  coalesce( sum( VIEW_FIN_TAX_DEP.TAX_AMOUNT ),0)  as  tax_paid
+    ,  pka_com_function.fp_get_moneythai (  coalesce( sum( VIEW_FIN_TAX_DEP.TAX_AMOUNT ) , 0)  ) as thai_tax_paid
+
+    , sc_mem_m_membership_registered.membership_no   as membership_no
+, 0.00 as pragan_amt
+, 0.00  as sumrong_amt
+
+    FROM VIEW_FIN_TAX_DEP,
+    sc_dep_m_creditor,
+    sc_mem_m_membership_registered,
+    sc_mem_m_member_address  ,
+    sc_acc_m_account_year
+    WHERE ( VIEW_FIN_TAX_DEP.deposit_account_no = sc_dep_m_creditor.deposit_account_no ) and
+    ( sc_dep_m_creditor.membership_no = sc_mem_m_member_address.membership_no ) and
+    ( sc_dep_m_creditor.membership_no = sc_mem_m_membership_registered.membership_no ) and
+    ( ( sc_mem_m_member_address.address_type = '1' ) AND
+    ( VIEW_FIN_TAX_DEP.TAX_DATE &gt;=  sc_acc_m_account_year.beginning_of_account  ) AND
+   ( VIEW_FIN_TAX_DEP.TAX_DATE &lt;=  sc_acc_m_account_year.ending_of_account  ) 
+)
+    /*WHERE*/
+  --  and sc_acc_m_account_year.account_year  = 2023
+
+    GROUP BY sc_mem_m_membership_registered.membership_no
+    , sc_mem_m_membership_registered.id_card
+    , sc_mem_m_member_address.address_no
+    , sc_mem_m_member_address.road
+    , sc_mem_m_member_address.tambol
+    , sc_mem_m_member_address.district_code
+    , sc_mem_m_member_address.province_code
+    , sc_mem_m_member_address.postcode
+    , sc_acc_m_account_year.account_year
+
+    )
+    order by membership_no</sql>
+  <sub />
+</root>

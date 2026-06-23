@@ -39,8 +39,7 @@
         where sc_fin_ucf_keeping_group.member_group_keeping = sc_mem_m_ucf_member_group.keeping_fingroup 
         and sc_mem_m_ucf_member_group.member_group_no = sc_mem_m_membership_registered.member_group_no )  as keeping_group_name
 
-    , ( select decode(( select sc_mem_m_ucf_position.position_name from sc_mem_m_ucf_position where sc_mem_m_ucf_position.position_code = sc_mem_m_member_work_info.position_long ), null ,position_long
-            ,(select sc_mem_m_ucf_position.position_name from sc_mem_m_ucf_position where sc_mem_m_ucf_position.position_code = sc_mem_m_member_work_info.position_long ))
+    , ( select (CASE ( select sc_mem_m_ucf_position.position_name from sc_mem_m_ucf_position where sc_mem_m_ucf_position.position_code = sc_mem_m_member_work_info.position_long ) WHEN null THEN position_long ELSE (select sc_mem_m_ucf_position.position_name from sc_mem_m_ucf_position where sc_mem_m_ucf_position.position_code = sc_mem_m_member_work_info.position_long ) END)
               from sc_mem_m_member_work_info
               where sc_mem_m_member_work_info.membership_no = sc_mem_m_membership_registered.membership_no
               ) as position_long

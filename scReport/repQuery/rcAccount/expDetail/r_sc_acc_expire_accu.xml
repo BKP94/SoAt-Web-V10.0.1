@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+  </arg>
+  <combo />
+  <sql>    SELECT sc_acc_m_expire.doc_old,
+    sc_acc_m_expire.description,
+    sc_acc_m_expire.amount_value,
+    sc_acc_m_expire.balance,
+    sc_acc_m_expire.first_used_day  ,
+
+    ( select sum( amount  )
+    from sc_acc_m_expire_detail
+    ,sc_acc_m_account_year
+    where  meterial_id = material_id
+    and  cal_expire_date &lt;= ending_of_account
+    and  account_year = present_account_year - 4 ) as year_1 ,
+
+    ( select amount
+    from sc_acc_m_expire_detail
+    ,sc_acc_m_account_year
+    where  meterial_id = material_id
+    and  cal_expire_date = ending_of_account
+    and  account_year = present_account_year - 3 ) as year_2 ,
+
+    ( select amount
+    from sc_acc_m_expire_detail
+    ,sc_acc_m_account_year
+    where  meterial_id = material_id
+    and  cal_expire_date = ending_of_account
+    and  account_year = present_account_year - 2) as year_3 ,
+
+    ( select amount
+    from sc_acc_m_expire_detail
+    ,sc_acc_m_account_year
+    where  meterial_id = material_id
+    and  cal_expire_date = ending_of_account
+    and  account_year = present_account_year - 1 ) as year_4 ,
+
+    ( select amount
+    from sc_acc_m_expire_detail
+    ,sc_acc_m_account_year
+    where  meterial_id = material_id
+    and  cal_expire_date = ending_of_account
+    and  account_year = present_account_year  ) as year_5 ,
+    present_account_year + 543 as present_account_tyear
+
+
+    FROM sc_acc_m_expire  ,
+    sc_acc_m_account_constant
+    WHERE sc_acc_m_expire.accu_method = '0'
+    /*WHERE*/
+    ORDER BY sc_acc_m_expire.doc_old ASC
+
+  </sql>
+  <sub />
+</root>

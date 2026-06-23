@@ -7,8 +7,7 @@
   </arg>
   <combo>
   </combo>
-  <sql>select  ROW_NUMBER() OVER (PARTITION BY (select distinct data_type_sort from tab where data_type_sort = '4') ORDER BY data_type_sort , data_type) as row_no , tab.*
-from    (
+  <sql>with tab as (
 select  (case when sc_cls_confirm_data.data_group = 'SHR' then 'ทุนเรือนหุ้น'
               when sc_cls_confirm_data.data_group = 'LON' then replace((select loan_type_description from sc_lon_m_rule where loan_type = sc_cls_confirm_data.data_type),'  ' , ' ' ) || ' เลขที่สัญญา ' || pka_com_function.fp_form( sc_cls_confirm_data.data_refno , 'XX-XXXXXXXXXX' )
               when sc_cls_confirm_data.data_group = 'DEP' then replace((select deposit_name from sc_dep_m_rule where deposit_type_code = sc_cls_confirm_data.data_type),'  ' , ' ' ) || ' เลขที่บัญชี ' || pka_com_function.fp_form( sc_cls_confirm_data.data_refno , 'XX-XXXXXXXXXX' )
@@ -28,7 +27,7 @@ select  (case when sc_cls_confirm_data.data_group = 'SHR' then 'ทุนเร�
 ,       pka_com_function.fp_get_thaidate( sc_cls_confirm_data.confirm_date , 'SD MONTH YYYY' ) as confirm_tdate
 ,       sc_cls_confirm_data.data_group
 ,       sc_cls_confirm_data.data_type
-,       pka_com_function.fp_get_thaidate( sysdate , 'SD MONTH พ.ศ.YYYY' ) as book_tdate
+,       pka_com_function.fp_get_thaidate( current_date , 'SD MONTH พ.ศ.YYYY' ) as book_tdate
 ,       '!book_no!' as book_no
 ,       (select coop_name from sc_cnt_m_coop) as coop_name
 ,       (select manager_name from sc_cnt_m_coop) as manager_name
@@ -72,7 +71,7 @@ select  (case when substr(sc_kep_t_monthly_receive_det.keeping_type_code , 0 , 2
 ,       pka_com_function.fp_get_thaidate( '!confirm_date!' , 'SD MONTH YYYY' ) as confirm_tdate 
 ,       substr(sc_kep_t_monthly_receive_det.keeping_type_code , 0 , 2 ) as data_group
 ,       null as data_type
-,       pka_com_function.fp_get_thaidate( sysdate , 'SD MONTH พ.ศ.YYYY' ) as book_tdate
+,       pka_com_function.fp_get_thaidate( current_date , 'SD MONTH พ.ศ.YYYY' ) as book_tdate
 ,       '!book_no!' as book_no
 ,       (select coop_name from sc_cnt_m_coop) as coop_name
 ,       (select manager_name from sc_cnt_m_coop) as manager_name
@@ -83,8 +82,8 @@ from    sc_mem_m_membership_registered
 ,       sc_mem_m_ucf_member_type
 where   sc_mem_m_membership_registered.membership_no = sc_kep_t_monthly_receive_det.membership_no
 and     sc_mem_m_ucf_member_type.mem_type_code = sc_mem_m_membership_registered.mem_type
-and     decode( extract(month from '!confirm_date!'),'1','12',extract(month from '!confirm_date!')-1 ) = sc_kep_t_monthly_receive_det.receive_month
-and     decode( extract(month from '!confirm_date!'),'1',extract(year from '!confirm_date!')-1,extract(year from '!confirm_date!') ) = sc_kep_t_monthly_receive_det.receive_year
+and     (CASE extract(month from '!confirm_date!'::date) WHEN '1' THEN '12' ELSE extract(month from '!confirm_date!'::date)-1 END) = sc_kep_t_monthly_receive_det.receive_month
+and     (CASE extract(month from '!confirm_date!'::date) WHEN '1' THEN extract(year from '!confirm_date!'::date)-1 ELSE extract(year from '!confirm_date!'::date) END) = sc_kep_t_monthly_receive_det.receive_year
 and     sc_mem_m_membership_registered.member_status_code = '0'
 and     sc_mem_m_membership_registered.membership_no = '!membership_no!'
 group by  sc_mem_m_membership_registered.membership_no
@@ -104,7 +103,7 @@ select  'รวมหักเดือนละ' as data_type_desc
 ,       pka_com_function.fp_get_thaidate( '!confirm_date!' , 'SD MONTH YYYY' ) as confirm_tdate 
 ,       null as data_group
 ,       null as data_type
-,       pka_com_function.fp_get_thaidate( sysdate , 'SD MONTH พ.ศ.YYYY' ) as book_tdate
+,       pka_com_function.fp_get_thaidate( current_date , 'SD MONTH พ.ศ.YYYY' ) as book_tdate
 ,       '!book_no!' as book_no
 ,       (select coop_name from sc_cnt_m_coop) as coop_name
 ,       (select manager_name from sc_cnt_m_coop) as manager_name
@@ -115,13 +114,15 @@ from    sc_mem_m_membership_registered
 ,       sc_mem_m_ucf_member_type
 where   sc_mem_m_membership_registered.membership_no = sc_kep_t_monthly_receive_det.membership_no
 and     sc_mem_m_ucf_member_type.mem_type_code = sc_mem_m_membership_registered.mem_type
-and     decode( extract(month from '!confirm_date!'),'1','12',extract(month from '!confirm_date!')-1 ) = sc_kep_t_monthly_receive_det.receive_month
-and     decode( extract(month from '!confirm_date!'),'1',extract(year from '!confirm_date!')-1,extract(year from '!confirm_date!') ) = sc_kep_t_monthly_receive_det.receive_year
+and     (CASE extract(month from '!confirm_date!'::date) WHEN '1' THEN '12' ELSE extract(month from '!confirm_date!'::date)-1 END) = sc_kep_t_monthly_receive_det.receive_month
+and     (CASE extract(month from '!confirm_date!'::date) WHEN '1' THEN extract(year from '!confirm_date!'::date)-1 ELSE extract(year from '!confirm_date!'::date) END) = sc_kep_t_monthly_receive_det.receive_year
 and     sc_mem_m_membership_registered.member_status_code = '0'
 and     sc_mem_m_membership_registered.membership_no = '!membership_no!'
 group by  sc_mem_m_membership_registered.membership_no
 ,         sc_mem_m_ucf_member_type.mem_type_desc
-) tab
+)
+select  ROW_NUMBER() OVER (PARTITION BY (select distinct data_type_sort from tab where data_type_sort = '4') ORDER BY data_type_sort , data_type) as row_no , tab.*
+from    tab
 where   1=1
 order by membership_no
 ,        data_type_sort

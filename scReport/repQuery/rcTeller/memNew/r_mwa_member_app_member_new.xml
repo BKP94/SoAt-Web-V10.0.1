@@ -12,7 +12,7 @@
     ,sc_mem_m_ucf_member_group.member_group_no
     ,sc_mem_m_ucf_member_group.member_group_name
     ,sc_mem_m_ucf_application_type.application_fee
-    ,substr ( PKA_LON_REQSRV.fp_calc_agetext( sc_mem_m_membership_registered.date_of_birth ),0,2)  as age
+    ,substr ( PKA_LON_REQSRV.fp_calc_agetext( sc_mem_m_membership_registered.date_of_birth, localtimestamp),0,2)  as age
     ,sc_mem_m_member_work_info.salary_amount
     ,sc_mem_m_member_work_info.salary_id
     ,sc_mem_m_share_mem.share_amount
@@ -36,7 +36,7 @@
     and   sc_mem_m_member_work_info.membership_no = sc_mem_m_membership_registered.membership_no
     and   sc_mem_m_share_mem.membership_no = sc_mem_m_membership_registered.membership_no
     and   sc_mem_m_ucf_member_group.member_group_control  not in ('80000','90000')
-    --and   substr ( PKA_LON_REQSRV.fp_calc_agetext( sc_mem_m_membership_registered.date_of_birth ),0,2) between  '!age_life_1!'  and  '!age_life_2!'
+    --and   substr ( PKA_LON_REQSRV.fp_calc_agetext( sc_mem_m_membership_registered.date_of_birth, localtimestamp),0,2) between  '!age_life_1!'  and  '!age_life_2!'
 
     /*WHERE*/
     --and   sc_mem_m_application_form.approve_date between '01/01/2023' and '07/11/2023'

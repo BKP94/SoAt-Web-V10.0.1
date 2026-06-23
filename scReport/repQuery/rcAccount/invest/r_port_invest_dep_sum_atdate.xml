@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <confirm_date align="center" text="ณ วันที่" table="sc_cls_confirm_data" type="date" column="confirm_date" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select  sc_dep_m_rule.deposit_name
+,       sc_dep_m_rule.deposit_type_code
+,       sc_cls_confirm_data.confirm_date
+,       count(sc_cls_confirm_data.data_refno) as count_dep
+,       count(sc_cls_confirm_data.membership_no) as count_mem
+,       count(distinct sc_cls_confirm_data.membership_no) as count_mem_all
+,       sum(sc_cls_confirm_data.data_balance) as sum_dep_bal
+from    sc_cls_confirm_data
+,       sc_dep_m_rule
+where   sc_cls_confirm_data.data_type = sc_dep_m_rule.deposit_type_code
+and     sc_cls_confirm_data.data_group = 'DEP'
+and     sc_cls_confirm_data.data_type in ('90','91')
+/*WHERE*/
+--and     sc_cls_confirm_data.confirm_date = '30/04/2024'
+group by sc_cls_confirm_data.confirm_date
+,        sc_cls_confirm_data.data_type
+,        sc_dep_m_rule.deposit_name
+,        sc_dep_m_rule.deposit_type_code</sql>
+  <sub />
+  <mis />
+</root>

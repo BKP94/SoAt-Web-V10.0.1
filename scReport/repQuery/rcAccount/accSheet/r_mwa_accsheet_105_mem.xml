@@ -1,0 +1,81 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root procedure="pka_acc_worksheet.sp_proc_tge({operate_date_1},{operate_date_2},{as_notbook_1})">
+  <arg>
+    <operate_date text="ระหว่างวันที่  " type="date" operator="bt" sqlwhere="0" sqlreplace="1" nestreplace="1" readonly="0" />
+    <as_notbook align="right" control="ASPxCheckBox" text="รวมปิดบัญชี      " sqlwhere="0" sqlreplace="1" readonly="0" />
+    <acc_super default="KANIN.C" text="หัวหน้าฝ่ายบัญชี" combo="si_security_user2" sqlwhere="0" sqlreplace="1" noheader="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select CASE WHEN account_group_id IS NULL THEN group_id ELSE account_group_id END as acc_group_id ,tab.*
+from (
+select sc_acc_t_trial_balance_rep.account_id,
+    sc_acc_t_trial_balance_rep.account_name,
+    sc_acc_t_trial_balance_rep.dr_bb,
+    sc_acc_t_trial_balance_rep.cr_bb,
+    sc_acc_t_trial_balance_rep.dr_between,
+    sc_acc_t_trial_balance_rep.cr_between,
+    sc_acc_t_trial_balance_rep.dr_amount,
+    sc_acc_t_trial_balance_rep.cr_amount,
+     ( select user_name from si_security_user where user_id =  '!acc_super_1!' ) as acc_super,
+    ( select manager_name from sc_cnt_m_coop ) as manager_name,
+    ( select coop_name from sc_cnt_m_coop ) as coop_name ,
+   pka_com_function.fp_get_thaidate( '!operate_date_2!', 'SD MONTH พ.ศ YYYY')   as operate_tdate,
+   pka_com_function.fp_get_thaidate( '!operate_date_2!', 'MONTH YYYY')   as acc_month,
+   
+    ( select sc_acc_m_ucf_account_group.account_group_id
+       from sc_acc_m_account_master 
+            ,sc_acc_m_ucf_account_group
+       where account_id = sc_acc_t_trial_balance_rep.account_id
+       and   sc_acc_m_ucf_account_group.account_group_id = sc_acc_m_account_master.account_group_id
+     ) as account_group_id,
+     
+    (select sc_acc_m_ucf_account_group.account_group_name
+     from sc_acc_m_account_master 
+          ,sc_acc_m_ucf_account_group
+     where account_id = sc_acc_t_trial_balance_rep.account_id
+     and   sc_acc_m_ucf_account_group.account_group_id = sc_acc_m_account_master.account_group_id
+     ) as account_group_name,
+     
+    (case sc_acc_t_trial_balance_rep.account_id when '190' then '1' when '290' then '2' when '390' then '3' when '399' then '3' when '490' then '4' when '590' then '5' end) as group_id
+
+from sc_acc_t_trial_balance_rep
+where 1=1
+and (   sc_acc_t_trial_balance_rep.dr_bb &gt; 0 or
+    sc_acc_t_trial_balance_rep.cr_bb &gt; 0 or
+    sc_acc_t_trial_balance_rep.dr_between &gt; 0 or
+    sc_acc_t_trial_balance_rep.cr_between &gt; 0 or
+    sc_acc_t_trial_balance_rep.dr_amount  &gt; 0 or
+    sc_acc_t_trial_balance_rep.cr_amount  &gt; 0 )
+/*WHERE*/
+order by sc_acc_t_trial_balance_rep.account_id asc
+/*รายงานตัวนี้ มีใช้ formatting rules ในรายงานเด้อ*/
+)tab</sql>
+  <sub>
+    <r_mwa_accsheet_105_mem_nest_mem>
+      <sql>select monthly_date
+      ,mem_type_code
+       --สมาชิก สามัญ
+        ,coalesce(sum(CASE WHEN mem_type_code = '01' THEN mem_bf END),0) as mem_bf_01
+        ,coalesce(sum(CASE WHEN mem_type_code = '01' THEN mem_resign END),0) as mem_resign_01
+        ,coalesce(sum(CASE WHEN mem_type_code = '01' THEN mem_new END),0) as mem_new_01
+        ,coalesce(sum(CASE WHEN mem_type_code = '01' THEN mem_fired END),0) as mem_fire_01
+        ,coalesce(sum(CASE WHEN mem_type_code = '01' THEN mem_dead END),0) as mem_dead_01
+        ,coalesce(sum(CASE WHEN mem_type_code = '01' THEN mem_tran END),0) as mem_tran_01
+        ,coalesce(sum(CASE WHEN mem_type_code = '01' THEN mem_fw END),0) as mem_fw_01
+
+        --สมาชิก สมทบ
+        ,coalesce(sum(CASE WHEN mem_type_code = '02' THEN mem_bf END),0) as mem_bf_02
+        ,coalesce(sum(CASE WHEN mem_type_code = '02' THEN mem_resign END),0) as mem_resign_02
+        ,coalesce(sum(CASE WHEN mem_type_code = '02' THEN mem_new END),0) as mem_new_02
+        ,coalesce(sum(CASE WHEN mem_type_code = '02' THEN mem_fired END),0) as mem_fire_02
+        ,coalesce(sum(CASE WHEN mem_type_code = '02' THEN mem_dead END),0) as mem_dead_02
+        ,coalesce(sum(CASE WHEN mem_type_code = '02' THEN mem_tran END),0) as mem_tran_02
+        ,coalesce(sum(CASE WHEN mem_type_code = '02' THEN mem_fw END),0) as mem_fw_02
+        ,coalesce(sum(CASE WHEN mem_type_code = 'LN' THEN mem_fw END),0) as mem_loan
+
+from sc_cls_mem
+where monthly_date = '!operate_date_2!'
+group by mem_type_code ,monthly_date</sql>
+    </r_mwa_accsheet_105_mem_nest_mem>
+  </sub>
+</root>

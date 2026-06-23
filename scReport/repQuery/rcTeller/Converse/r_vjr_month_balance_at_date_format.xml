@@ -18,7 +18,7 @@ select  sc_mem_m_ucf_member_group.member_group_no
 ,       sc_mem_m_share_mem.share_stock
 ,       sc_mem_m_share_mem.drop_status
 
-,       nvl((select sum(total_interest)
+,       coalesce((select sum(total_interest)
             from    sc_lon_m_loan_card , sc_lon_m_rule
             where   membership_no = sc_mem_m_membership_registered.membership_no
             and     sc_lon_m_rule.loan_type = sc_lon_m_loan_card.loan_type
@@ -92,14 +92,14 @@ select  sc_mem_m_ucf_member_group.member_group_no
         and     invest_status = '0'
         ) as spec_period
         
-,       nvl((select sum(principal_balance) 
+,       coalesce((select sum(principal_balance) 
         from    sc_lon_m_loan_card , sc_lon_m_rule 
         where   membership_no = sc_mem_m_membership_registered.membership_no 
         and     sc_lon_m_rule.loan_type = sc_lon_m_loan_card.loan_type 
         and     invest_status = '0'
         ),0) as all_balance
         
-,       pka_com_function.fp_get_thaidate(sysdate , 'SD MONTH YYYY') as sys_tdate
+,       pka_com_function.fp_get_thaidate(current_date , 'SD MONTH YYYY') as sys_tdate
         
 from    sc_mem_m_membership_registered
 ,       sc_mem_m_ucf_prename
@@ -131,7 +131,7 @@ select  sc_mem_m_ucf_member_group.member_group_no
 ,       sc_mem_m_share_mem.share_stock
 ,       sc_mem_m_share_mem.drop_status
 
-,       nvl((select sum(total_interest)
+,       coalesce((select sum(total_interest)
             from    sc_lon_m_loan_card , sc_lon_m_rule
             where   membership_no = sc_mem_m_membership_registered.membership_no
             and     sc_lon_m_rule.loan_type = sc_lon_m_loan_card.loan_type
@@ -205,14 +205,14 @@ select  sc_mem_m_ucf_member_group.member_group_no
         and     invest_status = '0'
         ) as spec_period
         
-,       nvl((select sum(principal_balance) 
+,       coalesce((select sum(principal_balance) 
         from    sc_lon_m_loan_card , sc_lon_m_rule 
         where   membership_no = sc_mem_m_membership_registered.membership_no 
         and     sc_lon_m_rule.loan_type = sc_lon_m_loan_card.loan_type 
         and     invest_status = '0'
         ),0) as all_balance
         
-,       pka_com_function.fp_get_thaidate(sysdate , 'SD MONTH YYYY') as sys_tdate
+,       pka_com_function.fp_get_thaidate(current_date , 'SD MONTH YYYY') as sys_tdate
         
 from    sc_mem_m_membership_registered
 ,       sc_mem_m_ucf_prename

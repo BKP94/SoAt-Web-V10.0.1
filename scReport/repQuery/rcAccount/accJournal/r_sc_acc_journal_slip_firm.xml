@@ -1,0 +1,81 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="D005" rep_text="พิมพ์ Slip ประจำวัน">
+  <arg>
+    <journal text="วันที่" table="sc_acc_journal_heading_firm" type="date" column="journal_date" operator="bt" readonly="0" />
+    <branch text="สาขา" table="sc_com_m_branch" column="branch_id" combo="sc_com_m_branch" readonly="0" />
+    <doctype default="select 'RV'  " text="กลุ่มรายการ" table="sc_acc_m_ucf_doc_type" column="doc_type" cascade="doc_no" combo="doc_type" mustvalue="1" readonly="0" />
+    <user_name default="select 'areeyamon' " text="ผู้จัดทำ" combo="si_security_user2" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <checker default="select 'bim' " text="ผู้ตรวจ" combo="si_security_user2" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+    <doc_no text="เลขที่สลิป" table="sc_acc_journal_heading_firm" combo="doc_no_combo" readonly="0" />
+  </arg>
+  <combo>
+    <doc_type>
+      select DOC_TYPE as item_code , DOC_NAME as item_desc
+      from sc_acc_m_ucf_doc_type      
+      order by DOC_TYPE desc
+    </doc_type>
+    <doc_no_combo>      select  doc_no  as item_code,
+      doc_no   || '    ' ||  description  as item_desc
+      from    sc_acc_journal_heading_firm
+      where   1=1
+      and post_to_gl_status = '0'
+      and doc_type = {0}
+    </doc_no_combo>
+  </combo>
+  <sql>    SELECT   sc_acc_m_ucf_doc_type.doc_name as "กลุ่มรายการ",
+    sc_acc_journal_heading_firm.doc_no as "เลขที่เอกสาร",
+    pka_com_function.fp_form( sc_acc_journal_heading_firm.doc_no , 'XXXX-XXXXXX-XXXXXXXXXX' ) as from_doc_no,
+    sc_acc_journal_heading_firm.description as "รายละเอียดใบรายการ",
+    sc_acc_journal_heading_firm.doc_type ,
+    to_tdate( sc_acc_journal_heading_firm.journal_date , 'dd mon yyyy' ) as "วันที่รายการ",
+    sc_com_m_branch.branch_id as "สาขา" ,
+    sc_com_m_branch.BRANCH_NAME as "ชื่อสาขา" ,
+
+    sc_acc_journal_heading_firm.entry_date as "วันเวลาที่ทำรายการ",
+    sc_acc_journal_detail_firm.nature as "ฝั่ง",
+    pka_acc.fp_format_account(  sc_acc_journal_detail_firm.account_id  )  as "เลขที่บัญชี" ,
+    sc_acc_journal_detail_firm.dr_amount as "เดบิต" ,
+    sc_acc_journal_detail_firm.cr_amount as "เครดิต",
+
+
+    sc_acc_journal_detail_firm.sequence_no as "ลำดำรายการ" ,
+    CASE WHEN sc_acc_journal_detail_firm.dr_amount = 0 THEN '     ' ELSE '  ' END || sc_acc_m_account_master.account_name as "ชื่อบัญชี",
+    sc_acc_journal_detail_firm.remark as "หมายเหตุ",
+    sc_acc_journal_detail_firm.desc_journal_detail as "คำอธิบายรายการ"
+    ,pka_com_function.fp_get_moneythai( sum( sc_acc_journal_detail_firm.dr_amount ) over ( PARTITION BY sc_acc_journal_heading_firm.doc_no )) as "ยอดรวมแต่ละใบ( ไทย )"
+    ,  (  select user_name  from si_security_user where user_id =   '!user_name_1!'  )     as user_name
+    ,  (  select user_name  from si_security_user where user_id =   '!checker_1!'  )     as checker_name
+    ,  (  select user_name  from si_security_user where user_id =  sc_acc_journal_heading_firm.entry_name  )     as entry_name
+    FROM sc_acc_journal_detail_firm ,
+    sc_acc_journal_heading_firm ,
+    sc_acc_m_account_master ,
+    sc_acc_m_ucf_doc_type ,
+    sc_com_m_branch
+    WHERE 1=1
+    and	     ( sc_acc_journal_detail_firm.doc_type = sc_acc_journal_heading_firm.doc_type )
+    and      ( sc_acc_journal_heading_firm.doc_no = sc_acc_journal_detail_firm.doc_no )
+    and      ( sc_acc_journal_heading_firm.journal_date = sc_acc_journal_detail_firm.journal_date )
+    and      ( sc_acc_journal_heading_firm.branch_id = sc_acc_journal_detail_firm.branch_id )
+    and      ( sc_acc_journal_detail_firm.account_id = sc_acc_m_account_master.account_id )
+    and      ( sc_acc_journal_heading_firm.doc_type = sc_acc_m_ucf_doc_type.doc_type )
+    -- and	     ( sc_acc_journal_heading_firm.branch_id = sc_com_m_branch.branch_id )  --สาขาลงบัญชี
+    and      (  sc_com_m_branch.branch_id = sc_acc_journal_heading_firm.entry_br_id ) --สาขาลงรายการ
+    and      (( sc_acc_journal_heading_firm.cancel_status &lt;&gt; '5' ) 	or ( sc_acc_journal_heading_firm.cancel_status is null )) 
+and      ( sc_acc_journal_heading_firm.cancel_status = '0' )   
+
+ /*
+and          ( ( sc_acc_journal_detail_firm.journal_date = :adtm_date ) 
+and          ( sc_acc_journal_detail_firm.branch_id = :as_brid ) 
+and          ( sc_acc_journal_detail_firm.doc_no between :as_startdoc and :as_enddoc ) 
+and          ( sc_acc_journal_detail_firm.doc_type = :as_bookcode ) 
+*/
+    /*WHERE*/
+
+    order by sc_acc_journal_heading_firm.journal_date ,
+    sc_com_m_branch.branch_id,
+    sc_acc_journal_heading_firm.doc_type desc ,
+    sc_acc_journal_heading_firm.doc_no,
+    sc_acc_journal_detail_firm.sequence_no
+  </sql>
+  <sub />
+</root>

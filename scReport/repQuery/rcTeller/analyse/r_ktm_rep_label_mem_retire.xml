@@ -16,14 +16,14 @@
       <sql>
         select pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as name,
         sc_mem_m_membership_registered.membership_no,
-        (decode(sc_mem_m_member_address.address_no,null,'','เลขที่ '||sc_mem_m_member_address.address_no)
-        ||decode(sc_mem_m_member_address.moo,null,'','หมู่ '||sc_mem_m_member_address.moo)
-        ||decode(sc_mem_m_member_address.road,null,'',' ถ.'||sc_mem_m_member_address.road)
-        ||decode(sc_mem_m_member_address.soi,null,'',' ซ.'||sc_mem_m_member_address.soi)
+        ((CASE sc_mem_m_member_address.address_no WHEN null THEN '' ELSE 'เลขที่ '||sc_mem_m_member_address.address_no END)
+        ||(CASE sc_mem_m_member_address.moo WHEN null THEN '' ELSE 'หมู่ '||sc_mem_m_member_address.moo END)
+        ||(CASE sc_mem_m_member_address.road WHEN null THEN '' ELSE ' ถ.'||sc_mem_m_member_address.road END)
+        ||(CASE sc_mem_m_member_address.soi WHEN null THEN '' ELSE ' ซ.'||sc_mem_m_member_address.soi END)
         ) as address1,
-        (decode(sc_mem_m_member_address.tambol,null,'',decode(sc_mem_m_ucf_province.province_code,'10','แขวง','ต.')||sc_mem_m_member_address.tambol)
-        ||decode(sc_mem_m_ucf_district.district_name,null,'',decode(sc_mem_m_ucf_province.province_code,'10',' เขต',' อ.')||sc_mem_m_ucf_district.district_name)
-        ||decode(sc_mem_m_ucf_province.province_name,null,'',decode(sc_mem_m_ucf_province.province_code,'10',' ',' จ.')||sc_mem_m_ucf_province.province_name)
+        ((CASE sc_mem_m_member_address.tambol WHEN null THEN '' ELSE (CASE sc_mem_m_ucf_province.province_code WHEN '10' THEN 'แขวง' ELSE 'ต.' END)||sc_mem_m_member_address.tambol END)
+        ||(CASE sc_mem_m_ucf_district.district_name WHEN null THEN '' ELSE (CASE sc_mem_m_ucf_province.province_code WHEN '10' THEN ' เขต' ELSE ' อ.' END)||sc_mem_m_ucf_district.district_name END)
+        ||(CASE sc_mem_m_ucf_province.province_name WHEN null THEN '' ELSE (CASE sc_mem_m_ucf_province.province_code WHEN '10' THEN ' ' ELSE ' จ.' END)||sc_mem_m_ucf_province.province_name END)
         ) as address2,
         ( 'รหัส.  '||sc_mem_m_member_address.postcode ) as address3
         from sc_mem_m_member_address,
@@ -35,7 +35,7 @@
         and ( sc_mem_m_member_address.district_code = sc_mem_m_ucf_district.district_code )
         and ( sc_mem_m_ucf_district.province_code = sc_mem_m_member_address.province_code )
         and  sc_mem_m_membership_registered.member_status_code = '0'
-        and  pka_lon_reqsrv.fp_calc_member_retire(sc_mem_m_membership_registered.membership_no) = ( select end_date + 1 from sc_lon_m_close_year where lon_year = '!lon_year_1!'  )
+        and  pka_lon_reqsrv.fp_calc_member_retire(sc_mem_m_membership_registered.membership_no) = ( select end_date + interval '1 day' from sc_lon_m_close_year where lon_year = '!lon_year_1!'  )
         and ( sc_mem_m_member_address.address_type = '0' )
         /*WHERE*/
         and ( sc_mem_m_membership_registered.membership_no = {0} )

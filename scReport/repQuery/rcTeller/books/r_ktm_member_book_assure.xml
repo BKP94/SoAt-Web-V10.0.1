@@ -9,7 +9,7 @@
     pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as memname,
     sc_mem_m_membership_registered.membership_no,
     pka_com_function.fp_get_group_name_mem(sc_mem_m_membership_registered.membership_no) as member_group_name,
-    pka_com_function.fp_get_thaidate(sysdate , 'SD month พ.ศ. yyyy')  as sysdate_tdate
+    pka_com_function.fp_get_thaidate(current_date , 'SD month พ.ศ. yyyy')  as sysdate_tdate
 
     FROM sc_mem_m_membership_registered
 
@@ -23,11 +23,11 @@
         SELECT sc_dep_m_creditor.deposit_account_no,
         sc_dep_m_creditor.deposit_account_name,
         sc_dep_m_creditor.deposit_balance,
-        to_snumber(sc_dep_m_creditor.deposit_balance) as c_deposit_balance ,
+        to_snumber((sc_dep_m_creditor.deposit_balance)::bigint) as c_deposit_balance ,
         0 as c_count_lon   ,
         0 as c_count_dep ,
         pka_com_function.fp_form( sc_dep_m_creditor.deposit_account_no , 'XX-XXXXXXXXXX' ) as from_dep_acc_no,
-        pka_com_function.fp_get_moneythai (sc_dep_m_creditor.deposit_balance) as thai_deposit_balance,
+        pka_com_function.fp_get_moneythai ((sc_dep_m_creditor.deposit_balance)::double precision) as thai_deposit_balance,
         '' as thai_share_stock
 
         FROM sc_dep_m_creditor
@@ -37,7 +37,7 @@
         union
 
         select 'share'  , ' ' , share_stock
-        ,to_snumber(sc_mem_m_share_mem.share_stock) as c_deposit_balance
+        ,to_snumber((sc_mem_m_share_mem.share_stock)::bigint) as c_deposit_balance
         , (
         SELECT count(sc_lon_m_loan_card.membership_no)
         FROM sc_lon_m_loan_card
@@ -53,7 +53,7 @@
 
         ,deposit_account_no
         ,'' as thai_deposit_balance
-        ,pka_com_function.fp_get_moneythai (sc_mem_m_share_mem.share_stock) as thai_share_stock
+        ,pka_com_function.fp_get_moneythai ((sc_mem_m_share_mem.share_stock)::double precision) as thai_share_stock
 
 
         from sc_mem_m_share_mem
@@ -63,7 +63,7 @@
     <r_ktm_member_book_assure_nest_loan>
       <sql>
         SELECT sc_lon_m_loan_card.principal_balance,
-        pka_com_function.fp_get_moneythai (sc_lon_m_loan_card.principal_balance) as thai_principal_balance,
+        pka_com_function.fp_get_moneythai ((sc_lon_m_loan_card.principal_balance)::double precision) as thai_principal_balance,
         sc_lon_m_loan_card.loan_contract_no
         FROM sc_lon_m_loan_card
         WHERE ( sc_lon_m_loan_card.membership_no = {0} ) AND

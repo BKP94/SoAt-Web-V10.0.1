@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <cal_expire_date text="วันที่" table="sc_acc_m_expire_detail" type="date" column="cal_expire_date" readonly="0" />
+    <first_used_day text="ซื้อตั้งแต่" table="sc_acc_m_expire" type="date" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql> SELECT  sc_acc_m_expire.accu_method ,
+    CASE WHEN sc_acc_m_expire.accu_method = '1' THEN 'ซื้อก่อน 21 พย 60' ELSE 'ซื้อตั้งแต่ 21 พย 60' END as accu_method_des,
+    count( 1 ) as c_count,
+    sum(sc_acc_m_expire.amount_value ) as c_amount_value,
+    sum( sc_acc_m_expire_detail.bf_value ) as c_bf_value,
+    sum( case    
+			when  sc_acc_m_expire_detail.buy_in_year  &gt; sc_acc_m_expire_detail.bf_value  then
+				sc_acc_m_expire_detail.buy_in_year 	
+			else				
+				0
+			end ) as c_increas,
+    sum( case    
+			when  sc_acc_m_expire_detail.buy_in_year  &lt; sc_acc_m_expire_detail.bf_value  then
+				- sc_acc_m_expire_detail.buy_in_year 	
+			else				
+				0
+			end ) as c_decreas,
+    sum( sc_acc_m_expire_detail.amount ) as c_amount,
+    sum( sc_acc_m_expire_detail.present_value ) as c_present_value
+
+    FROM sc_acc_m_expire_detail,
+    sc_acc_m_expire
+    WHERE ( sc_acc_m_expire_detail.meterial_id = sc_acc_m_expire.material_id ) 
+    
+    /*WHERE*/ 
+    -- and  sc_acc_m_expire_detail.cal_expire_date = '31/12/2018' 
+     GROUP by  sc_acc_m_expire.accu_method
+     order by  sc_acc_m_expire.accu_method desc
+  </sql>
+  <sub />
+</root>

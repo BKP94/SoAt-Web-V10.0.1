@@ -1,0 +1,573 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="T010" rep_text="รายงานรับชำระพิเศษ ( เก่า )">
+  <arg>
+    <receipt_date text="วันที่" table="sc_com_m_receipt" type="date" operator="bt" mustvalue="1" nestwhere="1" nestreplace="1" readonly="0" />
+    <money_type_id text="ประเภทการจ่าย" table="sc_com_m_receipt" combo="sc_com_m_ucf_money_type2" sqlreplace="1" nestwhere="1" />
+    <loan_type text="ประเภทเงินกู้" table="sc_com_m_receipt_item" combo="sc_lon_m_rule2" sqlreplace="1" nestreplace="1" readonly="0" />
+    <branch_id default="select null " text="สาขา" table="sc_com_m_receipt" combo="sc_com_m_branch2" nestwhere="1" />
+    <receipt_mode text="สถานะ" table="sc_com_m_receipt" combo="receipt_mode_status" nestwhere="1" />
+    <member_group_type text="Teller" table="sc_mem_m_ucf_member_group" combo="sc_mem_m_ucf_member_group_type2" readonly="0" />
+  </arg>
+  <combo>
+    <receipt_mode_status>
+      R=ชำระเก็บไม่ได้/F=กองทุนภาระแทน
+    </receipt_mode_status>
+  </combo>
+  <sql>    select tm.*
+    from ( select sc_com_m_receipt.receipt_date,
+    sc_com_m_receipt.money_type_id,
+
+    (select sum(sc_com_m_receipt_item.item_amount)
+    from   sc_com_m_receipt_item
+    where  sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no ) as s_item_amount,
+
+    (select sum(sc_com_m_receipt_item.item_amount)
+    from   sc_com_m_receipt_item
+    where  sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+    and    sc_com_m_receipt.receipt_mode  = 'F') as s_item_amount_mode_f,
+
+    sc_com_m_receipt.receipt_mode,
+    case sc_com_m_receipt.receipt_mode when 'F' then 'ชำระหนี้กองทุนค้ำประกัน' when 'R' then 'ชำระหนี้เก็บไม่ได้' else '' end as receipt_mode_des,
+
+    (
+    select sc_com_m_ucf_money_type.money_type_name ||' '||case sc_com_m_receipt.receipt_mode when 'F' then 'ชำระหนี้กองทุนค้ำประกัน' when 'R' then 'ชำระหนี้เก็บไม่ได้' else '' end  as money_type_mode
+    from sc_com_m_ucf_money_type
+    where sc_com_m_receipt.money_type_id = sc_com_m_ucf_money_type.money_type_id
+    ) as money_type_name,
+
+    sc_com_m_receipt.receipt_no,
+    sc_com_m_receipt.member_group_no,
+    sc_mem_m_membership_registered.membership_no||':'||(select prename from sc_mem_m_ucf_prename where prename_code = sc_mem_m_membership_registered.prename_code)||sc_mem_m_membership_registered.member_name||' '||sc_mem_m_membership_registered.member_surname as member_name,
+
+    (
+    select coalesce(sum(sc_com_m_receipt_item.item_amount),0)
+    from sc_com_m_receipt_item
+    where sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+    and (sc_com_m_receipt_item.item_type_id = 'FUN'
+    or  sc_com_m_receipt_item.item_type_id = 'MFEE' )
+    ) as fund_new, /*กองทุนใหม่*/
+    (
+    select coalesce(sum(sc_com_m_receipt_item.item_amount),0)
+    from sc_com_m_receipt_item,
+    sc_com_m_ucf_receipt_item_type
+    where sc_com_m_receipt_item.item_type_id = sc_com_m_ucf_receipt_item_type.item_type_id
+    and sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+    and sc_com_m_ucf_receipt_item_type.group_item = 'SHR'
+    ) as by_share, /*ซื้อหุ้นพิเศษ*/
+
+    ( select coalesce(sum(sc_com_m_receipt_item.item_amount),0)
+    from sc_com_m_receipt_item,
+    sc_com_m_ucf_receipt_item_type
+    where sc_com_m_receipt_item.item_type_id = sc_com_m_ucf_receipt_item_type.item_type_id
+    and sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+    and sc_com_m_ucf_receipt_item_type.group_item = 'MFE'
+    ) as fee, /*ค่าธรรมเนียมสมาชิก*/
+
+    0.00 as crem_amount, /*ฌาปนกิจ*/
+
+    (select  coalesce(sum(sc_com_m_receipt_item.item_amount),0)as dep
+    from  sc_com_m_receipt_item ,
+    sc_com_m_ucf_receipt_item_type
+    where sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+    and    sc_com_m_ucf_receipt_item_type.item_type_id = sc_com_m_receipt_item.item_type_id
+    and    sc_com_m_ucf_receipt_item_type.group_item = 'DEP') as c_dep, /*เงินฝาก*/
+
+
+    sc_com_m_receipt.entry_id, /*ผู้บันทึก*/
+    sc_mem_m_membership_registered.membership_no,
+    sc_com_m_receipt.branch_id,
+
+    (
+    select coalesce(sum(sc_com_m_receipt_item.principal_amount),0)
+    from sc_com_m_receipt_item,
+    sc_com_m_ucf_receipt_item_type,
+    sc_lon_m_rule
+    where sc_com_m_ucf_receipt_item_type.item_type_id = sc_com_m_receipt_item.item_type_id
+    and sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+    and sc_com_m_receipt_item.loan_type = sc_lon_m_rule.loan_type
+    and sc_lon_m_rule.loan_group_code = '01'  and sc_lon_m_rule.loan_type not in ( 'รก')
+    and sc_com_m_ucf_receipt_item_type.group_item = 'LON'
+    and sc_com_m_receipt_item.item_amount &gt; 0
+    ) as principal_amount_01,
+
+    (
+    select coalesce(sum(sc_com_m_receipt_item.interest_amount),0)
+    from sc_com_m_receipt_item,
+    sc_com_m_ucf_receipt_item_type,
+    sc_lon_m_rule
+    where sc_com_m_ucf_receipt_item_type.item_type_id = sc_com_m_receipt_item.item_type_id
+    and sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+    and sc_com_m_receipt_item.loan_type = sc_lon_m_rule.loan_type
+    and sc_lon_m_rule.loan_group_code = '01'  and sc_lon_m_rule.loan_type not in ( 'รก')
+    and sc_com_m_ucf_receipt_item_type.group_item = 'LON'
+    and sc_com_m_receipt_item.item_amount &gt; 0
+    ) as interest_amount_01,
+
+    (
+    select coalesce(sum(sc_com_m_receipt_item.interest_amount),0)
+    from sc_com_m_receipt_item,
+    sc_com_m_ucf_receipt_item_type,
+    sc_lon_m_rule
+    where sc_com_m_ucf_receipt_item_type.item_type_id = sc_com_m_receipt_item.item_type_id
+    and sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+    and sc_com_m_receipt_item.loan_type = sc_lon_m_rule.loan_type
+    and sc_lon_m_rule.loan_group_code = '02'
+    and sc_com_m_ucf_receipt_item_type.group_item = 'LON'
+    and sc_com_m_receipt_item.item_amount &gt; 0
+    ) as interest_amount_02,
+
+
+    (
+    select coalesce(sum(sc_com_m_receipt_item.principal_amount),0)
+    from sc_com_m_receipt_item,
+    sc_com_m_ucf_receipt_item_type,
+    sc_lon_m_rule
+    where sc_com_m_ucf_receipt_item_type.item_type_id = sc_com_m_receipt_item.item_type_id
+    and sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+    and sc_com_m_receipt_item.loan_type = sc_lon_m_rule.loan_type
+    and sc_lon_m_rule.loan_group_code = '02'
+    and sc_com_m_ucf_receipt_item_type.group_item = 'LON'
+    and sc_com_m_receipt_item.item_amount &gt; 0
+    ) as principal_amount_02,
+
+    (
+    select coalesce(sum(sc_com_m_receipt_item.principal_amount),0)
+    from sc_com_m_receipt_item,
+    sc_com_m_ucf_receipt_item_type,
+    sc_lon_m_rule
+    where sc_com_m_ucf_receipt_item_type.item_type_id = sc_com_m_receipt_item.item_type_id
+    and sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+    and sc_com_m_receipt_item.loan_type = sc_lon_m_rule.loan_type
+    and sc_lon_m_rule.loan_group_code = '03'
+    and sc_com_m_ucf_receipt_item_type.group_item = 'LON'
+    and sc_com_m_receipt_item.item_amount &gt; 0
+    ) as principal_amount_03,
+
+    (
+    select coalesce(sum(sc_com_m_receipt_item.interest_amount),0)
+    from sc_com_m_receipt_item,
+    sc_com_m_ucf_receipt_item_type,
+    sc_lon_m_rule
+    where sc_com_m_ucf_receipt_item_type.item_type_id = sc_com_m_receipt_item.item_type_id
+    and sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+    and sc_com_m_receipt_item.loan_type = sc_lon_m_rule.loan_type
+    and sc_lon_m_rule.loan_group_code = '03'
+    and sc_com_m_ucf_receipt_item_type.group_item = 'LON'
+    and sc_com_m_receipt_item.item_amount &gt; 0
+    ) as interest_amount_03,
+
+    (
+    select coalesce(count(sc_com_m_receipt_item.description),0)
+    from sc_com_m_receipt_item,
+    sc_com_m_ucf_receipt_item_type,
+    sc_lon_m_rule
+    where sc_com_m_ucf_receipt_item_type.item_type_id = sc_com_m_receipt_item.item_type_id
+    and sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+    and sc_com_m_receipt_item.loan_type = sc_lon_m_rule.loan_type
+    and sc_lon_m_rule.loan_group_code = '01'  and sc_lon_m_rule.loan_type not in ( 'รก')
+    and sc_com_m_ucf_receipt_item_type.group_item = 'LON'
+    and sc_com_m_receipt_item.item_amount &gt; 0
+    ) as count_01,
+
+    (
+    select coalesce(count(sc_com_m_receipt_item.description),0)
+    from sc_com_m_receipt_item,
+    sc_com_m_ucf_receipt_item_type,
+    sc_lon_m_rule
+    where sc_com_m_ucf_receipt_item_type.item_type_id = sc_com_m_receipt_item.item_type_id
+    and sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+    and sc_com_m_receipt_item.loan_type = sc_lon_m_rule.loan_type
+    and sc_lon_m_rule.loan_group_code = '02'
+    and sc_com_m_ucf_receipt_item_type.group_item = 'LON'
+    and sc_com_m_receipt_item.item_amount &gt; 0
+    ) as count_02,
+
+    (
+    select coalesce(count(sc_com_m_receipt_item.description),0)
+    from sc_com_m_receipt_item,
+    sc_com_m_ucf_receipt_item_type,
+    sc_lon_m_rule
+    where sc_com_m_ucf_receipt_item_type.item_type_id = sc_com_m_receipt_item.item_type_id
+    and sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+    and sc_com_m_receipt_item.loan_type = sc_lon_m_rule.loan_type
+    and sc_lon_m_rule.loan_group_code = '03'
+    and sc_com_m_ucf_receipt_item_type.group_item = 'LON'
+    and sc_com_m_receipt_item.item_amount &gt; 0
+    ) as count_03,
+
+    (select coalesce(sum(sc_com_m_receipt_item.item_amount),0)
+    from   sc_com_m_receipt_item
+    where  sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+    and     sc_com_m_receipt_item.loan_type = 'FL') as free_amount
+
+    ,(select   mr.month_receive_month
+    from    sc_com_m_receipt mr
+    where   mr.receipt_no = sc_com_m_receipt.receipt_no) as receipt_month
+
+    ,(select   extract(month from receipt_date)::numeric
+    from    sc_com_m_receipt mr
+    where   mr.receipt_no = sc_com_m_receipt.receipt_no) as month_receipt_date
+
+    --ส่วนสรุปหักเก็บไม่ได้--
+    ,(
+    select coalesce(sum(sc_com_m_receipt_item.principal_amount),0)
+    from sc_com_m_receipt_item,
+    sc_com_m_ucf_receipt_item_type,
+    sc_lon_m_rule
+    where sc_com_m_ucf_receipt_item_type.item_type_id = sc_com_m_receipt_item.item_type_id
+    and sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+    and sc_com_m_receipt_item.loan_type = sc_lon_m_rule.loan_type
+    and sc_lon_m_rule.loan_group_code = '01'  and sc_lon_m_rule.loan_type not in ( 'รก')
+    and sc_com_m_receipt.receipt_mode = 'R'
+    and sc_com_m_ucf_receipt_item_type.group_item = 'LON'
+    and sc_com_m_receipt_item.item_amount &gt; 0
+    ) as R_principal_amount_01,
+
+    (
+    select coalesce(sum(sc_com_m_receipt_item.interest_amount),0)
+    from sc_com_m_receipt_item,
+    sc_com_m_ucf_receipt_item_type,
+    sc_lon_m_rule
+    where sc_com_m_ucf_receipt_item_type.item_type_id = sc_com_m_receipt_item.item_type_id
+    and sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+    and sc_com_m_receipt_item.loan_type = sc_lon_m_rule.loan_type
+    and sc_lon_m_rule.loan_group_code = '01'  and sc_lon_m_rule.loan_type not in ( 'รก')
+    and sc_com_m_receipt.receipt_mode = 'R'
+    and sc_com_m_ucf_receipt_item_type.group_item = 'LON'
+    and sc_com_m_receipt_item.item_amount &gt; 0
+    ) as R_interest_amount_01,
+
+    (
+    select coalesce(sum(sc_com_m_receipt_item.interest_amount),0)
+    from sc_com_m_receipt_item,
+    sc_com_m_ucf_receipt_item_type,
+    sc_lon_m_rule
+    where sc_com_m_ucf_receipt_item_type.item_type_id = sc_com_m_receipt_item.item_type_id
+    and sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+    and sc_com_m_receipt_item.loan_type = sc_lon_m_rule.loan_type
+    and sc_lon_m_rule.loan_group_code = '02'
+    and sc_com_m_receipt.receipt_mode = 'R'
+    and sc_com_m_ucf_receipt_item_type.group_item = 'LON'
+    and sc_com_m_receipt_item.item_amount &gt; 0
+    ) as R_interest_amount_02,
+
+
+    (
+    select coalesce(sum(sc_com_m_receipt_item.principal_amount),0)
+    from sc_com_m_receipt_item,
+    sc_com_m_ucf_receipt_item_type,
+    sc_lon_m_rule
+    where sc_com_m_ucf_receipt_item_type.item_type_id = sc_com_m_receipt_item.item_type_id
+    and sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+    and sc_com_m_receipt_item.loan_type = sc_lon_m_rule.loan_type
+    and sc_lon_m_rule.loan_group_code = '02'
+    and sc_com_m_receipt.receipt_mode = 'R'
+    and sc_com_m_ucf_receipt_item_type.group_item = 'LON'
+    and sc_com_m_receipt_item.item_amount &gt; 0
+    ) as R_principal_amount_02,
+
+    (
+    select coalesce(sum(sc_com_m_receipt_item.principal_amount),0)
+    from sc_com_m_receipt_item,
+    sc_com_m_ucf_receipt_item_type,
+    sc_lon_m_rule
+    where sc_com_m_ucf_receipt_item_type.item_type_id = sc_com_m_receipt_item.item_type_id
+    and sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+    and sc_com_m_receipt_item.loan_type = sc_lon_m_rule.loan_type
+    and sc_lon_m_rule.loan_group_code = '03'
+    and sc_com_m_receipt.receipt_mode = 'R'
+    and sc_com_m_ucf_receipt_item_type.group_item = 'LON'
+    and sc_com_m_receipt_item.item_amount &gt; 0
+    ) as R_principal_amount_03,
+
+    (
+    select coalesce(sum(sc_com_m_receipt_item.interest_amount),0)
+    from sc_com_m_receipt_item,
+    sc_com_m_ucf_receipt_item_type,
+    sc_lon_m_rule
+    where sc_com_m_ucf_receipt_item_type.item_type_id = sc_com_m_receipt_item.item_type_id
+    and sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+    and sc_com_m_receipt_item.loan_type = sc_lon_m_rule.loan_type
+    and sc_lon_m_rule.loan_group_code = '03'
+    and sc_com_m_receipt.receipt_mode = 'R'
+    and sc_com_m_ucf_receipt_item_type.group_item = 'LON'
+    and sc_com_m_receipt_item.item_amount &gt; 0
+    ) as R_interest_amount_03,
+    sc_mem_m_ucf_member_group.member_group_type
+
+    from sc_mem_m_membership_registered,
+    sc_com_m_ucf_money_type,
+    sc_com_m_receipt,
+    sc_com_m_receipt_item,
+    sc_com_m_ucf_receipt_item_type,
+    sc_mem_m_ucf_member_group
+
+    where sc_com_m_receipt.membership_no = sc_mem_m_membership_registered.membership_no
+    and sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no
+    and sc_com_m_receipt.money_type_id = sc_com_m_ucf_money_type.money_type_id
+    and sc_com_m_ucf_receipt_item_type.item_type_id = sc_com_m_receipt_item.item_type_id
+    and sc_mem_m_ucf_member_group.member_group_no = sc_com_m_receipt.member_group_no 
+
+    and sc_com_m_receipt_item.item_amount &gt; 0
+    and    sc_com_m_receipt.receipt_status = '0'
+    /*and   ('!receipt_mode!' = 'F' and sc_com_m_receipt.receipt_mode = 'F' or '!receipt_mode!'  = 'R' and sc_com_m_receipt.receipt_mode = 'R' or  '!receipt_mode!'  is  null and sc_com_m_receipt.receipt_mode not in('F','R'))*/
+
+    and sc_com_m_ucf_money_type.money_type_id not in (  'TBK' , 'CLR' , 'AOP' ,'TRL' , 'FUN' , 'CRC' )
+    and ('!loan_type!' is null or exists(select null
+    from sc_lon_m_contract
+    where sc_lon_m_contract.loan_contract_no = sc_com_m_receipt.loan_contract_no
+    and   sc_lon_m_contract.loan_type = '!loan_type!'))
+
+
+    and exists (select null from sc_com_m_receipt_item where sc_com_m_receipt_item.item_amount &gt; 0 and receipt_no = sc_com_m_receipt.receipt_no)
+    /*WHERE*/
+    --  and sc_com_m_receipt.receipt_no = 'พ6015134'
+    --   and sc_com_m_receipt.receipt_date between '21/08/2017' and '22/08/2017'
+    --   and sc_com_m_ucf_money_type.money_type_id = 'TRB'
+    group by sc_com_m_receipt.receipt_no ,sc_com_m_receipt.receipt_date , sc_com_m_receipt.receipt_mode ,sc_com_m_receipt.money_type_id ,sc_mem_m_membership_registered.membership_no
+    ,sc_mem_m_membership_registered.prename_code ,sc_mem_m_membership_registered.member_name ,sc_mem_m_membership_registered.member_surname
+    ,sc_com_m_receipt.member_group_no ,sc_com_m_receipt.entry_id ,sc_com_m_receipt.branch_id ,sc_com_m_ucf_money_type.money_type_id
+    ,sc_com_m_receipt.finance_date ,sc_mem_m_membership_registered.prename_code ,sc_com_m_receipt.recept_amount ,sc_mem_m_ucf_member_group.member_group_type
+    order by sc_com_m_receipt.receipt_date,
+    sc_com_m_receipt.receipt_mode,
+    sc_com_m_receipt.money_type_id,
+    sc_com_m_receipt.receipt_no
+    )tm
+  </sql>
+  <sub>
+    <r_ktm_finance_payment_nest_pay_detail>
+      <sql>        select (select loan_code from  sc_lon_m_loan_card where  loan_contract_no = sc_com_m_receipt_item.description)||'/'||sc_com_m_receipt_item.description as description,
+        sc_com_m_receipt_item.principal_amount,
+        sc_com_m_receipt_item.interest_amount
+        from sc_com_m_receipt,
+        sc_com_m_receipt_item,
+        sc_com_m_ucf_receipt_item_type,
+        sc_lon_m_rule
+        where sc_com_m_receipt.receipt_no =  sc_com_m_receipt_item.receipt_no
+        and sc_com_m_ucf_receipt_item_type.item_type_id = sc_com_m_receipt_item.item_type_id
+        and sc_com_m_receipt_item.loan_type = sc_lon_m_rule.loan_type
+        and sc_lon_m_rule.loan_group_code = {1}
+        and sc_com_m_ucf_receipt_item_type.group_item = 'LON'  and sc_lon_m_rule.loan_type not in ( 'รก')
+        and sc_com_m_receipt_item.item_amount &gt; 0
+        and sc_com_m_receipt_item.receipt_no = {0}
+        and sc_com_m_receipt.money_type_id not in (  'TBK' , 'CLR' , 'AOP' ,'TRL' ,'FUN' , 'CRC')
+
+        /* and   ('!receipt_mode!' = 'F' and sc_com_m_receipt.receipt_mode = 'F' or '!receipt_mode!'  = 'R' and sc_com_m_receipt.receipt_mode = 'R' or  '!receipt_mode!'  is  null and sc_com_m_receipt.receipt_mode not in('F','R'))*/
+
+        --   and sc_com_m_receipt_item.loan_type = '!loan_type!'
+        --   and ( '!loan_type!' is null or sc_com_m_receipt_item.loan_type = '!loan_type!'  )
+        and sc_com_m_receipt.receipt_status = '0'
+        --and sc_com_m_receipt.money_type_id = '!money_type_id!'
+        /*WHERE*/
+
+        order by sc_com_m_receipt_item.receipt_no
+      </sql>
+    </r_ktm_finance_payment_nest_pay_detail>
+    <r_ktm_finance_payment_nest_pay_group>
+      <sql>        select sc_com_m_receipt_item.description,
+        sc_com_m_receipt_item.principal_amount,
+        sc_com_m_receipt_item.interest_amount
+        from sc_com_m_receipt,
+        sc_com_m_receipt_item,
+        sc_com_m_ucf_receipt_item_type,
+        sc_lon_m_rule
+        where sc_com_m_receipt.receipt_no =  sc_com_m_receipt_item.receipt_no
+        and sc_com_m_ucf_receipt_item_type.item_type_id = sc_com_m_receipt_item.item_type_id
+        and sc_com_m_receipt_item.loan_type = sc_lon_m_rule.loan_type
+        and sc_lon_m_rule.loan_group_code = {1}
+        and sc_com_m_ucf_receipt_item_type.group_item = 'LON'  and sc_lon_m_rule.loan_type not in ( 'รก')
+        and sc_com_m_receipt_item.item_amount &gt; 0
+        and sc_com_m_receipt_item.receipt_no = {0}
+        and sc_com_m_receipt.money_type_id not in (  'TBK' , 'CLR' , 'AOP' ,'TRL' , 'FUN' , 'CRC')
+
+        /*and   ('!receipt_mode!' = 'F' and sc_com_m_receipt.receipt_mode = 'F' or '!receipt_mode!'  = 'R' and sc_com_m_receipt.receipt_mode = 'R' or  '!receipt_mode!'  is  null and sc_com_m_receipt.receipt_mode not in('F','R'))*/
+
+        and sc_com_m_receipt.receipt_status = '0'
+        --  and sc_com_m_receipt.money_type_id = '!money_type_id!'
+
+        order by sc_com_m_receipt_item.receipt_no
+      </sql>
+    </r_ktm_finance_payment_nest_pay_group>
+    <r_ktm_finance_payment_nest_emer>
+      <sql>        select ta.loan_type,
+        ta.loan_type  ||'/'|| ta.loan_code  as "ประเภท",
+        count(loan_type) as count_type
+        ,sum(principal_amount) as sum_principal
+        ,sum(interest_amount) as sum_interest
+        from (
+        select sc_lon_m_rule.loan_type,
+        sc_lon_m_loan_card.loan_code,
+        sc_com_m_receipt_item.principal_amount,
+        sc_com_m_receipt_item.interest_amount
+        from sc_com_m_receipt,
+        sc_com_m_receipt_item,
+        sc_com_m_ucf_receipt_item_type,
+        sc_lon_m_rule,
+        sc_lon_m_loan_card
+        where sc_com_m_receipt.receipt_no =  sc_com_m_receipt_item.receipt_no
+        and sc_com_m_ucf_receipt_item_type.item_type_id = sc_com_m_receipt_item.item_type_id
+        and sc_com_m_receipt_item.loan_type = sc_lon_m_rule.loan_type
+        and  sc_com_m_receipt_item.description = sc_lon_m_loan_card.loan_contract_no
+        and sc_lon_m_rule.loan_group_code = {1}
+        and sc_com_m_receipt_item.item_amount &gt; 0
+        and sc_com_m_ucf_receipt_item_type.group_item = 'LON'   and sc_lon_m_rule.loan_type not in ( 'รก')
+        and sc_com_m_receipt.receipt_date between '!receipt_date_1!' and '!receipt_date_2!'
+        and sc_com_m_receipt.receipt_status = '0'
+        and sc_com_m_receipt.money_type_id not in (  'TBK' , 'CLR' , 'AOP' ,'TRL' , 'FUN' , 'CRC')
+
+        /*and   ('!receipt_mode!' = 'F' and sc_com_m_receipt.receipt_mode = 'F' or '!receipt_mode!'  = 'R' and sc_com_m_receipt.receipt_mode = 'R' or  '!receipt_mode!'  is  null and sc_com_m_receipt.receipt_mode not in('F','R'))*/
+
+        /*WHERE*/
+        --   and    sc_com_m_receipt_item.loan_type = '!loan_type!'
+        -- and (  '!loan_type!' is null or sc_com_m_receipt_item.loan_type =  '!loan_type!' )
+
+        and ('!loan_type!' is null or exists(select null
+        from sc_lon_m_contract
+        where sc_lon_m_contract.loan_contract_no = sc_com_m_receipt.loan_contract_no
+        and   sc_lon_m_contract.loan_type ='!loan_type!'))
+
+        )ta
+        group by  ta.loan_type ,
+        ta.loan_code
+        order by ta.loan_type ,
+        ta.loan_code
+      </sql>
+    </r_ktm_finance_payment_nest_emer>
+    <r_ktm_finance_payment_nest_loan_code>
+      <sql>        select  sc_lon_m_ucf_loan_code.loan_code_desc as "ประเภทลูกหนี้",
+        count( sc_lon_m_loan_card.loan_contract_no ) as "จำนวนราย",
+        sum(sc_com_m_receipt_item.principal_amount) as "เงินต้น" ,
+        sum(sc_com_m_receipt_item.interest_amount) as "ดอกเบี้ย"
+
+        from    sc_com_m_receipt,
+        sc_com_m_receipt_item,
+        sc_lon_m_loan_card,
+        sc_lon_m_rule,
+        sc_lon_m_ucf_loan_code,
+        sc_com_m_ucf_money_type
+
+        where   sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no
+        and     sc_com_m_receipt_item.description = sc_lon_m_loan_card.loan_contract_no
+        and     sc_lon_m_loan_card.loan_type = sc_lon_m_rule.loan_type     and sc_lon_m_rule.loan_type not in ( 'รก')
+        and     sc_lon_m_loan_card.loan_code = sc_lon_m_ucf_loan_code.loan_code
+        and    sc_com_m_receipt.money_type_id = sc_com_m_ucf_money_type.money_type_id
+        and     sc_com_m_receipt_item.item_amount &gt; 0
+        and     sc_com_m_receipt.receipt_status = '0'
+        and     ( sc_com_m_receipt_item.loan_code is not null and  sc_com_m_receipt_item.loan_code != '0' )	--*เอาเฉพาะสัญญาไม่ปกติ
+        --and     (  '!loan_type!' is null or sc_lon_m_rule.loan_type =  '!loan_type!' )
+        and sc_com_m_ucf_money_type.money_type_id not in (  'TBK' , 'CLR' , 'AOP' ,'TRL' ,'FUN' , 'CRC')
+
+
+        /*WHERE*/
+        and ('!loan_type!' is null or exists(select null
+        from sc_lon_m_contract
+        where sc_lon_m_contract.loan_contract_no = sc_com_m_receipt.loan_contract_no
+        and   sc_lon_m_contract.loan_type ='!loan_type!'))
+
+
+        --and     sc_com_m_receipt.receipt_date = pka.to_date('30/11/2018')
+
+        --and     sc_com_m_receipt.branch_id = '01'
+
+        group by sc_lon_m_ucf_loan_code.loan_code_desc
+        order by sc_lon_m_ucf_loan_code.loan_code_desc
+
+      </sql>
+    </r_ktm_finance_payment_nest_loan_code>
+    <r_ktm_finance_payment_nest_sum_balance>
+      <sql>        select  sc_lon_m_loan_card.loan_type,
+        count( sc_lon_m_loan_history.loan_contract_no ) as sub_count,
+        sum(sc_lon_m_loan_history.principal_of_loan) as principal_of_loan ,
+        sum(sc_lon_m_loan_history.interest_amount) as interest_amount
+        from sc_lon_m_loan_history ,sc_lon_m_loan_card ,sc_lon_m_rule ,sc_com_m_receipt
+        where sc_com_m_receipt.membership_no = sc_lon_m_loan_card.membership_no
+        and sc_lon_m_loan_history.loan_contract_no = sc_lon_m_loan_card.loan_contract_no
+        and sc_lon_m_loan_card.loan_type = sc_lon_m_rule.loan_type     and sc_lon_m_rule.loan_type not in ( 'รก')
+        and sc_lon_m_rule.loan_group_code = '01'
+        and ( sc_lon_m_loan_card.loan_code = null or sc_lon_m_loan_card.loan_code = '0' )	--*เอาเฉพาะสัญญาปกติ
+        and sc_com_m_receipt.receipt_date between '!receipt_date_1!' and '!receipt_date_2!'
+        and sc_com_m_receipt.receipt_status = '0'
+        and sc_com_m_receipt.money_type_id not in (  'TBK' , 'CLR' , 'AOP' ,'TRL' , 'FUN' , 'CRC' )
+
+        /*and   ('!receipt_mode!' = 'F' and sc_com_m_receipt.receipt_mode = 'F' or '!receipt_mode!'  = 'R' and sc_com_m_receipt.receipt_mode = 'R' or  '!receipt_mode!'  is  null and sc_com_m_receipt.receipt_mode not in('F','R'))*/
+
+        /*WHERE*/
+        group by sc_lon_m_loan_card.loan_code,sc_lon_m_loan_card.loan_type
+        order by sc_lon_m_loan_card.loan_code,sc_lon_m_loan_card.loan_type
+      </sql>
+    </r_ktm_finance_payment_nest_sum_balance>
+    <r_ktm_finance_payment_nest_sum_balance1>
+      <sql>        select  sc_lon_m_loan_card.loan_type,
+        count( sc_lon_m_loan_history.loan_contract_no ) as sub_count,
+        sum(sc_lon_m_loan_history.principal_balance_of_loan) as principal_balance_of_loan,
+        sum(sc_lon_m_loan_history.interest_amount) as interest_amount
+
+        from sc_lon_m_loan_history ,sc_lon_m_loan_card ,sc_lon_m_rule ,sc_com_m_receipt
+
+        where sc_com_m_receipt.membership_no = sc_lon_m_loan_card.membership_no
+        and sc_lon_m_loan_history.loan_contract_no = sc_lon_m_loan_card.loan_contract_no
+        and sc_lon_m_loan_card.loan_type = sc_lon_m_rule.loan_type
+        and sc_lon_m_rule.loan_group_code = '01'      and sc_lon_m_rule.loan_type not in ( 'รก')
+        and ( sc_lon_m_loan_card.loan_code = null or sc_lon_m_loan_card.loan_code = '0' )	--*เอาเฉพาะสัญญาปกติ
+        and sc_com_m_receipt.receipt_date between '!receipt_date_1!' and '!receipt_date_2!'
+        and sc_com_m_receipt.receipt_status = '0'
+        and sc_com_m_receipt.money_type_id not in (  'TBK' , 'CLR' , 'AOP' ,'TRL' , 'FUN' , 'CRC' )
+        and sc_lon_m_loan_history.clear_target = '1'
+        and sc_lon_m_loan_history.clear_focus = '1'
+        /* and   ('!receipt_mode!' = 'F' and sc_com_m_receipt.receipt_mode = 'F' or '!receipt_mode!'  = 'R' and sc_com_m_receipt.receipt_mode = 'R' or  '!receipt_mode!'  is  null and sc_com_m_receipt.receipt_mode not in('F','R'))*/
+
+        /*WHERE*/
+        group by sc_lon_m_loan_card.loan_code,sc_lon_m_loan_card.loan_type
+        order by sc_lon_m_loan_card.loan_code,sc_lon_m_loan_card.loan_type
+      </sql>
+    </r_ktm_finance_payment_nest_sum_balance1>
+    <r_ktm_finance_payment_nest_sum_balance2>
+      <sql>
+        select  sc_lon_m_loan_card.loan_type,
+        count( sc_lon_m_loan_history.loan_contract_no ) as sub_count,
+        sum(sc_lon_m_loan_history.principal_balance_of_loan) as principal_balance_of_loan,
+        sum(sc_lon_m_loan_history.interest_amount) as interest_amount
+        from sc_lon_m_loan_history ,sc_lon_m_loan_card ,sc_lon_m_rule ,sc_com_m_receipt
+        where sc_com_m_receipt.membership_no = sc_lon_m_loan_card.membership_no
+        and sc_lon_m_loan_history.loan_contract_no = sc_lon_m_loan_card.loan_contract_no
+        and sc_lon_m_loan_card.loan_type = sc_lon_m_rule.loan_type
+        and sc_lon_m_rule.loan_group_code = '01'      and sc_lon_m_rule.loan_type not in ( 'รก')
+        and ( sc_lon_m_loan_card.loan_code = null or sc_lon_m_loan_card.loan_code = '0' )	--*เอาเฉพาะสัญญาปกติ
+        and sc_com_m_receipt.receipt_date between '!receipt_date_1!' and '!receipt_date_2!'
+        and sc_com_m_receipt.receipt_status = '0'
+        and sc_com_m_receipt.money_type_id not in (  'TBK' , 'CLR' , 'AOP' ,'TRL' , 'FUN' , 'CRC' , 'CRC')
+        and sc_lon_m_loan_history.clear_focus = '1'
+
+        /*and   ('!receipt_mode!' = 'F' and sc_com_m_receipt.receipt_mode = 'F' or '!receipt_mode!'  = 'R' and sc_com_m_receipt.receipt_mode = 'R' or  '!receipt_mode!'  is  null and sc_com_m_receipt.receipt_mode not in('F','R'))*/
+
+        /*WHERE*/
+        group by sc_lon_m_loan_card.loan_code,sc_lon_m_loan_card.loan_type
+        order by sc_lon_m_loan_card.loan_code,sc_lon_m_loan_card.loan_type
+      </sql>
+    </r_ktm_finance_payment_nest_sum_balance2>
+    <r_ktm_finance_payment_nest_fund>
+      <sql>
+        select  sc_lon_m_loan_card.loan_type,
+        count( sc_lon_m_loan_history.loan_contract_no ) as sub_count,
+        sum(sc_lon_m_loan_history.principal_balance_of_loan) as principal_balance_of_loan,
+        sum(sc_lon_m_loan_history.interest_amount) as interest_amount
+        from sc_lon_m_loan_history ,sc_lon_m_loan_card ,sc_lon_m_rule ,sc_com_m_receipt
+        where sc_com_m_receipt.membership_no = sc_lon_m_loan_card.membership_no
+        and sc_lon_m_loan_history.loan_contract_no = sc_lon_m_loan_card.loan_contract_no
+        and sc_lon_m_loan_card.loan_type = sc_lon_m_rule.loan_type
+        and sc_lon_m_rule.loan_type = 'ภภ'
+        and sc_lon_m_rule.loan_group_code = '01'      and sc_lon_m_rule.loan_type not in ( 'รก')
+        and ( sc_lon_m_loan_card.loan_code = null or sc_lon_m_loan_card.loan_code = '0' )	--*เอาเฉพาะสัญญาปกติ
+        and sc_com_m_receipt.receipt_date between '!receipt_date_1!' and '!receipt_date_2!'
+        and sc_com_m_receipt.receipt_status = '0'
+        and sc_com_m_receipt.money_type_id not in (  'TBK' , 'CLR' , 'AOP' ,'TRL' ,'FUN' , 'CRC' )
+
+        /*and   ('!receipt_mode!' = 'F' and sc_com_m_receipt.receipt_mode = 'F' or '!receipt_mode!'  = 'R' and sc_com_m_receipt.receipt_mode = 'R' or  '!receipt_mode!'  is  null and sc_com_m_receipt.receipt_mode not in('F','R'))*/
+
+        /*WHERE*/
+        group by sc_lon_m_loan_card.loan_code,sc_lon_m_loan_card.loan_type
+        order by sc_lon_m_loan_card.loan_code,sc_lon_m_loan_card.loan_type
+      </sql>
+    </r_ktm_finance_payment_nest_fund>
+  </sub>
+</root>

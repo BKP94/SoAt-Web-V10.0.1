@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root procedure="pka_acc_moneysheet.sp_report({moneysheet_code_2_1},{date_fr_1},{date_to_1},{date_fr_2},{date_to_2})">
+  <arg>
+    <year special="year" text="ปีบัญชี" table="sc_acc_m_general_ledger" type="integer" column="account_year" operator="bt" sqlwhere="0" sqlreplace="1" noheader="1" />
+    <date_fr text="ตั้งแต่วันที่" type="date" operator="bt" sqlwhere="0" sqlreplace="1" noheader="1" />
+    <date_to text="ถึงวันที่" type="date" operator="bt" sqlwhere="0" sqlreplace="1" noheader="1" />
+    <moneysheet_code_2 text="งบการเงิน" column="moneysheet_code" table="sc_acc_rpt_money_sheet_det" combo="rep_heading" noheader="1" />
+  </arg>
+  <combo>
+    <money_sheet>      select moneysheet_code as item_code
+      , report_heading as item_desc
+      from sc_acc_m_money_sheet_head
+      where moneysheet_name is not null
+and  moneysheet_code not in ( '00025' ,'00030')
+and active_status = '1' </money_sheet>
+    <rep_heading>      select moneysheet_code as item_code
+      , moneysheet_code||' - '||moneysheet_name as item_desc
+      from sc_acc_m_money_sheet_head
+      where moneysheet_name is not null
+and  moneysheet_code not in ( '00025' ,'00030')
+and active_status = '1'    </rep_heading>
+  </combo>
+  <sql>    select sc_acc_rpt_money_sheet_det.moneysheet_code,
+    sc_acc_rpt_money_sheet_det.moneysheet_seq,
+    sc_acc_rpt_money_sheet_det.data_type,
+    sc_acc_rpt_money_sheet_det.data_group,
+    sc_acc_rpt_money_sheet_det.data_desc,
+    --sc_acc_rpt_money_sheet_det.description,
+    substr( sc_acc_rpt_money_sheet_det.description , 1 , 80 ) as description ,
+    sc_acc_rpt_money_sheet_det.amount1,
+    sc_acc_rpt_money_sheet_det.amount2,
+    sc_acc_rpt_money_sheet_det.percent1,
+    sc_acc_rpt_money_sheet_det.percent2,
+    sc_acc_rpt_money_sheet_det.percent_group,
+    sc_acc_rpt_money_sheet_det.upperline_status,
+    sc_acc_rpt_money_sheet_det.underline_status,
+    sc_acc_rpt_money_sheet_det.fontbold_status,
+    sc_acc_rpt_money_sheet_det.novisible,
+    sc_acc_rpt_money_sheet_det.account_id,
+    sc_acc_rpt_money_sheet_det.account_level
+
+   , sc_acc_m_money_sheet_head.moneysheet_name 
+   , pka_acc_moneysheet.fp_report_head( sc_acc_m_money_sheet_head.report_heading, '!date_to_1!', null )   as report_heading
+   , pka_acc_moneysheet.fp_report_head( sc_acc_m_money_sheet_head.c1_heading , '!date_to_1!', null )   as date_to_1_tdate 
+   , pka_acc_moneysheet.fp_report_head( sc_acc_m_money_sheet_head.c2_heading, '!date_to_2!', null )   as date_to_2_tdate 
+   , sc_acc_m_money_sheet_head.c1_percent_status 
+  ,  sc_acc_m_money_sheet_head.c2_percent_status 
+
+,trim( substr( sc_acc_rpt_money_sheet_det.description , 80 , 50 ) ) as remark_no
+    from sc_acc_rpt_money_sheet_det
+, sc_acc_m_money_sheet_head
+    where 1=1
+    and sc_acc_m_money_sheet_head.moneysheet_code = sc_acc_rpt_money_sheet_det.moneysheet_code
+    and sc_acc_rpt_money_sheet_det.novisible = '0'
+    /*WHERE*/
+    order by sc_acc_rpt_money_sheet_det.moneysheet_code,
+    sc_acc_rpt_money_sheet_det.moneysheet_seq
+  </sql>
+  <sub />
+</root>

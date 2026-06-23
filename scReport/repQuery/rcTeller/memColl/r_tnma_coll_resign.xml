@@ -17,16 +17,16 @@
     ,pka_com_function.fp_get_group_name(sc_mem_m_membership_registered.member_group_no) as coll_group_name
     ,pka_com_function.fp_get_thaidate(sc_mem_m_membership_registered.resignation_approve_date) as resignation_approve_date_thai
     ,pka_com_function.fp_get_member_sharestock(sc_lon_m_loan_card.membership_no) as sharestock
-    ,pka_com_function.fp_get_member_address_letter(sc_lon_m_loan_card.membership_no,'1',6)as address_no
-    ,pka_com_function.fp_get_member_address_letter(sc_lon_m_loan_card.membership_no,'1',7)as mooban
-    ,pka_com_function.fp_get_member_address_letter(sc_lon_m_loan_card.membership_no,'1',8)as moo
-    ,pka_com_function.fp_get_member_address_letter(sc_lon_m_loan_card.membership_no,'1',9)as road
-    ,pka_com_function.fp_get_member_address_letter(sc_lon_m_loan_card.membership_no,'1',10)as soi
-    ,pka_com_function.fp_get_member_address_letter(sc_lon_m_loan_card.membership_no,'1',11)as tambol
-    ,pka_com_function.fp_get_member_address_letter(sc_lon_m_loan_card.membership_no,'1',12)as district
-    ,pka_com_function.fp_get_member_address_letter(sc_lon_m_loan_card.membership_no,'1',13)as province
-    ,pka_com_function.fp_get_member_address_letter(sc_lon_m_loan_card.membership_no,'1',14)as postcode
-    ,pka_com_function.fp_get_member_address_letter(sc_lon_m_loan_card.membership_no,'1',15)as telephone
+    ,pka_com_function.fp_get_member_address_letter(sc_lon_m_loan_card.membership_no,('1')::text,6)as address_no
+    ,pka_com_function.fp_get_member_address_letter(sc_lon_m_loan_card.membership_no,('1')::text,7)as mooban
+    ,pka_com_function.fp_get_member_address_letter(sc_lon_m_loan_card.membership_no,('1')::text,8)as moo
+    ,pka_com_function.fp_get_member_address_letter(sc_lon_m_loan_card.membership_no,('1')::text,9)as road
+    ,pka_com_function.fp_get_member_address_letter(sc_lon_m_loan_card.membership_no,('1')::text,10)as soi
+    ,pka_com_function.fp_get_member_address_letter(sc_lon_m_loan_card.membership_no,('1')::text,11)as tambol
+    ,pka_com_function.fp_get_member_address_letter(sc_lon_m_loan_card.membership_no,('1')::text,12)as district
+    ,pka_com_function.fp_get_member_address_letter(sc_lon_m_loan_card.membership_no,('1')::text,13)as province
+    ,pka_com_function.fp_get_member_address_letter(sc_lon_m_loan_card.membership_no,('1')::text,14)as postcode
+    ,pka_com_function.fp_get_member_address_letter(sc_lon_m_loan_card.membership_no,('1')::text,15)as telephone
     ,sc_lon_m_loan_card.contact_status
 ,sc_mem_m_ucf_resign_cause.resign_cause_name
     from sc_lon_m_contract_coll

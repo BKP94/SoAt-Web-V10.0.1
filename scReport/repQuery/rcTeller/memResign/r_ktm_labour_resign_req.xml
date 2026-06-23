@@ -34,12 +34,12 @@
     ,sc_mem_m_membership_registered.sex
     ,sc_mem_m_membership_registered.mem_type
 
-    ,decode( sc_mem_m_membership_registered.mem_type , '01' , 1 , 0 ) as count_01
-    ,decode( sc_mem_m_membership_registered.mem_type , '01' , decode( sc_mem_m_membership_registered.sex , 'M' , 1 , 0  ) , 0 ) as count_01_m
-    ,decode( sc_mem_m_membership_registered.mem_type , '02' , 1 , 0 ) as count_02
-    ,decode( sc_mem_m_membership_registered.mem_type , '02' , decode( sc_mem_m_membership_registered.sex , 'M' , 1 , 0  ) , 0 ) as count_02_m
-    ,decode( sc_mem_m_membership_registered.mem_type , '03' , 1 , 0 ) as count_03
-    ,decode( sc_mem_m_membership_registered.mem_type , '03' , decode( sc_mem_m_membership_registered.sex , 'M' , 1 , 0  ) , 0 ) as count_03_m
+    ,(CASE sc_mem_m_membership_registered.mem_type WHEN '01' THEN 1 ELSE 0 END) as count_01
+    ,(CASE sc_mem_m_membership_registered.mem_type WHEN '01' THEN (CASE sc_mem_m_membership_registered.sex WHEN 'M' THEN 1 ELSE 0 END) ELSE 0 END) as count_01_m
+    ,(CASE sc_mem_m_membership_registered.mem_type WHEN '02' THEN 1 ELSE 0 END) as count_02
+    ,(CASE sc_mem_m_membership_registered.mem_type WHEN '02' THEN (CASE sc_mem_m_membership_registered.sex WHEN 'M' THEN 1 ELSE 0 END) ELSE 0 END) as count_02_m
+    ,(CASE sc_mem_m_membership_registered.mem_type WHEN '03' THEN 1 ELSE 0 END) as count_03
+    ,(CASE sc_mem_m_membership_registered.mem_type WHEN '03' THEN (CASE sc_mem_m_membership_registered.sex WHEN 'M' THEN 1 ELSE 0 END) ELSE 0 END) as count_03_m
 
     FROM  sc_mem_m_resign_requestment,
     sc_mem_m_resign_share,

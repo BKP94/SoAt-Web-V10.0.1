@@ -21,7 +21,7 @@
     ,sc_com_m_branch.branch_name as branch_name
 
     ,sc_com_m_receipt_item.item_type_id as item_type_id
-    , decode(  sc_com_m_ucf_receipt_item_type.group_item , 'LON' , FPB_GET_LOAN_TYPE_DESC( FPB_GET_LOAN_TYPE_REF(  sc_com_m_receipt_item.loan_type )) , sc_com_m_ucf_receipt_item_type.item_type_name )  as loan_type_des
+    , (CASE sc_com_m_ucf_receipt_item_type.group_item WHEN 'LON' THEN FPB_GET_LOAN_TYPE_DESC( FPB_GET_LOAN_TYPE_REF(  sc_com_m_receipt_item.loan_type )) ELSE sc_com_m_ucf_receipt_item_type.item_type_name END)  as loan_type_des
 
 
     FROM sc_com_m_receipt
@@ -49,7 +49,7 @@
     and	sc_com_m_ucf_money_type.money_type_id = 'CSH'
     /*WHERE*/
     GROUP BY  sc_com_m_ucf_receipt_item_type.group_item
-    ,decode(  sc_com_m_ucf_receipt_item_type.group_item , 'LON' , FPB_GET_LOAN_TYPE_DESC( FPB_GET_LOAN_TYPE_REF(  sc_com_m_receipt_item.loan_type )) , sc_com_m_ucf_receipt_item_type.item_type_name )
+    ,(CASE sc_com_m_ucf_receipt_item_type.group_item WHEN 'LON' THEN FPB_GET_LOAN_TYPE_DESC( FPB_GET_LOAN_TYPE_REF(  sc_com_m_receipt_item.loan_type )) ELSE sc_com_m_ucf_receipt_item_type.item_type_name END)
     ,sc_com_m_receipt.receipt_date
     ,sc_com_m_branch.branch_id
     ,sc_com_m_branch.branch_name

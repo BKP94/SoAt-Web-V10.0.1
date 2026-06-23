@@ -1,0 +1,147 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <journal_date text="ประจำวันที่" table="sc_fin_m_close_day" type="date" column="journal_date" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_cnt_m_coop.coop_name
+
+    ,sc_fin_m_close_day.journal_date
+    ,pka_com_function.fp_get_thaidate( sc_fin_m_close_day.journal_date,'SD MONTH YYYY') as journal_tdate
+    FROM sc_cnt_m_coop
+    , sc_fin_m_close_day
+    WHERE  1=1
+    and      sc_fin_m_close_day.branch_fin = '01'    
+    /*WHERE*/
+  </sql>
+  <sub>
+    <r_tge_sheet_tran_nest_dr>
+      <sql>select account_id , account_name , sum( dr_amount ) as dr_amount
+from 
+( 
+SELECT sc_acc_m_account_master.account_id
+, sc_acc_m_account_master.account_name
+, sc_fin_journal_detail.item_amount  as dr_amount
+, sc_fin_journal_detail.journal_date
+    FROM sc_fin_journal_detail,   
+         sc_fin_ucf_vourcher_group  
+,sc_acc_m_account_master
+   WHERE 1=1
+and sc_fin_ucf_vourcher_group.post_to_acc = '1' 
+and sc_acc_m_account_master.account_id = sc_fin_journal_detail.account_id
+and sc_fin_journal_detail.slip_group = sc_fin_ucf_vourcher_group.vourcher_group
+and sc_fin_journal_detail.fin_book != '0' 
+and sc_fin_journal_detail.fin_sign = '+' 
+
+union all 
+
+  SELECT sc_acc_m_account_master.account_id
+,sc_acc_m_account_master.account_name
+,sc_acc_journal_detail_firm.dr_amount  as dr_amount
+,sc_acc_journal_heading_firm.journal_date
+    FROM sc_acc_journal_heading_firm
+,sc_acc_journal_detail_firm 
+,sc_acc_m_account_master
+   WHERE 1=1
+and sc_acc_journal_heading_firm.doc_type = sc_acc_journal_detail_firm.doc_type
+and sc_acc_journal_heading_firm.doc_no = sc_acc_journal_detail_firm.doc_no
+and sc_acc_m_account_master.account_id = sc_acc_journal_detail_firm.account_id 
+and sc_acc_journal_heading_firm.doc_type = 'JV'
+and sc_acc_journal_heading_firm.vourcher_group is null
+and  sc_acc_journal_detail_firm.dr_amount &gt; 0 
+) 
+where 1=1
+/*WHERE*/
+and journal_date = {0}
+
+GROUP BY  account_id
+ ,account_name
+,journal_date
+ORDER BY account_id
+      </sql>
+    </r_tge_sheet_tran_nest_dr>
+    <r_tge_sheet_tran_nest_cr>
+      <sql>select account_id , account_name , sum( cr_amount ) as cr_amount
+from 
+( 
+SELECT sc_acc_m_account_master.account_id
+, sc_acc_m_account_master.account_name
+, sc_fin_journal_detail.item_amount  as cr_amount
+,sc_fin_journal_detail.journal_date
+    FROM sc_fin_journal_detail,   
+         sc_fin_ucf_vourcher_group  
+,sc_acc_m_account_master
+   WHERE 1=1
+and sc_fin_ucf_vourcher_group.post_to_acc = '1' 
+and sc_acc_m_account_master.account_id = sc_fin_journal_detail.account_id
+and sc_fin_journal_detail.slip_group = sc_fin_ucf_vourcher_group.vourcher_group
+and sc_fin_journal_detail.fin_book != '0' 
+and sc_fin_journal_detail.fin_sign = '-' 
+
+
+union all 
+
+  SELECT sc_acc_m_account_master.account_id
+,sc_acc_m_account_master.account_name
+,sc_acc_journal_detail_firm.cr_amount  as cr_amount
+,sc_acc_journal_heading_firm.journal_date
+    FROM sc_acc_journal_heading_firm
+,sc_acc_journal_detail_firm 
+,sc_acc_m_account_master
+   WHERE 1=1
+and sc_acc_journal_heading_firm.doc_type = sc_acc_journal_detail_firm.doc_type
+and sc_acc_journal_heading_firm.doc_no = sc_acc_journal_detail_firm.doc_no
+and sc_acc_m_account_master.account_id = sc_acc_journal_detail_firm.account_id 
+and sc_acc_journal_heading_firm.doc_type = 'JV'
+and sc_acc_journal_heading_firm.vourcher_group is null
+and  sc_acc_journal_detail_firm.cr_amount &gt; 0 
+) 
+where 1=1
+/*WHERE*/
+and journal_date = {0}
+GROUP BY  account_id
+ ,account_name
+,journal_date
+ORDER BY account_id
+      </sql>
+    </r_tge_sheet_tran_nest_cr>
+    <r_tge_sheet_tran_nest_footer>
+      <sql>select  sum( cr_amount ) as cr_amount  ,sum( dr_amount ) as dr_amount
+from 
+(
+ SELECT  CASE WHEN sc_fin_journal_detail.fin_sign = '+' THEN sc_fin_journal_detail.item_amount ELSE 0 END  as cr_amount
+, CASE WHEN sc_fin_journal_detail.fin_sign = '+' THEN 0 ELSE sc_fin_journal_detail.item_amount END  as dr_amount
+, 0  as c_begin
+,sc_fin_journal_detail.journal_date
+    FROM sc_fin_journal_detail,   
+         sc_fin_ucf_vourcher_group  
+,sc_acc_m_account_master
+   WHERE 1=1
+and sc_fin_ucf_vourcher_group.post_to_acc = '1' 
+and sc_acc_m_account_master.account_id = sc_fin_journal_detail.account_id
+and sc_fin_journal_detail.slip_group = sc_fin_ucf_vourcher_group.vourcher_group
+and sc_fin_journal_detail.fin_book != '0' 
+
+union all 
+
+  SELECT sc_acc_journal_detail_firm.cr_amount  
+, sc_acc_journal_detail_firm.dr_amount  
+, 0  as c_begin
+,sc_acc_journal_heading_firm.journal_date
+    FROM sc_acc_journal_heading_firm
+,sc_acc_journal_detail_firm 
+,sc_acc_m_account_master
+   WHERE 1=1
+and sc_acc_journal_heading_firm.doc_type = sc_acc_journal_detail_firm.doc_type
+and sc_acc_journal_heading_firm.doc_no = sc_acc_journal_detail_firm.doc_no
+and sc_acc_m_account_master.account_id = sc_acc_journal_detail_firm.account_id 
+and sc_acc_journal_heading_firm.doc_type = 'JV'
+and sc_acc_journal_heading_firm.vourcher_group is null
+)
+where 1=1
+and journal_date = {0}
+
+GROUP BY  journal_date </sql>
+    </r_tge_sheet_tran_nest_footer>
+  </sub>
+</root>

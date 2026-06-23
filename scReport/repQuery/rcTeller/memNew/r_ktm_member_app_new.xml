@@ -13,7 +13,7 @@
     sc_mem_m_ucf_member_type.memtype_control,
     sc_mem_m_membership_registered.member_name ,
     sc_mem_m_membership_registered.member_surname ,
-    PKA_LON_REQSRV.fp_calc_agetext( sc_mem_m_membership_registered.date_of_birth )  as age,
+    PKA_LON_REQSRV.fp_calc_agetext( sc_mem_m_membership_registered.date_of_birth, localtimestamp)  as age,
 
     sc_mem_m_ucf_member_group.member_group_no,
     sc_mem_m_ucf_member_group.member_group_name,
@@ -27,7 +27,7 @@
     sc_mem_m_member_work_info.position_long as position_name ,
 
     sc_mem_m_member_work_info.salary_id ,
-    nvl(sc_mem_m_member_work_info.salary_amount,0) as salary_amount ,
+    coalesce(sc_mem_m_member_work_info.salary_amount,0) as salary_amount ,
 
     sc_mem_m_share_mem.share_amount,
     sc_mem_m_membership_registered.approve_date,

@@ -9,7 +9,7 @@
   </arg>
  
   <sql>
-    select pka_com_function.fp_get_moneythai (tab.principal_balance) as thai_principal_balance ,tab.*
+    select pka_com_function.fp_get_moneythai ((tab.principal_balance)::double precision) as thai_principal_balance ,tab.*
     from ( select sc_mem_m_resign_requestment.membership_no
     ,pka_com_function.fp_get_member_group(sc_mem_m_resign_requestment.membership_no) as group_memno
     ,(select position_name from sc_mem_m_ucf_position where position_code = sc_mem_m_membership_registered.position_code) as position_name
@@ -27,7 +27,7 @@
     ,pka_com_function.fp_get_member_name(sc_mem_m_resign_loncoll.contract_memno) as coll_name
     ,(select coop_name from sc_cnt_m_coop ) as coop_name
     ,'!as_name_1!' as as_name
-    , pka_com_function.fp_get_thaidate(sysdate , 'SD MONTH YYYY') as sysdate_tdate
+    , pka_com_function.fp_get_thaidate(current_date , 'SD MONTH YYYY') as sysdate_tdate
     ,'!as_letter!' as as_letter
     ,'!an_month!' as an_month
 

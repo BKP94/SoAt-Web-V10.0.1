@@ -6,7 +6,7 @@
   </arg>
   <combo />
   <sql>
-    select nvl(money_amount,0) - nvl(money_amount_not,0) - ppm_amout as  unkeep_real /*คงค้าง*/ ,tab.*
+    select coalesce(money_amount,0) - coalesce(money_amount_not,0) - ppm_amout as  unkeep_real /*คงค้าง*/ ,tab.*
     from (
     select sc_kep_t_monthly_receive.membership_no
     ,pka_com_function.fp_get_member_name( sc_kep_t_monthly_receive.membership_no ) as member_name
@@ -23,7 +23,7 @@
     and  month_receipt_no = sc_kep_t_monthly_receive.receipt_no
     ) as ppm_date /*ตามมาชำระ*/
 
-    ,(  select  nvl( sum( recept_amount ) , 0 )
+    ,(  select  coalesce( sum( recept_amount ) , 0 )
     from  sc_com_m_receipt
     where  receipt_mode = 'R'
     and   receipt_status = '0'

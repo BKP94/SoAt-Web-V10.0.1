@@ -12,7 +12,7 @@
     sc_mem_m_membership_registered.membership_no,
     pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as  member_name,
     sc_mem_m_ucf_position.position_name,
-    pka_lon_reqsrv.fp_calc_agetext(sc_mem_m_membership_registered.date_of_birth) as age,
+    pka_lon_reqsrv.fp_calc_agetext(sc_mem_m_membership_registered.date_of_birth, localtimestamp) as age,
     sc_mem_m_membership_registered.date_of_birth,
     sc_mem_m_membership_registered.salary_amount,
     sc_mem_m_membership_registered.marriage_status,

@@ -13,7 +13,7 @@
           sc_kep_t_monthly_receive.receive_month ,
           sc_lon_m_contract.membership_no,   
           pka_com_function.fp_get_member_name( sc_lon_m_contract.membership_no ) as memname,   
-          pka_com_function.fp_get_thaidate(sysdate , 'SD MONTH YYYY') as sysdate_tdate,
+          pka_com_function.fp_get_thaidate(current_date , 'SD MONTH YYYY') as sysdate_tdate,
           pka_com_function.fp_get_thaidate(sc_kep_t_monthly_receive.receipt_date, 'MONTH YYYY') as receipt_tdate,  
           pka_com_function.fp_get_thaidate(sc_kep_t_monthly_receive.receipt_date, 'SD MONTH YYYY') as receipt_date,  
           sc_cnt_m_coop.coop_name,   
@@ -29,19 +29,19 @@
           sc_mem_m_ucf_member_group.member_group_name  ,
    
           sum( sc_lon_m_contract.loan_approve_amount ) as loan_approve_amount  ,   
-          pka_com_function.fp_get_moneythai ( sum( sc_lon_m_contract.loan_approve_amount ) ) as loan_approve_amount_thai,   
+          pka_com_function.fp_get_moneythai ((sum( sc_lon_m_contract.loan_approve_amount ))::double precision) as loan_approve_amount_thai,   
 
           sum( sc_lon_m_contract.period_payment_amount ) as period_payment_amount ,   
         
           sum( sc_kep_t_monthly_receive_det.unkeep_money_amount ) as unkeep_money_amount ,   
-          pka_com_function.fp_get_moneythai ( sum( sc_kep_t_monthly_receive_det.unkeep_money_amount  ) ) as unkeep_money_amount_thai , 
+          pka_com_function.fp_get_moneythai ((sum( sc_kep_t_monthly_receive_det.unkeep_money_amount  ))::double precision) as unkeep_money_amount_thai , 
 
 
-          pka_com_function.fp_get_member_address_letter(  sc_lon_m_contract.membership_no , '0' , 1 ) as address_line1,   
-          pka_com_function.fp_get_member_address_letter(  sc_lon_m_contract.membership_no , '0' , 2 ) as address_line2,   
-          pka_com_function.fp_get_member_address_letter(  sc_lon_m_contract.membership_no , '0' , 3 ) as address_line3,   
-          pka_com_function.fp_get_member_address_letter(  sc_lon_m_contract.membership_no , '0' , 4 ) as address_line4,   
-          pka_com_function.fp_get_member_address_letter(  sc_lon_m_contract.membership_no , '0' , 5 ) as address_line5  
+          pka_com_function.fp_get_member_address_letter(  sc_lon_m_contract.membership_no ,('0')::text, 1 ) as address_line1,   
+          pka_com_function.fp_get_member_address_letter(  sc_lon_m_contract.membership_no ,('0')::text, 2 ) as address_line2,   
+          pka_com_function.fp_get_member_address_letter(  sc_lon_m_contract.membership_no ,('0')::text, 3 ) as address_line3,   
+          pka_com_function.fp_get_member_address_letter(  sc_lon_m_contract.membership_no ,('0')::text, 4 ) as address_line4,   
+          pka_com_function.fp_get_member_address_letter(  sc_lon_m_contract.membership_no ,('0')::text, 5 ) as address_line5  
 
     FROM sc_lon_m_contract,        
          sc_kep_t_monthly_receive_det,   

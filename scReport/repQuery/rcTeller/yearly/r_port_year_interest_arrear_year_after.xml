@@ -7,7 +7,7 @@
   </arg>
   <combo />
   <sql>select  sum(tab.row_memno)over(partition by tab.member_group_no order by tab.member_group_no , tab.contact_status , tab.membership_no , tab.loan_contract_no ) as rowno,  tab.*
-from    ( SELECT    decode(lag(sc_lon_m_loan_card.membership_no,1,null)over( order by sc_mem_m_ucf_member_group.member_group_no , sc_lon_m_loan_card.contact_status , sc_lon_m_loan_card.membership_no , sc_lon_m_loan_card.loan_contract_no ) ,sc_lon_m_loan_card.membership_no ,0,1 ) as row_memno
+from    ( SELECT    (CASE lag(sc_lon_m_loan_card.membership_no,1,null)over( order by sc_mem_m_ucf_member_group.member_group_no , sc_lon_m_loan_card.contact_status , sc_lon_m_loan_card.membership_no , sc_lon_m_loan_card.loan_contract_no ) WHEN sc_lon_m_loan_card.membership_no THEN 0 ELSE 1 END) as row_memno
 ,       sc_mem_m_ucf_member_group.member_group_no 
 ,       sc_mem_m_ucf_member_group.member_group_name 
 ,       sc_mem_m_ucf_member_group.member_group_control 
@@ -33,9 +33,9 @@ from    ( SELECT    decode(lag(sc_lon_m_loan_card.membership_no,1,null)over( ord
     
 ,       '!last_calcint_date_1!'  as  loan_payment_date
 ,       pka_lon_intsrv.fp_calint(sc_lon_m_loan_card.loan_contract_no  , '!last_calcint_date_1!' ) as calcint  
-,       nvl( sc_lon_m_loan_card.interest_arrear,0 ) as interest_arrear
+,       coalesce( sc_lon_m_loan_card.interest_arrear,0 ) as interest_arrear
 
-,       (select nvl(max(interest_arrear_bal),0)
+,       (select coalesce(max(interest_arrear_bal),0)
         from    sc_lon_m_loan_card_detail
         where   loan_contract_no = sc_lon_m_loan_card.loan_contract_no
         and     seq_no = (select max(seq_no)
@@ -55,7 +55,7 @@ from    ( SELECT    decode(lag(sc_lon_m_loan_card.membership_no,1,null)over( ord
                          )
         ) as last_interest_tdate       
 
-,       (select nvl(max(principal_balance),0)
+,       (select coalesce(max(principal_balance),0)
         from    sc_lon_m_loan_card_detail
         where   loan_contract_no = sc_lon_m_loan_card.loan_contract_no
         and     seq_no = (select max(seq_no)
@@ -73,7 +73,7 @@ WHERE   ( sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_g
 and     ( sc_lon_m_loan_card.membership_no = sc_mem_m_membership_registered.membership_no )
 and     ( sc_mem_m_membership_registered.prename_code = sc_mem_m_ucf_prename.prename_code )
 and     pka_lon_intsrv.fp_calint(sc_lon_m_loan_card.loan_contract_no  , '!last_calcint_date_1!' ) + sc_lon_m_loan_card.interest_arrear  &gt; 0
-and     (select nvl(max(principal_balance),0)
+and     (select coalesce(max(principal_balance),0)
         from    sc_lon_m_loan_card_detail
         where   loan_contract_no = sc_lon_m_loan_card.loan_contract_no
         and     seq_no = (select max(seq_no)

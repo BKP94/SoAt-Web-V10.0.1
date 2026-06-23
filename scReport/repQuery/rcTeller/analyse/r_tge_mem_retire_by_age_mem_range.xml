@@ -8,7 +8,7 @@
 ,       sc_mem_m_ucf_prename.prename||sc_mem_m_membership_registered.member_name||' '||sc_mem_m_membership_registered.member_surname as member_name
 ,       sc_mem_m_ucf_member_group.member_group_name
 ,       '!adt_date!' as adt_date
-,       sysdate
+,       current_date
 ,       sc_mem_m_membership_registered.date_of_birth
 ,       sc_mem_m_membership_registered.approve_date
 ,       trim(pka_lon_reqsrv.fp_calc_agetext_m_age( sc_mem_m_membership_registered.membership_no , '!adt_date!' )) as age_mem

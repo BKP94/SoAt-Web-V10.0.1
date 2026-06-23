@@ -11,7 +11,7 @@
     sc_lon_m_rule.loan_type_description,
     pka_com_function.fp_get_member_name( sc_lon_m_contract.membership_no ) as memname,
     sc_lon_m_contract.membership_no,
-    pka_com_function.fp_get_thaidate(sysdate , 'SD MONTH YYYY') as sysdate_tdate ,
+    pka_com_function.fp_get_thaidate(current_date , 'SD MONTH YYYY') as sysdate_tdate ,
     sc_lon_m_contract.member_group_no,
     pka_com_function.fp_get_group_name_mem(sc_lon_m_contract.membership_no) as member_group_name,
     sc_lon_m_contract.loan_approve_amount,
@@ -57,7 +57,7 @@
         end ) as c_type_name,
         sc_com_m_ucf_money_type.money_type_name,
         sc_lon_m_contract_multi_paid.paid_amount,
-        to_snumber( sc_lon_m_contract_multi_paid.paid_amount ) as snu_paid_amount,
+        to_snumber((sc_lon_m_contract_multi_paid.paid_amount)::bigint) as snu_paid_amount,
         sc_lon_m_contract_multi_paid.bank_acc_no,
         sc_com_m_ucf_money_type.sort_order
         FROM sc_lon_m_contract_multi_paid,

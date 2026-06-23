@@ -29,33 +29,33 @@
 
 
 --ที่อยู่ทะเบียนบ้าน
-,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract.membership_no, '1' , 6 ) as address_no
-,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract.membership_no, '1' , 8 ) as moo
-,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract.membership_no, '1' , 7 ) as mooban
-,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract.membership_no, '1' , 10 ) as soi
-,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract.membership_no, '1' , 9 ) as road
-,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract.membership_no, '1' , 11 ) as tambol
-,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract.membership_no, '1' , 12 ) as district
-,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract.membership_no, '1' , 13 ) as province
-,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract.membership_no, '1' , 14 ) as postcode
-,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract.membership_no, '1' , 15 ) as telephone
+,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract.membership_no,('1')::text, 6 ) as address_no
+,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract.membership_no,('1')::text, 8 ) as moo
+,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract.membership_no,('1')::text, 7 ) as mooban
+,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract.membership_no,('1')::text, 10 ) as soi
+,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract.membership_no,('1')::text, 9 ) as road
+,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract.membership_no,('1')::text, 11 ) as tambol
+,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract.membership_no,('1')::text, 12 ) as district
+,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract.membership_no,('1')::text, 13 ) as province
+,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract.membership_no,('1')::text, 14 ) as postcode
+,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract.membership_no,('1')::text, 15 ) as telephone
 
 ,sc_lon_m_contract.loan_approve_amount
-,pka_com_function.fp_get_moneythai( sc_lon_m_contract.loan_approve_amount ) as loan_request_amount_thai
+,pka_com_function.fp_get_moneythai((sc_lon_m_contract.loan_approve_amount)::double precision) as loan_request_amount_thai
 ,(pka_lon_reqsrv.fp_calc_intrate(sc_lon_m_rule.loan_type)*100)as int_rate
 ,sc_lon_m_contract.period_payment_amount
-,pka_com_function.fp_get_numberthai( sc_lon_m_contract.period_payment_amount ) as period_payment_amount_thai
+,pka_com_function.fp_get_numberthai((sc_lon_m_contract.period_payment_amount)::text) as period_payment_amount_thai
 ,sc_lon_m_contract.loan_installment_amount
-,pka_com_function.fp_get_numberthai( sc_lon_m_contract.loan_installment_amount ) as loan_installment_amount_thai
+,pka_com_function.fp_get_numberthai((sc_lon_m_contract.loan_installment_amount)::text) as loan_installment_amount_thai
 ,sc_lon_m_contract.last_payment_amount
-,pka_com_function.fp_get_numberthai( sc_lon_m_contract.last_payment_amount ) as last_payment_amount_thai
+,pka_com_function.fp_get_numberthai((sc_lon_m_contract.last_payment_amount)::text) as last_payment_amount_thai
 ,sc_lon_m_contract.begining_of_contract
 ,pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract,'sd Month yyyy') as begining_of_contract_date
 
 ,(select marriage_status from sc_mem_m_ucf_marriage_status where sc_mem_m_ucf_marriage_status.marriage_status_code = sc_mem_m_membership_registered.marriage_status) as marriage_status
 ,fpa_com_marriage(sc_mem_m_membership_registered.membership_no) as spname
 ,(select id_card from sc_mem_m_member_spouse_info where membership_no = sc_mem_m_membership_registered.membership_no) as sp_id_card
-,to_char(sysdate, 'DD/MM/YYYY-HH24:MI:SS')||'-'||sc_lon_m_contract.appove_officer as entry_id
+,to_char(current_date, 'DD/MM/YYYY-HH24:MI:SS')||'-'||sc_lon_m_contract.appove_officer as entry_id
 ,pka_com_function.fp_get_district_name( sc_mem_m_ucf_member_group_addr.province_code , sc_mem_m_ucf_member_group_addr.district_code ) as group_district
 ,( select sc_mem_m_ucf_province.province_name from sc_mem_m_ucf_province where sc_mem_m_ucf_province.province_code = sc_mem_m_ucf_member_group_addr.province_code ) as province_addr
 
@@ -88,9 +88,9 @@ order by sc_lon_m_contract.loan_contract_no asc</sql>
         ,   ref_own_no
         ,   seq_no
         from (
-        select decode(collateral_type_code,'02','หุ้นค้ำประกัน',collateral_description) as cname
+        select (CASE collateral_type_code WHEN '02' THEN 'หุ้นค้ำประกัน' ELSE collateral_description END) as cname
         ,sc_lon_m_contract_coll.ref_own_no
-        ,rownum AS seq_no
+        ,row_number() over () AS seq_no
         from sc_lon_m_contract_coll
         ,sc_lon_m_contract
         where 1=1

@@ -16,7 +16,7 @@
     --and     sc_mem_edit_group.membership_no = '023808'
     
 /*---------------------[  วันที่  ]------------------------*/
- and to_date(sc_mem_edit_group.entry_date) between to_date('!entry_date_1!','dd/mm/yyyy') and to_date('!entry_date_2!','dd/mm/yyyy')
+ and (sc_mem_edit_group.entry_date)::date between to_date('!entry_date_1!','dd/mm/yyyy') and to_date('!entry_date_2!','dd/mm/yyyy')
 /*WHERE*/
     order by pka_com_function.fp_get_thaidate(sc_mem_edit_group.entry_date,'DD/MM/YYYY')
     ,        sc_mem_edit_group.membership_no

@@ -26,8 +26,8 @@
     ,sc_lon_m_contract.membership_no
     ,pka_com_function.fp_get_member_name(sc_lon_m_contract.membership_no) as memname
     ,sc_lon_m_contract.loan_approve_amount
-    ,pka_com_function.fp_get_moneythai(sc_lon_m_contract.loan_approve_amount) as loan_approve_amount_thai
-    ,pka_com_function.fp_get_moneythai( sc_lon_m_contract.loan_approve_amount ) as loan_request_amount_thai
+    ,pka_com_function.fp_get_moneythai((sc_lon_m_contract.loan_approve_amount)::double precision) as loan_approve_amount_thai
+    ,pka_com_function.fp_get_moneythai((sc_lon_m_contract.loan_approve_amount)::double precision) as loan_request_amount_thai
     ,pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract,'sd') as begin_of_day
     ,pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract,'Month') as begin_of_month
     ,pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract,'yyyy') as begin_of_year
@@ -62,16 +62,16 @@
         ,pka_com_function.fp_get_group_name_mem(sc_lon_m_contract_coll.ref_own_no) as group_name
 
         --ที่อยู่ปัจจุบัน
-        ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no, '0' , 6 ) as address_no
-        ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no, '0' , 8 ) as moo
-        ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no, '0' , 7 ) as mooban
-        ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no, '0' , 10 ) as soi
-        ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no, '0' , 9 ) as road
-        ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no, '0' , 11 ) as tambol
-        ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no, '0' , 12 ) as district
-        ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no, '0' , 13 ) as province
-        ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no, '0' , 14 ) as postcode
-        ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no, '0' , 15 ) as telephone
+        ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no,('0')::text, 6 ) as address_no
+        ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no,('0')::text, 8 ) as moo
+        ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no,('0')::text, 7 ) as mooban
+        ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no,('0')::text, 10 ) as soi
+        ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no,('0')::text, 9 ) as road
+        ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no,('0')::text, 11 ) as tambol
+        ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no,('0')::text, 12 ) as district
+        ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no,('0')::text, 13 ) as province
+        ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no,('0')::text, 14 ) as postcode
+        ,pka_com_function.fp_get_member_address_letter(sc_lon_m_contract_coll.ref_own_no,('0')::text, 15 ) as telephone
 
         ,pka_com_function.fp_get_district_name( sc_mem_m_ucf_member_group.province_code , sc_mem_m_ucf_member_group.district_code ) as group_district
         ,substr(pka_lon_reqsrv.fp_calc_agetext_m_live( sc_lon_m_contract_coll.ref_own_no ),1,3) as age

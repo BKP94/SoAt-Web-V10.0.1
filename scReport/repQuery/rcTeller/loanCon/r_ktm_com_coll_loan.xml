@@ -18,8 +18,7 @@
         '' as manager_name, --ผู้จัดการ 
         '' as spouse_surname, -- สามี/ภรรยาขอผู้ค้ำประกัน
         '' as spouse_occupation, --อาชีพผู้ค้ำประกัน
-        '' as spouse_salary,--รายได้ผู้ค้ำประกัน
-   from  dual ;  
+        '' as spouse_salary --รายได้ผู้ค้ำประกัน
   </sql>
   <sub>
   </sub>

@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="D005" rep_text="บัญชีแยกประเภท">
+  <arg>
+    <account_year special="year" text="ปี" type="integer2" column="account_year" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <account_month special="month" text="เดือน" type="integer2" combo="monthThLong" sqlwhere="0" sqlreplace="1" mustvalue="1" readonly="0" />
+    <account_id text="รหัสบัญชี" table="VR_DEP_M_ACC_TYPE_DATE" combo="sc_acc_m_account_master3" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select  VR_DEP_M_ACC_TYPE_MONTH.*
+,       substr(c_month,1,4)::int + 543 as account_year
+,       substr(c_month,6,2) as account_month
+,       pka_com_function.fp_get_month_name( substr(c_month,6,2)::int , 'ST' ) as account_month_thai
+from    VR_DEP_M_ACC_TYPE_MONTH
+where   1=1
+and     trim(substr(c_month,1,4))::int = '!account_year!'
+and     trim(substr(c_month,6,2))::int = '!account_month!'
+/*WHERE*/
+order by substr(c_month,1,4)
+,        substr(c_month,6,2)
+,        account_id</sql>
+  <sub />
+</root>

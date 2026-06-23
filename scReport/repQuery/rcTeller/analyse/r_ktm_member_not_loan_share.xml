@@ -5,7 +5,7 @@
   <combo />
   <sql> select sc_mem_m_membership_registered.membership_no,
     sc_mem_m_ucf_prename.prename||sc_mem_m_membership_registered.member_name||' '||sc_mem_m_membership_registered.member_surname as memname,
-    pka_lon_reqsrv.fp_calc_agetext(sc_mem_m_membership_registered.date_of_birth) as age_mem
+    pka_lon_reqsrv.fp_calc_agetext(sc_mem_m_membership_registered.date_of_birth, localtimestamp) as age_mem
    
     from sc_mem_m_membership_registered,
     sc_mem_m_ucf_prename

@@ -12,10 +12,10 @@
     PKA_COM_FUNCTION.fp_get_thaidate( sc_mem_m_resign_requestment.resign_date ) as resign_date_tdate ,
     PKA_COM_FUNCTION.fp_get_member_name( sc_mem_m_resign_requestment.membership_no ) as membername,
     sc_mem_m_resign_requestment.approve_result ,
-    (   		SELECT nvl(sum( sc_mem_m_resign_loan.principal_balance ),0)
+    (   		SELECT coalesce(sum( sc_mem_m_resign_loan.principal_balance ),0)
     FROM 	sc_mem_m_resign_loan
     WHERE	( sc_mem_m_resign_loan.resign_doc_no =  sc_mem_m_resign_requestment.resign_doc_no )  ) as loan_bal ,
-    ( SELECT nvl(sum( sc_mem_m_resign_dep.dep_balance ),0)
+    ( SELECT coalesce(sum( sc_mem_m_resign_dep.dep_balance ),0)
     FROM 	sc_mem_m_resign_dep
     WHERE	( sc_mem_m_resign_dep.resign_doc_no =  sc_mem_m_resign_requestment.resign_doc_no )    ) as dep_bal ,
     sc_mem_m_resign_requestment.approve_id ,

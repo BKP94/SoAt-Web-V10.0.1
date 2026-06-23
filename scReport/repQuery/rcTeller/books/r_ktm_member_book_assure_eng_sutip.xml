@@ -10,7 +10,7 @@
   <combo />
   <sql>
     SELECT sc_mem_m_membership_registered.eng_name,
-    pka_com_function.fp_get_thaidate(sysdate , 'SD')||' '||pka_com_function.fp_get_month_name( to_number( to_char( sysdate , 'mm')) , 'LE' )||' '||to_char(sysdate,'yyyy')  as sysdate_tdate ,
+    pka_com_function.fp_get_thaidate(current_date , 'SD')||' '||pka_com_function.fp_get_month_name((((to_char( current_date , 'mm'))::numeric))::int, 'LE' )||' '||to_char(current_date,'yyyy')  as sysdate_tdate ,
     sc_mem_m_membership_registered.membership_no,
     ( case '!name_1!' when '1' then 'LADDAWAN   BORDEERAT' end )|| ( case '!assis_1!' when '1' then 'MRS. CHUTIMA   PUMBUPA' end )|| ( case '!kirana_1!' when '1' then 'Mr. REUNGDECH   PAIRBUMRUNG' end )||( case '!rutta_1!' when '1' then 'MRS.RAVEEWAN   CHODOK' end ) as name,
     ( case '!name_1!' when '1' then 'MANAGER' else 'ASSISTANT  MANAGER' end ) as position,

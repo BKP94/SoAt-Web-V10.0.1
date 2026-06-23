@@ -1,0 +1,72 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <account_year text="ปี" special="year" table="sc_acc_m_account_budget_group" readonly="0" />
+    <month special="month" text="เดือน" table="sc_cnt_m_month" type="integer2" column="month_no" combo="monthThLong" mustvalue="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    select (case ta.nature when 'CR' then real_1 end) as CR_real_1 ,(case ta.nature when 'DR' then real_1 end) as DR_real_1
+    ,(case ta.nature when 'CR' then real_2 end) as CR_real_2 ,(case ta.nature when 'DR' then real_2 end) as DR_real_2
+    ,(case ta.nature when 'CR' then real_3 end) as CR_real_3 ,(case ta.nature when 'DR' then real_3 end) as DR_real_3
+    ,(case ta.nature when 'CR' then real_4 end) as CR_real_4 ,(case ta.nature when 'DR' then real_4 end) as DR_real_4
+    ,(case ta.nature when 'CR' then real_5 end) as CR_real_5 ,(case ta.nature when 'DR' then real_5 end) as DR_real_5
+    ,(case ta.nature when 'CR' then real_6 end) as CR_real_6 ,(case ta.nature when 'DR' then real_6 end) as DR_real_6
+    ,(case ta.nature when 'CR' then real_7 end) as CR_real_7 ,(case ta.nature when 'DR' then real_7 end) as DR_real_7
+    ,(case ta.nature when 'CR' then real_8 end) as CR_real_8 ,(case ta.nature when 'DR' then real_8 end) as DR_real_8
+    ,(case ta.nature when 'CR' then real_9 end) as CR_real_9 ,(case ta.nature when 'DR' then real_9 end) as DR_real_9
+    ,(case ta.nature when 'CR' then real_10 end) as CR_real_10  ,(case ta.nature when 'DR' then real_10 end) as DR_real_10
+    ,(case ta.nature when 'CR' then real_11 end) as CR_real_11  ,(case ta.nature when 'DR' then real_11 end) as DR_real_11
+    ,(case ta.nature when 'CR' then real_12 end) as CR_real_12  ,(case ta.nature when 'DR' then real_12 end) as DR_real_12
+    ,(case ta.nature when 'CR' then real_last_month end) as CR_real_last_month  ,(case ta.nature when 'DR' then real_last_month end) as DR_real_last_month
+    ,(case ta.nature when 'CR' then real_last_year end) as CR_real_last_year ,(case ta.nature when 'DR' then real_last_year end) as DR_real_last_year
+    ,(case ta.nature when 'CR' then real_this_year end) as CR_real_this_year ,(case ta.nature when 'DR' then real_this_year end) as DR_real_this_year
+    ,ta.*
+    from (
+    SELECT sc_acc_m_account_budget_group.account_year + 543 as account_year
+    , sc_acc_m_account_budget_group.budget_name
+    , sc_acc_m_account_budget.budget_id
+    , sc_acc_m_account_budget.account_budget
+    ,(case sc_acc_m_account_master.nature when 'CR' then sc_acc_m_account_budget.account_budget end) as CR_account_budget
+    ,(case sc_acc_m_account_master.nature when 'DR' then sc_acc_m_account_budget.account_budget end) as DR_account_budget
+    , sc_acc_m_account_budget.account_id
+    , sc_acc_m_account_master.nature
+    , sc_acc_m_account_master.account_name
+
+    , PKA_ACC_BUDGET.fp_usedMonth( sc_acc_m_account_budget_group.account_year::int, 1  ,  sc_acc_m_account_budget.account_id , null ) as real_1
+    , PKA_ACC_BUDGET.fp_usedMonth( sc_acc_m_account_budget_group.account_year::int, 2  ,  sc_acc_m_account_budget.account_id , null ) as real_2
+    , PKA_ACC_BUDGET.fp_usedMonth( sc_acc_m_account_budget_group.account_year::int, 3  ,  sc_acc_m_account_budget.account_id , null ) as real_3
+    , PKA_ACC_BUDGET.fp_usedMonth( sc_acc_m_account_budget_group.account_year::int, 4  ,  sc_acc_m_account_budget.account_id , null ) as real_4
+    , PKA_ACC_BUDGET.fp_usedMonth( sc_acc_m_account_budget_group.account_year::int, 5  ,  sc_acc_m_account_budget.account_id , null ) as real_5
+    , PKA_ACC_BUDGET.fp_usedMonth( sc_acc_m_account_budget_group.account_year::int, 6  ,  sc_acc_m_account_budget.account_id , null ) as real_6
+    , PKA_ACC_BUDGET.fp_usedMonth( sc_acc_m_account_budget_group.account_year::int, 7  ,  sc_acc_m_account_budget.account_id , null ) as real_7
+    , PKA_ACC_BUDGET.fp_usedMonth( sc_acc_m_account_budget_group.account_year::int, 8  ,  sc_acc_m_account_budget.account_id , null ) as real_8
+    , PKA_ACC_BUDGET.fp_usedMonth( sc_acc_m_account_budget_group.account_year::int, 9  ,  sc_acc_m_account_budget.account_id , null ) as real_9
+    , PKA_ACC_BUDGET.fp_usedMonth( sc_acc_m_account_budget_group.account_year::int, 10  ,  sc_acc_m_account_budget.account_id , null ) as real_10
+    , PKA_ACC_BUDGET.fp_usedMonth( sc_acc_m_account_budget_group.account_year::int, 11  ,  sc_acc_m_account_budget.account_id , null ) as real_11
+    , PKA_ACC_BUDGET.fp_usedMonth( sc_acc_m_account_budget_group.account_year::int, 12  ,  sc_acc_m_account_budget.account_id , null ) as real_12
+    , PKA_ACC_BUDGET.fp_usedCumu( sc_acc_m_account_budget_group.account_year::int- 1,  sc_cnt_m_month.month_no::int  ,  sc_acc_m_account_budget.account_id , null ) as real_last_year
+    , PKA_ACC_BUDGET.fp_usedMonth( sc_acc_m_account_budget_group.account_year::int- 1, sc_cnt_m_month.month_no::int  ,  sc_acc_m_account_budget.account_id , null ) as real_last_month
+
+    , PKA_ACC_BUDGET.fp_usedCumu( sc_acc_m_account_budget_group.account_year::int, sc_cnt_m_month.month_no::int  ,  sc_acc_m_account_budget.account_id , null ) as real_this_year
+
+,sc_cnt_m_month.month_name_thai
+,sc_cnt_m_month.shot_month_thai
+
+,sc_acc_m_account_budget.sort_order
+    FROM sc_acc_m_account_budget
+    ,sc_acc_m_account_budget_group
+    ,sc_acc_m_account_master
+, sc_cnt_m_month
+    WHERE sc_acc_m_account_budget_group.account_year = sc_acc_m_account_budget.account_year
+    and sc_acc_m_account_budget_group.budget_id = sc_acc_m_account_budget.budget_id
+    and sc_acc_m_account_budget.account_id = sc_acc_m_account_master.account_id
+    /*WHERE*/
+    --and sc_acc_m_account_budget_group.account_year = 2019
+
+    order by  sc_acc_m_account_budget.budget_id
+    , sc_acc_m_account_budget.sort_order
+    , sc_acc_m_account_budget.account_id
+    )ta
+  </sql>
+  <sub />
+</root>

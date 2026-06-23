@@ -49,7 +49,7 @@ and sc_lon_m_rule.invest_status = '0'
         sc_mem_m_ucf_member_status.member_status_name,
         count( 1 ) as c_count,
         sum( sc_rep_mem_share_loan_bal.share_balance ) as share_balance,
-        sum( decode( sc_mem_m_membership_registered.sex , 'M' , 1 , 0 ) ) as c_man,
+        sum( (CASE sc_mem_m_membership_registered.sex WHEN 'M' THEN 1 ELSE 0 END) ) as c_man,
         '!balance_date_1!' as adtm_date
         FROM sc_rep_mem_share_loan_bal,
         sc_mem_m_membership_registered,

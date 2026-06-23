@@ -22,8 +22,8 @@
     ,sc_com_m_receipt.recept_amount
     ,sc_mem_m_ucf_member_type.mem_type_code
     ,sc_mem_m_ucf_member_type.mem_type_desc
-    ,to_date(  '!op_date_1!' ) as begin_date
-    ,to_date(  '!op_date_2!' ) as end_date
+    ,('!op_date_1!')::timestamp as begin_date
+    ,('!op_date_2!')::timestamp as end_date
     from sc_mem_m_membership_registered,
     sc_mem_m_ucf_member_group
 
@@ -38,7 +38,7 @@
     and sc_com_m_receipt.money_type_id = 'TNL'
     and sc_com_m_receipt.receipt_status = '0'
     and sc_com_m_receipt.share_stock = sc_com_m_receipt.recept_amount
-    and sc_com_m_receipt.receipt_date between to_date(  '!op_date_1!' ) and  to_date(  '!op_date_2!' )
+    and sc_com_m_receipt.receipt_date between ('!op_date_1!')::timestamp and  ('!op_date_2!')::timestamp
     /*WHERE*/
   </sql>
   <sub>

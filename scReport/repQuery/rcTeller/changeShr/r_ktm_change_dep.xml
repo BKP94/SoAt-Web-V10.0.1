@@ -15,14 +15,11 @@
     ,( case sc_mem_m_chg_share_det.drop_status when '0' then '-' when '1' then 'งดส่ง' when '2' then 'เปลี่ยนแปลงชำระ' end ) as drop_status_name
     ,sc_mem_m_chg_share_det.shr_value_old
     ,sc_mem_m_chg_share_det.shr_value_new
-    ,decode( substr((sc_mem_m_chg_share_det.shr_value_new  - sc_mem_m_chg_share_det.shr_value_old ),0,1),
-    '-', '('||to_snumber( substr((sc_mem_m_chg_share_det.shr_value_new - sc_mem_m_chg_share_det.shr_value_old ),2,9999))||')',to_snumber((sc_mem_m_chg_share_det.shr_value_new  - sc_mem_m_chg_share_det.shr_value_old ))) as c_ind_da
+    ,(CASE substr((sc_mem_m_chg_share_det.shr_value_new  - sc_mem_m_chg_share_det.shr_value_old )::text,0,1) WHEN '-' THEN '('||to_snumber((substr((sc_mem_m_chg_share_det.shr_value_new - sc_mem_m_chg_share_det.shr_value_old )::text,2,9999))::bigint)||')' ELSE to_snumber(((sc_mem_m_chg_share_det.shr_value_new  - sc_mem_m_chg_share_det.shr_value_old ))::bigint) END) as c_ind_da
 
-    ,decode( substr((sc_mem_m_chg_share_det.shr_value_new  - sc_mem_m_chg_share_det.shr_value_old ),0,1),
-    '-', (sc_mem_m_chg_share_det.shr_value_new - sc_mem_m_chg_share_det.shr_value_old ),0 ) as c_ind_del
+    ,(CASE substr((sc_mem_m_chg_share_det.shr_value_new  - sc_mem_m_chg_share_det.shr_value_old )::text,0,1) WHEN '-' THEN (sc_mem_m_chg_share_det.shr_value_new - sc_mem_m_chg_share_det.shr_value_old ) ELSE 0 END) as c_ind_del
 
-    ,decode( substr((sc_mem_m_chg_share_det.shr_value_new  - sc_mem_m_chg_share_det.shr_value_old ),0,1),
-    '-',  0 ,(sc_mem_m_chg_share_det.shr_value_new - sc_mem_m_chg_share_det.shr_value_old )) as c_ind_aad
+    ,(CASE substr((sc_mem_m_chg_share_det.shr_value_new  - sc_mem_m_chg_share_det.shr_value_old )::text,0,1) WHEN '-' THEN 0 ELSE (sc_mem_m_chg_share_det.shr_value_new - sc_mem_m_chg_share_det.shr_value_old ) END) as c_ind_aad
 
     from sc_mem_m_chang_request
     ,sc_mem_m_chg_share_det

@@ -9,7 +9,7 @@
 ,       pka_com_function.fp_get_member_name ( sc_mem_m_member_recrieve_gain_head.membership_no ) as member_name
 ,       pka_com_function.fp_get_member_group ( sc_mem_m_member_recrieve_gain_head.membership_no ) as group_no
 ,       pka_com_function.fp_get_group_name_mem ( sc_mem_m_member_recrieve_gain_head.membership_no ) as group_name
-,       pka_com_function.fp_get_thaidate ( sysdate , 'DD/MM/YYYY' ) as sys_date
+,       pka_com_function.fp_get_thaidate ( current_date , 'DD/MM/YYYY' ) as sys_date
 ,       (select max(pka_com_function.fp_get_thaidate ( book_date , 'DD/MM/YYYY' )) from sc_mem_m_member_recrieve_gain where change_doc_no = sc_mem_m_member_recrieve_gain_head.change_doc_no ) as  book_date
 from    sc_mem_m_member_recrieve_gain_head
 ,       sc_mem_m_membership_registered
@@ -27,7 +27,7 @@ and     sc_mem_m_member_recrieve_gain_head.change_doc_no in ( select max(gain.ch
       <sql>select  sc_mem_m_member_recrieve_gain.change_doc_no
 ,       sc_mem_m_member_recrieve_gain.rec_no
 ,       trim((select prename from sc_mem_m_ucf_prename where prename_code = sc_mem_m_member_recrieve_gain.prename_code))||trim(sc_mem_m_member_recrieve_gain.gain_name)|| ' ' ||trim(sc_mem_m_member_recrieve_gain.gain_surname)as gain_name
-,       FPA_GET_GAIN_ADDRESS (sc_mem_m_member_recrieve_gain.membership_no , sc_mem_m_member_recrieve_gain.rec_no)as gain_address
+,       FPA_GET_GAIN_ADDRESS (sc_mem_m_member_recrieve_gain.membership_no , sc_mem_m_member_recrieve_gain.rec_no::integer)as gain_address
 from    sc_mem_m_member_recrieve_gain
 where  1=1
 /*WHERE*/

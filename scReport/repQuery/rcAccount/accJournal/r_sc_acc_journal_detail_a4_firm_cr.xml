@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="ACCA" rep_text="รายการประจำวัน (A3)">
+  <arg>
+    <year special="year" text="ปีบัญชี" type="integer" sqlwhere="0" sqlreplace="1" />
+    <journal_date text="วันที่" table="sc_acc_journal_heading_firm" type="date" operator="bt" />
+    <branch_id default="01" text="สาขา" table="sc_com_m_branch" combo="sc_com_m_branch2" readonly="0" />
+  </arg>
+  <combo>
+    <doc_type>
+      select DOC_TYPE as item_code , DOC_NAME as item_desc
+      from sc_acc_m_ucf_doc_type
+      order by DOC_TYPE desc
+    </doc_type>
+  </combo>
+  <sql>    select sc_acc_journal_heading_firm.journal_date,
+    sc_acc_journal_heading_firm.doc_type ,
+    sc_acc_m_ucf_doc_type.doc_name,
+    sc_acc_journal_heading_firm.doc_no,
+    pka_acc.fp_format_docno(sc_acc_journal_heading_firm.doc_no) as from_doc_no,
+    sc_acc_journal_detail_firm.branch_id,
+    substr(sc_acc_journal_heading_firm.doc_no,0,2)||'-'||substr(sc_acc_journal_heading_firm.doc_no,3,6)||'-'||substr(sc_acc_journal_heading_firm.doc_no,9,3) as doc_no_1,
+    sc_acc_journal_detail_firm.sequence_no,
+    pka_acc.fp_format_account(sc_acc_journal_detail_firm.account_id) as account_id ,
+    CASE WHEN sc_acc_journal_detail_firm.cr_amount = 0 THEN ' ' ELSE '      ' END ||   sc_acc_m_account_master.account_name as account_name,
+    sc_acc_journal_heading_firm.description ,
+    sc_acc_journal_detail_firm.desc_journal_detail as desc_journal_detail  ,
+    sc_acc_journal_detail_firm.dr_amount,
+    sc_acc_journal_detail_firm.cr_amount
+
+    from sc_acc_journal_heading_firm,
+    sc_acc_journal_detail_firm,
+    sc_acc_m_account_master
+    ,sc_com_m_branch
+    , sc_acc_m_ucf_doc_type
+    where sc_acc_journal_heading_firm.doc_type = sc_acc_journal_detail_firm.doc_type
+    and sc_acc_journal_heading_firm.doc_no = sc_acc_journal_detail_firm.doc_no
+    and sc_acc_journal_heading_firm.journal_date = sc_acc_journal_detail_firm.journal_date
+    and sc_acc_journal_heading_firm.branch_id = sc_acc_journal_detail_firm.branch_id
+    and sc_acc_m_account_master.account_id = sc_acc_journal_detail_firm.account_id
+    and sc_com_m_branch.branch_id = sc_acc_journal_heading_firm.entry_br_id
+    and  sc_acc_journal_heading_firm.doc_type = sc_acc_m_ucf_doc_type.doc_type
+    and sc_acc_journal_heading_firm.cancel_status  ='0'
+    and sc_acc_journal_detail_firm.nature = 'CR'
+    --and sc_acc_journal_heading_firm.journal_date = '29/12/2017'
+    --and sc_acc_journal_heading_firm.branch_id = '01'
+    --and sc_acc_journal_heading_firm.doc_type = 'RV'
+    --and sc_acc_journal_heading_firm.doc_no = 'RV601229022'
+    /*WHERE*/
+    order by sc_acc_journal_heading_firm.journal_date ,
+    sc_acc_journal_heading_firm.branch_id,
+    sc_acc_journal_heading_firm.doc_type ,
+    sc_acc_journal_heading_firm.doc_no,
+    sc_acc_journal_detail_firm.sequence_no
+  </sql>
+  <sub>
+  </sub>
+</root>

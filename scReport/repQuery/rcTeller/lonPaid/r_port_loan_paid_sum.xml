@@ -4,7 +4,7 @@
   </arg>
   <combo />
   <sql>SELECT  sum(tab.row_memno)over(order by tab.begining_of_contract , tab.loan_type ) as rowno,  tab.*
-from (  SELECT 	decode(lag( sc_lon_m_rule.loan_type ,1,null )over( order by sc_lon_m_contract.begining_of_contract , sc_lon_m_rule.loan_type ) ,sc_lon_m_rule.loan_type ,0,1 ) as row_memno
+from (  SELECT 	(CASE lag( sc_lon_m_rule.loan_type ,1,null )over( order by sc_lon_m_contract.begining_of_contract , sc_lon_m_rule.loan_type ) WHEN sc_lon_m_rule.loan_type THEN 0 ELSE 1 END) as row_memno
 ,       sc_lon_m_rule.loan_type
 ,       sc_lon_m_rule.loan_type_description
 ,       sc_lon_m_contract.begining_of_contract

@@ -7,16 +7,16 @@
   </arg>
   <combo />
   <sql>select  'This is to certify that '||trim(pka_com_function.fp_get_member_name_eng(sc_mem_m_membership_registered.membership_no))||' one of our customers,' as paragraph_1
-,       ' has an amount of '||REPLACE(to_snumber(pka_com_function.fp_shr_get_balance_atdate( sc_mem_m_membership_registered.membership_no , '!data_date!' )),
-        RIGHT(to_snumber(pka_com_function.fp_shr_get_balance_atdate( sc_mem_m_membership_registered.membership_no , '!data_date!' )),3),null)||' in baht currency as a stockholder of' as paragraph_2
+,       ' has an amount of '||REPLACE(to_snumber((pka_com_function.fp_shr_get_balance_atdate( sc_mem_m_membership_registered.membership_no , '!data_date!' ))::bigint),
+        RIGHT(to_snumber((pka_com_function.fp_shr_get_balance_atdate( sc_mem_m_membership_registered.membership_no , '!data_date!' ))::bigint),3),null)||' in baht currency as a stockholder of' as paragraph_2
 ,       ' Teachers’ Saving Co-operative of the General Education Department Ltd. This amount of shares' as paragraph_3
 ,       ' stated above can be converted and withdrawn into cash immediately upon request from the member.' as paragraph_4
 ,       sc_mem_m_membership_registered.membership_no
 ,       pka_com_function.fp_shr_get_balance_atdate( sc_mem_m_membership_registered.membership_no , '!data_date!' )as share_mem
 ,       pka_com_function.fp_get_thaidate('!data_date!','SD')as day
 ,       pka_com_function.fp_get_thaidate('!data_date!','MM')as month
-,       pka_com_function.fp_get_month_name(pka_com_function.fp_get_thaidate('!data_date!','MM'),'LE')as month_eng  
-,       pka_com_function.fp_get_thaidate('!data_date!','YYYY')-543 as year
+,       pka_com_function.fp_get_month_name((pka_com_function.fp_get_thaidate('!data_date!','MM'))::int,'LE')as month_eng  
+,       pka_com_function.fp_get_thaidate('!data_date!','YYYY')::integer-543 as year
 ,       '!data_date!'as data_date
 ,       '!book_no!'as book_no
 ,       (select trim(pka_com_function.fp_get_member_name_eng(membership_no))

@@ -1,0 +1,110 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <account_year special="year" default="select max( lon_year ) + 543 from sc_mem_m_capital_rate" text="ปี" table="sc_acc_m_account_year" type="integer2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select ai_year , id_card , member_name , address_pres , interest_paid , tax_paid , thai_tax_paid , membership_no , pragan_amt , sumrong_amt
+from (  
+  SELECT 
+  sc_acc_m_account_year.account_year + 543    as ai_year    --ปีภาษีที่จ่าย
+, sc_fin_send_tax_hr.id_card  as id_card 
+, sc_fin_send_tax_hr.prename || sc_fin_send_tax_hr.memname || ' ' ||   sc_fin_send_tax_hr.memsurname  as member_name 
+, sc_mem_m_member_address.address_no || ' ' ||
+         sc_mem_m_member_address.road || ' ' ||
+         PKA_COM_FUNCTION.fp_get_sub_district_name   (  sc_mem_m_member_address.tambol )   || ' ' ||
+         PKA_COM_FUNCTION.fp_get_district_name   (  sc_mem_m_member_address.province_code , sc_mem_m_member_address.district_code )    || ' ' ||
+         PKA_COM_FUNCTION.fp_get_province_name   ( sc_mem_m_member_address.province_code )  || ' ' || 
+         sc_mem_m_member_address.postcode   as address_pres 
+,  coalesce( sum( sc_fin_send_tax_hr.paid_amount   ),0)  as interest_paid 
+,  coalesce( sum( sc_fin_send_tax_hr.tax_amount ),0)  as  tax_paid 
+,  pka_com_function.fp_get_moneythai (  coalesce( sum( sc_fin_send_tax_hr.tax_amount ) , 0)  ) as thai_tax_paid 
+      
+ , sc_fin_send_tax_hr.official_no   as membership_no
+, coalesce( (  select sum( income_amount )
+    from sc_hr_off_salary_income_other
+   where 1=1
+   and income_code = '1020'
+   and official_no = sc_fin_send_tax_hr.official_no   
+   and sal_year = sc_acc_m_account_year.account_year
+ ) , 0 ) as pragan_amt
+,  coalesce( (  select sum( income_amount )
+    from sc_hr_off_salary_income_other
+   where 1=1
+   and income_code = '1005'
+   and official_no = sc_fin_send_tax_hr.official_no   
+   and sal_year = sc_acc_m_account_year.account_year
+ ) , 0 )  as sumrong_amt
+
+    FROM sc_fin_send_tax_hr,   
+         sc_hr_off_member,   
+         sc_mem_m_member_address  ,
+         sc_acc_m_account_year
+   WHERE ( sc_fin_send_tax_hr.official_no = sc_hr_off_member.official_no ) and  
+         ( sc_hr_off_member.membership_no = sc_mem_m_member_address.membership_no ) and  
+         ( ( sc_mem_m_member_address.address_type = '1' ) AND  
+         ( sc_fin_send_tax_hr.tax_date between  sc_acc_m_account_year.beginning_of_account and sc_acc_m_account_year.ending_of_account     ) )   
+/*WHERE*/
+  
+GROUP BY sc_fin_send_tax_hr.official_no
+    , sc_fin_send_tax_hr.id_card
+    , sc_fin_send_tax_hr.prename
+    , sc_fin_send_tax_hr.memname
+    , sc_fin_send_tax_hr.memsurname
+    , sc_mem_m_member_address.address_no
+    , sc_mem_m_member_address.road
+    , sc_mem_m_member_address.tambol
+    , sc_mem_m_member_address.district_code
+    , sc_mem_m_member_address.province_code
+    , sc_mem_m_member_address.postcode  
+    , sc_acc_m_account_year.account_year
+
+
+union all
+
+  SELECT  
+  sc_acc_m_account_year.account_year + 543    as ai_year    --ปีภาษีที่จ่าย
+, sc_fin_send_tax_fin.id_card  as id_card 
+, sc_fin_send_tax_fin.prename || sc_fin_send_tax_fin.memname || ' ' ||   sc_fin_send_tax_fin.memsurname  as member_name 
+, sc_fin_ucf_company.address_no || ' ' ||
+         sc_fin_ucf_company.road || ' ' ||
+         PKA_COM_FUNCTION.fp_get_sub_district_name   (  sc_fin_ucf_company.tambol )   || ' ' ||
+         PKA_COM_FUNCTION.fp_get_district_name   (  sc_fin_ucf_company.province_code , sc_fin_ucf_company.district_code )    || ' ' ||
+         PKA_COM_FUNCTION.fp_get_province_name   ( sc_fin_ucf_company.province_code )  || ' ' || 
+         sc_fin_ucf_company.postcode   as address_pres 
+,  coalesce( sum( sc_fin_send_tax_fin.paid_amount  ),0)  as interest_paid 
+,  coalesce( sum( sc_fin_send_tax_fin.tax_amount ),0)  as  tax_paid 
+,  pka_com_function.fp_get_moneythai (  coalesce( sum( sc_fin_send_tax_fin.tax_amount ) , 0)  ) as thai_tax_paid 
+      
+ , sc_fin_send_tax_fin.company_id   as membership_no
+, 0.00 as pragan_amt
+, 0.00  as sumrong_amt
+
+    FROM sc_fin_send_tax_fin,         
+         sc_fin_ucf_company  ,
+         sc_acc_m_account_year
+   WHERE 1=1 and  
+         ( sc_fin_send_tax_fin.company_id = sc_fin_ucf_company.company_id ) and  
+         ( sc_fin_send_tax_fin.tax_date between  sc_acc_m_account_year.beginning_of_account and sc_acc_m_account_year.ending_of_account     )   
+        
+/*WHERE*/
+
+  
+GROUP BY sc_fin_send_tax_fin.company_id
+    , sc_fin_send_tax_fin.id_card
+    , sc_fin_send_tax_fin.prename
+    , sc_fin_send_tax_fin.memname
+    , sc_fin_send_tax_fin.memsurname
+    , sc_fin_ucf_company  .address_no
+    , sc_fin_ucf_company  .road
+    , sc_fin_ucf_company  .tambol
+    , sc_fin_ucf_company  .district_code
+    , sc_fin_ucf_company  .province_code
+    , sc_fin_ucf_company  .postcode  
+    , sc_acc_m_account_year.account_year
+)
+order by membership_no 
+
+</sql>
+  <sub />
+</root>

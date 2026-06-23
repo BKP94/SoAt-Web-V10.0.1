@@ -8,33 +8,33 @@
   <sql>    SELECT PKA_COM_FUNCTION.fp_get_member_name( sc_lon_m_contract.membership_no ) as membername ,
     sc_lon_m_contract.membership_no ,
     sc_lon_m_loan_request.crem_amount,
-    ( select nvl(sum(fund_new),0)
+    ( select coalesce(sum(fund_new),0)
     from sc_lon_m_req_fund_new
     where sc_lon_m_req_fund_new.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
     ) as fund_new
 
-    , (  select nvl(sum(fund_real),0)
+    , (  select coalesce(sum(fund_real),0)
     from sc_lon_m_req_fund_ret
     where sc_lon_m_req_fund_ret.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
     and fund_ret &gt; 0
     ) as fund_ret
 
 
-    , (  select nvl(sum(fund_real),0)
+    , (  select coalesce(sum(fund_real),0)
     from sc_lon_m_req_fund_ret
     where sc_lon_m_req_fund_ret.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
     and fund_ret &gt; 0
     and deposit_account_no = 'NEW'
     ) as fund_ret_old
 
-    , (  select nvl(sum(fund_real),0)
+    , (  select coalesce(sum(fund_real),0)
     from sc_lon_m_req_fund_ret
     where sc_lon_m_req_fund_ret.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
     and fund_ret &gt; 0
     and deposit_account_no &lt;&gt; 'NEW'
     ) as fund_ret_50
 
-    , (  select nvl(sum(fund_int),0)
+    , (  select coalesce(sum(fund_int),0)
     from sc_lon_m_req_fund_ret
     where sc_lon_m_req_fund_ret.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
     and fund_ret &gt; 0
@@ -78,8 +78,8 @@
     ( sc_com_m_receipt.money_type_id in( 'CLR' , 'TRL' ) ) AND
     ( sc_com_m_receipt.receipt_status = '0' )
     ) as item_amount
-    , decode( sc_lon_m_loan_request.payint_firstperiod_status , '1' , sc_lon_m_loan_request.interest_first , 0 ) as c_interest_first
-    , nvl((select sum(sc_com_m_receipt_item.item_amount)
+    , (CASE sc_lon_m_loan_request.payint_firstperiod_status WHEN '1' THEN sc_lon_m_loan_request.interest_first ELSE 0 END) as c_interest_first
+    , coalesce((select sum(sc_com_m_receipt_item.item_amount)
     from sc_com_m_receipt
     ,sc_com_m_receipt_item
     ,sc_lon_m_ucf_fee
@@ -92,7 +92,7 @@
     and sc_com_m_receipt.receipt_date =  sc_lon_m_contract.begining_of_contract
     and sc_com_m_receipt.receipt_status = '0'
     ),0) as item_amount_fee
-    , nvl((select sum(sc_com_m_receipt_item.item_amount)
+    , coalesce((select sum(sc_com_m_receipt_item.item_amount)
     from sc_com_m_receipt
     ,sc_com_m_receipt_item
     ,sc_lon_m_ucf_fee
@@ -105,7 +105,7 @@
     and sc_com_m_receipt.receipt_date =  sc_lon_m_contract.begining_of_contract
     and sc_com_m_receipt.receipt_status = '0'
     ),0) as item_amount_oth
-    , nvl((select sum(sc_com_m_receipt_item.item_amount)
+    , coalesce((select sum(sc_com_m_receipt_item.item_amount)
     from sc_com_m_receipt
     ,sc_com_m_receipt_item
     where sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no

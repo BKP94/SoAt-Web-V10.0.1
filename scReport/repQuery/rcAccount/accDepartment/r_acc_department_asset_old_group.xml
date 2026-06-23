@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <year special="year" text="ปี" type="integer" sqlwhere="0" sqlreplace="1" />
+    <month special="month" text="เดือน" type="integer" combo="monthThLong" sqlwhere="0" sqlreplace="1" />
+    <manager_name text="ลงชื่อ" sqlwhere="0" sqlreplace="1" noheader="1" readonly="0" />
+    <position text="ตำแหน่ง" sqlwhere="0" sqlreplace="1" noheader="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    select round( PKA_REP_SCQ.fp_get_asset_old_group('100', '!year!' , '!month!' ) , 2 )   as coll_1CA
+    ,round( PKA_REP_SCQ.fp_get_asset_old_group('200', '!year!' , '!month!' ) , 2 )   as coll_2BK
+    ,round( PKA_REP_SCQ.fp_get_asset_old_group('300', '!year!' , '!month!' ) , 2 )   as coll_33I
+    ,round( PKA_REP_SCQ.fp_get_asset_old_group('400', '!year!' , '!month!' ) , 2 )   as coll_34I
+    ,round( PKA_REP_SCQ.fp_get_asset_old_group('500', '!year!' , '!month!' ) , 2 )   as coll_35I
+    ,round( PKA_REP_SCQ.fp_get_asset_old_group('600', '!year!' , '!month!' ) , 2 )   as coll_36I
+    ,round( PKA_REP_SCQ.fp_get_asset_old_group('700', '!year!' , '!month!' ) , 2 )   as coll_37I
+    ,round( PKA_REP_SCQ.fp_get_asset_old_group('800', '!year!' , '!month!' ) , 2 )   as coll_38I
+    ,round( PKA_REP_SCQ.fp_get_asset_old_group('900', '!year!' , '!month!' ) , 2 )   as coll_39I
+
+    ,(case when '!month!' = 1
+      then  round( PKA_REP_SCQ.fp_get_asset_old_group('D00', '!year!' - 1  , 12  ) , 2 )
+      else round( PKA_REP_SCQ.fp_get_asset_old_group('D00', '!year!' , '!month!' - 1 ) , 2 ) end)  as coll_4DP
+
+    ,'!manager_name_1!' as manager_name
+    ,'!position_1!' as position
+
+
+
+    
+  </sql>
+  <sub />
+</root>

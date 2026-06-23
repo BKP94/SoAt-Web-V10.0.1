@@ -5,7 +5,7 @@
     <confirm_date align="center" text="ณ วันที่" table="sc_cls_confirm_data" type="date" nestreplace="1" readonly="0" />
   </arg>
   <combo />
-  <sql>  SELECT  pka_rep_tel.fp_get_number_thai (sc_mem_m_membership_registered.id_card) as id_card, 
+  <sql>  SELECT  pka_rep_tel.fp_get_number_thai (sc_mem_m_membership_registered.id_card::numeric) as id_card, 
   sc_mem_m_membership_registered.membership_no,
 trim( sc_mem_m_ucf_prename.prename ) as prename ,
 trim( sc_mem_m_membership_registered.member_name ) || '  ' || trim( sc_mem_m_membership_registered.member_surname )  as memname,   
@@ -17,17 +17,17 @@ sc_mem_m_ucf_member_type.mem_type_desc ,
 		end ) as loan_type ,
 
          sc_lon_m_contract.loan_contract_no,   
-         to_date( sc_lon_m_contract.begining_of_contract , 'dd/mm/yyyy') as begining_of_contract  ,
+         (sc_lon_m_contract.begining_of_contract)::date as begining_of_contract  ,
 	 
 	/*ATM สัญญาเก่า ให้หมดในปี
 	สัญญาในปี ให้หมดในอีก 1 ปี
 	ถ้าไม่ใช่ ATM แต่ วันสิ้นสุดเกิน ปี 2050  ให้ใช้ เริ่มสัญญา + 10000 วัน */
 
 	( case 
-		when sc_lon_m_rule.atm_status = '1' and  sc_lon_m_contract.begining_of_contract  &lt; sc_acc_m_account_constant.beginning_of_account then  to_date( sc_acc_m_account_constant.ending_of_account , 'dd/mm/yyyy')
-		when sc_lon_m_rule.atm_status = '1' and  sc_lon_m_contract.begining_of_contract  &gt;=  sc_acc_m_account_constant.beginning_of_account then  to_date( sc_lon_m_contract.begining_of_contract + 365 , 'dd/mm/yyyy')
-		when sc_lon_m_rule.atm_status = '0' and sc_lon_m_contract.ending_of_contract &gt; sc_lon_m_contract.begining_of_contract  + 10000 then  to_date( sc_lon_m_contract.begining_of_contract + 10000 , 'dd/mm/yyyy')
-		else to_date( sc_lon_m_contract.ending_of_contract , 'dd/mm/yyyy')
+		when sc_lon_m_rule.atm_status = '1' and  sc_lon_m_contract.begining_of_contract  &lt; sc_acc_m_account_constant.beginning_of_account then  (sc_acc_m_account_constant.ending_of_account)::date
+		when sc_lon_m_rule.atm_status = '1' and  sc_lon_m_contract.begining_of_contract  &gt;=  sc_acc_m_account_constant.beginning_of_account then  (sc_lon_m_contract.begining_of_contract + interval '365 day')::date
+		when sc_lon_m_rule.atm_status = '0' and sc_lon_m_contract.ending_of_contract &gt; sc_lon_m_contract.begining_of_contract  + interval '10000 day' then  (sc_lon_m_contract.begining_of_contract + interval '10000 day')::date
+		else (sc_lon_m_contract.ending_of_contract)::date
 	end ) as ending_of_contract ,
 	
 
@@ -105,7 +105,7 @@ order by seq_no  ,sc_cls_confirm_data.data_balance desc</sql>
            and sc_cls_confirm_data.confirm_date  = {0}
           ) as count_mem_norm
           
-          ,( select  nvl(sum( sc_lon_m_loan_card.principal_balance ),0)
+          ,( select  coalesce(sum( sc_lon_m_loan_card.principal_balance ),0)
            from sc_lon_m_loan_card
                ,sc_lon_m_contract
                ,sc_mem_m_membership_registered
@@ -138,7 +138,7 @@ order by seq_no  ,sc_cls_confirm_data.data_balance desc</sql>
            and sc_cls_confirm_data.confirm_date  = {0}
           ) as count_mem_ass
           
-          ,( select  nvl(sum( sc_lon_m_loan_card.principal_balance ),0)
+          ,( select  coalesce(sum( sc_lon_m_loan_card.principal_balance ),0)
            from sc_lon_m_loan_card
                ,sc_lon_m_contract
                ,sc_mem_m_membership_registered
@@ -224,7 +224,7 @@ order by seq_no  ,sc_cls_confirm_data.data_balance desc</sql>
              sc_rep_mem_share_loan_year.spec_balance &gt; 0 )
             ) as principal_balance_coop
           
-from dual
+
 where 1 = 1</sql>
     </r_mwa_max_lon_50_nest_sum>
   </sub>

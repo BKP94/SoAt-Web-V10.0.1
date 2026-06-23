@@ -5,7 +5,7 @@
   </arg>
   <combo />
   <sql>SELECT sum(tab.row_memno)over(partition by (tab.member_group_type) order by tab.member_group_type , tab.membership_no  , tab.sort_payment ) as rowno,  tab.*
-from   ( select decode(lag(sc_lon_restruc_head.membership_no,1,null)over(  order by sc_mem_m_ucf_member_group_type.member_group_type , sc_lon_restruc_head.membership_no  ,sc_lon_restruc_det.sort_payment  ),sc_lon_restruc_head.membership_no ,0,1) as row_memno ,
+from   ( select (CASE lag(sc_lon_restruc_head.membership_no,1,null)over(  order by sc_mem_m_ucf_member_group_type.member_group_type , sc_lon_restruc_head.membership_no  ,sc_lon_restruc_det.sort_payment  ) WHEN sc_lon_restruc_head.membership_no THEN 0 ELSE 1 END) as row_memno ,
            sc_lon_restruc_head.document_no ,
            sc_lon_restruc_head.member_group_no ,
            sc_lon_restruc_head.membership_no ,

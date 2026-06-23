@@ -49,15 +49,15 @@
         SELECT
         tab_loan.LOAN_TYPE_DESCRIPTION,
         tab_loan.LOAN_CONTRACT_NO,
-        NVL(tab_loan.PRINCIPAL_BALANCE,0) AS principal_balance,
+        coalesce(tab_loan.PRINCIPAL_BALANCE,0) AS principal_balance,
         tab_loan.period_payment_amount,
-        nvl(tab_loan.c_PRINCIPAL_BALANCE ,0) as c_principal_balance
+        coalesce(tab_loan.c_PRINCIPAL_BALANCE,'0') as c_principal_balance
         FROM
         sc_mem_m_membership_registered
-        , (SELECT   sc_lon_m_rule.LOAN_TYPE_DESCRIPTION
+        left join (SELECT   sc_lon_m_rule.LOAN_TYPE_DESCRIPTION
         ,  sc_lon_m_loan_card.LOAN_CONTRACT_NO
         ,  loan_det1.PRINCIPAL_BALANCE
-        ,  to_snumber(loan_det1.PRINCIPAL_BALANCE) as c_principal_balance
+        ,  to_snumber((loan_det1.PRINCIPAL_BALANCE)::bigint) as c_principal_balance
         ,  sc_lon_m_contract.period_payment_amount
         ,  loan_det1.loan_payment_date
         ,  sc_lon_m_contract.membership_no
@@ -77,19 +77,18 @@
 
         )
         and loan_det1.principal_balance &gt; 0
-        ) tab_loan
+        ) tab_loan on tab_loan.membership_no = sc_mem_m_membership_registered.membership_no
         WHERE  sc_mem_m_membership_registered.membership_no = {0}
-        AND    tab_loan.membership_no(+) = sc_mem_m_membership_registered.membership_no
       </sql>
     </r_ktm_book_shrlon_stroiet_wvo_nest_loan>
     <r_ktm_book_shrlon_stroiet_wvo_nest_dep>
       <sql>
         SELECT    	tab_dep.deposit_account_no
-        ,         	NVL(tab_dep.total_balance, 0) as deposit_balance
+        ,         	coalesce(tab_dep.total_balance, 0) as deposit_balance
         ,         	tab_dep.deposit_name
         ,        	tab_dep.membership_no
         FROM		SC_MEM_M_MEMBERSHIP_REGISTERED
-        , ( SELECT   sc_dep_m_creditor.deposit_account_no
+        left join ( SELECT   sc_dep_m_creditor.deposit_account_no
         ,         		creditor_item1.total_balance
         ,         		sc_dep_m_rule.deposit_name
         ,         		sc_dep_m_creditor.membership_no
@@ -105,9 +104,8 @@
         and creditor_item2.operate_date &lt;= '!apply_date_1!'
         )
         AND       	sc_dep_m_creditor.close_status &lt;&gt; 'C'
-        ) tab_dep
-        WHERE       SC_MEM_M_MEMBERSHIP_REGISTERED.membership_no = tab_dep.membership_no(+)
-        AND              SC_MEM_M_MEMBERSHIP_REGISTERED.membership_no = {0}
+        ) tab_dep on SC_MEM_M_MEMBERSHIP_REGISTERED.membership_no = tab_dep.membership_no
+        WHERE       SC_MEM_M_MEMBERSHIP_REGISTERED.membership_no = {0}
       </sql>
     </r_ktm_book_shrlon_stroiet_wvo_nest_dep>
     <r_ktm_book_shrlon_stroiet_wvo_nest_share>

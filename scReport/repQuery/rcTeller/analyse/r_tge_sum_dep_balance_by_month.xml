@@ -4,8 +4,8 @@
     <working_year align="center" special="year" text="ปี" type="integer2" sqlwhere="0" sqlreplace="1" readonly="0" />
   </arg>
   <combo />
-  <sql>SELECT  to_snumber(decode(sc_dep_m_ucf_dep_item_type.sign_flag,1,sc_dep_m_creditor_item.deposit_balance,null)) as deposit_amount
-,       to_snumber(decode(sc_dep_m_ucf_dep_item_type.sign_flag,-1,sc_dep_m_creditor_item.deposit_balance,null)) as withdraw_amount
+  <sql>SELECT  to_snumber(((CASE sc_dep_m_ucf_dep_item_type.sign_flag WHEN 1 THEN sc_dep_m_creditor_item.deposit_balance ELSE null END))::bigint) as deposit_amount
+,       to_snumber(((CASE sc_dep_m_ucf_dep_item_type.sign_flag WHEN -1 THEN sc_dep_m_creditor_item.deposit_balance ELSE null END))::bigint) as withdraw_amount
 ,       sc_dep_m_creditor_item.total_balance
 ,       sc_dep_m_creditor_item.working_day
 ,       sc_cnt_m_month.month_no
@@ -13,7 +13,7 @@
 ,       '!working_year!' + 543 as working_year
 ,       sc_dep_m_rule.deposit_type_code
 ,       sc_dep_m_rule.deposit_name
-,       sysdate     
+,       current_date     
 FROM    sc_dep_m_creditor_item
 ,       sc_dep_m_ucf_dep_item_type
 ,       sc_dep_m_creditor

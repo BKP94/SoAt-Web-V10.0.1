@@ -1,0 +1,17 @@
+﻿using System;
+using System.Drawing;
+using System.Collections;
+using System.ComponentModel;
+using DevExpress.XtraReports.UI;
+
+namespace scReport.Reports.rcAccount.accLevel
+{
+    public partial class r_tnma_rep_level_in_year_mem_status_3 : DevExpress.XtraReports.UI.XtraReport
+    {
+        public r_tnma_rep_level_in_year_mem_status_3()
+        {
+            InitializeComponent();
+        }
+
+    }
+}

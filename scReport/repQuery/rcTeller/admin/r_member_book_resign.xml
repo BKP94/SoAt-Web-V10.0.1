@@ -10,7 +10,7 @@
       sc_cnt_m_coop.address,
       sc_cnt_m_coop.tumbol_name,
       sc_cnt_m_coop.coop_name,
-      pka_com_function.fp_get_thaidate(sysdate , 'SD MONTH YYYY') as sysdate_tdate,
+      pka_com_function.fp_get_thaidate(current_date , 'SD MONTH YYYY') as sysdate_tdate,
       '' as as_letter,
       sc_cnt_m_coop.telephone_no,
       sc_cnt_m_coop.manager_name,

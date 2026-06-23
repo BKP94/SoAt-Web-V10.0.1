@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="D005" rep_text="บัญชีแยกประเภท">
+  <arg>
+    <journal_date text="วันที่" table="VR_DEP_M_ACC_TYPE_DATE" type="date" operator="bt" readonly="0" />
+    <account_id text="รหัสบัญชี" table="VR_DEP_M_ACC_TYPE_DATE" combo="sc_acc_m_account_master3" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select  VR_DEP_M_ACC_TYPE_DATE.*
+,       pka_com_function.fp_get_thaidate( journal_date , 'dd/mm/yyyy' ) as journal_tdate
+from    VR_DEP_M_ACC_TYPE_DATE
+where   1=1
+/*WHERE*/
+--and     journal_date = '01/07/2024'
+order by journal_date
+,        account_id</sql>
+  <sub />
+</root>

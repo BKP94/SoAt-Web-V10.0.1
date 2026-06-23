@@ -11,9 +11,9 @@
   <combo />
   <sql>    select  'This is to certify that '||trim(pka_com_function.fp_get_member_name_eng(sc_mem_m_membership_registered.membership_no))||' the guarantor/sponsor of' as paragraph_1
     ,       ' '||'!guarantor_of!'||' is a member of our customers, has an amount of' as paragraph_2
-    ,       ' '||REPLACE(to_snumber(pka_com_function.fp_shr_get_balance_atdate( sc_mem_m_membership_registered.membership_no , '!data_date!' )),
-    RIGHT(to_snumber(pka_com_function.fp_shr_get_balance_atdate( sc_mem_m_membership_registered.membership_no , '!data_date!' )),3),null)||' in baht currency or '||
-    (to_snumber(pka_com_function.fp_shr_get_balance_atdate( sc_mem_m_membership_registered.membership_no , '!data_date!' )/'!rate_of!'))||' '||'!currency!'||
+    ,       ' '||REPLACE(to_snumber((pka_com_function.fp_shr_get_balance_atdate( sc_mem_m_membership_registered.membership_no , '!data_date!' ))::bigint),
+    RIGHT(to_snumber((pka_com_function.fp_shr_get_balance_atdate( sc_mem_m_membership_registered.membership_no , '!data_date!' ))::bigint),3),null)||' in baht currency or '||
+    (to_snumber((pka_com_function.fp_shr_get_balance_atdate( sc_mem_m_membership_registered.membership_no , '!data_date!' )/'!rate_of!')::bigint))||' '||'!currency!'||
     ' at the exchange rate of '||'!rate_of!'||' Baht per '||'!currency!' as paragraph_3
     ,       ' as a stockholder of Teachers’ Saving Co-operative of the General Education Department Ltd.' as paragraph_4
     ,       ' This amount of shares stated above can be converted and withdrawn into cash' as paragraph_5
@@ -22,8 +22,8 @@
     ,       pka_com_function.fp_shr_get_balance_atdate( sc_mem_m_membership_registered.membership_no , '!data_date!' )as share_mem
     ,       pka_com_function.fp_get_thaidate('!data_date!','SD')as day
     ,       pka_com_function.fp_get_thaidate('!data_date!','MM')as month
-    ,       pka_com_function.fp_get_month_name(pka_com_function.fp_get_thaidate('!data_date!','MM'),'LE')as month_eng
-    ,       pka_com_function.fp_get_thaidate('!data_date!','YYYY')-543 as year
+    ,       pka_com_function.fp_get_month_name((pka_com_function.fp_get_thaidate('!data_date!','MM'))::int,'LE')as month_eng
+    ,       pka_com_function.fp_get_thaidate('!data_date!','YYYY')::integer-543 as year
     ,       '!data_date!'as data_date
     ,       '!book_no!'as book_no
     ,       '!guarantor_of!'as guarantor_of

@@ -11,7 +11,7 @@
   <combo />
   <sql>  SELECT     sc_kep_t_monthly_receive.membership_no as membership_no 
 , pka_com_function.fp_get_member_name(sc_kep_t_monthly_receive.membership_no) as member_name
-, pka_com_function.fp_get_thaidate(sysdate , 'SD MONTH YYYY') as sysdate_date
+, pka_com_function.fp_get_thaidate(current_date , 'SD MONTH YYYY') as sysdate_date
 , pka_com_function.fp_get_thaidate(  sc_kep_t_monthly_receive.receipt_date , 'MONTH YYYY')  as month_thai 
 , pka_kep_magent.fp_get_agent_amount_seq(  sc_kep_t_monthly_receive.membership_no 
 , sc_kep_t_monthly_receive.receive_year 

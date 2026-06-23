@@ -1,0 +1,78 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="D005" rep_text="รายการเกี่ยวกับการตรวจนับครุภัณฑ์ (ตามที่เก็บ)&gt;&gt;คีย์ชื่อ-สกุล กับ ตำแหน่งเอง">
+  <arg>
+    <first_used_day text="วันที่ซื้อ" table="sc_acc_m_expire" operator="bt" type="date" />
+    <shelf_id text="ที่เก็บ" table="sc_acc_m_ucf_shelf_exp" combo="sc_acc_m_ucf_shelf_exp" />
+    <sle_name1 text="ผู้ตรวจนับ 1" sqlreplace="1" sqlwhere="0" noheader="1" />
+    <sle_position1 text="ตำแหน่ง" sqlreplace="1" sqlwhere="0" noheader="1" />
+    <sle_name2 text="ผู้ตรวจนับ 2" sqlreplace="1" sqlwhere="0" noheader="1" />
+    <sle_position2 text="ตำแหน่ง" sqlreplace="1" sqlwhere="0" noheader="1" />
+    <sle_name3 text="ผู้ตรวจนับ 3" sqlreplace="1" sqlwhere="0" noheader="1" />
+    <sle_position3 text="ตำแหน่ง" sqlreplace="1" sqlwhere="0" noheader="1" />
+    <sle_name4 text="ผู้ตรวจนับ 4" sqlreplace="1" sqlwhere="0" noheader="1" />
+    <sle_position4 text="ตำแหน่ง" sqlreplace="1" sqlwhere="0" noheader="1" />
+    <sle_name5 text="ผู้ตรวจนับ 5" sqlreplace="1" sqlwhere="0" noheader="1" />
+    <sle_position5 text="ตำแหน่ง" sqlreplace="1" sqlwhere="0" noheader="1" />
+  </arg>
+  <combo>
+    <sc_acc_m_ucf_shelf_exp>
+      SELECT shelf_id as item_code, shelf_id||'  '||shelf_name  as item_desc
+      FROM sc_acc_m_ucf_shelf_exp
+    </sc_acc_m_ucf_shelf_exp>
+  </combo>
+  <sql>    SELECT sc_acc_m_expire.material_id,
+    sc_acc_m_expire.description,
+    sc_acc_m_expire.rate_expire,
+    sc_acc_m_expire.amount_value,
+    sc_acc_m_expire.first_used_day,
+    sc_acc_m_expire.first_expire_year,
+    sc_acc_m_expire.entry_id,
+    sc_acc_m_expire.accu_expire_amount,
+    sc_acc_m_expire.last_cal_used,
+    sc_acc_m_expire.cal_id,
+    sc_acc_m_expire.cal_id_date,
+    sc_acc_m_expire.entry_date,
+    sc_acc_m_expire.doc_old,
+    sc_acc_m_expire.remark,
+    sc_acc_m_expire.balance,
+    sc_acc_m_expire.shelf_id,
+    sc_acc_m_ucf_shelf_exp.shelf_name,
+    sc_acc_m_ucf_shelf_exp.shelf_id,
+    '!sle_name1_1!' as sle_name1,
+    '!sle_position1_1!' as sle_position1,
+    '!sle_name2_1!' as sle_name2,
+    '!sle_position2_1!' as sle_position2,
+    '!sle_name3_1!' as sle_name3,
+    '!sle_position3_1!' as sle_position3,
+    '!sle_name4_1!' as sle_name4,
+    '!sle_position4_1!' as sle_position4,
+    '!sle_name5_1!' as sle_name5,
+    '!sle_position5_1!' as sle_position5
+    FROM sc_acc_m_expire,
+    sc_acc_m_ucf_shelf_exp
+    WHERE sc_acc_m_expire.shelf_id = sc_acc_m_ucf_shelf_exp.shelf_id
+    and    sc_acc_m_expire.balance &gt; 0
+    and   sc_acc_m_expire.cut_paid_status = 0
+    /*WHERE*/
+    group by sc_acc_m_expire.material_id,
+    sc_acc_m_expire.description,
+    sc_acc_m_expire.rate_expire,
+    sc_acc_m_expire.amount_value,
+    sc_acc_m_expire.first_used_day,
+    sc_acc_m_expire.first_expire_year,
+    sc_acc_m_expire.entry_id,
+    sc_acc_m_expire.accu_expire_amount,
+    sc_acc_m_expire.last_cal_used,
+    sc_acc_m_expire.cal_id,
+    sc_acc_m_expire.cal_id_date,
+    sc_acc_m_expire.entry_date,
+    sc_acc_m_expire.doc_old,
+    sc_acc_m_expire.remark,
+    sc_acc_m_expire.balance,
+    sc_acc_m_expire.shelf_id,
+    sc_acc_m_ucf_shelf_exp.shelf_name,
+    sc_acc_m_ucf_shelf_exp.shelf_id
+    order by sc_acc_m_expire.doc_old 
+  </sql>
+  <sub />
+</root>

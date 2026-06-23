@@ -6,7 +6,7 @@
   <combo />
   <sql>    SELECT (select coop_name from sc_cnt_m_coop) as coop_name
     ,(select coop_registered_no from sc_cnt_m_coop) as coop_registered_no
-    ,to_number(to_char( sc_cls_confirm_data.confirm_date ,'yyyy'))  + 543 as account_year
+    ,((to_char( sc_cls_confirm_data.confirm_date ,'yyyy'))::numeric)  + 543 as account_year
     ,sc_mem_m_membership_registered.membership_no
     ,sc_mem_m_membership_registered.id_card
     ,sc_mem_m_ucf_prename.prename
@@ -21,7 +21,7 @@
     ,pka_com_function.fp_get_thaidate(sc_mem_m_membership_registered.approve_date , 'DD/MM/YYYY') as approve_tdate
     ,sc_mem_m_ucf_member_type.mem_type_code
     ,sc_mem_m_ucf_member_type.mem_type_desc
-    ,decode(sc_mem_m_membership_registered.member_status_code,'3',pka_com_function.fp_get_thaidate(sc_mem_m_membership_registered.resignation_approve_date,'DD/MM/YYYY'),null) as resignation_approve_date
+    ,(CASE sc_mem_m_membership_registered.member_status_code WHEN '3' THEN pka_com_function.fp_get_thaidate(sc_mem_m_membership_registered.resignation_approve_date,'DD/MM/YYYY') ELSE null END) as resignation_approve_date
     ,sc_mem_m_member_address.address_no
     ,sc_mem_m_member_address.moo
     ,sc_mem_m_member_address.road

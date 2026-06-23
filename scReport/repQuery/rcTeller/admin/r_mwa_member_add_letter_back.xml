@@ -6,9 +6,9 @@
   <combo />
   <sql>select   sc_mem_m_membership_registered.membership_no
          ,pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as memname       
-         ,pka_com_function.fp_get_member_address_letter(sc_mem_m_membership_registered.membership_no,0,1) as member_address_1
-         ,pka_com_function.fp_get_member_address_letter(sc_mem_m_membership_registered.membership_no,0,2) as member_address_2
-         ,pka_com_function.fp_get_member_address_letter(sc_mem_m_membership_registered.membership_no,0,3) as member_address_3
+         ,pka_com_function.fp_get_member_address_letter(sc_mem_m_membership_registered.membership_no,(0)::text,1) as member_address_1
+         ,pka_com_function.fp_get_member_address_letter(sc_mem_m_membership_registered.membership_no,(0)::text,2) as member_address_2
+         ,pka_com_function.fp_get_member_address_letter(sc_mem_m_membership_registered.membership_no,(0)::text,3) as member_address_3
          ,pka_com_function.fp_get_province_name(sc_mem_m_member_address.province_code) as province_name
          ,trim('*' from sc_mem_m_member_address.postcode) as postcode
          ,substr(trim('*' from sc_mem_m_member_address.postcode),1,1)as postcode1

@@ -16,7 +16,7 @@
     ,pka_lon_reqsrv.fp_calc_agetext_m_age(sc_mem_m_membership_registered.membership_no) as agetext_member
     ,pka_lon_reqsrv.fp_calc_agetext_m_live(sc_mem_m_membership_registered.membership_no) as agetext_live
     ,pka_com_function.fp_get_thaidate( sc_mem_m_membership_registered.approve_date ,'DD MONTH YYYY') as t_approve_date
-    ,pka_com_function.fp_get_thaidate(sysdate , 'SD MONTH YYYY') as sysdate_tdate
+    ,pka_com_function.fp_get_thaidate(current_date , 'SD MONTH YYYY') as sysdate_tdate
     ,sc_mem_m_membership_registered.date_of_birth
     ,sc_mem_m_share_mem.period_recrieve
     , sc_mem_m_share_mem.share_amount
@@ -49,7 +49,7 @@
         , '' as own_work_age
         ,'' as first_date,
         '' as first_date_tdate
-        FROM dual
+        
         WHERE 1 = 1
         /*select sc_mem_m_ucf_othersaving.saving_name
         , sc_mem_m_member_own_info.own_work_age
@@ -72,7 +72,7 @@
         , sc_lon_m_contract.loan_approve_amount
         , sc_lon_m_contract.loan_installment_amount
         , sc_lon_m_contract.period_payment_amount
-        , nvl(sc_lon_m_loan_card.last_period , 0) as  last_period
+        , coalesce(sc_lon_m_loan_card.last_period , 0) as  last_period
         , '' as collateral_description
         , '' as collateral_no
         from sc_lon_m_loan_card,
@@ -93,8 +93,8 @@
         , sc_lon_m_contract.loan_approve_amount
         , sc_lon_m_contract.loan_installment_amount
         , sc_lon_m_contract.period_payment_amount
-        , nvl(sc_lon_m_loan_card.last_period , 0) as  last_period
-        ,  sc_lon_m_contract_coll.ref_own_no ||' '|| decode(  sc_lon_m_contract_coll.collateral_type_code , '01' ,  PKA_COM_FUNCTION.fp_get_member_name( sc_lon_m_contract_coll.ref_own_no ) , sc_lon_m_contract_coll.collateral_description)  as collateral_description
+        , coalesce(sc_lon_m_loan_card.last_period , 0) as  last_period
+        ,  sc_lon_m_contract_coll.ref_own_no ||' '|| (CASE sc_lon_m_contract_coll.collateral_type_code WHEN '01' THEN PKA_COM_FUNCTION.fp_get_member_name( sc_lon_m_contract_coll.ref_own_no ) ELSE sc_lon_m_contract_coll.collateral_description END)  as collateral_description
         , sc_lon_m_contract_coll.collateral_no
         from sc_lon_m_loan_card
         ,   sc_lon_m_contract
@@ -117,7 +117,7 @@
       <sql>
         SELECT sc_lon_m_contract_coll.collateral_type_code,
         sc_lon_m_contract_coll.ref_own_no,
-        decode(  sc_lon_m_contract_coll.collateral_type_code , '01' ,  PKA_COM_FUNCTION.fp_get_member_name( sc_lon_m_contract_coll.ref_own_no ) , sc_lon_m_contract_coll.collateral_description)  as collateral_description
+        (CASE sc_lon_m_contract_coll.collateral_type_code WHEN '01' THEN PKA_COM_FUNCTION.fp_get_member_name( sc_lon_m_contract_coll.ref_own_no ) ELSE sc_lon_m_contract_coll.collateral_description END)  as collateral_description
         FROM sc_lon_m_contract_coll
         WHERE ( sc_lon_m_contract_coll.loan_contract_no = {0} ) AND
         ( sc_lon_m_contract_coll.status = '0' )
@@ -168,7 +168,7 @@
       <sql>
         SELECT '' as insurance_no,
                '' as insurance_balance
-        FROM dual
+        
         WHERE 1 = 1
         /*SELECT sc_mem_m_member_insurance.insurance_no,
         sc_mem_m_member_insurance.insurance_balance

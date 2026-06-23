@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="A010" rep_text="แบบรายงานที่ 8 - แบบรายงานการดำรงสินทรัพย์สภาพคล่อง">
+  <arg>
+    <year special="year" text="ปี" type="integer" sqlwhere="0" sqlreplace="1" />
+    <month special="month" text="เดือน" type="integer" combo="monthThLong" sqlwhere="0" sqlreplace="1" />
+  </arg>
+  <combo />
+  <sql>select td.rowx,
+    td.operate_date,
+    (select sum(pka_acc_glbal.fp_get_balance_gl(account_id,td.operate_date)) from sc_acc_m_account_master where asset_old_group = '101') as coll_1,
+    coalesce((select sum(pka_acc_glbal.fp_get_balance_gl(account_id,td.operate_date)) from sc_acc_m_account_master where asset_old_group = '201'),0) as coll_2_1,
+    coalesce((select sum(pka_acc_glbal.fp_get_balance_gl(account_id,td.operate_date)) from sc_acc_m_account_master where asset_old_group = '202'),0) as coll_2_2,
+    coalesce((select sum(pka_acc_glbal.fp_get_balance_gl(account_id,td.operate_date)) from sc_acc_m_account_master where asset_old_group = '301'),0) as coll_3,
+    coalesce((select sum(pka_acc_glbal.fp_get_balance_gl(account_id,td.operate_date)) from sc_acc_m_account_master where asset_old_group = '401'),0) as coll_4_1,
+    coalesce((select sum(pka_acc_glbal.fp_get_balance_gl(account_id,td.operate_date)) from sc_acc_m_account_master where asset_old_group = '402'),0) as coll_4_2,
+    coalesce((select sum(pka_acc_glbal.fp_get_balance_gl(account_id,td.operate_date)) from sc_acc_m_account_master where asset_old_group = '501'),0) as coll_5,
+    coalesce((select sum(pka_acc_glbal.fp_get_balance_gl(account_id,td.operate_date)) from sc_acc_m_account_master where asset_old_group = '601'),0) as coll_6,
+    coalesce((select sum(pka_acc_glbal.fp_get_balance_gl(account_id,td.operate_date)) from sc_acc_m_account_master where asset_old_group = '701'),0) as coll_7,
+    coalesce((select sum(pka_acc_glbal.fp_get_balance_gl(account_id,td.operate_date)) from sc_acc_m_account_master where asset_old_group = '801'),0) as coll_8,
+    coalesce((select sum(pka_acc_glbal.fp_get_balance_gl(account_id,td.operate_date)) from sc_acc_m_account_master where asset_old_group = '901'),0) as coll_9
+from (
+    select level as rowx,
+        pka.to_date(level||'/'!month!'/'!year!'') as operate_date
+    from generate_series(1, extract(day from (date_trunc('month', pka.to_date('1/'!month!'/'!year!'')) + interval '1 month' - interval '1 day'))::int) as level
+) td
+where 1=1
+/*WHERE*/</sql>
+  <sub />
+</root>

@@ -28,13 +28,13 @@ and sc_hr_ucf_official_position.approve_loan_status = '1'</combo_approve_name>
     ,pka_lon_reqsrv.fp_calc_agetext(pka_lon_reqsrv.fp_calc_install_m_age(vr_tel_lon_info.membership_no)) as age_mem_text --อายุสมาชิก
 ,substr(pka_lon_reqsrv.fp_calc_agetext(pka_lon_reqsrv.fp_calc_install_d2d(vr_tel_lon_info.requestment_date,pka_lon_reqsrv.fp_calc_member_retire(vr_tel_lon_info.membership_no,sc_mem_m_membership_registered.date_of_birth,60))),1,2) as retire_age --อายุงานคงเหลือ
     ,vr_tel_lon_info.total_share_value --มีหุ้น
-     ,to_snumber((decode(vr_tel_lon_info.total_share_value,0,1,vr_tel_lon_info.loan_request_amount / vr_tel_lon_info.total_share_value))*100) as total_share_rate --ร้อยละของหุ้น
-    --,to_snumber((decode(vr_tel_lon_info.total_share_value,0,1,vr_tel_lon_info.total_share_value /  vr_tel_lon_info.loan_request_amount))*100) as total_share_rate --ร้อยละของหุ้น
+     ,to_snumber((((CASE vr_tel_lon_info.total_share_value WHEN 0 THEN 1 ELSE vr_tel_lon_info.loan_request_amount / vr_tel_lon_info.total_share_value END))*100)::bigint) as total_share_rate --ร้อยละของหุ้น
+    --,to_snumber((((CASE vr_tel_lon_info.total_share_value WHEN 0 THEN 1 ELSE vr_tel_lon_info.total_share_value /  vr_tel_lon_info.loan_request_amount END))*100)::bigint) as total_share_rate --ร้อยละของหุ้น
     ,vr_tel_lon_info.loan_coll--จำนวนคนค้ำ
     ,vr_tel_lon_info.amount_30pt --30% ของเงินเดือน
     ,vr_tel_lon_info.balance_salary
     ,vr_tel_lon_info.salary_amount --เงินเดือน
-    ,to_snumber(vr_tel_lon_info.percent_salary) as percent_salary --ร้อยละของเงินเดือน
+    ,to_snumber((vr_tel_lon_info.percent_salary)::bigint) as percent_salary --ร้อยละของเงินเดือน
     ,vr_tel_lon_info.approve_status
     ,vr_tel_lon_info.approver_code
     ,vr_tel_lon_info.approver_desc
@@ -47,7 +47,7 @@ and sc_hr_ucf_official_position.approve_loan_status = '1'</combo_approve_name>
     ) as entry_position
 
 , pka_hr.fp_get_hr_name( '!official_no_1!'  )  as  approve_name 
-, pka_hr.fp_get_hr_position_by_offno(  '!official_no_1!' )|| decode( '!official_no_1!', '0014','  รักษาการแทน ','0017','  รักษาการแทน ', '' )   as approve_position
+, pka_hr.fp_get_hr_position_by_offno(  '!official_no_1!' )|| (CASE '!official_no_1!' WHEN '0014' THEN '  รักษาการแทน ' WHEN '0017' THEN '  รักษาการแทน ' ELSE '' END)   as approve_position
 
 , pka_hr.fp_get_hr_name( '!manager_no_1!'  )  as  manager_name
 , pka_hr.fp_get_hr_position_by_offno(  '!manager_no_1!' ) as manager_position
@@ -57,7 +57,7 @@ and sc_hr_ucf_official_position.approve_loan_status = '1'</combo_approve_name>
 ,pka_com_function.fp_get_member_group(vr_tel_lon_info.membership_no) as member_group_no
 ,pka_com_function.fp_get_group_name_mem(vr_tel_lon_info.membership_no) as member_group_name
 
-,decode( '!official_no_1!', '0014','ผู้จัดการ','0017','ผู้จัดการ', '' )   as approve_tan
+,(CASE '!official_no_1!' WHEN '0014' THEN 'ผู้จัดการ' WHEN '0017' THEN 'ผู้จัดการ' ELSE '' END)   as approve_tan
 
     FROM vr_tel_lon_info
     ,sc_mem_m_membership_registered

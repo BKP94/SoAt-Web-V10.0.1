@@ -16,7 +16,7 @@
 ,sc_mem_m_member_work_info.salary_real 
 ,pka_com_function.fp_get_thaidate(sc_mem_m_membership_registered.date_of_birth)  as date_of_birth_tdate
 --,SUBSTR( pka_lon_reqsrv.fp_calc_agetext_m_live(sc_mem_m_membership_registered.membership_no) ,1 ,3 )  as age_text
-,PKA_LON_REQSRV.fp_calc_agetext(TRUNC(MONTHS_BETWEEN(sysdate ,sc_mem_m_membership_registered.date_of_birth),0),'Y','',0) as age_text
+,PKA_LON_REQSRV.fp_calc_agetext((TRUNC(MONTHS_BETWEEN(current_date ,sc_mem_m_membership_registered.date_of_birth),0))::integer,'Y','','0') as age_text
 from sc_mem_m_member_work_info 
 ,sc_mem_m_membership_registered 
 ,sc_mem_m_ucf_member_group 

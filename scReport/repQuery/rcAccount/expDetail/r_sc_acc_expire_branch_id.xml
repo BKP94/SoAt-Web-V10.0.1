@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8" ?> 
+<root>
+  <arg>
+    
+  </arg>
+  <sql>
+    SELECT sc_com_m_branch.branch_id,
+    sc_com_m_branch.branch_name,
+    count( 1 ) as c_count,
+    sum( sc_acc_m_expire.amount_value ) as c_amount,
+    sum( sc_acc_m_expire.balance ) as c_balance
+    FROM sc_acc_m_expire,
+    sc_com_m_branch
+    WHERE ( sc_acc_m_expire.branch_id = sc_com_m_branch.branch_id ) and
+    ( ( sc_acc_m_expire.balance > 0 ) )
+    /*WHERE*/
+    GROUP BY sc_com_m_branch.branch_id,
+    sc_com_m_branch.branch_name
+    ORDER BY sc_com_m_branch.branch_id ASC
+  </sql>
+</root>

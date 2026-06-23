@@ -10,10 +10,10 @@
 ,       sc_mem_m_ucf_member_group.member_group_no
 ,       sc_mem_m_ucf_member_group.member_group_name
 ,       sc_mem_m_share_mem.share_stock
-,       trim(pka_com_function.fp_get_member_address_letter( sc_mem_m_membership_registered.membership_no , '0' , '1' ) ||
-        pka_com_function.fp_get_member_address_letter( sc_mem_m_membership_registered.membership_no , '0' , '2' ) ||
-        pka_com_function.fp_get_member_address_letter( sc_mem_m_membership_registered.membership_no , '0' , '3' ) || 
-        pka_com_function.fp_get_member_address_letter( sc_mem_m_membership_registered.membership_no , '0' , '4' )) as member_address
+,       trim(pka_com_function.fp_get_member_address_letter( sc_mem_m_membership_registered.membership_no ,('0')::text, '1' ) ||
+        pka_com_function.fp_get_member_address_letter( sc_mem_m_membership_registered.membership_no ,('0')::text, '2' ) ||
+        pka_com_function.fp_get_member_address_letter( sc_mem_m_membership_registered.membership_no ,('0')::text, '3' ) || 
+        pka_com_function.fp_get_member_address_letter( sc_mem_m_membership_registered.membership_no ,('0')::text, '4' )) as member_address
 from    sc_mem_m_membership_registered
 ,       sc_mem_m_ucf_prename
 ,       sc_mem_m_share_mem

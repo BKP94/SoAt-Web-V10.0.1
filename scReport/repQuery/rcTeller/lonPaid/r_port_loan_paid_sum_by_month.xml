@@ -6,7 +6,7 @@
   <combo />
   <sql>select  sc_lon_m_rule.loan_type_description
 ,       vr_tel_loan_by_day.*
-,       (day1 + day2 + day3 + day4 + day5 + day6 + day7 + day8 + day9 + day10 + day11 + day12 + day13 + day14 + day15 + day16 + day17 + day18 + day19 + day20 + day21 + day22 + day23 + day24 + day25 + day26 + day27 + day28 + day29 + day30 + nvl(day31,0)) as count_con
+,       (day1 + day2 + day3 + day4 + day5 + day6 + day7 + day8 + day9 + day10 + day11 + day12 + day13 + day14 + day15 + day16 + day17 + day18 + day19 + day20 + day21 + day22 + day23 + day24 + day25 + day26 + day27 + day28 + day29 + day30 + coalesce(day31,0)) as count_con
 ,       (select month_name_thai from sc_cnt_m_month where month_no = vr_tel_loan_by_day.rep_month) as rep_month_thai
 from    vr_tel_loan_by_day
 ,       sc_lon_m_rule
@@ -29,7 +29,7 @@ order by vr_tel_loan_by_day.loan_type</sql>
 ,       vr_tel_loan_by_day.dr_amount
 ,       vr_tel_loan_by_day.cr_amount
 ,       vr_tel_loan_by_day.dr_amount + vr_tel_loan_by_day.cr_amount as sum_amount
-,       (day1 + day2 + day3 + day4 + day5 + day6 + day7 + day8 + day9 + day10 + day11 + day12 + day13 + day14 + day15 + day16 + day17 + day18 + day19 + day20 + day21 + day22 + day23 + day24 + day25 + day26 + day27 + day28 + day29 + day30 + nvl(day31,0)) as count_con
+,       (day1 + day2 + day3 + day4 + day5 + day6 + day7 + day8 + day9 + day10 + day11 + day12 + day13 + day14 + day15 + day16 + day17 + day18 + day19 + day20 + day21 + day22 + day23 + day24 + day25 + day26 + day27 + day28 + day29 + day30 + coalesce(day31,0)) as count_con
 from    vr_tel_loan_by_day
 ,       sc_lon_m_rule
 where   1=1

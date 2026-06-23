@@ -1,0 +1,177 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <metadata name="sqlDataSource1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>17, 17</value>
+  </metadata>
+  <data name="customSqlQuery1.Sql" xml:space="preserve">
+    <value>SELECT sc_acc_m_general_ledger.account_id "เลขที่บัญชี",
+    to_number( decode( sc_acc_m_general_ledger.dr_amount ,  0  , null  ,  sc_acc_m_general_ledger.dr_amount ) )  "เดบิต",
+    to_number( decode( sc_acc_m_general_ledger.cr_amount ,  0  , null  ,  sc_acc_m_general_ledger.cr_amount  ) ) "เครดิต",
+    sc_acc_m_general_ledger.desc_journal_detail "รายละเอียด",
+    sc_acc_m_general_ledger.doc_no "เลขเอกสาร",
+    to_number( decode( sc_acc_m_general_ledger.dr_balance ,  0  , null  ,  sc_acc_m_general_ledger.dr_balance ) ) "เดบิต คงเหลือ",
+    to_number( decode( sc_acc_m_general_ledger.cr_balance,  0  , null  ,  sc_acc_m_general_ledger.cr_balance ) ) "เครดิต คงเหลือ",
+    sc_acc_m_general_ledger.sequence_gl_no "ลำดับ",
+    sc_acc_m_general_ledger.journal_date "วันที่",
+    PKA_COM_FUNCTION.fp_get_thaidate(sc_acc_m_general_ledger.journal_date,'วันที่ sd mon yyyy') "วันที่ ไทย" ,
+    sc_acc_m_general_ledger.branch_id "สาขา",
+    sc_acc_m_general_ledger.from_banch "หน่วย" ,
+
+    sc_acc_m_account_master.nature ,
+    sc_acc_m_general_ledger.acc_book_type_id,
+  
+    to_number( decode( sc_acc_m_account_master.nature , 'DR' , null , sc_acc_m_account_master.begin_balance_temp ) ) "เครดิต ยกมา" ,
+    to_number( decode( sc_acc_m_account_master.nature , 'CR' , null , sc_acc_m_account_master.begin_balance_temp ) ) "เดบิต ยกมา" ,
+
+    sc_acc_m_account_master.account_name "ชื่อบัญชี"
+
+      ,  LAST_VALUE(to_number(decode( sc_acc_m_general_ledger.dr_balance ,  0  , null  ,  sc_acc_m_general_ledger.dr_balance ) )) OVER (
+        PARTITION BY sc_acc_m_general_ledger.account_id, sc_acc_m_general_ledger.journal_date
+        ORDER BY sc_acc_m_general_ledger.sequence_gl_no 
+        ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+    ) AS "เดบิต คงเหลือสุดท้ายของวัน"
+
+
+       ,  LAST_VALUE(to_number(decode( sc_acc_m_general_ledger.cr_balance,  0  , null  ,  sc_acc_m_general_ledger.cr_balance ) )) OVER (
+        PARTITION BY sc_acc_m_general_ledger.account_id, sc_acc_m_general_ledger.journal_date
+        ORDER BY sc_acc_m_general_ledger.sequence_gl_no 
+        ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+    ) AS "เครดิต คงเหลือสุดท้ายของวัน"
+
+    FROM sc_acc_m_general_ledger,
+    sc_acc_m_account_master ,
+    sc_com_m_branch
+
+    WHERE ( sc_acc_m_general_ledger.account_id = sc_acc_m_account_master.account_id ) and
+    ( sc_com_m_branch.branch_id = sc_acc_m_general_ledger.branch_id ) and
+    ( sc_acc_m_general_ledger.acc_book_type_id != 'CM' )
+
+    /*WHERE*/
+and sc_acc_m_general_ledger.account_id between '111101' and '111201' 
+and sc_acc_m_general_ledger.journal_date between '1/6/2019' and '6/6/2019' 
+    order by sc_acc_m_general_ledger.account_id ,
+    sc_acc_m_general_ledger.journal_date ,
+    sc_acc_m_general_ledger.branch_id,
+    sc_acc_m_general_ledger.sequence_gl_no</value>
+  </data>
+  <data name="sqlDataSource1.ResultSchemaSerializable" xml:space="preserve">
+    <value>PERhdGFTZXQgTmFtZT0ic3FsRGF0YVNvdXJjZTEiPjxWaWV3IE5hbWU9IlF1ZXJ5Ij48RmllbGQgTmFtZT0i4LmA4Lil4LiC4LiX4Li14LmI4Lia4Lix4LiN4LiK4Li1IiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IuC5gOC4lOC4muC4tOC4lSIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0i4LmA4LiE4Lij4LiU4Li04LiVIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSLguKPguLLguKLguKXguLDguYDguK3guLXguKLguJQiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0i4LmA4Lil4LiC4LmA4Lit4LiB4Liq4Liy4LijIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IuC5gOC4lOC4muC4tOC4lSDguITguIfguYDguKvguKXguLfguK0iIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IuC5gOC4hOC4o+C4lOC4tOC4lSDguITguIfguYDguKvguKXguLfguK0iIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IuC4peC4s+C4lOC4seC4miIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0i4Lin4Lix4LiZ4LiX4Li14LmIIiBUeXBlPSJEYXRlVGltZSIgLz48RmllbGQgTmFtZT0i4Lin4Lix4LiZ4LiX4Li14LmIIOC5hOC4l+C4oiIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSLguKrguLLguILguLIiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0i4Lir4LiZ4LmI4Lin4LiiIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9Ik5BVFVSRSIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJBQ0NfQk9PS19UWVBFX0lEIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IuC5gOC4hOC4o+C4lOC4tOC4lSDguKLguIHguKHguLIiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IuC5gOC4lOC4muC4tOC4lSDguKLguIHguKHguLIiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IuC4iuC4t+C5iOC4reC4muC4seC4jeC4iuC4tSIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSLguYDguJTguJrguLTguJUg4LiE4LiH4LmA4Lir4Lil4Li34Lit4Liq4Li44LiU4LiX4LmJ4Liy4Lii4LiC4Lit4LiH4Lin4Lix4LiZIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSLguYDguITguKPguJTguLTguJUg4LiE4LiH4LmA4Lir4Lil4Li34Lit4Liq4Li44LiU4LiX4LmJ4Liy4Lii4LiC4Lit4LiH4Lin4Lix4LiZIiBUeXBlPSJEZWNpbWFsIiAvPjwvVmlldz48L0RhdGFTZXQ+</value>
+  </data>
+</root>

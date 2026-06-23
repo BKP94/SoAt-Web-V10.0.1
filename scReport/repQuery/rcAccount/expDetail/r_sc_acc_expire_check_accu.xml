@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<root>
+  <arg>
+    <first_used_day text="วันที่ซื้อ" operator="bt" table="sc_acc_m_expire" type="date" />
+    <sle_name1 text="ผู้ตรวจนับ 1" sqlreplace="1" sqlwhere="0" />
+    <sle_position1 text="ตำแหน่ง" sqlreplace="1" sqlwhere="0" />
+    <sle_name2 text="ผู้ตรวจนับ 2" sqlreplace="1" sqlwhere="0" />
+    <sle_position2 text="ตำแหน่ง" sqlreplace="1" sqlwhere="0" />
+    <sle_name3 text="ผู้ตรวจนับ 3" sqlreplace="1" sqlwhere="0" />
+    <sle_position3 text="ตำแหน่ง" sqlreplace="1" sqlwhere="0" />
+    <sle_name4 text="ผู้ตรวจนับ 4" sqlreplace="1" sqlwhere="0" />
+    <sle_position4 text="ตำแหน่ง" sqlreplace="1" sqlwhere="0" />    
+  </arg>
+  <sql>
+    SELECT sc_acc_m_expire.doc_old,
+    sc_acc_m_expire.description,
+    sc_acc_m_expire.amount_value,
+    sc_acc_m_expire.first_used_day,
+    sc_acc_m_expire.accu_expire_amount,
+    sc_acc_m_expire.balance,
+    sc_acc_m_expire.remark
+    FROM sc_acc_m_expire
+    WHERE sc_acc_m_expire.balance > 0
+    /*WHERE*/
+    ORDER BY sc_acc_m_expire.doc_old ASC
+
+  </sql>
+</root>

@@ -20,7 +20,7 @@
     ,'!book_no_1!' as book_no
 
     ,sc_lon_m_loan_card.principal_balance
-    ,pka_com_function.fp_get_moneythai (sc_lon_m_loan_card.principal_balance) as thai_principal_balance
+    ,pka_com_function.fp_get_moneythai ((sc_lon_m_loan_card.principal_balance)::double precision) as thai_principal_balance
     ,sc_mem_m_resign_requestment.approve_date
     ,sc_mem_m_membership_registered.member_group_no
 
@@ -54,13 +54,12 @@
         sc_lon_m_contract_coll.collateral_no,
         sc_lon_m_contract_coll.collateral_description,
         sc_lon_m_contract_coll.loan_contract_no,
-        decode( sc_mem_m_membership_registered.member_status_code , '0'
-        ,pka_com_function.fp_get_thaidate( sc_mem_m_membership_registered.resignation_approve_date , 'DD/MM/YYYY'  )) as resignation_approve_date
+        (CASE sc_mem_m_membership_registered.member_status_code WHEN '0' THEN pka_com_function.fp_get_thaidate( sc_mem_m_membership_registered.resignation_approve_date , 'DD/MM/YYYY'  ) END) as resignation_approve_date
         ,pka_com_function.fp_get_group_name(sc_mem_m_membership_registered.member_group_no) as group_name_coll
         ,sc_mem_m_membership_registered.member_group_no as group_no_coll
         ,(select sc_lon_m_contract.begining_of_contract from sc_lon_m_contract where loan_contract_no = sc_lon_m_contract_coll.loan_contract_no ) as begining_of_contract
         ,(select sum(sc_lon_m_loan_card.principal_balance) from sc_lon_m_loan_card where loan_contract_no = sc_lon_m_contract_coll.loan_contract_no ) as principal_balance
-        ,(select pka_com_function.fp_get_moneythai (sum(sc_lon_m_loan_card.principal_balance)) from sc_lon_m_loan_card where loan_contract_no = sc_lon_m_contract_coll.loan_contract_no ) as thai_principal_balance
+        ,(select pka_com_function.fp_get_moneythai ((sum(sc_lon_m_loan_card.principal_balance))::double precision) from sc_lon_m_loan_card where loan_contract_no = sc_lon_m_contract_coll.loan_contract_no ) as thai_principal_balance
 
         FROM sc_lon_m_contract_coll,
         sc_mem_m_membership_registered

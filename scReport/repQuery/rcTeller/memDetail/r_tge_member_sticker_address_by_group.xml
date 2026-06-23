@@ -7,9 +7,9 @@
   <combo />
   <sql>select  pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as membername
 ,       sc_mem_m_membership_registered.membership_no
-,       pka_com_function.fp_get_member_address_letter( sc_mem_m_membership_registered.membership_no , 0 , 1 ) as line_1
-,       pka_com_function.fp_get_member_address_letter( sc_mem_m_membership_registered.membership_no , 0 , 2 ) as line_2
-,       pka_com_function.fp_get_member_address_letter( sc_mem_m_membership_registered.membership_no , 0 , 3 )||' '||pka_com_function.fp_get_member_address_letter( sc_mem_m_membership_registered.membership_no , 0 , 4 ) as line_3
+,       pka_com_function.fp_get_member_address_letter( sc_mem_m_membership_registered.membership_no ,(0)::text, 1 ) as line_1
+,       pka_com_function.fp_get_member_address_letter( sc_mem_m_membership_registered.membership_no ,(0)::text, 2 ) as line_2
+,       pka_com_function.fp_get_member_address_letter( sc_mem_m_membership_registered.membership_no ,(0)::text, 3 )||' '||pka_com_function.fp_get_member_address_letter( sc_mem_m_membership_registered.membership_no ,(0)::text, 4 ) as line_3
 from    sc_mem_m_membership_registered
 where   1=1
 /*WHERE*/

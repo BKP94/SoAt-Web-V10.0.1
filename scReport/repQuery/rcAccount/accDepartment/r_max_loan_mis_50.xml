@@ -1,0 +1,73 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+  </arg>
+  <combo />
+  <sql>  SELECT sc_mem_m_membership_registered.id_card,   
+trim( sc_mem_m_ucf_prename.prename ) as prename ,
+trim( sc_mem_m_membership_registered.member_name ) || '  ' || trim( sc_mem_m_membership_registered.member_surname )  as memname,   
+sc_mem_m_ucf_member_type.mem_type_desc ,
+         ( case
+		when sc_lon_m_rule.loan_group_code = '01' then 'เงินกู้ฉุกเฉิน'
+		when sc_lon_m_rule.loan_group_code = '02' then 'เงินกู้สามัญ'
+		else 'เงินกู้พิเศษ'
+		end ) as loan_type ,
+
+         sc_lon_m_loan_card.loan_contract_no,   
+         sc_lon_m_contract.begining_of_contract::date as begining_of_contract  ,
+	 
+	/*ATM สัญญาเก่า ให้หมดในปี
+	สัญญาในปี ให้หมดในอีก 1 ปี
+	ถ้าไม่ใช่ ATM แต่ วันสิ้นสุดเกิน ปี 2050  ให้ใช้ เริ่มสัญญา + 10000 วัน */
+
+	( case 
+		when sc_lon_m_rule.atm_status = '1' and  sc_lon_m_contract.begining_of_contract  &lt; sc_acc_m_account_constant.beginning_of_account then  sc_acc_m_account_constant.ending_of_account::date
+		when sc_lon_m_rule.atm_status = '1' and  sc_lon_m_contract.begining_of_contract  &gt;=  sc_acc_m_account_constant.beginning_of_account then  (sc_lon_m_contract.begining_of_contract + interval '365 day')::date
+		when sc_lon_m_rule.atm_status = '0' and sc_lon_m_contract.ending_of_contract &gt; sc_lon_m_contract.begining_of_contract  + interval '10000 day' then  (sc_lon_m_contract.begining_of_contract + interval '10000 day')::date
+		else sc_lon_m_contract.ending_of_contract::date
+	end ) as ending_of_contract ,
+	
+
+         F_LON_GET_INTRATE( sc_lon_m_contract.loan_type , current_date) * 100  as loan_int_rate,
+         sc_lon_m_loan_card.principal_balance  
+        ,tab2.seq_no
+    FROM sc_lon_m_loan_card,   
+         sc_mem_m_membership_registered,   
+         sc_mem_m_ucf_prename,   
+         sc_lon_m_rule,   
+         sc_lon_m_contract  
+,sc_acc_m_account_constant
+,sc_mem_m_ucf_member_type
+
+
+
+,(	select sum(1)over(order by sum_principal_balance desc  ) as seq_no /*เทียบเท่า comulative sum ถ้าเอา 50 คน ก้อเอา seq_no &lt;= 50  */
+		,membership_no
+		,sum_principal_balance
+	from (
+		select  sc_mem_m_membership_registered.membership_no
+			,sum(sc_lon_m_loan_card.principal_balance) as sum_principal_balance
+		from sc_lon_m_loan_card
+			,sc_mem_m_membership_registered
+		where sc_lon_m_loan_card.principal_balance &gt; 0
+		and sc_mem_m_membership_registered.membership_no = sc_lon_m_loan_card.membership_no
+		group by sc_mem_m_membership_registered.membership_no
+		order by sum_principal_balance desc /*เรียงหนี้รวม จากมากไปหาน้อย*/
+	) tab1
+) tab2
+
+   WHERE ( sc_mem_m_membership_registered.membership_no = sc_lon_m_loan_card.membership_no ) and  
+         ( sc_mem_m_membership_registered.prename_code = sc_mem_m_ucf_prename.prename_code ) and  
+         ( sc_lon_m_loan_card.loan_type = sc_lon_m_rule.loan_type ) and  
+         ( sc_lon_m_loan_card.loan_contract_no = sc_lon_m_contract.loan_contract_no ) and  
+         ( ( sc_lon_m_loan_card.principal_balance &gt; 0 ) )    
+and sc_mem_m_ucf_member_type.mem_type_code = sc_mem_m_membership_registered.mem_type
+and sc_lon_m_loan_card.membership_no = tab2.membership_no
+
+and tab2.seq_no &lt;= 100 
+and sc_mem_m_membership_registered.mem_type &lt; '03'
+/*WHERE*/
+order by seq_no  ,sc_lon_m_loan_card.principal_balance desc
+</sql>
+  <sub />
+</root>

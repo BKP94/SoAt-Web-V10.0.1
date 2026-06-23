@@ -31,7 +31,7 @@
     sc_mem_m_resign_requestment.emer_bf,
     sc_mem_m_resign_requestment.spec_bf,
     pka_com_function.fp_login_id() as entry_id,
-    pka_com_function.fp_get_thaidate(sysdate , 'DD/MM/YYYY') as sysdate_tdate
+    pka_com_function.fp_get_thaidate(current_date , 'DD/MM/YYYY') as sysdate_tdate
     FROM sc_mem_m_resign_requestment,
     sc_mem_m_membership_registered,
     sc_mem_m_ucf_member_group

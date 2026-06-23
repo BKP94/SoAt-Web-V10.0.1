@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <cal_expire_date text="วันที่ประมวล" table="sc_acc_m_expire_detail" type="date" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_acc_m_expire.description,
+    sc_acc_m_expire_detail.meterial_id,
+    sc_acc_m_expire_detail.seq_no,
+    sc_acc_m_expire_detail.amount,
+    sc_acc_m_expire_detail.total_amount,
+    sc_acc_m_expire_detail.present_value,
+    sc_acc_m_expire_detail.cal_expire_date,
+    sc_acc_m_expire.rate_expire,
+    sc_acc_m_expire.amount_value,
+    sc_acc_m_expire_detail.operate_date,
+    sc_acc_m_expire_detail.item_type,
+    sc_acc_m_expire_detail.day_cal,
+    sc_acc_m_expire.first_used_day,
+    sc_acc_m_expire.balance,
+    sc_acc_m_ucf_group_exp.group_name,
+    sc_acc_m_expire.group_exp,
+    sc_acc_m_expire.cut_paid_status,
+    sc_acc_m_expire.accu_expire_amount,
+    sc_acc_m_expire.doc_old,
+    sc_acc_m_expire_detail.begin_exp,
+    sc_acc_m_expire_detail.buy_in_year,
+    sc_acc_m_expire_detail.remark,
+    sc_acc_m_expire_detail.bf_value
+    FROM sc_acc_m_expire,
+    sc_acc_m_expire_detail,
+    sc_acc_m_ucf_group_exp
+    WHERE ( sc_acc_m_expire_detail.meterial_id = sc_acc_m_expire.material_id ) and
+    ( sc_acc_m_expire.group_exp = sc_acc_m_ucf_group_exp.group_exp )
+and sc_acc_m_expire.accu_method = '1'
+    /*WHERE*/
+    -- and  sc_acc_m_expire_detail.cal_expire_date between :adtm_begindate and :adtm_enddate
+    order by sc_acc_m_expire.doc_old
+  </sql>
+  <sub />
+</root>

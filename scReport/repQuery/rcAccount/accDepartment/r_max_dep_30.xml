@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="A010" rep_text="แบบรายงานที่ 6 รายงานผู้ฝากเงินรายใหญ่ 30 รายแรก">
+  <arg>
+  </arg>
+  <combo />
+  <sql>SELECT sc_mem_m_membership_registered.id_card,   
+        '103010 เลขประจำตัวประชาชน (Personal Id)' as id_type,   
+	 ( case
+	when sc_mem_m_ucf_member_type.mem_type_code  = '01' then 'สมาชิกสามัญ'
+	when sc_mem_m_ucf_member_type.mem_type_code = '02' then 'สมาชิกสมทบ'
+	else 'สหกรณ์ฯ'
+	end ) as mem_type ,
+         trim( sc_mem_m_ucf_prename.prename ) as prename,
+         trim( sc_mem_m_membership_registered.member_name ) || '  ' || trim( sc_mem_m_membership_registered.member_surname ) as memname,   
+         trim( sc_dep_m_rule.deposit_group_code )  || '  ' ||   trim( sc_dep_m_rule.deposit_name ) as dep_type ,
+         sc_dep_m_creditor.deposit_account_no,
+         sc_dep_m_creditor.membership_no,
+         pka_dep_intsrv.fp_intrate_depno(sc_dep_m_creditor.deposit_account_no)* 100 as intrate_depno,
+         sc_dep_m_creditor.deposit_balance  
+	, tab2.seq_no
+    FROM  sc_mem_m_membership_registered,   
+         sc_mem_m_ucf_prename,   
+         sc_dep_m_rule,   
+         sc_dep_m_creditor
+ ,sc_mem_m_ucf_member_type
+
+,(	select sum(1)over(order by sum_dep_balance desc  ) as seq_no /*เทียบเท่า comulative sum ถ้าเอา 50 คน ก้อเอา seq_no &lt;= 50  */
+		,membership_no
+		,sum_dep_balance
+	from (
+		select  sc_mem_m_membership_registered.membership_no
+			,sum(sc_dep_m_creditor.deposit_balance) as sum_dep_balance
+		from sc_dep_m_creditor
+			,sc_mem_m_membership_registered
+		where sc_dep_m_creditor.deposit_balance &gt; 0
+		and sc_mem_m_membership_registered.membership_no = sc_dep_m_creditor.membership_no
+		group by sc_mem_m_membership_registered.membership_no
+		order by sum_dep_balance desc /*เรียงหนี้รวม จากมากไปหาน้อย*/
+	) tab1
+) tab2
+   WHERE  ( sc_mem_m_membership_registered.prename_code = sc_mem_m_ucf_prename.prename_code ) and  
+         ( sc_mem_m_ucf_member_type.mem_type_code = sc_mem_m_membership_registered.mem_type ) and 
+         ( sc_dep_m_creditor.deposit_type_code = sc_dep_m_rule.deposit_type_code ) and  
+         ( sc_dep_m_creditor.membership_no = sc_mem_m_membership_registered.membership_no ) and  
+         ( ( sc_dep_m_creditor.deposit_balance &gt; 0 ) )    
+and sc_mem_m_membership_registered.membership_no = tab2.membership_no
+and tab2.seq_no &lt;= 30
+order by seq_no  ,sc_dep_m_creditor.deposit_balance desc</sql>
+  <sub />
+</root>

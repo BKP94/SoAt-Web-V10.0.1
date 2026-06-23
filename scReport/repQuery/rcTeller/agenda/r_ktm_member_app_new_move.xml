@@ -11,7 +11,7 @@
     sc_mem_m_membership_registered.member_name ,
     sc_mem_m_membership_registered.member_surname ,
     pka_com_function.fp_get_group_name(sc_mem_m_ucf_member_group.member_group_control) as member_group_control_name,
-    PKA_LON_REQSRV.fp_calc_agetext( sc_mem_m_membership_registered.date_of_birth )  as age,
+    PKA_LON_REQSRV.fp_calc_agetext( sc_mem_m_membership_registered.date_of_birth, localtimestamp)  as age,
     pka_mem.fp_desc_position(sc_mem_m_member_work_info.position_code ) as position_name,
     sc_mem_m_ucf_member_group.member_group_no,
     sc_mem_m_ucf_member_group.member_group_name,

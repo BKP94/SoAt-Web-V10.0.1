@@ -12,7 +12,7 @@
     ,       pka_com_function.fp_get_thaidate(sc_mem_edit_group.entry_date,'DD/MM/YYYY')as entry_date
     ,       pka_com_function.fp_get_thaidate(sc_mem_edit_group.entry_date,'HH24:MI:SS')as entry_time
     ,       sc_mem_m_share_mem.share_stock
-    ,       nvl(sc_mem_m_share_mem.share_coll_amount,0) as share_coll_amount
+    ,       coalesce(sc_mem_m_share_mem.share_coll_amount,0) as share_coll_amount
     ,       sc_mem_m_membership_registered.member_status_code 
     ,       sc_mem_m_ucf_member_group.member_group_control
     ,       pka_com_function.fp_get_group_name(sc_mem_m_ucf_member_group.member_group_control) as member_control_name
@@ -30,7 +30,7 @@
     --and     sc_mem_edit_group.membership_no = '023808'
     
 /*---------------------[  วันที่  ]------------------------*/
--- and to_date(sc_mem_edit_group.entry_date) between to_date(to_date('2025-8-1 0:0:0','yyyy-mm-dd hh24:mi:ss'),'dd/mm/yyyy') and to_date(to_date('2025-9-5 0:0:0','yyyy-mm-dd hh24:mi:ss'),'dd/mm/yyyy')
+-- and (sc_mem_edit_group.entry_date)::date between (to_date('2025-8-1 0:0:0','yyyy-mm-dd hh24:mi:ss'))::date and (to_date('2025-9-5 0:0:0','yyyy-mm-dd hh24:mi:ss'))::date
 /*WHERE*/
     order by pka_com_function.fp_get_thaidate(sc_mem_edit_group.entry_date,'DD/MM/YYYY')
     ,        sc_mem_edit_group.membership_no

@@ -12,14 +12,14 @@
             where	  (sc_mem_m_membership_registered.member_group_no between '0000' and '9500') 
             and    (member_status_code &lt;&gt;'3')) as c_count_mem
           
-        ,(  select 	nvl(sum(sc_mem_m_share_mem.share_stock),0)   
+        ,(  select 	coalesce(sum(sc_mem_m_share_mem.share_stock),0)   
             from 	sc_mem_m_share_mem,   	
                   sc_mem_m_membership_registered  
             where ( sc_mem_m_membership_registered.membership_no = sc_mem_m_share_mem.membership_no ) 
             and   (sc_mem_m_membership_registered.member_status_code  = '0') 
             and  	(sc_mem_m_membership_registered.member_group_no  not in ('a8000', 'a8100'))) as c_share_stock_mem_code_0
             
-         ,( select 	nvl(sum(sc_mem_m_share_mem.share_stock),0)  
+         ,( select 	coalesce(sum(sc_mem_m_share_mem.share_stock),0)  
             from 	sc_mem_m_share_mem,   
                   sc_mem_m_membership_registered  
             Where ( sc_mem_m_membership_registered.membership_no = sc_mem_m_share_mem.membership_no ) 

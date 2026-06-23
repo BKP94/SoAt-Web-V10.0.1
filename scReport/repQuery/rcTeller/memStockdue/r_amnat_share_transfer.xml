@@ -15,7 +15,7 @@
          sc_mem_m_share_mem.share_stock,
          si_security_user.user_name,
          (select manager_name from sc_cnt_m_coop) as manager_name,
-         pka_com_function.fp_get_moneythai( sc_mem_m_share_holding_detail.share_value ) as thai_share_value
+         pka_com_function.fp_get_moneythai((sc_mem_m_share_holding_detail.share_value)::double precision) as thai_share_value
     FROM sc_mem_m_share_holding_detail,   
          sc_mem_m_share_mem,   
          sc_mem_m_membership_registered,   

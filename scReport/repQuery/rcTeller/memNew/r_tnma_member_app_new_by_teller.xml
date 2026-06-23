@@ -13,14 +13,14 @@
      ,sc_mem_m_ucf_member_group.member_group_name 
      ,pka_com_function.fp_get_thaidate(sc_mem_m_membership_registered.date_of_birth,'dd/mm/yyyy') date_of_birth
      ,pka_lon_reqsrv.fp_calc_agetext_m_live(sc_mem_m_membership_registered.membership_no) as agetext
-     ,decode(sc_mem_m_membership_registered.sex,'M','ชาย','หญิง') as sex
-     ,nvl(sc_mem_m_member_work_info.salary_amount, 0) AS salary_amount
+     ,(CASE sc_mem_m_membership_registered.sex WHEN 'M' THEN 'ชาย' ELSE 'หญิง' END) as sex
+     ,coalesce(sc_mem_m_member_work_info.salary_amount, 0) AS salary_amount
      ,sc_mem_m_share_mem.share_amount
      ,sc_mem_m_membership_registered.id_card
-     ,pka_com_function.fp_get_member_address_letter(sc_mem_m_membership_registered.membership_no , 0 ,3 ) as distic
+     ,pka_com_function.fp_get_member_address_letter(sc_mem_m_membership_registered.membership_no ,(0)::text,3 ) as distic
      ,sc_mem_m_application_form.remark
-     ,nvl(PKA_COM_FUNCTION.fp_get_member_name(sc_mem_m_membership_registered.membership_no_ref),'ไม่มี') as ref_memname
-     ,nvl(sc_mem_m_application_form.mobile_number,'ไม่มี') as mobile_number
+     ,coalesce(PKA_COM_FUNCTION.fp_get_member_name(sc_mem_m_membership_registered.membership_no_ref),'ไม่มี') as ref_memname
+     ,coalesce(sc_mem_m_application_form.mobile_number,'ไม่มี') as mobile_number
      ,sc_mem_m_application_form.appl_type_code
      ,sc_mem_m_ucf_application_type.appl_type_name
      ,sc_mem_m_ucf_member_type.mem_type_desc

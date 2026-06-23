@@ -28,27 +28,27 @@
     ,sc_mem_m_ucf_member_type.mem_type_code
     ,sc_mem_m_ucf_member_type.mem_type_desc
 
-    , nvl( (  SELECT   sum( sc_com_m_receipt.recept_amount )
+    , coalesce( (  SELECT   sum( sc_com_m_receipt.recept_amount )
     FROM sc_com_m_receipt
     WHERE 	sc_com_m_receipt.membership_no = sc_mem_m_membership_registered.membership_no
     AND   	sc_com_m_receipt.money_type_id = 'TNL'
     AND   	sc_com_m_receipt.receipt_status = '0'  ) , 0 )  as tnl_amount
 
-    , nvl( (  SELECT   sum( sc_mem_m_share_withdraw_det.share_withdraw )
+    , coalesce( (  SELECT   sum( sc_mem_m_share_withdraw_det.share_withdraw )
     FROM sc_mem_m_share_withdraw_head,
     sc_mem_m_share_withdraw_det
     WHERE 	sc_mem_m_share_withdraw_head.withdraw_doc_no = sc_mem_m_share_withdraw_det.withdraw_doc_no
     AND 		sc_mem_m_share_withdraw_head.membership_no = sc_mem_m_membership_registered.membership_no
     AND   		sc_mem_m_share_withdraw_head.withdraw_status = '0'  ) , 0 )  as wd_amount
 
-    , nvl( (  SELECT   sum( sc_mem_m_share_withdraw_det.share_stock - sc_mem_m_share_withdraw_det.share_withdraw )
+    , coalesce( (  SELECT   sum( sc_mem_m_share_withdraw_det.share_stock - sc_mem_m_share_withdraw_det.share_withdraw )
     FROM sc_mem_m_share_withdraw_head,
     sc_mem_m_share_withdraw_det
     WHERE 	sc_mem_m_share_withdraw_head.withdraw_doc_no = sc_mem_m_share_withdraw_det.withdraw_doc_no
     AND 		sc_mem_m_share_withdraw_head.membership_no = sc_mem_m_membership_registered.membership_no
     AND   		sc_mem_m_share_withdraw_head.withdraw_status = '0'  ) , 0 )  as share_balance
 
-    , nvl (( select sum(sc_com_m_receipt_item.balance )
+    , coalesce(( select sum(sc_com_m_receipt_item.balance )
     from sc_com_m_receipt ,sc_com_m_receipt_item
     where sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no
     and   sc_com_m_receipt.membership_no = sc_mem_m_membership_registered.membership_no
@@ -75,7 +75,7 @@
     and		sc_mem_m_membership_registered.member_status_code = '3'
     and		sc_mem_m_resign_requestment.approve_result = '1'
     and sc_mem_m_membership_registered.mem_type not in ( '02' ) --ไม่เอา สมทบ
-    and		sc_mem_m_membership_registered.resignation_approve_date between to_date('!op_date_1!') and to_date('!op_date_2!')
+    and		sc_mem_m_membership_registered.resignation_approve_date between ('!op_date_1!')::timestamp and ('!op_date_2!')::timestamp
     and   sc_mem_m_resign_requestment.entry_id  = '!user_name_1!'
     /*WHERE*/
     --and sc_mem_m_resign_requestment.membership_no = '002258'
@@ -91,7 +91,7 @@
         sc_com_m_receipt_item.interest_amount,
         sc_com_m_receipt_item.loan_type,
         sc_com_m_receipt_item.item_amount,
-        decode(  sc_com_m_ucf_receipt_item_type.group_item , 'LON' , sc_com_m_receipt_item.loan_type , sc_com_m_ucf_receipt_item_type.item_type_name )  as loan_type_des,
+        (CASE sc_com_m_ucf_receipt_item_type.group_item WHEN 'LON' THEN sc_com_m_receipt_item.loan_type ELSE sc_com_m_ucf_receipt_item_type.item_type_name END)  as loan_type_des,
         sc_com_m_receipt.recept_amount,
         sc_com_m_ucf_receipt_item_type.group_item,
         sc_com_m_ucf_receipt_item_type.sort_order,
@@ -106,7 +106,7 @@
         ( sc_com_m_receipt.money_type_id = 'TNL' ) AND
         ( sc_com_m_receipt.receipt_status = '0' ) )
         /*where*/
-        and   sc_com_m_receipt.receipt_date between to_date('!op_date_1!') and to_date('!op_date_2!')
+        and   sc_com_m_receipt.receipt_date between ('!op_date_1!')::timestamp and ('!op_date_2!')::timestamp
         and   sc_com_m_receipt.entry_id  = '!user_name_1!'</sql>
     </r_ktm_labour_member_app_resign_nest_tnl>
   </sub>

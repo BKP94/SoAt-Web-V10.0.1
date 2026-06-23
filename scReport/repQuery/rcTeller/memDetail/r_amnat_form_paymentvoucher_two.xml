@@ -30,7 +30,7 @@
     when sc_fin_vourcher_head.ref_system = 'FBR' then
     ' '
     else
-    decode( FPA_FIN_VALID_BANK_FIN( sc_fin_vourcher_detail.account_tr ) , ' ' , sc_fin_vourcher_detail.account_tr , ' ' )
+    (CASE FPA_FIN_VALID_BANK_FIN( sc_fin_vourcher_detail.account_tr ) WHEN ' ' THEN sc_fin_vourcher_detail.account_tr ELSE ' ' END)
     end as account_tr ,
     ( SELECT sc_acc_m_account_master.account_name
     FROM sc_acc_m_account_master
@@ -40,11 +40,11 @@
     sc_fin_vourcher_detail.pay_type,
     sc_fin_vourcher_detail.seq_no,
     sc_fin_vourcher_head.entry_fin ,
-    pka_com_function.fp_get_moneythai (sc_fin_vourcher_head.vourcher_value) as thai_vourcher_value,
+    pka_com_function.fp_get_moneythai ((sc_fin_vourcher_head.vourcher_value)::double precision) as thai_vourcher_value,
 
     TRUNC( sum(sc_fin_vourcher_detail.item_amount)) as item_amount_a
     ,mod( sum( sc_fin_vourcher_detail.item_amount) , 1 ) * 100 as item_amount_b
-    ,pka_com_function.fp_get_moneythai ( sum( sc_fin_vourcher_detail.item_amount )) as thai_item_amount
+    ,pka_com_function.fp_get_moneythai ((sum( sc_fin_vourcher_detail.item_amount ))::double precision) as thai_item_amount
     ,si_security_user.user_name
     FROM sc_fin_vourcher_head,
     sc_fin_vourcher_detail
@@ -73,7 +73,7 @@
     when sc_fin_vourcher_head.ref_system = 'FBR' then
     ' '
     else
-    decode( FPA_FIN_VALID_BANK_FIN( sc_fin_vourcher_detail.account_tr ) , ' ' , sc_fin_vourcher_detail.account_tr , ' ' )
+    (CASE FPA_FIN_VALID_BANK_FIN( sc_fin_vourcher_detail.account_tr ) WHEN ' ' THEN sc_fin_vourcher_detail.account_tr ELSE ' ' END)
     end ,
     sc_fin_vourcher_detail.pay_type,
     sc_fin_vourcher_detail.seq_no,

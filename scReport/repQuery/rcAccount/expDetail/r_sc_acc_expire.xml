@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="D005" rep_text="รายงานวัสดุของสหกรณ์ แยกตามรหัสวัสดุ ตามวันที่ซื้อ">
+  <arg>
+    <first_used_day text="วันที่" table="sc_acc_m_expire" type="date" operator="bt" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_acc_m_expire.material_id,
+    sc_acc_m_expire.description,
+    sc_acc_m_expire.rate_expire,
+    sc_acc_m_expire.amount_value,
+    sc_acc_m_expire.first_used_day,
+    sc_acc_m_expire.first_expire_year,
+    sc_acc_m_expire.entry_id,
+    sc_acc_m_expire.accu_expire_amount,
+    sc_acc_m_expire.last_cal_used,
+    sc_acc_m_expire.cal_id,
+    sc_acc_m_expire.cal_id_date,
+    sc_acc_m_expire.entry_date,
+    sc_acc_m_expire.doc_old,
+    sc_acc_m_expire.balance
+    FROM sc_acc_m_expire
+    WHERE ( sc_acc_m_expire.balance &gt; 0 )
+    /*and ( sc_acc_m_expire.first_used_day between :adtm_begindate and :adtm_enddate )*/
+    /*WHERE*/
+    order by sc_acc_m_expire.doc_old
+  </sql>
+  <sub />
+</root>

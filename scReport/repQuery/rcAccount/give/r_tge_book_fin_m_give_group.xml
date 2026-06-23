@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <give_year align="center" special="year" text="ปี" table="sc_fin_m_give_group" type="integer2" column="give_year" readonly="0" />
+    <book_no align="center" default="116/2566" text="ที่ สอ.สศ." sqlwhere="0" sqlreplace="1" readonly="0" />
+    <book_date align="center" text="วันที่ออกหนังสือ" type="date" column="book_date" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <contact_date align="center" text="ติดต่อขอรับได้ ตั้งแต่วันที่" type="date" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <give_group text="หน่วย" table="sc_fin_ucf_give_group" column="give_group" operator="bt" nulltext="ดูทั้งหมด ไม่ต้องเลือก" combo="sc_fin_ucf_give_group2" readonly="0" />
+    <refer_no default="58" text="กรรมการชุดที่" column="refer_no" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>SELECT sc_fin_m_give_group.give_year,   
+         sc_fin_m_give_group.give_date,   
+         sc_fin_m_give_group.give_group,   
+         sc_fin_m_give_group.receive_name,   
+         sc_fin_m_give_group.by_mem,   
+         sc_fin_m_give_group.per_mem,   
+         sc_fin_m_give_group.own_mem,   
+         sc_fin_m_give_group.own_amt,   
+         sc_fin_m_give_group.kep1_mem,   
+         sc_fin_m_give_group.kep1_amt,   
+         sc_fin_m_give_group.kep2_mem,   
+         sc_fin_m_give_group.kep2_amt,   
+         sc_fin_m_give_group.kep3_mem,   
+         sc_fin_m_give_group.kep3_amt,
+         sc_fin_m_give_group.kep_sum,
+         sc_fin_m_give_group.kep_out,
+         sc_fin_m_give_group.kep_in,
+         sc_fin_m_give_group.kep_paid,   
+         pka_com_function.fp_get_moneythai (sc_fin_m_give_group.kep_paid) as kep_paid_thai,
+         sc_fin_m_give_group.post_status,   
+         sc_fin_ucf_give_group.give_name,   
+         sc_fin_ucf_give_report.give_rep,   
+         sc_fin_ucf_give_report.give_rep_desc,
+
+         '!book_no_1!' as book_no,
+         '!refer_no_1!' as refer_no,
+         pka_com_function.fp_get_thaidate('!book_date_1!' , 'SD MONTH YYYY') as book_tdate ,
+         pka_com_function.fp_get_thaidate('!contact_date_1!' , 'SD MONTH YYYY') as contact_tdate ,
+         ( select coop_name from sc_cnt_m_coop) as coop_name ,
+         (select manager_name from sc_cnt_m_coop) as manager_name 
+
+FROM sc_fin_m_give_group,   
+     sc_fin_ucf_give_group,   
+     sc_fin_ucf_give_report  
+
+WHERE ( sc_fin_m_give_group.give_group = sc_fin_ucf_give_group.give_group ) 
+and ( sc_fin_ucf_give_group.give_rep = sc_fin_ucf_give_report.give_rep ) 
+/*WHERE*/
+--and  ( ( sc_fin_m_give_group.give_year = 2023 ) )   
+--and  sc_fin_m_give_group.give_group = '010101'
+ORDER BY sc_fin_m_give_group.give_group ASC</sql>
+  <sub />
+</root>

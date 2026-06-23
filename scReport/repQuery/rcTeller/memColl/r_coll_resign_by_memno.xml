@@ -15,7 +15,7 @@
          memcoll.resignation_approve_date,   
          memcoll.resign_code,
          (select sc_mem_m_ucf_resign_cause.resign_cause_name from sc_mem_m_ucf_resign_cause where memcoll.resign_code = sc_mem_m_ucf_resign_cause.resign_cause_code) as resign_name,
-        --decode( memcoll.member_status_code , '0' , PKB_KTM.fp_get_collpermit_balance( sc_lon_m_contract_coll.ref_own_no ) , 0 )  as coll_permit, 
+        --(CASE memcoll.member_status_code WHEN '0' THEN PKB_KTM.fp_get_collpermit_balance( sc_lon_m_contract_coll.ref_own_no ) ELSE 0 END)  as coll_permit, 
          pka_com_function.fp_get_member_name(  memloan.membership_no  )   as memname  
     FROM sc_mem_m_membership_registered memloan,   
          sc_mem_m_share_mem,   

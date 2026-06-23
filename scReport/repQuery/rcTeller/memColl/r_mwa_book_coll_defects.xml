@@ -13,16 +13,16 @@
     
     ,'!book_no_1!' as book_no
     ,'!day_in!' as day_in
-    ,pka_com_function.fp_get_thaidate(sysdate, 'SD') as  sys_tdate_day
-    ,pka_com_function.fp_get_thaidate(sysdate, 'MONTH') as  sys_tdate_month
-    ,pka_com_function.fp_get_thaidate(sysdate, 'YYYY') as  sys_tdate_year
+    ,pka_com_function.fp_get_thaidate(current_date, 'SD') as  sys_tdate_day
+    ,pka_com_function.fp_get_thaidate(current_date, 'MONTH') as  sys_tdate_month
+    ,pka_com_function.fp_get_thaidate(current_date, 'YYYY') as  sys_tdate_year
     ,pka_com_function.fp_get_thaidate( '!book_date_1!'  , 'SD MONTH YYYY') as book_date_tdate
 
     ,pka_com_function.fp_get_member_name( vr_resign_coll.membership_no ) as member_name 
     ,pka_com_function.fp_get_member_name( vr_resign_coll.ref_own_no ) as coll_name 
     ,pka_com_function.fp_get_thaidate(vr_resign_coll.begining_of_contract , 'SD MONTH YYYY') as begining_of_contract_tdate
-    ,pka_com_function.fp_get_moneythai (vr_resign_coll.loan_approve_amount) as thai_loan_approve_amount
-    ,to_snumber(vr_resign_coll.loan_approve_amount) as snu_loan_approve_amount
+    ,pka_com_function.fp_get_moneythai ((vr_resign_coll.loan_approve_amount)::double precision) as thai_loan_approve_amount
+    ,to_snumber((vr_resign_coll.loan_approve_amount)::bigint) as snu_loan_approve_amount
     ,vr_resign_coll.*
 from vr_resign_coll
 where 1=1

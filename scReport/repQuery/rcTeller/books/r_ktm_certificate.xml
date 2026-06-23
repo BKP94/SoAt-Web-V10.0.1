@@ -41,15 +41,15 @@
     --sc_rep_certificate.data_refno ,
     --sc_rep_certificate.data_monthly
 
-    --, decode( sc_rep_certificate.data_group , 'DEP' , ( SELECT sc_dep_m_rule.deposit_name
+    --, (CASE sc_rep_certificate.data_group WHEN 'DEP' THEN ( SELECT sc_dep_m_rule.deposit_name
     --    																FROM sc_dep_m_rule
-    --   																WHERE sc_dep_m_rule.deposit_type_code =  sc_rep_certificate.data_type ) ) as dep_name
+    --   																WHERE sc_dep_m_rule.deposit_type_code =  sc_rep_certificate.data_type ) END) as dep_name
     --
-    --, decode( sc_rep_certificate.data_group , 'LON' , ( SELECT sc_lon_m_rule.loan_type_description
+    --, (CASE sc_rep_certificate.data_group WHEN 'LON' THEN ( SELECT sc_lon_m_rule.loan_type_description
     --    																FROM sc_lon_m_rule
-    --   																WHERE sc_lon_m_rule.loan_type =  sc_rep_certificate.data_type ) ) as loan_name
+    --   																WHERE sc_lon_m_rule.loan_type =  sc_rep_certificate.data_type ) END) as loan_name
     --
-    --, decode(  sc_rep_certificate.data_group , 'LON'  , FPB_CAL_INT_CERTIFICATE(  sc_rep_certificate.data_refno  ) , 0 ) as est_int
+    --, (CASE sc_rep_certificate.data_group WHEN 'LON' THEN FPB_CAL_INT_CERTIFICATE(  sc_rep_certificate.data_refno  ) ELSE 0 END) as est_int
 
 
     FROM sc_mem_m_membership_registered,

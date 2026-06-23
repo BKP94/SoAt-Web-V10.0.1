@@ -23,14 +23,14 @@
 ,pka_com_function.fp_get_district_name(sc_mem_m_member_address.province_code,sc_mem_m_member_address.district_code) as district_name
 ,pka_com_function.fp_get_province_name(sc_mem_m_member_address.province_code) as province_name
 ,sc_mem_m_member_address.postcode
-,pka_com_function.fp_get_member_address_tel(sc_mem_m_membership_registered.membership_no, '0') as telephone
+,pka_com_function.fp_get_member_address_tel(sc_mem_m_membership_registered.membership_no,('0')::text) as telephone
 
 ,sc_mem_m_ucf_member_group.member_group_name
 ,sc_lon_m_loan_request.loan_type
 ,pka_com_function.fp_get_member_position_long(sc_mem_m_membership_registered.membership_no) as position_long
 ,sc_mem_m_ucf_member_type.mem_type_code
 ,sc_lon_m_loan_request.loan_request_amount
-,pka_com_function.fp_get_moneythai( sc_lon_m_loan_request.loan_request_amount ) as loan_request_amount_thai
+,pka_com_function.fp_get_moneythai((sc_lon_m_loan_request.loan_request_amount)::double precision) as loan_request_amount_thai
 ,sc_lon_m_loan_request.period_payment_amount
 ,sc_lon_m_loan_request.loan_installment_amount
 ,pka_lon_intsrv.fp_intrate_table_loantype( sc_lon_m_loan_request.loan_type , sc_lon_m_loan_request.begining_of_contract ) * 100 as lon_int_rate
@@ -68,7 +68,7 @@
 --ประกัน
 ,(select sc_lon_m_req_fee.remark from sc_lon_m_req_fee where sc_lon_m_req_fee.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no and fee_type = '17')as insure_remark --หมายเหตุ
 ,sc_lon_m_loan_request_mpaid.other_loan_remark -- กรณี type_pay_money เป็น CHQ, 101 ให้เอาข้อมูลช่องนี้เเสดง
-,to_snumber(sc_lon_m_loan_request_mpaid.paid_amount) as paid_amount --เงินรับจริง
+,to_snumber((sc_lon_m_loan_request_mpaid.paid_amount)::bigint) as paid_amount --เงินรับจริง
 
 --หลักประกันอสังหาริมทรัพย์
 ,(SELECT sc_lon_m_req_coll.ref_own_no
@@ -118,8 +118,7 @@ and   sc_mem_m_member_address.address_type ='1'
 ,collateral_type_code
 ,remark
 FROM(select sc_lon_m_req_coll.seq_no
-,decode(sc_lon_m_req_coll.collateral_type_code,'03',pka_com_function.fp_form_depno(sc_lon_m_req_coll.ref_own_no)
-,decode(sc_lon_m_req_coll.collateral_type_code,'08',pka_com_function.fp_form(sc_lon_m_req_coll.ref_own_no,'X-XXXX-XXXXX-XX-X'),sc_lon_m_req_coll.ref_own_no)) as ref_own_no
+,(CASE sc_lon_m_req_coll.collateral_type_code WHEN '03' THEN pka_com_function.fp_form_depno(sc_lon_m_req_coll.ref_own_no) ELSE (CASE sc_lon_m_req_coll.collateral_type_code WHEN '08' THEN pka_com_function.fp_form(sc_lon_m_req_coll.ref_own_no,'X-XXXX-XXXXX-XX-X') ELSE sc_lon_m_req_coll.ref_own_no END) END) as ref_own_no
 ,sc_lon_m_req_coll.collateral_description
 ,pka_com_function.fp_get_member_id_card(sc_lon_m_req_coll.ref_own_no) as coll_id_card
 ,sc_lon_m_req_coll.collateral_type_code
@@ -141,8 +140,8 @@ select 99  as seq_no
 from sc_lon_m_rule
 where 1=1
 ) tb_coll
-where rownum &lt;=8
-order by seq_no</sql>
+order by seq_no
+limit 8</sql>
     </r_mwa_book_loan_norm_nest>
   </sub>
 </root>

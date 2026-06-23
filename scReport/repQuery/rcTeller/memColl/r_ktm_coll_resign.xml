@@ -3,7 +3,5 @@
   <arg>
     
   </arg>
-  <sql>
-    select * from daul
-  </sql>
+  <sql>select 1</sql>
 </root>

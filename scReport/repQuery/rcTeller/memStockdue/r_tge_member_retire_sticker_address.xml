@@ -6,12 +6,12 @@
   <combo />
   <sql>select  pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as membername
 ,       sc_mem_m_membership_registered.membership_no
-,       trim(sc_mem_m_member_address.address_no ||' '||decode(sc_mem_m_member_address.mooban , null , null ,'หมู่บ้าน'||trim(sc_mem_m_member_address.mooban)) ||' '||
-        decode(sc_mem_m_member_address.moo , null , null ,trim(sc_mem_m_member_address.moo)) ||' '||decode(sc_mem_m_member_address.soi , null , null ,'ซอย'||trim(sc_mem_m_member_address.soi)))as line_1
-,       decode(sc_mem_m_member_address.road , null , null ,'ถนน'||trim(sc_mem_m_member_address.road))||' '||
-        decode(sc_mem_m_member_address.tambol , null , null ,decode(sc_mem_m_member_address.province_code , '010' , 'แขวง'||trim(PKA_COM_FUNCTION.fp_get_sub_district_name (sc_mem_m_member_address.tambol)) , 'ตำบล'||trim(PKA_COM_FUNCTION.fp_get_sub_district_name (sc_mem_m_member_address.tambol))))as line_2
-,       decode(sc_mem_m_member_address.district_code , null , null ,decode(sc_mem_m_member_address.province_code , '010' , 'เขต'||trim(PKA_COM_FUNCTION.fp_get_district_name(sc_mem_m_member_address.province_code,sc_mem_m_member_address.district_code)) , 'อำเภอ'||trim(PKA_COM_FUNCTION.fp_get_district_name(sc_mem_m_member_address.province_code,sc_mem_m_member_address.district_code)))||' '||
-        decode(sc_mem_m_member_address.province_code , null , null ,(decode(sc_mem_m_member_address.province_code , '010' , trim(PKA_COM_FUNCTION.fp_get_province_name(sc_mem_m_member_address.province_code)),'จังหวัด'||trim(PKA_COM_FUNCTION.fp_get_province_name(sc_mem_m_member_address.province_code))))) ||' '||trim(sc_mem_m_member_address.postcode)) as line_3
+,       trim(sc_mem_m_member_address.address_no ||' '||(CASE sc_mem_m_member_address.mooban WHEN null THEN null ELSE 'หมู่บ้าน'||trim(sc_mem_m_member_address.mooban) END) ||' '||
+        (CASE sc_mem_m_member_address.moo WHEN null THEN null ELSE trim(sc_mem_m_member_address.moo) END) ||' '||(CASE sc_mem_m_member_address.soi WHEN null THEN null ELSE 'ซอย'||trim(sc_mem_m_member_address.soi) END))as line_1
+,       (CASE sc_mem_m_member_address.road WHEN null THEN null ELSE 'ถนน'||trim(sc_mem_m_member_address.road) END)||' '||
+        (CASE sc_mem_m_member_address.tambol WHEN null THEN null ELSE (CASE sc_mem_m_member_address.province_code WHEN '010' THEN 'แขวง'||trim(PKA_COM_FUNCTION.fp_get_sub_district_name (sc_mem_m_member_address.tambol)) ELSE 'ตำบล'||trim(PKA_COM_FUNCTION.fp_get_sub_district_name (sc_mem_m_member_address.tambol)) END) END)as line_2
+,       (CASE sc_mem_m_member_address.district_code WHEN null THEN null ELSE (CASE sc_mem_m_member_address.province_code WHEN '010' THEN 'เขต'||trim(PKA_COM_FUNCTION.fp_get_district_name(sc_mem_m_member_address.province_code,sc_mem_m_member_address.district_code)) ELSE 'อำเภอ'||trim(PKA_COM_FUNCTION.fp_get_district_name(sc_mem_m_member_address.province_code,sc_mem_m_member_address.district_code)) END)||' '||
+        (CASE sc_mem_m_member_address.province_code WHEN null THEN null ELSE ((CASE sc_mem_m_member_address.province_code WHEN '010' THEN trim(PKA_COM_FUNCTION.fp_get_province_name(sc_mem_m_member_address.province_code)) ELSE 'จังหวัด'||trim(PKA_COM_FUNCTION.fp_get_province_name(sc_mem_m_member_address.province_code)) END)) END) ||' '||trim(sc_mem_m_member_address.postcode) END) as line_3
 from    sc_mem_m_membership_registered
 ,       sc_mem_m_member_address
 where   sc_mem_m_member_address.membership_no = sc_mem_m_membership_registered.membership_no
@@ -19,7 +19,7 @@ and     sc_mem_m_membership_registered.member_status_code = '0'
 and     sc_mem_m_membership_registered.mem_type = '01'
 and     sc_mem_m_member_address.address_type = '0'
 and     sc_mem_m_membership_registered.member_group_no not between '035701' and '036908'
-and     sc_mem_m_membership_registered.member_group_no not in '033900'
+and     sc_mem_m_membership_registered.member_group_no not in ('033900')
 --and     sc_mem_m_membership_registered.date_of_birth between '02/10/1962' and '01/10/1963'
 /*WHERE*/
 order by sc_mem_m_membership_registered.membership_no

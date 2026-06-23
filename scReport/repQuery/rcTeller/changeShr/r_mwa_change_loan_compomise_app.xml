@@ -63,8 +63,8 @@ WHERE
     and ( sc_mem_m_ucf_prename.prename_code = sc_mem_m_membership_registered.prename_code )
     and ( sc_mem_m_chg_loan_det.document_no = sc_mem_m_chang_request.document_no )
     and ( sc_mem_m_membership_registered.membership_no = sc_mem_m_chang_request.membership_no )
-    and ( sc_mem_m_chang_request.cancel_status = 0 )
-    and ( sc_mem_m_chg_loan_det.drop_status not in '0' )
+    and ( sc_mem_m_chang_request.cancel_status = '0' )
+    and ( sc_mem_m_chg_loan_det.drop_status not in ('0') )
     and ( sc_mem_m_chang_request.approve_status = '1' )
 
 /*WHERE*/

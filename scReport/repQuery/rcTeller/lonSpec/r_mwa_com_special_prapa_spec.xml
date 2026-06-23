@@ -24,35 +24,31 @@
     ,sc_com_m_receipt.money_type_id
     ,(select sc_com_m_ucf_money_type.money_type_name from sc_com_m_ucf_money_type where sc_com_m_ucf_money_type.money_type_id = sc_com_m_receipt.money_type_id ) as money_type_name
     ,sc_com_m_receipt.recept_amount
-    ,pka_com_function.fp_get_moneythai ( (select sum(sc_com_m_receipt_item.item_amount) from sc_com_m_receipt_item where sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no) ) as thai_sum_item_amount
+    ,pka_com_function.fp_get_moneythai (((select sum(sc_com_m_receipt_item.item_amount) from sc_com_m_receipt_item where sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no))::double precision) as thai_sum_item_amount
     ,pka_com_function.fp_get_thaidate(sc_com_m_receipt.receipt_date ,'DD/MM/YYYY') as receipt_date
     ,pka_com_function.fp_get_thaidate(sc_com_m_receipt.calcint_date,'DD/MM/YYYY') as calcint_date
     ,sc_com_m_receipt.membership_no
     ,sc_mem_m_ucf_member_group.member_group_no
     ,sc_mem_m_ucf_member_group.member_group_name
     , sc_com_m_receipt.share_stock
-    +  nvl( ( select sum( item_amount )
+    +  coalesce( ( select sum( item_amount )
     from sc_com_m_receipt_item
     where receipt_no =  sc_com_m_receipt.receipt_no
     and item_type_id in ( 'SB' , 'SL' ) ) , 0 )
 
-    -  decode( sc_com_m_receipt.money_type_id  ,'TNL' ,  recept_amount , 0 )
+    -  (CASE sc_com_m_receipt.money_type_id WHEN 'TNL' THEN recept_amount ELSE 0 END)
     as share_stock
 
 
-    ,decode( sc_com_m_receipt.money_type_id
-    , 'CHQ' , 'ใบเสร็จจะสมบูรณ์เมื่อเช็คเรียกเก็บเงินได้'
-    , 'TRB' ,    'โอนชำระผ่าน ' ||   (select bank_name from sc_fin_m_bank where bank_fin = sc_com_m_receipt.fin_bank ) ||' '
+    ,(CASE sc_com_m_receipt.money_type_id WHEN 'CHQ' THEN 'ใบเสร็จจะสมบูรณ์เมื่อเช็คเรียกเก็บเงินได้' WHEN 'TRB' THEN 'โอนชำระผ่าน ' ||   (select bank_name from sc_fin_m_bank where bank_fin = sc_com_m_receipt.fin_bank ) ||' '
     || (select  pka_com_function.fp_form( sc_fin_m_bank.bank_id_code , 'XXX-X-XXXXX-X' ) from sc_fin_m_bank where bank_fin = sc_com_m_receipt.fin_bank )
-    || '#'|| sc_com_m_receipt.remark
-    , 'CLR' , 'หักกลบลบหนี้ สัญญา ' || sc_com_m_receipt.loan_contract_no
+    || '#'|| sc_com_m_receipt.remark WHEN 'CLR' THEN 'หักกลบลบหนี้ สัญญา ' || sc_com_m_receipt.loan_contract_no
     || ' ยอดอนุมัติกู้ ' ||  ( select trim( to_char( loan_approve_amount , '999,999,990.00') )
     from sc_lon_m_contract
     where loan_contract_no = sc_com_m_receipt.loan_contract_no )|| ' บาท'
     || ' เงินรับจริง ' ||  ( select trim( to_char( real_recieve , '999,999,990.00') )
     from sc_lon_m_contract
-    where loan_contract_no = sc_com_m_receipt.loan_contract_no )|| ' บาท'
-    , sc_com_m_receipt.remark  ) as remark_footer
+    where loan_contract_no = sc_com_m_receipt.loan_contract_no )|| ' บาท' ELSE sc_com_m_receipt.remark END) as remark_footer
 
     ,(select sum(sc_com_m_receipt_item.item_amount)
     from sc_com_m_receipt_item
@@ -67,7 +63,7 @@
     ,pka_com_function.fp_get_province_name(sc_cnt_m_coop.province_code) as province_name
     ,sc_cnt_m_coop.postcode
 
-    ,nvl((  select sum(sc_dep_m_creditor.deposit_balance)
+    ,coalesce((  select sum(sc_dep_m_creditor.deposit_balance)
     from sc_dep_m_creditor
     where sc_dep_m_creditor.membership_no = sc_com_m_receipt.membership_no
     and   sc_dep_m_creditor.deposit_type_code = '66' ),0) as deposit_balance
@@ -78,7 +74,7 @@
     ,sc_com_m_receipt.entry_id
     ,sc_com_m_receipt.entry_date
     ,sc_cnt_m_status_01.status_code
-    ,decode( sc_cnt_m_status_01.status_code , '0' , 'ต้นฉบับ' ,'สำเนา' ) as copy_desc
+    ,(CASE sc_cnt_m_status_01.status_code WHEN '0' THEN 'ต้นฉบับ' ELSE 'สำเนา' END) as copy_desc
     FROM sc_com_m_receipt
     , sc_mem_m_ucf_member_group
     , sc_cnt_m_coop
@@ -96,11 +92,9 @@
   <sub>
     <r_mwa_com_special_prapa_spec_nest>
       <sql>
-        SELECT /*decode( sc_com_m_receipt_item.item_type_id
-        , 'IS',  ( 	select  insurance_desc
+        SELECT /*(CASE sc_com_m_receipt_item.item_type_id WHEN 'IS' THEN ( 	select  insurance_desc
         from sc_mem_m_insure_rule
-        where   sc_mem_m_insure_rule.insurance_type = loan_type )
-        ,sc_com_m_receipt_item.description ) as description ,  */
+        where   sc_mem_m_insure_rule.insurance_type = loan_type ) ELSE sc_com_m_receipt_item.description END) as description ,  */
         sc_com_m_receipt.receipt_no,
         sc_com_m_receipt_item.item_type_id,
         sc_com_m_receipt_item.loan_type,

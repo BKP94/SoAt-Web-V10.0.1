@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<root cat_id="D005" rep_text="รายงานรายการวัสดุของสหกรณ์ วันที่คำนวณล่าสุดไม่ถูกต้อง" >
+  <arg>
+
+  </arg>
+  <sql>
+    select	sc_acc_m_expire.material_id,
+    sc_acc_m_expire.description ,
+    sc_acc_m_expire.last_cal_used
+    from		sc_acc_m_expire
+    where	( balance > 0 )
+    and 		( cut_paid_status  = 0 or cut_paid_status  is null  )
+    and 		( rate_expire > 0  )
+    and		(  status = '0'  or  status  is null )
+    /*WHERE*/
+    order by sc_acc_m_expire.material_id
+  </sql>
+</root>

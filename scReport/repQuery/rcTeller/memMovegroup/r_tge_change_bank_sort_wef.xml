@@ -41,7 +41,7 @@ and  sc_wef_req_edu.requestment_no = sc_wef_req.requestment_no
 and  sc_wef_req_edu.num_rec is not null
 and sc_wef_req.cancel_status = '0'
 and sc_wef_req.approve_status= '1'
-and to_date(sc_mem_m_chg_accno.entry_date) between '!entry_date_1!' and '!entry_date_2!'
+and (sc_mem_m_chg_accno.entry_date)::date between '!entry_date_1!' and '!entry_date_2!'
 /*WHERE*/
 order by sc_wef_req_edu.class_type
     ,sc_wef_req_edu.num_rec</sql>

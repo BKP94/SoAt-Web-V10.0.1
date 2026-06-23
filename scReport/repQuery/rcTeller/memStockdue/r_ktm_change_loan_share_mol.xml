@@ -17,19 +17,19 @@
     ,case
     when sc_mem_m_chg_share_det.shr_value_new &gt; sc_mem_m_chg_share_det.shr_value_old then 'เพิ่มส่งหุ้น '||trim(to_char(sc_mem_m_chg_share_det.shr_value_old,'999,999.00'))
     when sc_mem_m_chg_share_det.shr_value_new &lt; sc_mem_m_chg_share_det.shr_value_old then 'ลดส่งหุ้น '||trim(to_char(sc_mem_m_chg_share_det.shr_value_old,'999,999.00'))
-    when sc_mem_m_chg_share_det.shr_value_new = sc_mem_m_chg_share_det.shr_value_old  then decode( sc_mem_m_chg_share_det.drop_status_last,'0','ชำระปกติ','1','งดส่ง','ชำระปกติ')
+    when sc_mem_m_chg_share_det.shr_value_new = sc_mem_m_chg_share_det.shr_value_old  then (CASE sc_mem_m_chg_share_det.drop_status_last WHEN '0' THEN 'ชำระปกติ' WHEN '1' THEN 'งดส่ง' ELSE 'ชำระปกติ' END)
     end value_old_text
 
     ,case
     when sc_mem_m_chg_share_det.shr_value_new  &gt; sc_mem_m_chg_share_det.shr_value_old
     or sc_mem_m_chg_share_det.shr_value_new  &lt; sc_mem_m_chg_share_det.shr_value_old then trim(to_char(sc_mem_m_chg_share_det.shr_value_new,'999,999.00'))
-    else decode(sc_mem_m_chg_share_det.drop_status,'0','ชำระปกติ','1','งดส่ง','ชำระปกติ')
+    else (CASE sc_mem_m_chg_share_det.drop_status WHEN '0' THEN 'ชำระปกติ' WHEN '1' THEN 'งดส่ง' ELSE 'ชำระปกติ' END)
     end value_new_text
 
-    ,decode( sc_mem_m_chg_share_det.drop_status_last , '1' , 0 , sc_mem_m_chg_share_det.shr_value_old   ) as value_old
-    ,decode( sc_mem_m_chg_share_det.drop_status , '1' , 0 , sc_mem_m_chg_share_det.shr_value_new  ) as value_new
+    ,(CASE sc_mem_m_chg_share_det.drop_status_last WHEN '1' THEN 0 ELSE sc_mem_m_chg_share_det.shr_value_old END) as value_old
+    ,(CASE sc_mem_m_chg_share_det.drop_status WHEN '1' THEN 0 ELSE sc_mem_m_chg_share_det.shr_value_new END) as value_new
     ,sc_mem_m_chang_request.document_no
-    ,nvl( sc_mem_m_chang_request.approve_id , ' ' )  as approve_id
+    ,coalesce( sc_mem_m_chang_request.approve_id , ' ' )  as approve_id
 
     from sc_mem_m_chang_request
     ,sc_mem_m_chg_share_det
@@ -38,8 +38,8 @@
     where sc_mem_m_member_work_info.membership_no = sc_mem_m_chang_request.membership_no
     and	sc_mem_m_chg_share_det.document_no = sc_mem_m_chang_request.document_no
     and	sc_mem_m_chang_request.approve_status &lt;&gt; '3'
-    --and 	sc_mem_m_chang_request.operate_date between to_date('03/02/2020') and to_date('03/02/2020')
-    and 	sc_mem_m_chang_request.operate_date between to_date('!operate_date_1!') and to_date('!operate_date_2!')
+    --and 	sc_mem_m_chang_request.operate_date between to_date('03/02/2020','DD/MM/YYYY') and to_date('03/02/2020','DD/MM/YYYY')
+    and 	sc_mem_m_chang_request.operate_date between ('!operate_date_1!')::timestamp and ('!operate_date_2!')::timestamp
 
     union
 
@@ -56,19 +56,19 @@
     when sc_mem_m_chg_loan_det.period_payment_new  &gt; sc_mem_m_chg_loan_det.period_payment_old  then 'เพิ่มส่งหนี้ '||trim(to_char(sc_mem_m_chg_loan_det.period_payment_old,'999,999.00'))
     when sc_mem_m_chg_loan_det.period_payment_new &lt; sc_mem_m_chg_loan_det.period_payment_old then 'ลดส่งหนี้ '||trim(to_char(sc_mem_m_chg_loan_det.period_payment_old,'999,999.00'))
     when sc_mem_m_chg_loan_det.period_payment_new = sc_mem_m_chg_loan_det.period_payment_old  then
-    decode(sc_mem_m_chg_loan_det.drop_status_last,'0','ชำระปกติ','1','งดต้นและดอก','2','งดต้น','3','งดดอก','ชำระปกติ')
+    (CASE sc_mem_m_chg_loan_det.drop_status_last WHEN '0' THEN 'ชำระปกติ' WHEN '1' THEN 'งดต้นและดอก' WHEN '2' THEN 'งดต้น' WHEN '3' THEN 'งดดอก' ELSE 'ชำระปกติ' END)
     end value_old_text
     ,case
     when sc_mem_m_chg_loan_det.period_payment_new  &gt; sc_mem_m_chg_loan_det.period_payment_old
     or sc_mem_m_chg_loan_det.period_payment_new  &lt; sc_mem_m_chg_loan_det.period_payment_old then trim(to_char(sc_mem_m_chg_loan_det.period_payment_new,'999,999.00'))
-    else decode(sc_mem_m_chg_loan_det.drop_status,'0','ชำระปกติ','1','งดต้นและดอก','2','งดต้น','3','งดดอก','ชำระปกติ')
+    else (CASE sc_mem_m_chg_loan_det.drop_status WHEN '0' THEN 'ชำระปกติ' WHEN '1' THEN 'งดต้นและดอก' WHEN '2' THEN 'งดต้น' WHEN '3' THEN 'งดดอก' ELSE 'ชำระปกติ' END)
     end value_new_text
 
-    ,decode( sc_mem_m_chg_loan_det.drop_status_last , '0' , sc_mem_m_chg_loan_det.period_payment_old , 0   ) as value_old
-    ,decode( sc_mem_m_chg_loan_det.drop_status , '0' ,  sc_mem_m_chg_loan_det.period_payment_new  , 0 ) as value_new
+    ,(CASE sc_mem_m_chg_loan_det.drop_status_last WHEN '0' THEN sc_mem_m_chg_loan_det.period_payment_old ELSE 0 END) as value_old
+    ,(CASE sc_mem_m_chg_loan_det.drop_status WHEN '0' THEN sc_mem_m_chg_loan_det.period_payment_new ELSE 0 END) as value_new
 
     ,sc_mem_m_chang_request.document_no
-    ,nvl( sc_mem_m_chang_request.approve_id , ' ' )  as approve_id
+    ,coalesce( sc_mem_m_chang_request.approve_id , ' ' )  as approve_id
 
     from sc_mem_m_chang_request
     ,sc_mem_m_chg_loan_det
@@ -77,8 +77,8 @@
     where sc_mem_m_member_work_info.membership_no = sc_mem_m_chang_request.membership_no
     and	sc_mem_m_chg_loan_det.document_no = sc_mem_m_chang_request.document_no
     and	sc_mem_m_chang_request.approve_status &lt;&gt; '3'
-    --and 	sc_mem_m_chang_request.operate_date between to_date('03/02/2020') and to_date('03/02/2020')
-    and 	sc_mem_m_chang_request.operate_date between to_date('!operate_date_1!') and to_date('!operate_date_2!')
+    --and 	sc_mem_m_chang_request.operate_date between to_date('03/02/2020','DD/MM/YYYY') and to_date('03/02/2020','DD/MM/YYYY')
+    and 	sc_mem_m_chang_request.operate_date between ('!operate_date_1!')::timestamp and ('!operate_date_2!')::timestamp
     /*where*/
     order by operate_date,type_request,document_no
   </sql>

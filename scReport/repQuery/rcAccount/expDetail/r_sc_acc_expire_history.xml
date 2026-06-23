@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="D005" rep_text="รายงาน - ประวัติวัสดุ">
+  <arg>
+    <doc_old text="รหัสวัสดุ" table="sc_acc_m_expire" operator="bt" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_acc_m_expire.material_id,
+    sc_acc_m_expire.description,
+    sc_acc_m_expire.first_used_day,
+    sc_acc_m_expire.amount_value,
+    sc_acc_m_expire.balance,
+    sc_acc_m_expire.doc_old
+    FROM sc_acc_m_expire
+    WHERE 1=1
+    /*sc_acc_m_expire.doc_old between :ai_material1 and :ai_material2*/
+    /*WHERE*/
+    order by sc_acc_m_expire.doc_old
+  </sql>
+  <sub>
+    <r_sc_acc_expire_history_nest>
+      <sql>        SELECT sc_acc_m_expire_histroy.operate_date,
+        sc_acc_m_expire_histroy.shelf_id,
+        ( select shelf_name from sc_acc_m_ucf_shelf_exp where  sc_acc_m_ucf_shelf_exp.shelf_id = sc_acc_m_expire_histroy.shelf_id ) as shelf_name ,
+        coalesce( ( select user_name   from si_security_user     where user_id = sc_acc_m_expire_histroy.user_keep ) , sc_acc_m_expire_histroy.user_keep)  as user_keep,
+        sc_acc_m_expire_histroy.histroy_remark,
+        sc_acc_m_expire_histroy.seq_no
+        FROM sc_acc_m_expire_histroy 
+        WHERE 1=1
+        and sc_acc_m_expire_histroy.material_id = {0}
+        /*WHERE*/
+        order by sc_acc_m_expire_histroy.operate_date
+      </sql>
+    </r_sc_acc_expire_history_nest>
+  </sub>
+</root>

@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<root cat_id="ACCC" rep_text="รายงาน - งบทดลอง(A3)">
+  <sql>
+    select sc_acc_t_trial_balance_rep.account_id,
+    (select account_name from sc_acc_m_account_master where account_id = sc_acc_t_trial_balance_rep.account_id) as account_name,
+    sc_acc_t_trial_balance_rep.dr_bb,
+    sc_acc_t_trial_balance_rep.cr_bb,
+    sc_acc_t_trial_balance_rep.dr_between,
+    sc_acc_t_trial_balance_rep.cr_between,
+    sc_acc_t_trial_balance_rep.dr_amount,
+    sc_acc_t_trial_balance_rep.cr_amount
+    from sc_acc_t_trial_balance_rep
+    order by sc_acc_t_trial_balance_rep.account_id
+  </sql>
+</root>

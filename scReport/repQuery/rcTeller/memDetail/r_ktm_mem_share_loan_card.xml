@@ -31,7 +31,7 @@
     ,sc_mem_m_ucf_member_type.mem_type_desc
     ,sc_mem_m_member_work_info.salary_amount
     ,sc_mem_m_member_work_info.salary_id
- ,decode(sc_mem_m_membership_registered.member_status_code,'0','ปกติ','พ้นสภาพ') as member_status_code
+ ,(CASE sc_mem_m_membership_registered.member_status_code WHEN '0' THEN 'ปกติ' ELSE 'พ้นสภาพ' END) as member_status_code
     from sc_mem_m_membership_registered
     ,sc_mem_m_ucf_member_group
     ,sc_mem_m_share_mem
@@ -49,7 +49,7 @@
   <sub>
     <r_ktm_mem_share_loan_card_share>
       <sql>        select sc_mem_m_share_holding_detail.seq_no
-        ,nvl(sc_mem_m_share_holding_detail.period,0) as period
+        ,coalesce(sc_mem_m_share_holding_detail.period,0) as period
         ,sc_mem_m_share_holding_detail.share_value
         --*sc_mem_m_ucf_share_item_type.sign_flag as share_value
         ,sc_mem_m_share_holding_detail.share_stock

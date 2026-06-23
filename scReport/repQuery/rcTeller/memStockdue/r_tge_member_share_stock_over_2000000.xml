@@ -13,8 +13,8 @@
 ,       sc_mem_m_share_mem.pending_amt
 ,       (sc_mem_m_share_mem.share_stock + sc_mem_m_share_mem.pending_amt) as share_stock_pending
 ,       ((sc_mem_m_share_mem.share_stock + sc_mem_m_share_mem.pending_amt)*0.8) as share_stock_pending_80
-,       nvl(pka_com_function.fp_lon_get_balance_atnow(sc_mem_m_membership_registered.membership_no),0) as loan_bal
-,       sysdate
+,       coalesce(pka_com_function.fp_lon_get_balance_atnow(sc_mem_m_membership_registered.membership_no),0) as loan_bal
+,       current_date
 from    sc_mem_m_membership_registered
 ,       sc_mem_m_share_mem
 ,       sc_mem_m_ucf_shareloan_status

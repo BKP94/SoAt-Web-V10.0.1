@@ -17,7 +17,7 @@
     '!withdraw_date_1!' as from_date ,
     '!withdraw_date_2!' as to_date ,
     
-    (select nvl(share_stock,0) 
+    (select coalesce(share_stock,0) 
     from sc_mem_m_share_holding_detail
     where membership_no  = sc_mem_m_share_withdraw_head.membership_no
     and  seq_no = ( select max( seq_no ) 
@@ -27,7 +27,7 @@
                   )
     ) as share_stock ,
     
-    (select nvl(share_stock,0) /2
+    (select coalesce(share_stock,0) /2
     from sc_mem_m_share_holding_detail
     where membership_no  = sc_mem_m_share_withdraw_head.membership_no
     and  seq_no = ( select max( seq_no ) 
@@ -37,7 +37,7 @@
                   )
     ) as half_share_stock ,
     
-    REPLACE (( select to_snumber(nvl(share_stock,0) /2)
+    REPLACE (( select to_snumber((coalesce(share_stock,0) /2)::bigint)
     from sc_mem_m_share_holding_detail
     where membership_no  = sc_mem_m_share_withdraw_head.membership_no
     and  seq_no = ( select max( seq_no ) 
@@ -45,7 +45,7 @@
                     where membership_no  = sc_mem_m_share_withdraw_head.membership_no
                     and operate_date &lt;  ( select  beginning_of_account  from sc_acc_m_account_constant ) 
                   )
-    ),RIGHT(( select to_snumber(nvl(share_stock,0) /2)
+    ),RIGHT(( select to_snumber((coalesce(share_stock,0) /2)::bigint)
     from sc_mem_m_share_holding_detail
     where membership_no  = sc_mem_m_share_withdraw_head.membership_no
     and  seq_no = ( select max( seq_no ) 

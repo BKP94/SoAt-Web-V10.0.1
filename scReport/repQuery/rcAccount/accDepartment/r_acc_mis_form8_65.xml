@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="A010" rep_text="แบบรายงานที่ 7 - แบบรายงานฐานะสภาพคล่องสุทธิ" procedure="pka_rep_scq.sp_form8_mis65({operate_date_1})">
+  <arg>
+    <operate_date text="ลงวันที่" table="sc_rep_scq_form8_mis65" type="date" readonly="0" />
+  </arg>
+  <combo />
+  <sql>  SELECT operate_date,   
+         item_type,   
+         item_desc,   
+         time_now,   
+         time_y1g_y5 +  time_y5g_y10 +   time_y10g  as  time_y1g_y5 , 
+         time_noterm as time_noterm,   
+         time_1m,   
+         time_2m,   
+         time_3m,   
+         time_4m,   
+         time_5m,   
+         time_6m,   
+         time_7m,   
+         time_8m,   
+         time_9m,   
+         time_10m,   
+         time_11m,   
+         time_12m  
+
+,      (  time_now +   
+         time_y1g_y5 +  
+         time_y5g_y10 +   
+         time_y10g +     
+         time_noterm +
+         time_1m + 
+         time_2m +
+         time_3m + 
+         time_4m +  
+         time_5m + 
+         time_6m +
+         time_7m +
+         time_8m + 
+         time_9m +
+         time_10m +
+         time_11m + 
+         time_12m  ) as total_amount 
+
+    FROM sc_rep_scq_form8_mis65
+    where 1=1
+    /*WHERE*/
+  order by  item_type</sql>
+  <sub />
+</root>

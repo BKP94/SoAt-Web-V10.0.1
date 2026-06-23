@@ -17,7 +17,7 @@
 ,       pka_com_function.fp_form( sc_cls_confirm_data.data_refno , 'XX-XXXXXXXXXX' ) as deposit_account_number
 ,       sc_cls_confirm_data.data_balance as deposit_balance
 
-,       (select nvl(sum(data_balance),0)
+,       (select coalesce(sum(data_balance),0)
         from    sc_cls_confirm_data tab
         where   membership_no = sc_mem_m_membership_registered.membership_no
         and     confirm_date = sc_cls_confirm_data.confirm_date
@@ -25,13 +25,13 @@
         ) as capital_stock
 
 ,       sc_cls_confirm_data.confirm_date
-,       pka_com_function.fp_get_month_name( extract(month from sc_cls_confirm_data.confirm_date ) , 'LE' )||' '||extract(day from sc_cls_confirm_data.confirm_date )||', '||extract(year from sc_cls_confirm_data.confirm_date ) as confirm_edate
+,       pka_com_function.fp_get_month_name((extract(month from sc_cls_confirm_data.confirm_date ))::int, 'LE' )||' '||extract(day from sc_cls_confirm_data.confirm_date )||', '||extract(year from sc_cls_confirm_data.confirm_date ) as confirm_edate
 ,       sc_cls_confirm_data.data_group
 ,       sc_cls_confirm_data.data_type
-,       pka_com_function.fp_get_month_name( extract(month from sysdate ) , 'LE' )||' '||extract(day from sysdate )||', '||extract(year from sysdate ) as book_edate
+,       pka_com_function.fp_get_month_name((extract(month from current_date ))::int, 'LE' )||' '||extract(day from current_date )||', '||extract(year from current_date ) as book_edate
 ,       '!book_no!' as book_no
 
-,       pka_com_function.fp_get_month_name( extract(month from sc_mem_m_membership_registered.approve_date ) , 'LE' )||' '||extract(day from sc_mem_m_membership_registered.approve_date )||', '||extract(year from sc_mem_m_membership_registered.approve_date ) as approve_edate
+,       pka_com_function.fp_get_month_name((extract(month from sc_mem_m_membership_registered.approve_date ))::int, 'LE' )||' '||extract(day from sc_mem_m_membership_registered.approve_date )||', '||extract(year from sc_mem_m_membership_registered.approve_date ) as approve_edate
 
 from    sc_cls_confirm_data
 ,       sc_mem_m_membership_registered

@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="A010" rep_text="แบบรายงานที่ 7 - แบบรายงานฐานะสภาพคล่องสุทธิ" procedure="pka_rep_scq.sp_form7_mis65({operate_date_1})">
+  <arg>
+    <operate_date text="ลงวันที่" table="sc_rep_scq_form7" type="date" />
+  </arg>
+  <combo />
+  <sql>  SELECT sc_rep_scq_form7.operate_date,   
+         sc_rep_scq_form7.item_type,   
+         sc_rep_scq_form7.item_desc,   
+         sc_rep_scq_form7.time_now,   
+         sc_rep_scq_form7.time_y1g_y5 +  sc_rep_scq_form7.time_y5g_y10 +   sc_rep_scq_form7.time_y10g  as  time_y1g_y5 , 
+         sc_rep_scq_form7.time_noterm as time_noterm,   
+         sc_rep_scq_form7.time_1m,   
+         sc_rep_scq_form7.time_2m,   
+         sc_rep_scq_form7.time_3m,   
+         sc_rep_scq_form7.time_4m,   
+         sc_rep_scq_form7.time_5m,   
+         sc_rep_scq_form7.time_6m,   
+         sc_rep_scq_form7.time_7m,   
+         sc_rep_scq_form7.time_8m,   
+         sc_rep_scq_form7.time_9m,   
+         sc_rep_scq_form7.time_10m,   
+         sc_rep_scq_form7.time_11m,   
+         sc_rep_scq_form7.time_12m  
+
+,      (  sc_rep_scq_form7.time_now +   
+         sc_rep_scq_form7.time_y1g_y5 +  
+         sc_rep_scq_form7.time_y5g_y10 +   
+         sc_rep_scq_form7.time_y10g +     
+         sc_rep_scq_form7.time_noterm +
+         sc_rep_scq_form7.time_1m + 
+         sc_rep_scq_form7.time_2m +
+         sc_rep_scq_form7.time_3m + 
+         sc_rep_scq_form7.time_4m +  
+         sc_rep_scq_form7.time_5m + 
+         sc_rep_scq_form7.time_6m +
+         sc_rep_scq_form7.time_7m +
+         sc_rep_scq_form7.time_8m + 
+         sc_rep_scq_form7.time_9m +
+         sc_rep_scq_form7.time_10m +
+         sc_rep_scq_form7.time_11m + 
+         sc_rep_scq_form7.time_12m  ) as total_amount 
+
+    FROM sc_rep_scq_form7
+    where 1=1
+    /*WHERE*/
+  order by  sc_rep_scq_form7.item_type</sql>
+  <sub />
+</root>

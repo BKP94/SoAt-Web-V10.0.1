@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <account_id text="รหัสบัญชี" table="sc_acc_m_account_master" operator="bt" combo="sc_acc_m_account_master2" readonly="0" />
+    <op_date text="วันที่" type="date" operator="bt" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_acc_m_account_master.account_id
+    ,sc_acc_m_account_master.account_name
+    ,FPB_ACC_GET_JV_AMT_NOT(account_id , '!op_date_1!' , '!op_date_2!' , 'DR') as dr_amount
+    ,FPB_ACC_GET_JV_AMT_NOT(account_id , '!op_date_1!' , '!op_date_2!' , 'CR') as cr_amount
+
+ , pka_acc_glbal.fp_get_balance_gl(  ( select   cash_account_code from sc_acc_m_account_constant )    ,   '!op_date_1!'::date -  1  )   as cash_begin
+ , pka_acc_glbal.fp_get_balance_gl( ( select   cash_account_code from sc_acc_m_account_constant  )   ,     '!op_date_2!'   ) as   cash_forward 
+
+
+    FROM sc_acc_m_account_master
+    where  account_type_id = '3'
+   and sc_acc_m_account_master.account_id not in ( select   cash_account_code from sc_acc_m_account_constant )
+    /*WHERE*/
+    --and account_id = '111304'
+    order by  sc_acc_m_account_master.account_id
+  </sql>
+  <sub />
+</root>

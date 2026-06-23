@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <confirm_date text="วันที่" table="sc_cls_confirm_data" type="date" column="confirm_date" readonly="0" />
+    <deposit_type_code default="90" text="ประเภทเงินฝาก" table="sc_dep_m_creditor" column="deposit_type_code" combo="sc_dep_m_rule2" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_dep_m_rule.deposit_group_code,
+    sc_dep_m_creditor.deposit_type_code,
+    ( SELECT count( distinct sc_dep_m_creditor.membership_no )
+    FROM sc_dep_m_creditor,
+    sc_dep_m_rule
+    WHERE ( sc_dep_m_creditor.deposit_type_code = sc_dep_m_rule.deposit_type_code ) and
+    ( ( sc_dep_m_creditor.close_status is NULL ) OR
+    ( sc_dep_m_creditor.close_status &lt;&gt; 'C' ) )
+    and sc_dep_m_rule.insure_status = '0' ) as count_memno,
+    sc_dep_m_rule.deposit_name,
+    count(sc_dep_m_creditor.deposit_account_no) as c_countacc,
+    count( distinct sc_dep_m_creditor.membership_no ) as c_memno,
+    sc_acc_m_account_master.account_id,
+    sc_acc_m_account_master.account_name,
+    sum( sc_cls_confirm_data.data_balance ) as c_balance,
+    sc_cls_confirm_data.confirm_date
+    FROM sc_dep_m_creditor,
+    sc_dep_m_rule,
+    sc_acc_m_account_master,
+    sc_cls_confirm_data
+    WHERE ( sc_dep_m_creditor.deposit_type_code = sc_dep_m_rule.deposit_type_code ) and
+    ( sc_dep_m_rule.account_id = sc_acc_m_account_master.account_id ) and
+    ( sc_dep_m_creditor.deposit_account_no = sc_cls_confirm_data.data_refno ) and
+    ( ( sc_cls_confirm_data.data_group = 'DEP' ) AND
+    ( sc_cls_confirm_data.data_balance &lt;&gt; 0   ) AND
+    ( sc_dep_m_rule.insure_status = '0' ) )
+and sc_dep_m_rule.invest_status = '1'
+    /*WHERE*/
+    GROUP BY sc_dep_m_rule.deposit_group_code,
+    sc_dep_m_creditor.deposit_type_code,
+    sc_dep_m_rule.deposit_name,
+    sc_acc_m_account_master.account_id,
+    sc_acc_m_account_master.account_name,
+    sc_cls_confirm_data.confirm_date
+    ORDER BY sc_dep_m_rule.deposit_group_code ASC,
+    sc_dep_m_creditor.deposit_type_code ASC
+  </sql>
+  <sub />
+</root>

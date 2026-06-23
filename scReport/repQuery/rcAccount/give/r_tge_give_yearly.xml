@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <give_year align="center" special="year" text="ปี" table="sc_fin_m_give_group" type="integer2" column="give_year" readonly="0" />
+  </arg>
+  <combo />
+  <sql>  SELECT sc_fin_m_give_group.give_year,   
+         sc_fin_m_give_group.give_date,   
+         sc_fin_m_give_group.give_group,   
+         sc_fin_m_give_group.receive_name,   
+         sc_fin_m_give_group.by_mem,   
+         sc_fin_m_give_group.per_mem,   
+         sc_fin_m_give_group.own_mem,   
+         sc_fin_m_give_group.own_amt,   
+         sc_fin_m_give_group.kep1_mem,   
+         sc_fin_m_give_group.kep1_amt,   
+         sc_fin_m_give_group.kep2_mem,   
+         sc_fin_m_give_group.kep2_amt,   
+         sc_fin_m_give_group.kep3_mem,   
+         sc_fin_m_give_group.kep3_amt,
+         sc_fin_m_give_group.kep_sum,
+         sc_fin_m_give_group.kep_out,
+         sc_fin_m_give_group.kep_in,
+         sc_fin_m_give_group.kep_paid,   
+         sc_fin_m_give_group.post_status,   
+         sc_fin_ucf_give_group.give_name,   
+         sc_fin_ucf_give_report.give_rep,   
+         sc_fin_ucf_give_report.give_rep_desc  
+
+FROM sc_fin_m_give_group,   
+         sc_fin_ucf_give_group,   
+         sc_fin_ucf_give_report  
+
+WHERE ( sc_fin_m_give_group.give_group = sc_fin_ucf_give_group.give_group ) 
+and ( sc_fin_ucf_give_group.give_rep = sc_fin_ucf_give_report.give_rep ) 
+/*WHERE*/
+--  and  ( ( sc_fin_m_give_group.give_year = 2023 ) )   
+ORDER BY sc_fin_m_give_group.give_group ASC  
+</sql>
+  <sub />
+</root>

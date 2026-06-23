@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <book_date text="วันเดือนปีที่ออกหนังสือรับรอง" type="date" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <year align="center" special="year" default="select max( lon_year ) + 543 from sc_mem_m_capital_rate" text="ปีภาษีที่จ่าย" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <membership_no special="memno" text="ทะเบียน" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <member_name text="ชื่อ" nulltext="ไม่ต้องกรอกถ้าเป็นสมาชิก" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <address_pres text="ที่อยู่" nulltext="ไม่ต้องกรอกถ้าเป็นสมาชิก" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <id_card text="เลขที่ภาษีผู้ถูกหักภาษี" nulltext="ไม่ต้องกรอกถ้าเป็นสมาชิก" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <interest_paid text="เงินที่จ่าย 40(1)" type="decimal2" column="interest_paid" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <tax_paid text="ภาษี" type="decimal2" column="tax_paid" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <reward_paid text="เงินที่จ่าย 40(2)" type="decimal2" column="interest_paid" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <reward_tax text="ภาษี" type="decimal2" column="tax_paid" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>SELECT    pka_com_function.fp_get_thaidate('!book_date_1!' , 'SD MONTH YYYY') as book_tdate   --วันเดือนปีที่ออกหนังสือรับรอง
+,  ('!year_1!')::int + 543    as ai_year   --ปีภาษีที่จ่าย
+  , (select coop_name from sc_cnt_m_coop) as coop_name
+  , (select manager_name from sc_cnt_m_coop) as manager_name
+  , (select manager_position  from sc_cnt_m_coop)   as position_name  --ตำแหน่งผู้เซ็นต์
+
+,  (case when '!membership_no_1!' is null then '!member_name_1!' else pka_com_function.fp_get_member_name('!membership_no_1!') end) as  member_name
+
+,  (case when '!membership_no_1!' is null then '!address_pres_1!' else pka_com_function.fp_get_member_address_line('!membership_no_1!','1') end)   as address_pres
+
+
+, pka_com_function.fp_form(  (case when '!membership_no_1!' is null then '!id_card_1!'
+                     else (  select id_card from sc_mem_m_membership_registered where membership_no =   '!membership_no_1!'  ) end)   , 'XXX-X-XXXXXXXX-X' ) as id_card
+
+
+ ,  (case when ('!interest_paid_1!')::numeric = 0 then '' else trim( to_char( ('!interest_paid_1!')::numeric , '9,999,999.99' )) end)   as interest_paid --จำนวนเงินที่จ่าย
+ ,  (case when ('!tax_paid_1!')::numeric = 0 then '' else trim( to_char( ('!tax_paid_1!')::numeric , '9,999,999.99' )) end)    as tax_paid  --ภาษีที่หักและนำส่งไว้
+
+ ,  (case when ('!reward_paid_1!')::numeric = 0 then '' else trim( to_char( ('!reward_paid_1!')::numeric , '9,999,999.99' )) end)   as reward_paid   --บำเหน็จ
+ ,  (case when ('!reward_tax_1!')::numeric = 0 then '' else trim( to_char( ('!reward_tax_1!')::numeric , '9,999,999.99' )) end)    as reward_tax   --ภาษีบำเหน็จ
+
+
+ ,    ('!interest_paid_1!')::numeric  +  ('!reward_paid_1!')::numeric   as sum_paid  --รวมจ่าย
+  ,   ('!tax_paid_1!')::numeric  +  ('!reward_tax_1!')::numeric   as sum_tax_paid  --รวมภาษี
+
+  ,  pka_com_function.fp_get_moneythai ( ('!tax_paid_1!')::numeric  +  ('!reward_tax_1!')::numeric ) as thai_tax_paid  --ภาษีที่หักและนำส่งไว้(ตัวอักษร)
+
+ ,  (case when ('!tax_paid_1!')::numeric = 0 then '' else (('!year_1!')::int + 543)::text end)    as year1
+ ,  (case when ('!reward_tax_1!')::numeric = 0 then '' else (('!year_1!')::int + 543)::text end)    as year2
+
+
+</sql>
+  <sub />
+</root>

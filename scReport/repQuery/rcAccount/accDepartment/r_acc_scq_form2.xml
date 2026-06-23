@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="K005" rep_text="" procedure="pka_rep_scq.sp_form2({operate_date_1})">
+  <arg>
+    <operate_date text="ลงวันที่" table="sc_rep_scq_form2" type="date" />
+  </arg>
+  <combo />
+  <sql>        select sc_rep_scq_form2.operate_date,
+    sc_rep_scq_form2.loan_group,
+    sc_rep_scq_form2.loan_desc,
+    sc_rep_scq_form2.principal_balance,
+    sc_rep_scq_form2.emer_due,
+    sc_rep_scq_form2.emer_3lt,
+    sc_rep_scq_form2.emer_3gt,
+    sc_rep_scq_form2.norm_due,
+    sc_rep_scq_form2.norm_3lt,
+    sc_rep_scq_form2.norm_3gt,
+    sc_rep_scq_form2.spec_due,
+    sc_rep_scq_form2.spec_3lt,
+    sc_rep_scq_form2.spec_3gt
+    from sc_rep_scq_form2
+    where  1 = 1
+    /*WHERE*/
+    order by sc_rep_scq_form2.loan_group,
+    sc_rep_scq_form2.loan_item</sql>
+  <sub />
+</root>

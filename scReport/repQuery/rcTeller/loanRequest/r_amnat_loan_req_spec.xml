@@ -6,17 +6,17 @@
     <requestment_date align="center" text="วันที่ขอกู้" table="sc_lon_m_loan_request" type="date" operator="bt" readonly="0" />
   </arg>
   <combo />
-  <sql>select nvl(tab.salary_amount*recoverable,0) as c_salary_rights
-    ,nvl((tab.salary_amount + tab.academic_amount )*tab.recoverable,0) as c_salary_wat
-    ,nvl(( tab.salary_amount*tab.recoverable_non ) + ( tab.evaluate_amount * 0.7 ),0) as c_equal_non
+  <sql>select coalesce(tab.salary_amount*recoverable,0) as c_salary_rights
+    ,coalesce((tab.salary_amount + tab.academic_amount )*tab.recoverable,0) as c_salary_wat
+    ,coalesce(( tab.salary_amount*tab.recoverable_non ) + ( tab.evaluate_amount * 0.7 ),0) as c_equal_non
     ,tab.*
 from (
 SELECT sc_lon_m_loan_request.req_contract_period as req_contract_period,
-    nvl(pka_lon_reqsrv.fp_rule_loanpermit_levelcustom( sc_lon_m_loan_request.loan_type ,sc_lon_m_loan_request.membership_no ,to_date(sysdate) ,'loan_by_salary'),0) as recoverable,
+    coalesce(pka_lon_reqsrv.fp_rule_loanpermit_levelcustom( sc_lon_m_loan_request.loan_type ,sc_lon_m_loan_request.membership_no ,current_date ,'loan_by_salary')::numeric,0) as recoverable,
 
     sc_lon_m_loan_request.membership_no,
 
-    nvl(sc_lon_m_loan_request.salary_amount*pka_lon_reqsrv.fp_rule_loanpermit_levelcustom( 'ส' ,sc_lon_m_loan_request.membership_no ,to_date(sysdate) ,'loan_by_salary'),0) as recoverable_non,
+    coalesce(sc_lon_m_loan_request.salary_amount*pka_lon_reqsrv.fp_rule_loanpermit_levelcustom( 'ส' ,sc_lon_m_loan_request.membership_no ,current_date ,'loan_by_salary')::numeric,0) as recoverable_non,
 
     pka_com_function.fp_get_member_name( sc_lon_m_loan_request.membership_no) as memname,
     sc_mem_m_membership_registered.member_group_no,
@@ -47,19 +47,19 @@ SELECT sc_lon_m_loan_request.req_contract_period as req_contract_period,
     sc_lon_m_loan_request.loan_objective_code,
     sc_lon_m_loan_request.loan_request_amount   as loan_request_amount,
 
-    nvl(( select sum (evaluate_amount)
+    coalesce(( select sum (evaluate_amount)
     from sc_lon_m_req_coll
     WHERE  sc_lon_m_req_coll.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no ),0) as evaluate_amount,
 
-    nvl(( select sum (principal_of_loan)
+    coalesce(( select sum (principal_of_loan)
     from sc_lon_m_loan_history
     WHERE  sc_lon_m_loan_history.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no ),0) as principal_of_loan,
 
-    nvl(( select sum( item_amount )
+    coalesce(( select sum( item_amount )
     from sc_lon_m_req_salnet_inc
     where item_code = '11'
     and sc_lon_m_req_salnet_inc.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no ),0)  as academic_amount,
-    nvl(( select sum( item_amount )
+    coalesce(( select sum( item_amount )
     from sc_lon_m_req_salnet_inc
     where item_code = '12'
     and sc_lon_m_req_salnet_inc.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no ),0)  as  remuneration_amount,
@@ -69,7 +69,7 @@ SELECT sc_lon_m_loan_request.req_contract_period as req_contract_period,
     where sc_mem_m_member_address.membership_no = sc_mem_m_membership_registered.membership_no
     and sc_mem_m_member_address.address_type = '1' ) as telephone /*เบอร์โทร*/,
     sc_mem_m_membership_registered.grade,
-    nvl(sc_lon_m_loan_request.balance_salary,0) as balance_salary,
+    coalesce(sc_lon_m_loan_request.balance_salary,0) as balance_salary,
     PKA_LON_REQSRV.fp_calc_agetext_m_age( sc_mem_m_membership_registered.membership_no , sc_lon_m_loan_request.begining_of_contract  ) as  age_mem_text,
     PKA_LON_REQSRV.fp_calc_agetext_m_live( sc_mem_m_membership_registered.membership_no , sc_lon_m_loan_request.begining_of_contract  ) as  agetext_live,
 
@@ -94,8 +94,8 @@ order by sc_lon_m_loan_request.membership_no
 )tab</sql>
   <sub>
     <r_amnat_loan_req_spec_nest_loan_old>
-      <sql>select 'กู้เดิม '||sc_lon_m_contract.loan_contract_no||' วงเงิน '||to_snumber(sc_lon_m_contract.loan_approve_amount)||' บาท คงเหลือ '
-||to_snumber(sc_lon_m_loan_card.principal_balance)||' บาท ส่งแล้ว '||sc_lon_m_loan_card.last_period||' งวดๆละ '||to_snumber(sc_lon_m_contract.period_payment_amount)||' บาท' as loan_old
+      <sql>select 'กู้เดิม '||sc_lon_m_contract.loan_contract_no||' วงเงิน '||to_snumber((sc_lon_m_contract.loan_approve_amount)::bigint)||' บาท คงเหลือ '
+||to_snumber((sc_lon_m_loan_card.principal_balance)::bigint)||' บาท ส่งแล้ว '||sc_lon_m_loan_card.last_period||' งวดๆละ '||to_snumber((sc_lon_m_contract.period_payment_amount)::bigint)||' บาท' as loan_old
 
 from sc_lon_m_contract,
 sc_lon_m_loan_card,

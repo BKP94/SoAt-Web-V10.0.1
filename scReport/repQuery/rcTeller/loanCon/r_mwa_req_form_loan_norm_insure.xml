@@ -15,22 +15,22 @@
     , pka_com_function.fp_form_idcard(sc_mem_m_membership_registered.id_card) as id_card
     , pka_com_function.fp_get_thaidate(sc_mem_m_membership_registered.id_card_date) as id_card_date
     , pka_com_function.fp_get_thaidate(sc_mem_m_membership_registered.id_card_enddate) as id_card_enddate
-    , pka_com_function.fp_get_member_address_tel(sc_mem_m_membership_registered.membership_no, '0') as telephone
+    , pka_com_function.fp_get_member_address_tel(sc_mem_m_membership_registered.membership_no,('0')::text) as telephone
     ,substr(pka_lon_reqsrv.fp_calc_agetext_m_live(sc_mem_m_membership_registered.membership_no),1,2) as age_life_text_year
     ,substr(pka_lon_reqsrv.fp_calc_agetext_m_live(sc_mem_m_membership_registered.membership_no),7,2) as age_life_text_month
     ,(select sc_mem_m_member_work_info.position_long from sc_mem_m_member_work_info where sc_mem_m_member_work_info.membership_no = sc_lon_m_loan_request.membership_no ) as position_long
     , sc_lon_m_loan_request.salary_amount
-    ,pka_com_function.fp_get_member_address_line(sc_mem_m_membership_registered.membership_no, '1') as address_home
-    , pka_com_function.fp_get_moneythai( sc_lon_m_loan_request.salary_amount ) as salary_amount_thai  
-    , to_snumber(sc_lon_m_loan_request.period_payment_amount) as period_payment_amount
-    , pka_com_function.fp_get_moneythai( sc_lon_m_loan_request.period_payment_amount ) as period_payment_amount_thai
+    ,pka_com_function.fp_get_member_address_line(sc_mem_m_membership_registered.membership_no,('1')::text) as address_home
+    , pka_com_function.fp_get_moneythai((sc_lon_m_loan_request.salary_amount)::double precision) as salary_amount_thai  
+    , to_snumber((sc_lon_m_loan_request.period_payment_amount)::bigint) as period_payment_amount
+    , pka_com_function.fp_get_moneythai((sc_lon_m_loan_request.period_payment_amount)::double precision) as period_payment_amount_thai
     , pka_lon_intsrv.fp_intrate_table_loantype( sc_lon_m_loan_request.loan_type , sc_lon_m_loan_request.begining_of_contract ) * 100 as lon_int_rate
     , sc_lon_m_loan_request.loan_installment_amount
-    , pka_com_function.fp_get_numberthai( sc_lon_m_loan_request.loan_installment_amount ) || 'งวด' as loan_installment_amount_thai
+    , pka_com_function.fp_get_numberthai((sc_lon_m_loan_request.loan_installment_amount)::text) || 'งวด' as loan_installment_amount_thai
     , sc_lon_m_loan_request.loan_request_amount
-    , pka_com_function.fp_get_moneythai( sc_lon_m_loan_request.loan_request_amount ) as loan_request_amount_thai
+    , pka_com_function.fp_get_moneythai((sc_lon_m_loan_request.loan_request_amount)::double precision) as loan_request_amount_thai
     , sc_lon_m_loan_request.last_payment_amount
-    , pka_com_function.fp_get_moneythai( sc_lon_m_loan_request.last_payment_amount ) as last_payment_amount_thai
+    , pka_com_function.fp_get_moneythai((sc_lon_m_loan_request.last_payment_amount)::double precision) as last_payment_amount_thai
     , sc_lon_m_loan_request.loan_type
     
     ,sc_lon_m_ucf_loan_obj.loan_objective_code
@@ -44,8 +44,8 @@
     --หักบัญชีเงินฝาก
     ,(select sc_lon_m_req_fee.deposit_account_no from sc_lon_m_req_fee where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_fee.loan_requestment_no) as deposit_account_no --เลขบัญชี(บัญชีเงินฝาก)
     ,(select sc_lon_m_req_fee.amount from sc_lon_m_req_fee where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_fee.loan_requestment_no) as amount --จำนวนเงิน(บัญชีเงินฝาก)
-    ,to_snumber(sc_lon_m_loan_request_mpaid.paid_amount) as paid_amount --เงินรับจริง
-    ,pka_com_function.fp_get_moneythai(sc_lon_m_loan_request_mpaid.paid_amount)as paid_amount_thai 
+    ,to_snumber((sc_lon_m_loan_request_mpaid.paid_amount)::bigint) as paid_amount --เงินรับจริง
+    ,pka_com_function.fp_get_moneythai((sc_lon_m_loan_request_mpaid.paid_amount)::double precision)as paid_amount_thai 
     
     --หุ้น
     ,sc_mem_m_share_mem.share_stock --มูลค่าหุ้น
@@ -66,7 +66,7 @@
     --เงินฝากค้ำ
     ,(select ref_own_no from sc_lon_m_req_coll where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no and collateral_type_code ='03') as dep_coll_no
     ,(select collateral_description from sc_lon_m_req_coll where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no and collateral_type_code ='03') as dep_coll_name
-    ,nvl((select req_amount from sc_lon_m_req_coll where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no and collateral_type_code ='03'),0) as dep_coll_amount
+    ,coalesce((select req_amount from sc_lon_m_req_coll where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no and collateral_type_code ='03'),0) as dep_coll_amount
     
     --จำนองอสังหาริมทรัพย์
     ,(select collateral_description from sc_lon_m_req_coll where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no and collateral_type_code ='04') as land_coll_name
@@ -148,37 +148,37 @@
      ) as coll_no_6
     
     --เบอร์คนค้ำ
-    ,(select pka_com_function.fp_get_member_address_tel(sc_lon_m_req_coll.ref_membership_no, '0') 
+    ,(select pka_com_function.fp_get_member_address_tel(sc_lon_m_req_coll.ref_membership_no,('0')::text) 
       from sc_lon_m_req_coll 
       where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no 
       and collateral_type_code in('01','02') 
       and seq_no ='1'
      ) as tel_coll_1
-    ,(select pka_com_function.fp_get_member_address_tel(sc_lon_m_req_coll.ref_membership_no, '0') 
+    ,(select pka_com_function.fp_get_member_address_tel(sc_lon_m_req_coll.ref_membership_no,('0')::text) 
       from sc_lon_m_req_coll 
       where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no 
       and collateral_type_code in('01','02') 
       and seq_no ='2'
      ) as tel_coll_2
-    ,(select pka_com_function.fp_get_member_address_tel(sc_lon_m_req_coll.ref_membership_no, '0') 
+    ,(select pka_com_function.fp_get_member_address_tel(sc_lon_m_req_coll.ref_membership_no,('0')::text) 
       from sc_lon_m_req_coll 
       where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no 
       and collateral_type_code in('01','02')
       and seq_no ='3'
      ) as tel_coll_3
-    ,(select pka_com_function.fp_get_member_address_tel(sc_lon_m_req_coll.ref_membership_no, '0') 
+    ,(select pka_com_function.fp_get_member_address_tel(sc_lon_m_req_coll.ref_membership_no,('0')::text) 
       from sc_lon_m_req_coll 
       where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no 
       and collateral_type_code in('01','02') 
       and seq_no ='4'
      ) as tel_coll_4
-    ,(select pka_com_function.fp_get_member_address_tel(sc_lon_m_req_coll.ref_membership_no, '0') 
+    ,(select pka_com_function.fp_get_member_address_tel(sc_lon_m_req_coll.ref_membership_no,('0')::text) 
       from sc_lon_m_req_coll 
       where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no 
       and collateral_type_code in('01','02') 
       and seq_no ='5'
      ) as tel_coll_5
-    ,(select pka_com_function.fp_get_member_address_tel(sc_lon_m_req_coll.ref_membership_no, '0') 
+    ,(select pka_com_function.fp_get_member_address_tel(sc_lon_m_req_coll.ref_membership_no,('0')::text) 
       from sc_lon_m_req_coll 
       where sc_lon_m_loan_request.loan_requestment_no = sc_lon_m_req_coll.loan_requestment_no 
       and collateral_type_code in('01','02')

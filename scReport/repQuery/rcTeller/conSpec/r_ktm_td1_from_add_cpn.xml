@@ -3,7 +3,5 @@
   <arg>
     
   </arg>
-  <sql>
-    select * from dual
-  </sql>
+  <sql>select 1</sql>
 </root>

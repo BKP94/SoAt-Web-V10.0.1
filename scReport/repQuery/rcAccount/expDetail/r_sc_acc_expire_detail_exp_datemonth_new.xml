@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="D005" rep_text="รายงานค่าเสื่อม ณ วันที่" procedure="pka_acc_expire.sp_post_esimate({cal_expire_date_1})">
+  <arg>
+    <cal_expire_date text="ณ วันที่" table="sc_acc_m_expire_estimate" type="date" readonly="0" />
+    <accu_method text="ตัดเป็น " table="sc_acc_m_expire" combo="accu_method" readonly="0" />
+  </arg>
+  <combo>
+    <accu_method>0=ค่าเสื่อมสะสม/1=ค่าใช้จ่าย</accu_method>
+  </combo>
+  <sql>    SELECT sc_acc_m_expire.description,   
+         sc_acc_m_expire_estimate.meterial_id,   
+         sc_acc_m_expire_estimate.seq_no,   
+         sc_acc_m_expire_estimate.amount,   
+         sc_acc_m_expire_estimate.total_amount,   
+         sc_acc_m_expire_estimate.present_value,   
+         sc_acc_m_expire_estimate.cal_expire_date,   
+         sc_acc_m_expire.rate_expire,   
+         sc_acc_m_expire.amount_value,   
+         sc_acc_m_expire_estimate.operate_date,   
+         sc_acc_m_expire_estimate.item_type,   
+         sc_acc_m_expire_estimate.day_cal,   
+         sc_acc_m_expire.first_used_day,   
+         sc_acc_m_expire.balance,           
+         sc_acc_m_ucf_group_exp.group_name,   
+         sc_acc_m_expire.group_exp,   
+         sc_acc_m_expire.cut_paid_status,   
+         sc_acc_m_expire.accu_expire_amount,   
+         sc_acc_m_expire.doc_old,   
+         sc_acc_m_expire_estimate.begin_exp,   
+         sc_acc_m_expire_estimate.buy_in_year,   
+         sc_acc_m_expire_estimate.remark,   
+         sc_acc_m_expire_estimate.bf_value,
+         pka_acc.fp_get_account_startdate() as account_startdate
+    FROM sc_acc_m_expire,   
+         sc_acc_m_expire_estimate,   
+         sc_acc_m_ucf_group_exp  
+   WHERE ( sc_acc_m_expire_estimate.meterial_id = sc_acc_m_expire.material_id ) and  
+         ( sc_acc_m_expire.group_exp = sc_acc_m_ucf_group_exp.group_exp ) 
+     
+    /*WHERE*/
+  -- and  sc_acc_m_expire_estimate.cal_expire_date between :adtm_begindate and :adtm_enddate 
+      order by sc_acc_m_expire.doc_old</sql>
+  <sub />
+</root>

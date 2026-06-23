@@ -9,13 +9,13 @@
   <sql>    SELECT   sc_mem_m_share_mem.membership_no,   
          pka_com_function.fp_get_member_name(  sc_mem_m_share_mem.membership_no ) as memname,   
          sc_mem_m_share_mem.share_stock,   
-         to_snumber(sc_mem_m_share_mem.share_stock) as snumber_share_stock,
+         to_snumber((sc_mem_m_share_mem.share_stock)::bigint) as snumber_share_stock,
          sc_mem_m_share_mem.share_amount,  
          sc_mem_m_ucf_member_group.member_group_name,   
          sc_cnt_m_coop.coop_name,   
         sc_share_m_constant. share_value_perunit,
          sc_cnt_m_coop.manager_name as managername,
-        sysdate as c_date,
+        current_date as c_date,
         '!text1_1!' as text1,
 	'!text2_1!' as text2   
     FROM sc_mem_m_share_mem,   
@@ -32,7 +32,7 @@
       <sql> SELECT sc_dep_m_creditor.deposit_account_no,   
          sc_dep_m_creditor.deposit_account_name,   
          sc_dep_m_creditor.deposit_balance,
-         decode(  sc_dep_m_creditor.monthly_deposit_status , '1' , sc_dep_m_creditor.monthly_deposit_amount , 0 ) as monthly_deposit_amount  
+         (CASE sc_dep_m_creditor.monthly_deposit_status WHEN '1' THEN sc_dep_m_creditor.monthly_deposit_amount ELSE 0 END) as monthly_deposit_amount  
     FROM sc_dep_m_creditor  
    WHERE ( sc_dep_m_creditor.deposit_balance &gt; 0 ) AND  
          ( sc_dep_m_creditor.membership_no = {0} )   

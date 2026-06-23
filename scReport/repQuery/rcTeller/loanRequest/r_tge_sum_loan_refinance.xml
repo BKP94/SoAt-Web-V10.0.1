@@ -4,37 +4,37 @@
     <begining_of_contract text="วันที่" table="sc_lon_m_contract" type="date" column="begining_of_contract" operator="bt" readonly="0" />
   </arg>
   <combo />
-  <sql>select to_number(to_char(  sc_lon_m_contract.begining_of_contract  ,'yyyy'))+543 as contract_year
+  <sql>select ((to_char(  sc_lon_m_contract.begining_of_contract  ,'yyyy'))::numeric)+543 as contract_year
     ,pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract , 'mm') as contract_month
     ,pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract , 'month') as contract_month_thai
     ,count(sc_lon_m_contract.loan_contract_no) as count_conno
     ,sum(sc_lon_m_contract.loan_approve_amount) as loan_approve_amount
     
-    ,nvl((select sum(sc_kep_t_monthly_receive_det.money_amount - sc_kep_t_monthly_receive_det.money_amount_not)
+    ,coalesce((select sum(sc_kep_t_monthly_receive_det.money_amount - sc_kep_t_monthly_receive_det.money_amount_not)
       from sc_kep_t_monthly_receive ,sc_kep_t_monthly_receive_det
       where sc_kep_t_monthly_receive.membership_no = sc_kep_t_monthly_receive_det.membership_no
       and sc_kep_t_monthly_receive.receive_year = sc_kep_t_monthly_receive_det.receive_year 
       and sc_kep_t_monthly_receive.receive_month = sc_kep_t_monthly_receive_det.receive_month 
       and sc_kep_t_monthly_receive.seq_no = sc_kep_t_monthly_receive_det.seq_no
       and   sc_kep_t_monthly_receive.receipt_status != '2'
-      and   sc_kep_t_monthly_receive.receive_year =  to_number(to_char(  sc_lon_m_contract.begining_of_contract  ,'yyyy'))
-      and   sc_kep_t_monthly_receive.receive_month = pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract , 'mm')
+      and   sc_kep_t_monthly_receive.receive_year =  ((to_char(  sc_lon_m_contract.begining_of_contract  ,'yyyy'))::numeric)
+      and   sc_kep_t_monthly_receive.receive_month = (pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract , 'mm'))::numeric
       ),0) as punctual_amount --ตามกำหนด
       
-    ,nvl((select sum(sc_kep_t_monthly_receive_det.money_amount - sc_kep_t_monthly_receive_det.money_amount_not)
+    ,coalesce((select sum(sc_kep_t_monthly_receive_det.money_amount - sc_kep_t_monthly_receive_det.money_amount_not)
       from sc_kep_t_monthly_receive ,sc_kep_t_monthly_receive_det
       where sc_kep_t_monthly_receive.membership_no = sc_kep_t_monthly_receive_det.membership_no
       and sc_kep_t_monthly_receive.receive_year = sc_kep_t_monthly_receive_det.receive_year 
       and sc_kep_t_monthly_receive.receive_month = sc_kep_t_monthly_receive_det.receive_month 
       and sc_kep_t_monthly_receive.seq_no = sc_kep_t_monthly_receive_det.seq_no
       and   sc_kep_t_monthly_receive.receipt_status = '2'
-      and   sc_kep_t_monthly_receive.receive_year =  to_number(to_char(  sc_lon_m_contract.begining_of_contract  ,'yyyy'))
-      and   sc_kep_t_monthly_receive.receive_month = pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract , 'mm')
+      and   sc_kep_t_monthly_receive.receive_year =  ((to_char(  sc_lon_m_contract.begining_of_contract  ,'yyyy'))::numeric)
+      and   sc_kep_t_monthly_receive.receive_month = (pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract , 'mm'))::numeric
       ),0) as return_amount --คืนใบเสร็จ
       
-    ,nvl(( select sum(sc_com_m_receipt.recept_amount)
+    ,coalesce(( select sum(sc_com_m_receipt.recept_amount)
         from sc_com_m_receipt 
-        where to_number(to_char(  sc_com_m_receipt.receipt_date  ,'yyyy')) = to_number(to_char(  sc_lon_m_contract.begining_of_contract  ,'yyyy'))
+        where ((to_char(  sc_com_m_receipt.receipt_date  ,'yyyy'))::numeric) = ((to_char(  sc_lon_m_contract.begining_of_contract  ,'yyyy'))::numeric)
         and   pka_com_function.fp_get_thaidate(sc_com_m_receipt.receipt_date , 'mm') =  pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract , 'mm')
         and   sc_com_m_receipt.money_type_id = 'CLR' --หักกลบ
        ),0) as prematurely_amount --ก่อนกำหนด
@@ -46,11 +46,11 @@ and   sc_lon_m_loan_history.loan_type = sc_lon_m_contract.loan_type
 and   (sc_lon_m_loan_history.clear_target = '1' or sc_lon_m_loan_history.clear_focus = '1')
 /*WHERE*/
 --    and   sc_lon_m_contract.begining_of_contract between '01/01/2023' and '12/07/2023'
-group by to_number(to_char(  sc_lon_m_contract.begining_of_contract  ,'yyyy'))
+group by ((to_char(  sc_lon_m_contract.begining_of_contract  ,'yyyy'))::numeric)
     ,pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract , 'month')
     ,pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract , 'mm')
 
-    order by to_number(to_char(  sc_lon_m_contract.begining_of_contract  ,'yyyy')) asc
+    order by ((to_char(  sc_lon_m_contract.begining_of_contract  ,'yyyy'))::numeric) asc
     ,pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract , 'mm') asc
 /*สร้างรายงานตัวนี้ขึ้นมาเพื่อให้มีตรวจตาม TOR เท่านั้น ไม่มีฝ่ายไหนใช้ ฝ่ายบัญชีก็ไม่ใช้ ฉะนั้นข้อมูลอาจจะไม่ถูกต้องตามที่ควร แต่ถ้าจะใช้งานจริงๆ ตรวจก่อนให้ลูกค้าใช้*/</sql>
   <sub />

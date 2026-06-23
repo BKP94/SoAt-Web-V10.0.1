@@ -16,9 +16,9 @@
     , pka_com_function.fp_get_member_name( sc_lon_m_contract.membership_no ) as memname
     , sc_lon_m_contract.membership_no as membership_no
     , sc_lon_m_contract.loan_approve_amount as loan_approve_amount
-    , pka_com_function.fp_get_moneythai( sc_lon_m_contract.loan_approve_amount ) as loan_approve_amount_thai
+    , pka_com_function.fp_get_moneythai((sc_lon_m_contract.loan_approve_amount)::double precision) as loan_approve_amount_thai
     , si_security_user.user_name as user_name
-    ,  decode( sc_lon_m_contract.loan_type , 'ส' , sc_cnt_m_coop.assit_manager , sc_cnt_m_coop.manager_name ) as  manager_name
+    ,  (CASE sc_lon_m_contract.loan_type WHEN 'ส' THEN sc_cnt_m_coop.assit_manager ELSE sc_cnt_m_coop.manager_name END) as  manager_name
     , sc_mem_m_ucf_member_group.manager_name as manager_namecoll      
     FROM sc_lon_m_contract,
     si_security_user,
@@ -65,7 +65,7 @@ ORDER BY sc_lon_m_contract.loan_contract_no ASC
         ,loan_contract_no
         ,collateral_no
         from (
-        SELECT rownum as seq_no
+        SELECT row_number() over () as seq_no
         , sc_lon_m_contract_coll.loan_contract_no
         , pka_com_function.fp_get_member_name( sc_lon_m_contract_coll.ref_own_no ) as memname_guarantor
         , sc_mem_m_ucf_member_group.manager_name
@@ -80,7 +80,7 @@ ORDER BY sc_lon_m_contract.loan_contract_no ASC
         AND sc_lon_m_contract_coll.loan_contract_no = {0}
         ORDER BY sc_lon_m_contract_coll.collateral_no ASC 
         ) tb
-        where tb.collateral_no &lt;= 3
+        where tb.collateral_no::integer &lt;= 3
         and     tb.collateral_no = {1}</sql>
     </r_amnat_com_coll_loan_nest_guarantor_1>
     <r_amnat_com_coll_loan_nest_guarantor_2>
@@ -91,7 +91,7 @@ ORDER BY sc_lon_m_contract.loan_contract_no ASC
         ,loan_contract_no
         ,collateral_no
         from (
-        SELECT rownum as seq_no
+        SELECT row_number() over () as seq_no
         , sc_lon_m_contract_coll.loan_contract_no
         , sc_lon_m_contract_coll.ref_own_no
         , pka_com_function.fp_get_member_name( sc_lon_m_contract_coll.ref_own_no ) as memname_guarantor
@@ -107,36 +107,30 @@ ORDER BY sc_lon_m_contract.loan_contract_no ASC
         AND sc_lon_m_contract_coll.loan_contract_no = {0}
         ORDER BY sc_lon_m_contract_coll.collateral_no ASC 
         ) tb  
-        where tb.collateral_no &gt; 3
+        where tb.collateral_no::integer &gt; 3
         and     tb.collateral_no = {1}</sql>
     </r_amnat_com_coll_loan_nest_guarantor_2>
     <r_amnat_com_coll_loan_nest_footer>
       <sql>
-        SELECT decode( sc_mem_m_membership_registered.marriage_status
-        , '1' , ( select sc_mem_m_ucf_prename.prename || sc_mem_m_member_spouse_info.spouse_name || ' ' || sc_mem_m_member_spouse_info.spouse_surname
+        SELECT (CASE sc_mem_m_membership_registered.marriage_status WHEN '1' THEN ( select sc_mem_m_ucf_prename.prename || sc_mem_m_member_spouse_info.spouse_name || ' ' || sc_mem_m_member_spouse_info.spouse_surname
         from sc_mem_m_member_spouse_info
         ,sc_mem_m_ucf_prename
         where sc_mem_m_member_spouse_info.prename_code = sc_mem_m_ucf_prename.prename_code
         and sc_mem_m_member_spouse_info.membership_no = sc_mem_m_membership_registered.membership_no
-        )
-        , sc_mem_m_ucf_marriage_status.marriage_status ) as spouse_name
+        ) ELSE sc_mem_m_ucf_marriage_status.marriage_status END) as spouse_name
 
-        , decode( sc_mem_m_membership_registered.marriage_status
-        , '1' , ( select sc_mem_m_ucf_ocupation.occupation_description
+        , (CASE sc_mem_m_membership_registered.marriage_status WHEN '1' THEN ( select sc_mem_m_ucf_ocupation.occupation_description
         from sc_mem_m_member_spouse_info
         ,sc_mem_m_ucf_ocupation
         where sc_mem_m_member_spouse_info.occupation_code = sc_mem_m_ucf_ocupation.occupation_code
         and sc_mem_m_member_spouse_info.membership_no = sc_mem_m_membership_registered.membership_no
-        )
-        , sc_mem_m_ucf_marriage_status.marriage_status ) as spouse_occupation
+        ) ELSE sc_mem_m_ucf_marriage_status.marriage_status END) as spouse_occupation
 
-        , decode( sc_mem_m_membership_registered.marriage_status
-        , '1' , ( select salary_amount
+        , (CASE sc_mem_m_membership_registered.marriage_status WHEN '1' THEN ( select salary_amount
         from sc_mem_m_member_spouse_info
         where 1=1
         and sc_mem_m_member_spouse_info.membership_no = sc_mem_m_membership_registered.membership_no
-        )
-        , 0 ) as spouse_salary_amount
+        ) ELSE 0 END) as spouse_salary_amount
 
         , pka_com_function.fp_get_member_name( sc_lon_m_contract_coll.ref_own_no ) as memname_guarantor
 

@@ -8,7 +8,7 @@
     from (
     SELECT sc_mem_m_membership_registered.member_group_no,
     sc_mem_m_membership_registered.membership_no,
-    decode(lag(sc_mem_m_membership_registered.membership_no,1,null)over(  order by sc_mem_m_membership_registered.member_group_no ,sc_mem_m_membership_registered.membership_no) ,sc_mem_m_membership_registered.membership_no,0,1) as row_memno,
+    (CASE lag(sc_mem_m_membership_registered.membership_no,1,null)over(  order by sc_mem_m_membership_registered.member_group_no ,sc_mem_m_membership_registered.membership_no) WHEN sc_mem_m_membership_registered.membership_no THEN 0 ELSE 1 END) as row_memno,
     pka_com_function.fp_get_member_name(  sc_lon_m_loan_card.membership_no ) as memname,
     sc_lon_m_loan_card.loan_contract_no,
     sc_lon_m_loan_card.principal_balance,
@@ -38,13 +38,11 @@
         SELECT sc_lon_m_contract_coll.ref_own_no,
         sc_lon_m_contract_coll.collateral_description,
         sc_mem_m_membership_registered.member_status_code,
-        decode( sc_mem_m_membership_registered.member_status_code , '0'
-        , ''
-        , pka_com_function.fp_get_thaidate( sc_mem_m_membership_registered.resignation_approve_date ,  'DD/MM/YYYY'  )) as resignation_approve_date,
+        (CASE sc_mem_m_membership_registered.member_status_code WHEN '0' THEN '' ELSE pka_com_function.fp_get_thaidate( sc_mem_m_membership_registered.resignation_approve_date ,  'DD/MM/YYYY'  ) END) as resignation_approve_date,
 
         sc_mem_m_membership_registered.resign_code,
         (select sc_mem_m_ucf_resign_cause.resign_cause_name from sc_mem_m_ucf_resign_cause where sc_mem_m_membership_registered.resign_code = sc_mem_m_ucf_resign_cause.resign_cause_code) as resign_name,
-        decode( sc_mem_m_membership_registered.member_status_code , '0' , PKB_KTM.fp_get_collpermit_balance( sc_lon_m_contract_coll.ref_own_no , sc_lon_m_contract_coll.loan_contract_no ) , 0 )  as c_coll,
+        (CASE sc_mem_m_membership_registered.member_status_code WHEN '0' THEN PKB_KTM.fp_get_collpermit_balance( sc_lon_m_contract_coll.ref_own_no , sc_lon_m_contract_coll.loan_contract_no ) ELSE 0 END)  as c_coll,
         pka_com_function.fp_get_member_group(sc_lon_m_contract_coll.ref_own_no) as coll_group_no
         FROM sc_lon_m_contract_coll,
         sc_mem_m_membership_registered

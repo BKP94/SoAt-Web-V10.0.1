@@ -1,0 +1,68 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <level_date text="วันที่" table="sc_rep_level_head" type="date" column="level_date" readonly="0" />
+    <loan_code text="ลูกหนี้" table="sc_lon_m_ucf_loan_code" operator="bt" combo="sc_lon_m_ucf_loan_code2" readonly="0" />
+    <level_status text="ชั้น" table="sc_rep_level_ucf" operator="bt" combo="sc_rep_level_ucf2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_rep_level_det.level_date,
+    sc_rep_level_det.membership_no,
+    sc_mem_m_ucf_member_group.member_group_name,
+    sc_rep_level_det.balance_begin,
+    sc_rep_level_det.pay_prin,
+    sc_rep_level_det.pay_int,
+    --sc_lon_m_contract.period_payment_amount,
+    sc_lon_m_contract.first_period as period_payment_amount,
+    sc_rep_level_det.balance_forward,
+    sc_rep_level_det.loan_contract_no,
+    sc_rep_level_det.loan_code,
+    sc_rep_level_det.last_access_date,
+    sc_rep_level_det.last_calint_date,
+    sc_rep_level_det.int_arrear,
+    sc_rep_level_det.period_law,
+    sc_rep_level_det.period_real,
+    sc_rep_level_det.period_miss,
+    sc_rep_level_det.amount_law,
+    sc_rep_level_det.amount_real,
+    sc_rep_level_det.amount_miss,
+    sc_lon_m_contract.loan_approve_amount,
+    sc_lon_m_contract.begining_of_contract,
+    sc_lon_m_ucf_loan_code.loan_code,
+    sc_lon_m_ucf_loan_code.loan_code_desc,
+    sc_rep_level_ucf.level_status,
+    sc_rep_level_ucf.level_desc,
+    PKA_COM_FUNCTION.fp_get_member_name( sc_rep_level_det.membership_no ) as membername,
+    sc_rep_level_head.member_group_no,
+    sc_rep_level_det.principal_arr
+    ,sc_rep_level_det.drop_payment_status
+    ,   case
+            when sc_rep_level_det.drop_payment_status = '0' then 'ปกติ'
+            when sc_rep_level_det.drop_payment_status = '1' then 'งดทั้งหมด'
+            when sc_rep_level_det.drop_payment_status = '2' then 'งดต้น'
+            when sc_rep_level_det.drop_payment_status = '3' then 'งดดอก'
+            else ''
+        end as drop_payment_status_desc
+    
+    FROM sc_rep_level_det,
+    sc_mem_m_ucf_member_group,
+    sc_lon_m_contract,
+    sc_lon_m_ucf_loan_code,
+    sc_rep_level_ucf,
+    sc_rep_level_head
+    
+    WHERE ( sc_lon_m_contract.loan_contract_no = sc_rep_level_det.loan_contract_no ) and
+    ( sc_rep_level_det.loan_code = sc_lon_m_ucf_loan_code.loan_code ) and
+    ( sc_rep_level_det.level_status = sc_rep_level_ucf.level_status ) and
+    ( sc_rep_level_head.level_date = sc_rep_level_det.level_date ) and
+    ( sc_rep_level_head.membership_no = sc_rep_level_det.membership_no ) and
+    ( sc_mem_m_ucf_member_group.member_group_no = sc_rep_level_head.member_group_no )
+    /*WHERE*/
+
+    order by sc_rep_level_ucf.level_status
+    ,sc_rep_level_head.member_group_no
+    ,sc_rep_level_head.membership_no
+    ,sc_rep_level_det.balance_forward desc
+  </sql>
+  <sub />
+</root>

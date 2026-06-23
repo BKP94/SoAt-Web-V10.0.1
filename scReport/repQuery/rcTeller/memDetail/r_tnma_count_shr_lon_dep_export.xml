@@ -28,7 +28,7 @@
     ,(SELECT sc_dep_m_rule.deposit_name
      FROM sc_dep_m_rule
      WHERE sc_dep_m_rule.deposit_type_code = sc_cls_confirm_data.data_type
-     AND ROWNUM = 1) AS deposit_name
+     LIMIT 1) AS deposit_name
     
     ,sc_cls_confirm_data.data_refno
     ,sc_cls_confirm_data.data_type
@@ -38,7 +38,7 @@
     where sc_cls_confirm_data.membership_no = sc_cls_confirm_mem.membership_no
     and  sc_cls_confirm_data.confirm_date = sc_cls_confirm_mem.confirm_date
    and sc_cls_confirm_mem.member_status_code = '0'
-and sc_cls_confirm_data.data_group not in 'ISU'
+and sc_cls_confirm_data.data_group not in ('ISU')
 /*WHERE*/
     --and sc_cls_confirm_data.membership_no = '067327'
   -- and sc_cls_confirm_mem.member_group_no  BETWEEN '!member_group_no_1!' AND '!member_group_no_2!'

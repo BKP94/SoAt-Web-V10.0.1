@@ -11,11 +11,11 @@
     ,pka_com_function.fp_get_member_group(sc_fin_money_return.membership_no) as member_group_no
     ,substr(pka_com_function.fp_get_member_group(sc_fin_money_return.membership_no),0,3)||'-'||substr(pka_com_function.fp_get_member_group(sc_fin_money_return.membership_no),4,6)||'-'||sc_fin_money_return.membership_no as memno
     ,sc_fin_money_return.item_no
-    ,pka_com_function.fp_get_thaidate(sysdate , 'SD MONTH YYYY') as sysdate_tdate
+    ,pka_com_function.fp_get_thaidate(current_date , 'SD MONTH YYYY') as sysdate_tdate
     ,pka_com_function.fp_get_thaidate('!payment_date!' , 'SD MONTH YYYY') as payment_tdate
     ,sc_fin_money_return.operate_date /*วันที่รายการ*/
-    ,to_snumber( sc_fin_money_return.money_return ) as money_return /*จำนวนเงินที่คืน*/
-    ,pka_com_function.fp_get_moneythai (sc_fin_money_return.money_return) as thai_money_return
+    ,to_snumber((sc_fin_money_return.money_return)::bigint) as money_return /*จำนวนเงินที่คืน*/
+    ,pka_com_function.fp_get_moneythai ((sc_fin_money_return.money_return)::double precision) as thai_money_return
     ,sc_fin_money_return.return_method /*ระะบบการคืน*/
     ,sc_fin_money_return.request_method
     ,sc_fin_money_return.refno1 /*เลขอ้างอิง*/

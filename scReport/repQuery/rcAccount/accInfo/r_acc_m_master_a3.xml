@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<root cat_id="A005" rep_text="รายงานผังบัญชี A3" >
+  <arg>
+    <account_year text="ปี" special="year" sqlreplace="1" sqlwhere="0"/>
+  </arg>
+  <col>
+    <account_group_name text="หมวดบัญชี"/>
+    <account_id text="รหัสบัญชี"/>
+    <account_name text="ชื่อบัญชี"/>
+    <account_level text="ระดับบัญชี"/>
+    <account_type_name text="ประเภทบัญชี"/>
+    <account_control_id text="บัญชีคุม"/>
+    <account_close_id text="ปิดบัญชีโอนไป"/>
+    <nature text="ฝั่งบัญชี"/>
+    <balance_begin text="ยอดยกมาต้นปี"/>
+  </col>
+  <sql>
+    SELECT sc_acc_m_account_master.account_id,
+    sc_acc_m_account_master.account_name,
+    sc_acc_m_account_master.account_type_id,
+    sc_acc_m_account_master.account_group_id,
+    sc_acc_m_account_master.account_control_id,
+    sc_acc_m_account_master.account_close_id,
+    sc_acc_m_account_master.account_level,
+    (case  sc_acc_m_account_master.nature
+    when 'DR' then 'เดบิต'
+    when 'CR' then 'เครดิต'
+    end)  as nature,
+    sc_acc_m_ucf_account_group.account_group_name,
+    sc_acc_m_ucf_account_type.account_type_name,
+    coalesce((SELECT sc_acc_m_account_begin.balance_begin
+    FROM sc_acc_m_account_begin
+    WHERE sc_acc_m_account_begin.account_id = sc_acc_m_account_master.account_id
+    AND sc_acc_m_account_begin.account_year = ('!account_year_1!')::numeric
+    ),0) AS balance_begin
+    FROM sc_acc_m_account_master,
+    sc_acc_m_ucf_account_group,
+    sc_acc_m_ucf_account_type
+    WHERE ( sc_acc_m_account_master.account_group_id = sc_acc_m_ucf_account_group.account_group_id )
+    AND ( sc_acc_m_account_master.account_type_id    = sc_acc_m_ucf_account_type.account_type_id )
+    /*WHERE*/
+    ORDER BY sc_acc_m_account_master.account_id
+  </sql>
+</root>

@@ -13,7 +13,7 @@
 ,   sc_lon_m_loan_card_detail.loan_payment_date 
 ,   sc_lon_m_loan_card_detail.item_type_code
 ,   sc_lon_m_loan_card_detail.principal_balance
-,  ('!date_2!'-TO_DATE(sc_lon_m_loan_card_detail.loan_payment_date,'DD/MM/YYYY')) as date_cal
+,  ('!date_2!'-(sc_lon_m_loan_card_detail.loan_payment_date)::date) as date_cal
 ,   pka_com_function.fp_get_thaidate('!date_1!')as last_cal
 ,   pka_com_function.fp_get_thaidate('!date_2!')as balance_date
 

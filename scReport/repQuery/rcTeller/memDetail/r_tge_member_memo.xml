@@ -6,7 +6,7 @@
   </arg>
   <combo />
   <sql>select  sum(tab.row_memno)over(order by tab.membership_no , tab.seq_no ) as rowno,  tab.*
-from    ( select decode(lag(sc_mem_m_member_memo.membership_no,1,null)over(  order by sc_mem_m_member_memo.membership_no , sc_mem_m_member_memo.seq_no ) ,sc_mem_m_member_memo.membership_no ,0,1 ) as row_memno
+from    ( select (CASE lag(sc_mem_m_member_memo.membership_no,1,null)over(  order by sc_mem_m_member_memo.membership_no , sc_mem_m_member_memo.seq_no ) WHEN sc_mem_m_member_memo.membership_no THEN 0 ELSE 1 END) as row_memno
 ,       sc_mem_m_ucf_prename.prename||sc_mem_m_membership_registered.member_name||' '||sc_mem_m_membership_registered.member_surname as member_name
 ,       sc_mem_m_member_memo.membership_no
 ,       sc_mem_m_member_memo.seq_no
@@ -27,7 +27,7 @@ from    sc_mem_m_member_memo
 where   sc_mem_m_member_memo.memo_code = sc_mem_m_ucf_memo.memo_code
 and     sc_mem_m_membership_registered.membership_no = sc_mem_m_member_memo.membership_no
 and     sc_mem_m_ucf_prename.prename_code = sc_mem_m_membership_registered.prename_code
-and     to_date(sc_mem_m_member_memo.entry_date) between '!entry_date_1!' and '!entry_date_2!'
+and     (sc_mem_m_member_memo.entry_date)::date between '!entry_date_1!' and '!entry_date_2!'
 /*WHERE*/
 --and     sc_mem_m_member_memo.membership_no = '023808'
 --and     sc_mem_m_member_memo.entry_date between '01/08/2023' and '31/08/2023'

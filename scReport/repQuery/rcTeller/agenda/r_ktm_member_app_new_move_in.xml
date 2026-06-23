@@ -21,11 +21,11 @@
     sc_mem_m_ucf_member_group.member_group_control,
     pka_com_function.fp_get_group_name(sc_mem_m_ucf_member_group.member_group_no) as group_control_name,
 
-    nvl(sc_mem_m_tran_group.share_balance,0) as share_balance,
-    nvl(sc_mem_m_tran_group.emer_balance,0) as emer_balance,
-    nvl(sc_mem_m_tran_group.norm_balance,0) as norm_balance,
-    nvl(sc_mem_m_tran_group.spec_balance,0) as spec_balance,
-    nvl(sc_mem_m_tran_group.fund_balance,0) as fund_balance,
+    coalesce(sc_mem_m_tran_group.share_balance,0) as share_balance,
+    coalesce(sc_mem_m_tran_group.emer_balance,0) as emer_balance,
+    coalesce(sc_mem_m_tran_group.norm_balance,0) as norm_balance,
+    coalesce(sc_mem_m_tran_group.spec_balance,0) as spec_balance,
+    coalesce(sc_mem_m_tran_group.fund_balance,0) as fund_balance,
 
     '!adt_date_1!' as adt_date_from,
     '!adt_date_2!' as adt_date_to

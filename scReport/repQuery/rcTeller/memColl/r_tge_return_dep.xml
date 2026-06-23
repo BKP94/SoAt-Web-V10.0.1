@@ -15,13 +15,13 @@
 ,sc_dep_m_creditor.deposit_balance
 ,sc_mem_m_share_mem.share_stock
 
-,nvl( (   select max( begining_of_contract ) 
+,coalesce( (   select max( begining_of_contract ) 
 	from sc_lon_m_contract
 	where 1=1
       and loan_type in(  '20' ,'30' )      
      and membership_no  = sc_dep_m_creditor.membership_no  ) , null ) as loan_begining_of_contract
 
-,nvl( (   select sum( principal_balance ) 
+,coalesce( (   select sum( principal_balance ) 
 	from sc_lon_m_loan_card 
 	where 1=1
       and loan_type in(  '20' ,'30' ) 

@@ -14,7 +14,7 @@
     sc_mem_m_ucf_member_type.mem_type_desc,
     sc_mem_m_membership_registered.member_name ,
     sc_mem_m_membership_registered.member_surname ,
-    PKA_LON_REQSRV.fp_calc_agetext( sc_mem_m_membership_registered.date_of_birth )  as age,
+    PKA_LON_REQSRV.fp_calc_agetext( sc_mem_m_membership_registered.date_of_birth, localtimestamp)  as age,
 
     sc_mem_m_ucf_member_group.member_group_no,
     sc_mem_m_ucf_member_group.member_group_name,
@@ -31,13 +31,13 @@
     sc_mem_m_member_work_info.position_long ,
 
     sc_mem_m_member_work_info.salary_id ,
-    nvl(sc_mem_m_member_work_info.salary_amount,0) as salary_amount ,
+    coalesce(sc_mem_m_member_work_info.salary_amount,0) as salary_amount ,
 
     sc_mem_m_share_mem.share_amount,
     sc_mem_m_share_mem.share_stock,
     sc_mem_m_membership_registered.approve_date,
     sc_mem_m_application_form.approve_id,
-    nvl((select	sum(sc_com_m_receipt_item.item_amount)
+    coalesce((select	sum(sc_com_m_receipt_item.item_amount)
     from		sc_com_m_receipt
             ,sc_com_m_receipt_item
     where	( sc_mem_m_membership_registered.membership_no 	= sc_com_m_receipt.membership_no )

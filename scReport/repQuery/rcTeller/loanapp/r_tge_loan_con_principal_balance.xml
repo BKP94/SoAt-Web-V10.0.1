@@ -13,7 +13,7 @@
 ,       sc_lon_m_loan_card.membership_no
 ,       sc_lon_m_contract.ending_of_contract
 ,       sc_lon_m_loan_card.principal_balance
-,       sysdate
+,       current_date
 ,       '!to_date!' as to_date
 from    sc_lon_m_loan_card
 ,       sc_lon_m_contract

@@ -9,7 +9,7 @@
        (select prename from sc_mem_m_ucf_prename where prename_code = sc_mem_m_membership_registered.prename_code)||sc_mem_m_membership_registered.member_name||' '||sc_mem_m_membership_registered.member_surname as member_name,
        sc_mem_m_ucf_member_group.member_group_name,   
        sc_mem_m_share_mem.share_stock,
-       pka_com_function.fp_get_thaidate(sysdate , 'SD MONTH YYYY') as sysdate_tdate,
+       pka_com_function.fp_get_thaidate(current_date , 'SD MONTH YYYY') as sysdate_tdate,
        '!operate_date_1!' as datefrom,
        '!operate_date_2!' as dateto,
        sc_cnt_m_coop.coop_name,

@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <tax_date text="วันที่" table="sc_fin_send_tax_dep" type="date" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT    sc_fin_send_tax_dep.tax_date     
+   , sc_fin_send_tax_dep.tax_seq    
+    , sc_mem_m_membership_registered.id_card  as id_card
+    , pka_com_function.fp_get_member_name( sc_mem_m_membership_registered.membership_no )  as member_name
+    , sc_mem_m_member_address.address_no || ' ' ||
+    sc_mem_m_member_address.road || ' ' ||
+    PKA_COM_FUNCTION.fp_get_sub_district_name   (  sc_mem_m_member_address.tambol )   || ' ' ||
+    PKA_COM_FUNCTION.fp_get_district_name   (  sc_mem_m_member_address.province_code , sc_mem_m_member_address.district_code )    || ' ' ||
+    PKA_COM_FUNCTION.fp_get_province_name   ( sc_mem_m_member_address.province_code )  || ' ' ||
+    sc_mem_m_member_address.postcode   as address_pres
+    ,  coalesce( ( sc_fin_send_tax_dep.paid_amount ),0)  as interest_paid
+    ,  coalesce( ( sc_fin_send_tax_dep.tax_amount ),0)  as  tax_paid
+    ,  pka_com_function.fp_get_moneythai (  coalesce( ( sc_fin_send_tax_dep.tax_amount ) , 0)  ) as thai_tax_paid
+
+    , sc_mem_m_membership_registered.membership_no   as membership_no
+
+
+    FROM sc_fin_send_tax_dep,
+    sc_dep_m_creditor,
+    sc_mem_m_membership_registered,
+    sc_mem_m_member_address  
+    WHERE ( sc_fin_send_tax_dep.deposit_account_no = sc_dep_m_creditor.deposit_account_no ) and
+    ( sc_dep_m_creditor.membership_no = sc_mem_m_member_address.membership_no ) and
+    ( sc_dep_m_creditor.membership_no = sc_mem_m_membership_registered.membership_no ) and
+    ( ( sc_mem_m_member_address.address_type = '1' ) 
+)
+    /*WHERE*/
+-- and sc_fin_send_tax_dep.tax_date   &gt;= '1/3/2024'
+
+order by sc_fin_send_tax_dep.tax_date     
+   , sc_fin_send_tax_dep.tax_seq    </sql>
+  <sub />
+</root>

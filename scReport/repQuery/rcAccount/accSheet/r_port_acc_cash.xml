@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <op_date text="วันที่" type="date" column="op_date" operator="bt" sqlwhere="0" sqlreplace="1" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>SELECT       sc_acc_m_account_constant.cash_account_code
+    ,'!op_date_1!' as start_date
+    ,'!op_date_2!' as end_date
+    ,pka_acc_journal.fp_cash_balance('!op_date_1!'::date - 1 ,'01') as balance_forward
+FROM          sc_acc_m_account_constant
+where 1 = 1</sql>
+  <sub>
+    <r_port_acc_cash_nest>
+      <sql>select journal_date ,
+journal_tdate,
+dr_amount ,
+cr_amount ,
+balancegl_branch
+from 
+( 
+  SELECT sc_acc_m_general_ledger.journal_date as journal_date , 
+        pka_com_function.fp_get_thaidate(sc_acc_m_general_ledger.journal_date , 'SD MONTH YYYY') as journal_tdate,
+         sum( sc_acc_m_general_ledger.dr_amount ) as dr_amount ,   
+         sum( sc_acc_m_general_ledger.cr_amount )  as cr_amount ,
+         pka_acc_journal.fp_cash_balance(journal_date::date,'01') as balancegl_branch
+    FROM sc_acc_m_general_ledger,   
+         sc_acc_m_account_master  
+,sc_acc_m_account_constant
+   WHERE ( sc_acc_m_general_ledger.account_id = sc_acc_m_account_master.account_id ) and  
+         ( ( sc_acc_m_general_ledger.journal_date between {0} and {1} ) AND  
+         ( sc_acc_m_general_ledger.account_id =  sc_acc_m_account_constant.cash_account_code   ) )   
+GROUP BY sc_acc_m_general_ledger.journal_date  
+
+union  
+
+  SELECT sc_fin_journal_head.journal_date as  journal_date,   
+      pka_com_function.fp_get_thaidate(sc_fin_journal_head.journal_date , 'SD MONTH YYYY') as journal_tdate,
+         0 as dr_amount ,   
+         0 as cr_amount ,
+         pka_acc_journal.fp_cash_balance(journal_date::date,'01') as balancegl_branch
+    FROM sc_fin_journal_head
+   WHERE journal_date between  {0} and {1}
+AND main_counter = '1'
+and  total_receive = 0 and total_payment = 0 
+)
+order by journal_date</sql>
+    </r_port_acc_cash_nest>
+  </sub>
+</root>

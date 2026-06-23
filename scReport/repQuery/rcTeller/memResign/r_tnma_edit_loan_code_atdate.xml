@@ -45,7 +45,7 @@ and     sc_acc_m_account_master.account_id = sc_fin_vourcher_detail.account_id
 and     sc_mem_m_membership_registered.membership_no = sc_fin_vourcher_head.vourcher_owner
 and     sc_mem_m_ucf_member_type.mem_type_code = sc_mem_m_membership_registered.mem_type
 and     sc_fin_vourcher_head.vourcher_group = 'LONADJ'
-and     sc_fin_vourcher_head.journal_date = to_date(sysdate,'dd/mm/yyyy')
+and     sc_fin_vourcher_head.journal_date = (current_date)::date
 
 /*WHERE*/
 

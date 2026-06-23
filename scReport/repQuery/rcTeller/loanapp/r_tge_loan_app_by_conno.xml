@@ -8,7 +8,7 @@
     SELECT PKA_COM_FUNCTION.fp_get_member_name( sc_lon_m_contract.membership_no ) as membername
     ,sc_lon_m_contract.membership_no
 
-    ,( select nvl(sum( amount ),0)
+    ,( select coalesce(sum( amount ),0)
     from sc_lon_m_req_fee
     where 1=1
     and sc_lon_m_req_fee.fee_type in ( '01' )
@@ -16,7 +16,7 @@
 
     ) as  insurance_amount /*ค่าประกันอัคคีภัย*/
 
-    ,( select nvl(sum( amount ),0)
+    ,( select coalesce(sum( amount ),0)
     from sc_lon_m_req_fee
     where 1=1
     and sc_lon_m_req_fee.fee_type in ( '02' )
@@ -24,7 +24,7 @@
 
     ) as  loan_amount /*ค่าประกันสินเชื่อ*/
 
-    ,( select nvl(sum( amount ),0)
+    ,( select coalesce(sum( amount ),0)
     from sc_lon_m_req_fee
     where 1=1
     and sc_lon_m_req_fee.fee_type in ( '03' )
@@ -32,7 +32,7 @@
 
     ) as app_land_amount /*ค่าประเมินที่ดิน*/
 
-    ,( select nvl(sum( amount ),0)
+    ,( select coalesce(sum( amount ),0)
     from sc_lon_m_req_fee
     where 1=1
     and sc_lon_m_req_fee.fee_type in ( '04','05','06' )
@@ -40,7 +40,7 @@
 
     ) as cks_amount /*หักเงิน ชคส*/
 
-    ,( select nvl(sum( amount ),0)
+    ,( select coalesce(sum( amount ),0)
     from sc_lon_m_req_fee
     where 1=1
     and sc_lon_m_req_fee.fee_type in ( '07' )

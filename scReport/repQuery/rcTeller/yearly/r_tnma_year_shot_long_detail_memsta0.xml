@@ -59,10 +59,10 @@ end as memnonum
 ) AS rownumber
 
 
-,decode(sc_rep_mem_share_loan_year.norm_paycode,'02',sc_rep_mem_share_loan_year.norm_shot,'') as normshotyod
-,decode(sc_rep_mem_share_loan_year.spec_paycode,'02',sc_rep_mem_share_loan_year.spec_shot,'') as specshotyod
-,decode(sc_rep_mem_share_loan_year.norm_paycode,'02',sc_rep_mem_share_loan_year.norm_long,'') as normlongyod
-,decode(sc_rep_mem_share_loan_year.spec_paycode,'02',sc_rep_mem_share_loan_year.spec_long,'') as speclongyod
+,(CASE sc_rep_mem_share_loan_year.norm_paycode WHEN '02' THEN sc_rep_mem_share_loan_year.norm_shot ELSE '' END) as normshotyod
+,(CASE sc_rep_mem_share_loan_year.spec_paycode WHEN '02' THEN sc_rep_mem_share_loan_year.spec_shot ELSE '' END) as specshotyod
+,(CASE sc_rep_mem_share_loan_year.norm_paycode WHEN '02' THEN sc_rep_mem_share_loan_year.norm_long ELSE '' END) as normlongyod
+,(CASE sc_rep_mem_share_loan_year.spec_paycode WHEN '02' THEN sc_rep_mem_share_loan_year.spec_long ELSE '' END) as speclongyod
 
 FROM sc_rep_mem_share_loan_year,
 sc_mem_m_membership_registered,

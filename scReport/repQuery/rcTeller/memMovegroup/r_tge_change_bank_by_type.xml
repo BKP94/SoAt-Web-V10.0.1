@@ -33,7 +33,7 @@ FROM sc_mem_m_membership_registered
 
 WHERE sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no
 and  sc_mem_m_membership_registered.membership_no = sc_mem_m_chg_accno.membership_no
-and to_date(sc_mem_m_chg_accno.entry_date) between '!entry_date_1!' and '!entry_date_2!'
+and (sc_mem_m_chg_accno.entry_date)::date between '!entry_date_1!' and '!entry_date_2!'
 /*WHERE*/
 order by sc_mem_m_chg_accno.acc_type
         ,sc_mem_m_chg_accno.seq_no</sql>

@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<root>
+  <arg>
+    <monthly_date text="ณ วันที่" table="sc_cls_mon_mem" type="date" readonly="0" />
+  </arg>
+  <combo />
+  <sql>
+
+    SELECT sc_cls_mon_mem_shr.membership_no
+    , sc_cls_mon_mem_shr.member_name
+    , sc_cls_mon_mem_shr.member_group_no
+    , sc_cls_mon_mem_shr.member_status_code
+    , sc_cls_mon_mem_shr.approve_date
+    , sc_cls_mon_mem_shr.resign_date
+    , sc_cls_mon_mem_shr.share_stock
+    FROM sc_cls_mon_mem_shr
+    ,sc_cls_mon_mem
+    WHERE  1=1
+    and  member_status_code = '0'
+    and sc_cls_mon_mem_shr.share_stock > 0
+    AND   sc_cls_mon_mem_shr.monthly_date =  sc_cls_mon_mem.monthly_date    
+    /*WHERE*/
+    --and sc_cls_mon_mem.monthly_date = '31/8/2019'
+
+    order by sc_cls_mon_mem_shr.membership_no
+
+  </sql>
+  <sub />
+</root>

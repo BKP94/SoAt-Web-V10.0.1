@@ -23,7 +23,7 @@
 			else	'106140  เงินรับฝากออมทรัพย์โครงการพิเศษ'
 	end )	as dep_type ,
 
-		to_date(sc_dep_m_creditor.deposit_opened_date) as dep_opened_date ,
+		(sc_dep_m_creditor.deposit_opened_date)::date as dep_opened_date ,
 
 		(select 	interest_rate*100
 		from		sc_dep_m_int_step_rate
@@ -31,7 +31,7 @@
 		and	 	effective_date = (select	max(tab_rate.effective_date)
 										from		sc_dep_m_int_step_rate tab_rate
 										where	tab_rate.deposit_type_code = sc_dep_m_int_step_rate.deposit_type_code
-										and		tab_rate.effective_date &lt;= sysdate)
+										and		tab_rate.effective_date &lt;= current_date)
 		) as int_rate ,
          sc_dep_m_creditor.deposit_balance  
     FROM  sc_mem_m_membership_registered,   

@@ -32,7 +32,7 @@
     sc_mem_m_ucf_member_group.control_id
     ,PKA_COM_FUNCTION.fp_get_thaidate(sc_mem_m_membership_registered.resignation_approve_date) as resignation_approve_date_tdate
 
-    , nvl( ( 		SELECT sum( sc_com_m_receipt_item.item_amount )
+    , coalesce( ( 		SELECT sum( sc_com_m_receipt_item.item_amount )
     FROM sc_com_m_receipt,
     sc_com_m_receipt_item
     WHERE ( sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no ) and
@@ -42,8 +42,8 @@
     ,sc_com_m_ucf_money_type.money_type_name
     ,sc_mem_m_ucf_member_type.mem_type_code
     ,sc_mem_m_ucf_member_type.mem_type_desc
-    ,to_date(  '!op_date_1!' ) as begin_date
-    ,to_date(  '!op_date_2!' ) as end_date
+    ,('!op_date_1!')::timestamp as begin_date
+    ,('!op_date_2!')::timestamp as end_date
     from sc_mem_m_share_withdraw_det,
     sc_mem_m_share_withdraw_head,
     sc_mem_m_membership_registered,
@@ -58,7 +58,7 @@
     and		( sc_com_m_ucf_money_type.money_type_id = sc_mem_m_share_withdraw_head.money_type_id )
     and		( sc_mem_m_ucf_member_type.mem_type_code = sc_mem_m_membership_registered.mem_type )
     and 		(sc_mem_m_share_withdraw_head.withdraw_status = '0' )
-    and sc_mem_m_share_withdraw_head.withdraw_date between to_date(  '!op_date_1!' ) and  to_date(  '!op_date_2!' )
+    and sc_mem_m_share_withdraw_head.withdraw_date between ('!op_date_1!')::timestamp and  ('!op_date_2!')::timestamp
     /*WHERE*/
   </sql>
   <sub>

@@ -1,0 +1,184 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <metadata name="sqlDataSource1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>17, 17</value>
+  </metadata>
+  <data name="customSqlQuery1.Sql" xml:space="preserve">
+    <value> 
+  SELECT sc_acc_m_account_budget_group.account_year 
+, sc_acc_m_account_budget_group.budget_name
+, sc_acc_m_account_budget.budget_id  
+, '' as account_budget
+, sc_acc_m_account_budget.account_id
+,(case sc_acc_m_account_master.nature when 'CR' then sc_acc_m_account_budget.account_budget end) as CR_account_budget
+,(case sc_acc_m_account_master.nature when 'DR' then sc_acc_m_account_budget.account_budget end) as DR_account_budget
+, '' as nature
+, sc_acc_m_account_master.account_name
+, '' as CR_real_1 ,'' as DR_real_1
+            ,'' as CR_real_2 ,'' as DR_real_2
+            ,'' as CR_real_3 ,'' as DR_real_3
+            ,'' as CR_real_4 ,'' as DR_real_4
+            ,'' as CR_real_5 ,'' as DR_real_5
+            ,'' as CR_real_6 ,'' as DR_real_6
+            ,'' as CR_real_7 ,'' as DR_real_7
+            ,'' as CR_real_8 ,'' as DR_real_8
+            ,'' as CR_real_9 ,'' as DR_real_9
+            ,'' as CR_real_10 ,'' as DR_real_10
+            ,'' as CR_real_11 ,'' as DR_real_11
+            ,'' as CR_real_12 ,'' as DR_real_12
+            ,'' as CR_real_last_month  ,'' as DR_real_last_month
+            ,'' as CR_real_last_year ,'' as DR_real_last_year
+            ,'' as CR_real_this_year ,'' as DR_real_this_year
+
+, PKA_ACC_BUDGET.fp_usedMonth( sc_acc_m_account_budget_group.account_year , 1  ,  sc_acc_m_account_budget.account_id , null ) as real_1
+, PKA_ACC_BUDGET.fp_usedMonth( sc_acc_m_account_budget_group.account_year , 2  ,  sc_acc_m_account_budget.account_id , null ) as real_2
+, PKA_ACC_BUDGET.fp_usedMonth( sc_acc_m_account_budget_group.account_year , 3  ,  sc_acc_m_account_budget.account_id , null ) as real_3
+, PKA_ACC_BUDGET.fp_usedMonth( sc_acc_m_account_budget_group.account_year , 4  ,  sc_acc_m_account_budget.account_id , null ) as real_4
+, PKA_ACC_BUDGET.fp_usedMonth( sc_acc_m_account_budget_group.account_year , 5  ,  sc_acc_m_account_budget.account_id , null ) as real_5
+, PKA_ACC_BUDGET.fp_usedMonth( sc_acc_m_account_budget_group.account_year , 6  ,  sc_acc_m_account_budget.account_id , null ) as real_6
+, PKA_ACC_BUDGET.fp_usedMonth( sc_acc_m_account_budget_group.account_year , 7  ,  sc_acc_m_account_budget.account_id , null ) as real_7
+, PKA_ACC_BUDGET.fp_usedMonth( sc_acc_m_account_budget_group.account_year , 8  ,  sc_acc_m_account_budget.account_id , null ) as real_8
+, PKA_ACC_BUDGET.fp_usedMonth( sc_acc_m_account_budget_group.account_year , 9  ,  sc_acc_m_account_budget.account_id , null ) as real_9
+, PKA_ACC_BUDGET.fp_usedMonth( sc_acc_m_account_budget_group.account_year , 10  ,  sc_acc_m_account_budget.account_id , null ) as real_10
+, PKA_ACC_BUDGET.fp_usedMonth( sc_acc_m_account_budget_group.account_year , 11  ,  sc_acc_m_account_budget.account_id , null ) as real_11
+, PKA_ACC_BUDGET.fp_usedMonth( sc_acc_m_account_budget_group.account_year , 12  ,  sc_acc_m_account_budget.account_id , null ) as real_12
+, PKA_ACC_BUDGET.fp_usedCumu( sc_acc_m_account_budget_group.account_year - 1, 7  ,  sc_acc_m_account_budget.account_id , null ) as real_last_year
+, PKA_ACC_BUDGET.fp_usedMonth( sc_acc_m_account_budget_group.account_year - 1, 7  ,  sc_acc_m_account_budget.account_id , null ) as real_last_month  
+, 0 as real_this_year
+, ' ' as month_name_thai
+, ' ' as shot_month_thai
+,sc_acc_m_account_budget.sort_order
+
+FROM sc_acc_m_account_budget  
+,sc_acc_m_account_budget_group
+,sc_acc_m_account_master
+WHERE sc_acc_m_account_budget_group.account_year = sc_acc_m_account_budget.account_year
+and sc_acc_m_account_budget.account_id = sc_acc_m_account_master.account_id
+/*WHERE*/
+and sc_acc_m_account_budget_group.account_year = 2019    
+
+order by  sc_acc_m_account_budget.budget_id  
+,sc_acc_m_account_budget.sort_order
+, sc_acc_m_account_budget.account_id</value>
+  </data>
+  <data name="sqlDataSource1.ResultSchemaSerializable" xml:space="preserve">
+    <value>PERhdGFTZXQgTmFtZT0ic3FsRGF0YVNvdXJjZTEiPjxWaWV3IE5hbWU9IlF1ZXJ5Ij48RmllbGQgTmFtZT0iQUNDT1VOVF9ZRUFSIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJCVURHRVRfTkFNRSIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJCVURHRVRfSUQiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iQUNDT1VOVF9CVURHRVQiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iQUNDT1VOVF9JRCIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJDUl9BQ0NPVU5UX0JVREdFVCIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iRFJfQUNDT1VOVF9CVURHRVQiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9Ik5BVFVSRSIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJBQ0NPVU5UX05BTUUiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iQ1JfUkVBTF8xIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IkRSX1JFQUxfMSIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJDUl9SRUFMXzIiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iRFJfUkVBTF8yIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IkNSX1JFQUxfMyIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJEUl9SRUFMXzMiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iQ1JfUkVBTF80IiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IkRSX1JFQUxfNCIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJDUl9SRUFMXzUiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iRFJfUkVBTF81IiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IkNSX1JFQUxfNiIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJEUl9SRUFMXzYiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iQ1JfUkVBTF83IiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IkRSX1JFQUxfNyIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJDUl9SRUFMXzgiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iRFJfUkVBTF84IiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IkNSX1JFQUxfOSIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJEUl9SRUFMXzkiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iQ1JfUkVBTF8xMCIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJEUl9SRUFMXzEwIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IkNSX1JFQUxfMTEiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iRFJfUkVBTF8xMSIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJDUl9SRUFMXzEyIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IkRSX1JFQUxfMTIiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iQ1JfUkVBTF9MQVNUX01PTlRIIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IkRSX1JFQUxfTEFTVF9NT05USCIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJDUl9SRUFMX0xBU1RfWUVBUiIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJEUl9SRUFMX0xBU1RfWUVBUiIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJDUl9SRUFMX1RISVNfWUVBUiIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJEUl9SRUFMX1RISVNfWUVBUiIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJSRUFMXzEiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IlJFQUxfMiIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iUkVBTF8zIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJSRUFMXzQiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IlJFQUxfNSIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iUkVBTF82IiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJSRUFMXzciIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IlJFQUxfOCIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iUkVBTF85IiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJSRUFMXzEwIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJSRUFMXzExIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJSRUFMXzEyIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJSRUFMX0xBU1RfWUVBUiIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iUkVBTF9MQVNUX01PTlRIIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJSRUFMX1RISVNfWUVBUiIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iTU9OVEhfTkFNRV9USEFJIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IlNIT1RfTU9OVEhfVEhBSSIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJTT1JUX09SREVSIiBUeXBlPSJEZWNpbWFsIiAvPjwvVmlldz48L0RhdGFTZXQ+</value>
+  </data>
+</root>

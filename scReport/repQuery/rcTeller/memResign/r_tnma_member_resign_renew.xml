@@ -13,7 +13,7 @@
 	,sc_mem_m_ucf_resign_cause.resign_cause_code
     ,sc_mem_m_ucf_resign_cause.resign_cause_name
 	,pka_com_function.fp_get_member_name(sc_mem_m_resign_requestment.MEMBERSHIP_NO) as memname
-    ,pka_lon_reqsrv.fp_calc_agetext(sc_mem_m_membership_registered.date_of_birth) as agetext
+    ,pka_lon_reqsrv.fp_calc_agetext(sc_mem_m_membership_registered.date_of_birth, localtimestamp) as agetext
 	,SC_MEM_M_MEMBERSHIP_REGISTERED.MEMBER_GROUP_NO
 	,SC_MEM_M_UCF_MEMBER_GROUP.MEMBER_GROUP_NAME
 	,sc_mem_m_resign_requestment.REMARK
@@ -36,8 +36,8 @@ END  as DIFFERENT_loan
     ,SC_MEM_M_UCF_MEMBER_GROUP.KEEPING_GROUP
     ,SC_MEM_M_MEMBERSHIP_REGISTERED.mem_type
     ,SC_MEM_M_MEMBERSHIP_REGISTERED.sex
-    ,nvl((
-    SELECT sum(nvl(SC_COM_M_RECEIPT_ITEM.item_amount, 0))
+    ,coalesce((
+    SELECT sum(coalesce(SC_COM_M_RECEIPT_ITEM.item_amount, 0))
     FROM SC_COM_M_RECEIPT
     ,SC_COM_M_RECEIPT_ITEM
     ,sc_com_m_ucf_receipt_item_type
@@ -50,7 +50,7 @@ END  as DIFFERENT_loan
     AND (SC_COM_M_RECEIPT.MONEY_TYPE_ID = 'TNL')
     )
     ), 0) AS pay_ment_insu
-    ,nvl((
+    ,coalesce((
     SELECT sum(SC_COM_M_RECEIPT_ITEM.principal_amount)
     FROM SC_COM_M_RECEIPT
     ,SC_COM_M_RECEIPT_ITEM
@@ -65,7 +65,7 @@ END  as DIFFERENT_loan
     AND (SC_COM_M_RECEIPT.receipt_status = '0')
     )
     ), 0) AS pay_prin_emer
-    ,nvl((
+    ,coalesce((
     SELECT sum(SC_COM_M_RECEIPT_ITEM.interest_amount)
     FROM SC_COM_M_RECEIPT
     ,SC_COM_M_RECEIPT_ITEM
@@ -81,7 +81,7 @@ END  as DIFFERENT_loan
     )
     ), 0) AS pay_int_emer
     /* ------------------ Norm ------------- */
-    ,nvl((
+    ,coalesce((
     SELECT sum(SC_COM_M_RECEIPT_ITEM.principal_amount)
     FROM SC_COM_M_RECEIPT
     ,SC_COM_M_RECEIPT_ITEM
@@ -96,7 +96,7 @@ END  as DIFFERENT_loan
     AND (SC_COM_M_RECEIPT.receipt_status = '0')
     )
     ), 0) AS pay_prin_norm
-    ,nvl((
+    ,coalesce((
     SELECT sum(SC_COM_M_RECEIPT_ITEM.interest_amount)
     FROM SC_COM_M_RECEIPT
     ,SC_COM_M_RECEIPT_ITEM
@@ -112,7 +112,7 @@ END  as DIFFERENT_loan
     )
     ), 0) AS pay_int_norm
     /* ------------------ Special ------------- */
-    ,nvl((
+    ,coalesce((
     SELECT sum(SC_COM_M_RECEIPT_ITEM.principal_amount)
     FROM SC_COM_M_RECEIPT
     ,SC_COM_M_RECEIPT_ITEM
@@ -127,7 +127,7 @@ END  as DIFFERENT_loan
     AND (SC_COM_M_RECEIPT.receipt_status = '0')
     )
     ), 0) AS pay_prin_spec
-    ,nvl((
+    ,coalesce((
     SELECT sum(SC_COM_M_RECEIPT_ITEM.interest_amount)
     FROM SC_COM_M_RECEIPT
     ,SC_COM_M_RECEIPT_ITEM
@@ -145,7 +145,7 @@ END  as DIFFERENT_loan
     ,sc_mem_m_ucf_member_group.member_group_control
     ,pka_com_function.fp_get_group_name(sc_mem_m_ucf_member_group.member_group_control) as member_control_name
 
-    ,nvl((select sc_com_m_receipt.money_trans_amount
+    ,coalesce((select sc_com_m_receipt.money_trans_amount
     from sc_com_m_receipt
     where 1=1
     and sc_com_m_receipt.money_type_id = 'TNL'
@@ -186,7 +186,7 @@ END  as DIFFERENT_loan
     AND (SC_MEM_M_MEMBERSHIP_REGISTERED.MEMBER_GROUP_NO = SC_MEM_M_UCF_MEMBER_GROUP.MEMBER_GROUP_NO)
     AND (sc_mem_m_resign_requestment.RESIGN_DOC_NO = sc_mem_m_resign_share.RESIGN_DOC_NO)
     AND (sc_mem_m_resign_requestment.approve_result &lt;&gt; '0')
-and sc_mem_m_resign_requestment.cancel_status &lt;&gt; 1
+and sc_mem_m_resign_requestment.cancel_status &lt;&gt; '1'
   --  and sc_mem_m_resign_requestment.MEMBERSHIP_NO = '019572'
 	/*WHERE*/
  --and ( sc_mem_m_membership_registered.resignation_approve_date between to_date('01/08/2025','dd/mm/yyyy') and to_date('29/08/2025','dd/mm/yyyy') )  
@@ -312,10 +312,9 @@ order by SC_LON_M_RULE.loan_group_code asc</sql>
     <r_tnma_member_resign_renew_nest_memref>
       <sql> select sc_mem_m_member_member_refer.membership_no
  ,pka_com_function.fp_get_member_name(sc_mem_m_member_member_refer.membership_no) as mem_name
- from sc_mem_m_member_member_refer
- ,sc_mem_m_resign_requestment 
- where sc_mem_m_resign_requestment.membership_no = sc_mem_m_member_member_refer.membership_no_ref(+)
-and   ( sc_mem_m_resign_requestment.membership_no = {0}) </sql>
+ from sc_mem_m_resign_requestment
+ left join sc_mem_m_member_member_refer on sc_mem_m_resign_requestment.membership_no = sc_mem_m_member_member_refer.membership_no_ref
+ where   ( sc_mem_m_resign_requestment.membership_no = {0})</sql>
     </r_tnma_member_resign_renew_nest_memref>
   </sub>
 </root>

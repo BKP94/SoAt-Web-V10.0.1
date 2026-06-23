@@ -16,8 +16,8 @@
 ,       sc_wef_req.membership_no
 ,       sc_wef_req.total_receive
 ,       pka_com_function.fp_get_thaidate(sc_wef_req.approve_date , 'SD MONTH YYYY') as approve_date
-,       pka_com_function.fp_get_thaidate(sysdate) as sys_date
-,       pka_com_function.fp_get_thaidate(sysdate , 'YYYY')  as approve_year
+,       pka_com_function.fp_get_thaidate(current_date) as sys_date
+,       pka_com_function.fp_get_thaidate(current_date , 'YYYY')  as approve_year
 
 ,       (case when sc_wef_req_edu.edu_type = '01005' then 'ทุนส่งเสริมการศึกษา'
         when sc_wef_req_edu.edu_type = '02005' then 'ทุนเรียนดีตลอดหลักสูตร'
@@ -46,7 +46,7 @@ and     sc_mem_m_ucf_prename.prename_code = sc_wef_req_edu.pre_name
 and     sc_mem_m_chg_accno.membership_no = sc_wef_req.membership_no
 and     sc_wef_req.cancel_status = '0'
 and     sc_wef_req_edu.edu_type = '01005'
-and to_date(sc_mem_m_chg_accno.entry_date) between '!entry_date_1!' and '!entry_date_2!'
+and (sc_mem_m_chg_accno.entry_date)::date between '!entry_date_1!' and '!entry_date_2!'
 and  sc_wef_req_edu.num_rec is not null
 /*WHERE*/
 --and     sc_wef_req.membership_no = '051434'</sql>

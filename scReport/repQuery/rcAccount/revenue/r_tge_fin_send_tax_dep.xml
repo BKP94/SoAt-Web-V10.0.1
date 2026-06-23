@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <tax_date text="วันที่" table="sc_fin_send_tax_dep" type="date" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT tax_date , tax_seq , c_text
+    , ( '404A'
+    || '|' || trim( (row_number() over ())::text)
+    || '|' || c_text ) as c_tax
+    from
+    ( select
+    sc_fin_send_tax_dep.tax_date
+    ,sc_fin_send_tax_dep.tax_seq
+    ,(  sc_fin_send_tax_dep.id_card
+    || '|' || sc_fin_send_tax_dep.prename
+    || '|' || sc_fin_send_tax_dep.memname
+    || '|' ||  sc_fin_send_tax_dep.memsurname
+    || '|' ||  right( '0000000000' ||sc_fin_send_tax_dep.deposit_account_no , 10 ) 
+    || '|' || pka_com_function.fp_get_thaidate(sc_fin_send_tax_dep.tax_date ,'ddmmyyyy')
+    || '|' ||  '15'
+    || '|' || trim( to_char( sc_fin_send_tax_dep.paid_amount ,'9999999.99'))
+    || '|' || trim( to_char( sc_fin_send_tax_dep.tax_amount ,'9999999.99'))
+    || '|' || '1'
+    ) as c_text
+    FROM sc_fin_send_tax_dep
+    WHERE 1=1
+    and paid_amount  &gt; 0 
+    /*WHERE*/
+    ORDER BY sc_fin_send_tax_dep.tax_date  , sc_fin_send_tax_dep.tax_seq
+    ) tb
+
+  </sql>
+  <sub />
+</root>

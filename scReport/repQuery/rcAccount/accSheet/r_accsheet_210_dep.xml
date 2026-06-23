@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <monthly_date text="ณ วันที่ " table="sc_cls_mon_dep" type="date" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select sc_cls_mon_dep.monthly_date
+,sc_cls_mon_dep_accno.deposit_account_name
+
+,( select sum( deposit_balance )
+	from sc_cls_mon_dep_accno tnest
+	where tnest.monthly_date = PKA_SRV_DATETIME.fp_RelativeMonth(   sc_cls_mon_dep.monthly_date    , -1 )
+   and   tnest.deposit_account_no = sc_cls_mon_dep_accno.deposit_account_no 
+ )  as bal_bf
+
+, coalesce( ( select sum( deposit_by_cash_balance )
+from sc_dep_t_deposit_slip
+,sc_dep_m_creditor
+where  sc_dep_t_deposit_slip.account_no = sc_dep_m_creditor.deposit_account_no 
+and cancel_status = '0' 
+and deposit_slip_type in ('OCA','DEP')
+and operate_date between PKA_SRV_DATETIME.fp_FirstDayOfMonth(   sc_cls_mon_dep.monthly_date::date  )  and sc_cls_mon_dep.monthly_date
+and sc_dep_m_creditor.deposit_account_no = sc_cls_mon_dep_accno.deposit_account_no 
+) , 0 )  as bal_dep
+
+
+, coalesce( ( select sum( deposit_by_cash_balance )
+from sc_dep_t_deposit_slip
+,sc_dep_m_creditor
+where  sc_dep_t_deposit_slip.account_no = sc_dep_m_creditor.deposit_account_no 
+and cancel_status = '0' 
+and deposit_slip_type not in ('OCA','DEP')
+and operate_date between PKA_SRV_DATETIME.fp_FirstDayOfMonth(   sc_cls_mon_dep.monthly_date::date  )  and sc_cls_mon_dep.monthly_date
+and sc_dep_m_creditor.deposit_account_no = sc_cls_mon_dep_accno.deposit_account_no 
+) , 0 )  as bal_withdraw
+
+,sc_cls_mon_dep_accno.deposit_balance as bal_fw
+
+, ( select interest_rate
+from sc_dep_m_int_step_rate
+where deposit_type_code =  sc_dep_m_rule.deposit_type_code 
+and interest_rate &gt; 0 
+and effective_date = ( select max(effective_date )
+							from sc_dep_m_int_step_rate
+							where deposit_type_code =   sc_dep_m_rule.deposit_type_code 
+							and interest_rate &gt; 0   )
+) as int_rate 
+
+from sc_cls_mon_dep
+,sc_cls_mon_dep_accno
+,sc_dep_m_rule
+where 1=1
+and sc_cls_mon_dep.monthly_date = sc_cls_mon_dep_accno.monthly_date
+and sc_dep_m_rule.deposit_type_code = sc_cls_mon_dep_accno.deposit_type_code
+and sc_dep_m_rule.cat_id = '1'  -- สอ อื่น 
+/*WHERE*/
+--and sc_cls_mon_dep.monthly_date = '31/7/2019'
+and sc_cls_mon_dep_accno.deposit_balance &gt; 0
+
+
+order by sc_cls_mon_dep_accno.deposit_account_no</sql>
+  <sub />
+</root>

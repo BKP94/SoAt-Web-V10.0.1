@@ -8,9 +8,9 @@
   </arg>
   <combo />
   <sql>select sum(tab.row_memno)over( partition by (receipt_date) order by tab.receipt_date ,tab.branch_id ,tab.money_type_id ,tab.receipt_no ,tab.sort_group_item ,tab.loan_type) as rowno,  tab.*
-    from ( SELECT decode(lag(sc_com_m_receipt.receipt_no,1,null)over(  partition by (sc_com_m_receipt.receipt_date)  order by sc_com_m_receipt.receipt_date ,sc_com_m_branch.branch_id 
+    from ( SELECT (CASE lag(sc_com_m_receipt.receipt_no,1,null)over(  partition by (sc_com_m_receipt.receipt_date)  order by sc_com_m_receipt.receipt_date ,sc_com_m_branch.branch_id 
     ,sc_com_m_receipt.money_type_id ,sc_com_m_receipt.receipt_no  ,( case group_item  when 'SHR' then 1 when 'LON'  then  5 else  99 end ) ,
-    decode(  sc_com_m_ucf_receipt_item_type.group_item , 'LON' ,  FPB_GET_LOAN_TYPE_REF(  sc_com_m_receipt_item.loan_type ) , sc_com_m_receipt_item.loan_type ) ) ,sc_com_m_receipt.receipt_no,0,1) as row_memno
+    (CASE sc_com_m_ucf_receipt_item_type.group_item WHEN 'LON' THEN FPB_GET_LOAN_TYPE_REF(  sc_com_m_receipt_item.loan_type ) ELSE sc_com_m_receipt_item.loan_type END) ) WHEN sc_com_m_receipt.receipt_no THEN 0 ELSE 1 END) as row_memno
     ,sc_com_m_receipt.receipt_date  as receipt_date
     ,pka_com_function.fp_get_thaidate(sc_com_m_receipt.receipt_date)  as receipt_date_th
     ,sc_com_m_receipt.receipt_no  as receipt_no
@@ -39,12 +39,12 @@
     ,sc_com_m_branch.branch_id  as branch_id
     ,sc_com_m_branch.branch_name  as branch_name
 
-    ,decode( sc_com_m_receipt.receipt_status , '0' , sc_com_m_receipt_item.principal_amount , 0  ) as principal_amount
-    ,decode( sc_com_m_receipt.receipt_status , '0' , sc_com_m_receipt_item.interest_amount , 0  ) as interest_amount
-    ,decode( sc_com_m_receipt.receipt_status , '0' , sc_com_m_receipt_item.item_amount , 0  ) as item_amount
+    ,(CASE sc_com_m_receipt.receipt_status WHEN '0' THEN sc_com_m_receipt_item.principal_amount ELSE 0 END) as principal_amount
+    ,(CASE sc_com_m_receipt.receipt_status WHEN '0' THEN sc_com_m_receipt_item.interest_amount ELSE 0 END) as interest_amount
+    ,(CASE sc_com_m_receipt.receipt_status WHEN '0' THEN sc_com_m_receipt_item.item_amount ELSE 0 END) as item_amount
     ,sc_com_m_receipt.ppm_status as ppm_status
     ,sc_com_m_receipt.keep_monthly as keep_monthly
-    , decode(  sc_com_m_ucf_receipt_item_type.group_item , 'LON' ,  FPB_GET_LOAN_TYPE_REF(  sc_com_m_receipt_item.loan_type ) , sc_com_m_receipt_item.loan_type )  as loan_type
+    , (CASE sc_com_m_ucf_receipt_item_type.group_item WHEN 'LON' THEN FPB_GET_LOAN_TYPE_REF(  sc_com_m_receipt_item.loan_type ) ELSE sc_com_m_receipt_item.loan_type END)  as loan_type
     ,(  	select sum( item_amount )
     from	sc_com_m_receipt_item
     where	receipt_no = sc_com_m_receipt.receipt_no ) as sum_rec
@@ -52,7 +52,7 @@
     ,sc_com_m_receipt.cancel_date
     ,pka_com_function.fp_get_thaidate(sc_com_m_receipt.cancel_date)  as tdate_cancel_date
     ,sc_com_m_receipt.cancel_id
-    ,nvl(sc_com_m_receipt.money_trans_return,0) as money_trans_return
+    ,coalesce(sc_com_m_receipt.money_trans_return,0) as money_trans_return
 
 
     ,	sc_mem_m_ucf_member_group.member_group_name
@@ -86,7 +86,7 @@
         tab_data.interest_amount,
         tab_data.item_amount
         ,tab_data. loan_type_des
-        ,( 	select nvl(sum( money_trans_return ),0)
+        ,( 	select coalesce(sum( money_trans_return ),0)
         from	sc_com_m_receipt , sc_com_m_ucf_money_type
         where sc_com_m_receipt.receipt_status ='0'
         and	sc_com_m_receipt.money_type_id = sc_com_m_ucf_money_type.money_type_id

@@ -9,7 +9,7 @@
     sc_mem_m_membership_registered.member_group_no,
     sc_mem_m_ucf_prename.prename||sc_mem_m_membership_registered.member_name||' '||sc_mem_m_membership_registered.member_surname as memname,
     --pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as memname,
-    pka_lon_reqsrv.fp_calc_agetext(sc_mem_m_membership_registered.date_of_birth) as age_mem ,
+    pka_lon_reqsrv.fp_calc_agetext(sc_mem_m_membership_registered.date_of_birth, localtimestamp) as age_mem ,
     PKB_KTM.fp_get_loan_balance_type(sc_mem_m_membership_registered.membership_no , '9' ) as loan_bal_9 ,
     PKB_KTM.fp_get_loan_balance_type(sc_mem_m_membership_registered.membership_no , '2' ) as loan_bal_2 ,
     PKB_KTM.fp_get_loan_balance_type(sc_mem_m_membership_registered.membership_no , '4' ) as loan_bal_4 ,

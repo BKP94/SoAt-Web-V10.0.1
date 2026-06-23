@@ -10,7 +10,7 @@
   <sql>
     select sum(row_memno) over( Partition by  tab.requestment_date order by tab.loan_type , tab.requestment_date ,tab.loan_requestment_no) as rowno ,tab.*
     from ( select sc_lon_m_loan_request.loan_requestment_no ,
-    decode(lag(sc_mem_m_membership_registered.membership_no,null,1)over(order by sc_mem_m_membership_registered.membership_no ,sc_lon_m_loan_request.requestment_date) ,sc_mem_m_membership_registered.membership_no,0,1) as row_memno,
+    (CASE lag(sc_mem_m_membership_registered.membership_no,null,'1')over(order by sc_mem_m_membership_registered.membership_no ,sc_lon_m_loan_request.requestment_date) WHEN sc_mem_m_membership_registered.membership_no THEN 0 ELSE 1 END) as row_memno,
     sc_lon_m_loan_request.requestment_date ,
     PKA_COM_FUNCTION.fp_get_thaidate( sc_lon_m_loan_request.requestment_date ) AS requestment_date_tdate ,
     sc_lon_m_loan_request.loan_type ,
@@ -45,11 +45,11 @@
     sc_lon_m_loan_request.document_status ,
     TRUNC( pka_lon_reqsrv.fp_calc_install_m_live(sc_lon_m_loan_request.membership_no,sc_lon_m_loan_request.requestment_date)/12 ) AS age_MEM_LOAN ,
 
-    nvl( (  SELECT sum( sc_lon_m_req_loan_clear_ext.paid_amount  )
+    coalesce( (  SELECT sum( sc_lon_m_req_loan_clear_ext.paid_amount  )
     FROM sc_lon_m_req_loan_clear_ext
     WHERE sc_lon_m_req_loan_clear_ext.loan_requestment_no =   sc_lon_m_loan_request.loan_requestment_no ), 0 )  as paid_amount_ext ,
 
-    nvl( ( select sum( paid_amount)
+    coalesce( ( select sum( paid_amount)
     from sc_lon_m_loan_request_mpaid
     ,sc_com_m_ucf_money_type
     where loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
@@ -58,7 +58,7 @@
     and money_type_id = '180'
     ), 0 )  as ext_amount ,
 
-    (	select nvl(sc_lon_m_req_coll.req_amount , 0)
+    (	select coalesce(sc_lon_m_req_coll.req_amount , 0)
     from	sc_lon_m_req_coll
     where sc_lon_m_req_coll.loan_requestment_no	=	sc_lon_m_loan_request.loan_requestment_no
     and sc_lon_m_req_coll.collateral_type_code  = '03'
@@ -105,11 +105,10 @@
         ,sc_lon_m_req_coll.collateral_type_code
         from sc_lon_m_req_coll
         , sc_lon_m_loan_request
-        , sc_mem_m_member_work_info
-        , sc_mem_m_membership_registered
         ,	sc_mem_m_share_mem
+        , sc_mem_m_membership_registered
+        left join sc_mem_m_member_work_info on sc_mem_m_membership_registered.membership_no = sc_mem_m_member_work_info.membership_no
         where sc_lon_m_req_coll.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
-        and sc_mem_m_membership_registered.membership_no = sc_mem_m_member_work_info.membership_no(+)
         and sc_lon_m_req_coll.ref_membership_no = sc_mem_m_membership_registered.membership_no
         and sc_lon_m_req_coll.collateral_type_code = '01'
         and sc_mem_m_membership_registered.membership_no = sc_mem_m_share_mem.membership_no

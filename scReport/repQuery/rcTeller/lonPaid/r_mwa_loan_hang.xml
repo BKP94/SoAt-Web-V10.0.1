@@ -39,13 +39,13 @@
      
      --แขวนหนี้
     
-    , (mem_request_amount + (select nvl(sum(principal_of_loan),0) 
+    , (mem_request_amount + (select coalesce(sum(principal_of_loan),0) 
                             from sc_lon_m_loan_history,sc_lon_m_rule
                             where sc_lon_m_loan_history.loan_requestment_no = vr_tel_lon_hang.loan_requestment_no
                             and sc_lon_m_rule.loan_type = sc_lon_m_loan_history.loan_type
                             and (sc_lon_m_loan_history.clear_target = 0))) as loan_burden --ภาระเงินกู้   
                                                                           
-     ,(SELECT nvl(sum(sc_lon_m_loan_card.principal_balance),0)  
+     ,(SELECT coalesce(sum(sc_lon_m_loan_card.principal_balance),0)  
        from sc_lon_m_contract_coll,   
        sc_lon_m_contract,   
        sc_lon_m_loan_card,
@@ -61,7 +61,7 @@
        and sc_lon_m_loan_card.principal_balance &gt; 0
        ) as coll_amount --ภาระค้ำประกัน
      
-     ,(SELECT nvl(sum(sc_lon_m_loan_card.principal_balance),0)  
+     ,(SELECT coalesce(sum(sc_lon_m_loan_card.principal_balance),0)  
        from sc_lon_m_contract_coll,   
        sc_lon_m_contract,   
        sc_lon_m_loan_card,
@@ -78,7 +78,7 @@
        ) as coll_amount_char --ภาระค้ำประกันฌาปนกิจ
 
        ,vr_tel_lon_hang.provident_fund--กองทุนสำรองเลี้ยงชีพ
-       ,nvl(vr_tel_lon_hang.total_special_balance,0) as total_special_balance--หนี้พิเศษแขวน
+       ,coalesce(vr_tel_lon_hang.total_special_balance,0) as total_special_balance--หนี้พิเศษแขวน
 
        
      ,sc_lon_m_ucf_loan_obj.loan_objective_code

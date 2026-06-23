@@ -8,8 +8,8 @@
   <sql>SELECT sc_lon_m_contract.begining_of_contract 
       ,pka_com_function.fp_get_thaidate(sc_lon_m_contract.begining_of_contract , 'dd') as day
      
-     ,count(decode(sc_lon_m_rule.loan_type,'21',sc_lon_m_contract.membership_no,'22',sc_lon_m_contract.membership_no,'42',sc_lon_m_contract.membership_no)) as c_count_mem
-      ,nvl(sum(decode(sc_lon_m_rule.loan_type,'21',sc_lon_m_contract.loan_approve_amount,'22',sc_lon_m_contract.loan_approve_amount,'42',sc_lon_m_contract.loan_approve_amount)),0) as c_loan_approve_amount
+     ,count((CASE sc_lon_m_rule.loan_type WHEN '21' THEN sc_lon_m_contract.membership_no WHEN '22' THEN sc_lon_m_contract.membership_no WHEN '42' THEN sc_lon_m_contract.membership_no END)) as c_count_mem
+      ,coalesce(sum((CASE sc_lon_m_rule.loan_type WHEN '21' THEN sc_lon_m_contract.loan_approve_amount WHEN '22' THEN sc_lon_m_contract.loan_approve_amount WHEN '42' THEN sc_lon_m_contract.loan_approve_amount END)),0) as c_loan_approve_amount
       
       ,( select sum(  sc_com_m_receipt_item.item_amount  ) 
          from sc_com_m_receipt,   
@@ -23,17 +23,17 @@
         and   (sc_lon_m_rule.loan_type = sc_lon_m_contract.loan_type)
         and   ( sc_lon_m_rule.loan_type in ('21','22','42'))
         and   (sc_com_m_receipt.receipt_status = '0')
-        and   to_number(to_char(  sc_com_m_receipt.receipt_date  ,'yyyy')) = '!year_1!'
-        and   to_number(to_char(  sc_com_m_receipt.receipt_date  ,'mm')) =  '!month_1!'
+        and   ((to_char(  sc_com_m_receipt.receipt_date  ,'yyyy'))::numeric) = '!year_1!'
+        and   ((to_char(  sc_com_m_receipt.receipt_date  ,'mm'))::numeric) =  '!month_1!'
         )  as c_total_clr_sum
         
-      ,nvl(sum(decode(sc_lon_m_rule.loan_type,'21',sc_lon_m_contract.real_recieve,'22',sc_lon_m_contract.real_recieve,'42',sc_lon_m_contract.real_recieve)),0) as c_paid_amount
+      ,coalesce(sum((CASE sc_lon_m_rule.loan_type WHEN '21' THEN sc_lon_m_contract.real_recieve WHEN '22' THEN sc_lon_m_contract.real_recieve WHEN '42' THEN sc_lon_m_contract.real_recieve END)),0) as c_paid_amount
       
-      ,count(decode(sc_lon_m_rule.loan_type,'25',sc_lon_m_contract.membership_no)) as c_count_mem_25
-      ,nvl(sum(decode(sc_lon_m_rule.loan_type,'25',sc_lon_m_contract.loan_approve_amount)),0) as c_paid_amount_25
+      ,count((CASE sc_lon_m_rule.loan_type WHEN '25' THEN sc_lon_m_contract.membership_no END)) as c_count_mem_25
+      ,coalesce(sum((CASE sc_lon_m_rule.loan_type WHEN '25' THEN sc_lon_m_contract.loan_approve_amount END)),0) as c_paid_amount_25
       
       ,'!year_1!' +543 as req_year
-      ,pka_com_function.fp_get_month_name('!month_1!','LT') as req_month_name
+      ,pka_com_function.fp_get_month_name(('!month_1!')::int,'LT') as req_month_name
 FROM sc_lon_m_rule,   
      sc_acc_m_account_master,   
      sc_lon_m_contract,   
@@ -52,8 +52,8 @@ and   sc_lon_m_contract_multi_paid.seq_no = 1
 and   sc_lon_m_rule.invest_status = '0'
 and   sc_lon_m_rule.loan_type in ('21','22','42','25')
 /*WHERE*/
-and   to_number(to_char(  sc_lon_m_contract.begining_of_contract  ,'yyyy')) = '!year_1!'
-and   to_number(to_char(  sc_lon_m_contract.begining_of_contract  ,'mm')) =  '!month_1!'
+and   ((to_char(  sc_lon_m_contract.begining_of_contract  ,'yyyy'))::numeric) = '!year_1!'
+and   ((to_char(  sc_lon_m_contract.begining_of_contract  ,'mm'))::numeric) =  '!month_1!'
 GROUP BY sc_lon_m_contract.begining_of_contract
 ORDER BY sc_lon_m_contract.begining_of_contract ASC </sql>
   <sub>

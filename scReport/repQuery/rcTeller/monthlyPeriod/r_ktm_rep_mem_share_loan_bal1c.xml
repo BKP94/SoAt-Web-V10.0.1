@@ -41,13 +41,12 @@
 
     sc_lon_m_ucf_loan_code.loan_code,
     sc_lon_m_ucf_loan_code.loan_code_desc,
-    decode( sc_lon_m_rule.not_cal_month  , 1 , 0 ,
-    case
+    (CASE sc_lon_m_rule.not_cal_month WHEN '1' THEN 0 ELSE case
     when  PKA_SRV_DATETIME.fp_MonthsAfter( sc_rep_mem_share_loan_bal.emer_last_date , sc_rep_mem_share_loan_bal.balance_date  )   &gt; 3  then
     1
     else
     0
-    end  )  as c_loss
+    end END)  as c_loss
     FROM sc_rep_mem_share_loan_bal,
     sc_mem_m_membership_registered,
     sc_mem_m_ucf_member_group,

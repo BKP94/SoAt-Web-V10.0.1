@@ -98,19 +98,19 @@
     </r_ktm_loan_req_old_loan_nest>
     <r_ktm_loan_paid_mpaid_nest>
       <sql  >
-        SELECT "SC_LON_M_CONTRACT_MULTI_PAID"."SEQ_NO",
+        SELECT sc_lon_m_contract_multi_paid.seq_no,
         ( CASE sc_com_m_ucf_money_type.money_type_id
         when 'TRB'  then 'โอน ธ.' ||''||pka_com_function.fp_form( sc_lon_m_contract_multi_paid.bank_acc_no , 'XXX-XX-XXXXXXXXXX' )
         when 'TRD'  then 'โอน สอ.'||''||pka_com_function.fp_form( sc_lon_m_contract_multi_paid.bank_acc_no , 'XXX-XX-XXXXXXXXXX' )
         else trim(sc_com_m_ucf_money_type.money_type_name) end ) as case_money_type_name ,
-        "SC_COM_M_UCF_MONEY_TYPE"."MONEY_TYPE_ID",
-        "SC_COM_M_UCF_MONEY_TYPE"."MONEY_TYPE_NAME",
-        "SC_LON_M_CONTRACT_MULTI_PAID"."BANK_CODE",
-        "SC_LON_M_CONTRACT_MULTI_PAID"."BANK_ACC_NO",
-        "SC_LON_M_CONTRACT_MULTI_PAID"."PAID_AMOUNT"
-        FROM "SC_LON_M_CONTRACT_MULTI_PAID",
-        "SC_COM_M_UCF_MONEY_TYPE"
-        WHERE ( "SC_COM_M_UCF_MONEY_TYPE"."MONEY_TYPE_ID" = "SC_LON_M_CONTRACT_MULTI_PAID"."TYPE_PAY_MONEY" ) and
+        sc_com_m_ucf_money_type.money_type_id,
+        sc_com_m_ucf_money_type.money_type_name,
+        sc_lon_m_contract_multi_paid.bank_code,
+        sc_lon_m_contract_multi_paid.bank_acc_no,
+        sc_lon_m_contract_multi_paid.paid_amount
+        FROM sc_lon_m_contract_multi_paid,
+        sc_com_m_ucf_money_type
+        WHERE ( sc_com_m_ucf_money_type.money_type_id = sc_lon_m_contract_multi_paid.type_pay_money ) and
         ( ( sc_lon_m_contract_multi_paid.loan_contract_no = {0}  ) )
 
       </sql>

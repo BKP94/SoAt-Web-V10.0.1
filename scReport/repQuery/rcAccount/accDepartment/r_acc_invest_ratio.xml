@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="A010" rep_text="แบบรายงานที่ 7 - แบบรายงานฐานะสภาพคล่องสุทธิ" procedure="pka_rep_acc.sp_invest_group_report({operate_date_1},{moneysheet_code_1})">
+  <arg>
+    <operate_date text="ณ วันที่" table="sc_rep_acc_invest" type="date" readonly="0" />
+    <moneysheet_code text="งบการเงิน" combo="rep_heading" sqlwhere="0" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo>
+    <rep_heading>      select moneysheet_code as item_code
+      , moneysheet_code||' - '||moneysheet_name as item_desc
+      from sc_acc_m_money_sheet_head
+      where moneysheet_name is not null
+and  moneysheet_code not in ( '00025' ,'00030')
+    </rep_heading>
+  </combo>
+  <sql>   SELECT operate_date,   
+         seq_no,   
+         percent_group,   
+         col_01,   
+         col_02,   
+         col_03,   
+         col_04,   
+         col_05,   
+         col_06  
+    FROM sc_rep_acc_invest 
+where 1=1
+/*WHERE*/
+order by seq_no</sql>
+  <sub />
+</root>

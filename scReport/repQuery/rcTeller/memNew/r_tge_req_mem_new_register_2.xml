@@ -38,7 +38,7 @@
     --,(select sum(insurance_approve)
     --from sc_mem_m_app_member_insurance
     --where sc_mem_m_application_form.application_form_no  = sc_mem_m_app_member_insurance.application_form_no  ) insurance_approve
-    --, NVL(sc_mem_m_app_work_info.position_long,'ไม่ระบุ') AS position_name
+    --, coalesce(sc_mem_m_app_work_info.position_long,'ไม่ระบุ') AS position_name
     , (select sc_mem_m_ucf_position.position_name
       from sc_mem_m_ucf_position
       where sc_mem_m_ucf_position.position_code = sc_mem_m_app_work_info.position_long)as position_name
@@ -54,15 +54,15 @@
     ,sc_mem_m_membership_registered.id_card
 
     ,trim((select address_no from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0')||' '||
-    decode((select mooban from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0') , null , null ,'มบ'||(select mooban from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0')) ||' '||
-    decode((select moo from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0') , null , null ,'ม.'||(select moo from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0')) ||' '||
-    decode((select soi from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0') , null , null ,'ซ.'||(select soi from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0')) ||' '||
-    decode((select road from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0') , null , null ,'ถ.'||(select road from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0')) ||' '||
-    decode((select tambol from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0') , null , null ,decode((select province_code from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0'), '010' , 'แขวง'||PKA_COM_FUNCTION.fp_get_sub_district_name ((select tambol from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0')) , 'ต.'||PKA_COM_FUNCTION.fp_get_sub_district_name ((select tambol from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0')))) ||' '||
-    decode((select district_code from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0'), null , null ,decode((select province_code from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0') , '010' , 'เขต'||PKA_COM_FUNCTION.fp_get_district_name((select province_code from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0'),(select district_code from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0')) , 'อ.'||PKA_COM_FUNCTION.fp_get_district_name((select province_code from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0'),(select district_code from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0')))||' '||
-    decode((select province_code from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0'), null , null ,'จ.'||PKA_COM_FUNCTION.fp_get_province_name((select province_code from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0'))) ||' '||
+    (CASE (select mooban from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0') WHEN null THEN null ELSE 'มบ'||(select mooban from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0') END) ||' '||
+    (CASE (select moo from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0') WHEN null THEN null ELSE 'ม.'||(select moo from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0') END) ||' '||
+    (CASE (select soi from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0') WHEN null THEN null ELSE 'ซ.'||(select soi from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0') END) ||' '||
+    (CASE (select road from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0') WHEN null THEN null ELSE 'ถ.'||(select road from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0') END) ||' '||
+    (CASE (select tambol from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0') WHEN null THEN null ELSE (CASE (select province_code from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0') WHEN '010' THEN 'แขวง'||PKA_COM_FUNCTION.fp_get_sub_district_name ((select tambol from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0')) ELSE 'ต.'||PKA_COM_FUNCTION.fp_get_sub_district_name ((select tambol from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0')) END) END) ||' '||
+    (CASE (select district_code from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0') WHEN null THEN null ELSE (CASE (select province_code from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0') WHEN '010' THEN 'เขต'||PKA_COM_FUNCTION.fp_get_district_name((select province_code from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0'),(select district_code from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0')) ELSE 'อ.'||PKA_COM_FUNCTION.fp_get_district_name((select province_code from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0'),(select district_code from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0')) END)||' '||
+    (CASE (select province_code from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0') WHEN null THEN null ELSE 'จ.'||PKA_COM_FUNCTION.fp_get_province_name((select province_code from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0')) END) ||' '||
     (select postcode from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0')||' '||
-    decode((select telephone from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0') , null , null ,'โทร.'||(select telephone from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0') ))) as member_address
+    (CASE (select telephone from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0') WHEN null THEN null ELSE 'โทร.'||(select telephone from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0') END) END)) as member_address
     ,(select telephone from sc_mem_m_app_address where application_form_no = sc_mem_m_application_form.application_form_no and address_type = '0')as telephone
 
     ,sc_mem_m_ucf_member_group_addr.district_code
@@ -73,26 +73,21 @@
     ,sc_acc_m_ucf_bank.short_name
     ,sc_mem_m_application_form.remark
     ,PKA_COM_FUNCTION.fp_get_thaidate(sc_mem_m_application_form.retire_date, 'DD/MM/YYYY' ) as retire_date
-    FROM sc_mem_m_application_form,
-    sc_mem_m_app_work_info,
-    sc_mem_m_ucf_prename,
-    sc_mem_m_app_share,
-    sc_mem_m_ucf_member_group,
-    sc_mem_m_ucf_application_type,
-    sc_mem_m_ucf_member_type  ,
-    sc_mem_m_membership_registered ,
-    sc_mem_m_ucf_salary_level ,
-    sc_mem_m_ucf_member_group_addr
-    ,sc_mem_m_app_bank_accno
-    ,sc_acc_m_ucf_bank
-    WHERE ( sc_mem_m_application_form.application_form_no = sc_mem_m_app_work_info.application_form_no(+) ) and
-    ( sc_mem_m_membership_registered.application_form_no(+) =   sc_mem_m_application_form.application_form_no )and
-    ( sc_mem_m_application_form.prename_code = sc_mem_m_ucf_prename.prename_code ) and
+    FROM sc_mem_m_application_form
+    cross join sc_mem_m_ucf_prename
+    cross join sc_mem_m_ucf_member_group
+    cross join sc_mem_m_ucf_member_type
+    cross join sc_mem_m_ucf_member_group_addr
+    cross join sc_mem_m_app_bank_accno
+    cross join sc_acc_m_ucf_bank
+    left join sc_mem_m_app_work_info on sc_mem_m_application_form.application_form_no = sc_mem_m_app_work_info.application_form_no
+    left join sc_mem_m_membership_registered on sc_mem_m_membership_registered.application_form_no = sc_mem_m_application_form.application_form_no
+    left join sc_mem_m_app_share on sc_mem_m_application_form.application_form_no = sc_mem_m_app_share.application_form_no
+    left join sc_mem_m_ucf_application_type on sc_mem_m_application_form.appl_type_code = sc_mem_m_ucf_application_type.appl_type_code
+    left join sc_mem_m_ucf_salary_level on sc_mem_m_app_work_info.level_code = sc_mem_m_ucf_salary_level.level_code
+    WHERE ( sc_mem_m_application_form.prename_code = sc_mem_m_ucf_prename.prename_code ) and
     ( sc_mem_m_application_form.member_group_no = sc_mem_m_ucf_member_group.member_group_no ) and
-    ( sc_mem_m_application_form.application_form_no = sc_mem_m_app_share.application_form_no(+) ) and
-    ( sc_mem_m_application_form.appl_type_code = sc_mem_m_ucf_application_type.appl_type_code(+) ) and
     ( sc_mem_m_ucf_member_type.mem_type_code = sc_mem_m_application_form.mem_type )    and
-    ( sc_mem_m_app_work_info.level_code = sc_mem_m_ucf_salary_level.level_code(+)) and
     (sc_mem_m_ucf_member_group_addr.member_group_no = sc_mem_m_application_form.member_group_no) and
     sc_mem_m_app_bank_accno.application_form_no = sc_mem_m_application_form.application_form_no and
     sc_mem_m_app_bank_accno.bank_id = sc_acc_m_ucf_bank.bank_id

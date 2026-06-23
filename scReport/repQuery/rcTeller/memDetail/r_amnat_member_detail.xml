@@ -29,14 +29,12 @@ from sc_mem_m_member_work_info
 where sc_mem_m_member_work_info.membership_no = sc_mem_m_membership_registered.membership_no 
 ) as position_long,
 
-decode( sc_mem_m_membership_registered.marriage_status 
-                  , '1' , (   select sc_mem_m_ucf_prename.prename || sc_mem_m_member_spouse_info.spouse_name || '  ' || sc_mem_m_member_spouse_info.spouse_surname
+(CASE sc_mem_m_membership_registered.marriage_status WHEN '1' THEN (   select sc_mem_m_ucf_prename.prename || sc_mem_m_member_spouse_info.spouse_name || '  ' || sc_mem_m_member_spouse_info.spouse_surname
       from sc_mem_m_member_spouse_info
       ,sc_mem_m_ucf_prename
       where sc_mem_m_member_spouse_info.prename_code = sc_mem_m_ucf_prename.prename_code
       and sc_mem_m_member_spouse_info.membership_no = sc_mem_m_membership_registered.membership_no
-       ) 
-,' ' ) as spouse_name,
+       ) ELSE ' ' END) as spouse_name,
 
 sc_mem_m_share_mem.share_amount,
 ( case sc_mem_m_share_mem.drop_status when '0' then 'ปกติ' when '1' then 'งดส่ง' when '2' then 'เปลี่ยนแปลงชำระ' end ) as drop_status,

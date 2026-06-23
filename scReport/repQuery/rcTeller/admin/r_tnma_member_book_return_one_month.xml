@@ -17,8 +17,8 @@
       ,     sc_cnt_m_coop.manager_name
       
 , ( sc_kep_t_monthly_receive.receive_year + 543 ) AS receive_year
-, PKA_COM_FUNCTION.fp_get_month_name(sc_kep_t_monthly_receive.receive_month) AS receive_month
-      ,     to_snumber( NVL( PKA_KEP.fp_get_money_amount_unk(sc_kep_t_monthly_receive.membership_no, sc_kep_t_monthly_receive.receive_year, sc_kep_t_monthly_receive.receive_month, sc_kep_t_monthly_receive.seq_no  ),0) - NVL(sc_kep_t_monthly_receive.ppm_amount,0) ) AS kep_ppm_amount
+, PKA_COM_FUNCTION.fp_get_month_name((sc_kep_t_monthly_receive.receive_month)::int) AS receive_month
+      ,     to_snumber((coalesce( PKA_KEP.fp_get_money_amount_unk(sc_kep_t_monthly_receive.membership_no, sc_kep_t_monthly_receive.receive_year, sc_kep_t_monthly_receive.receive_month, sc_kep_t_monthly_receive.seq_no  ),0) - coalesce(sc_kep_t_monthly_receive.ppm_amount,0))::bigint) AS kep_ppm_amount
       ,     sc_kep_t_monthly_receive.kep_method_amount
       
       ,     '!book_no_1!' as book_no
@@ -36,28 +36,28 @@
       ,     sc_cnt_m_coop.postcode AS coop_postcode
       
               -- ที่อยู่ปัจจุบัน สมาชิก
---     ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '6' ) , '-' , '' , 'บ้านเลขที่ ' || PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '6' ) ) AS address_pres_address_no
---      ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '8' ) , '-' , '' , ' หมู่ที่  ' || PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '8' ) ) AS address_pres_moo
---      ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '7' ) , '-' , '' , ' หมู่บ้าน ' || PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '7' ) ) AS address_pres_mooban
---      ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '9' ) , '-' , '' , ' ถนน ' || PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '9' ) ) AS address_pres_road
---      ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '10' ) , '-' , '' , ' ซอย ' || PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '10' ) ) AS address_pres_soi
---      ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '11' ) , '-' , '' , ' ตำบล ' || PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '11' ) ) AS address_pres_tambol
---      ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '12' ) , '-' , '' , 'อำเภอ ' || PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '12' ) ) AS address_pres_district
---      ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '13' ) , '-' , '' , ' จังหวัด ' || PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '13' ) ) AS address_pres_province
---      ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '14' ) , '-' , '' , PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '14' ) ) AS address_pres_post
---      ,   DECODE ( PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '15' ) , '-' , '' , 'เบอร์โทรศัพท์ ' || PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '15' ) ) AS address_pres_telephone
+--     ,   (CASE PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '6' ) WHEN '-' THEN '' ELSE 'บ้านเลขที่ ' || PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '6' ) END) AS address_pres_address_no
+--      ,   (CASE PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '8' ) WHEN '-' THEN '' ELSE ' หมู่ที่  ' || PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '8' ) END) AS address_pres_moo
+--      ,   (CASE PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '7' ) WHEN '-' THEN '' ELSE ' หมู่บ้าน ' || PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '7' ) END) AS address_pres_mooban
+--      ,   (CASE PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '9' ) WHEN '-' THEN '' ELSE ' ถนน ' || PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '9' ) END) AS address_pres_road
+--      ,   (CASE PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '10' ) WHEN '-' THEN '' ELSE ' ซอย ' || PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '10' ) END) AS address_pres_soi
+--      ,   (CASE PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '11' ) WHEN '-' THEN '' ELSE ' ตำบล ' || PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '11' ) END) AS address_pres_tambol
+--      ,   (CASE PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '12' ) WHEN '-' THEN '' ELSE 'อำเภอ ' || PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '12' ) END) AS address_pres_district
+--      ,   (CASE PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '13' ) WHEN '-' THEN '' ELSE ' จังหวัด ' || PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '13' ) END) AS address_pres_province
+--      ,   (CASE PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '14' ) WHEN '-' THEN '' ELSE PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '14' ) END) AS address_pres_post
+--      ,   (CASE PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '15' ) WHEN '-' THEN '' ELSE 'เบอร์โทรศัพท์ ' || PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '15' ) END) AS address_pres_telephone
  
 
-       ,PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '6' ) AS address_no
-       ,PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '8' ) AS moo
-       ,PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '7' ) as mooban
-       ,PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '9' )AS road
-       ,PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '10' ) AS soi
-       ,PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '11' ) AS tambol
-       ,PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '12' ) AS district
-       ,PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '13' ) AS province
-       ,PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '14' ) AS postcode
-       ,PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no , '0' , '15' ) as telephone
+       ,PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '6' ) AS address_no
+       ,PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '8' ) AS moo
+       ,PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '7' ) as mooban
+       ,PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '9' )AS road
+       ,PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '10' ) AS soi
+       ,PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '11' ) AS tambol
+       ,PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '12' ) AS district
+       ,PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '13' ) AS province
+       ,PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '14' ) AS postcode
+       ,PKA_COM_FUNCTION.fp_get_member_address_letter ( sc_mem_m_membership_registered.membership_no ,('0')::text, '15' ) as telephone
       
       
     FROM    sc_kep_t_monthly_receive
@@ -69,7 +69,7 @@
     AND     sc_kep_t_monthly_receive.membership_no = sc_mem_m_membership_registered.membership_no
     AND     sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no
     AND     sc_kep_t_monthly_receive.receipt_status = '2'
-    AND     NVL( PKA_KEP.fp_get_money_amount_unk(sc_kep_t_monthly_receive.membership_no, sc_kep_t_monthly_receive.receive_year, sc_kep_t_monthly_receive.receive_month, sc_kep_t_monthly_receive.seq_no  ),0) &gt; NVL(sc_kep_t_monthly_receive.ppm_amount,0)
+    AND     coalesce( PKA_KEP.fp_get_money_amount_unk(sc_kep_t_monthly_receive.membership_no, sc_kep_t_monthly_receive.receive_year, sc_kep_t_monthly_receive.receive_month, sc_kep_t_monthly_receive.seq_no  ),0) &gt; coalesce(sc_kep_t_monthly_receive.ppm_amount,0)
     --AND     sc_kep_t_monthly_receive.receive_year = 2025
     --AND     sc_kep_t_monthly_receive.receive_month = 8
     /*WHERE*/
@@ -88,7 +88,7 @@
           --,     sc_kep_t_monthly_receive_det.loan_type AS loan_type
           ,     SUM( sc_kep_t_monthly_receive_det.unkeep_money_amount ) AS unkeep_money_amount
           
-          ,     SUM( ( sc_kep_t_monthly_receive_det.unkeep_money_amount ) - NVL( (   SELECT  SUM( sc_com_m_receipt_item.item_amount ) AS item_amount
+          ,     SUM( ( sc_kep_t_monthly_receive_det.unkeep_money_amount ) - coalesce( (   SELECT  SUM( sc_com_m_receipt_item.item_amount ) AS item_amount
                                                                                         FROM    sc_com_m_receipt
                                                                                          ,      sc_com_m_receipt_item
                                                                                         WHERE   sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no
@@ -114,7 +114,7 @@
         AND     sc_kep_t_monthly_receive.member_group_no = sc_mem_m_ucf_member_group.member_group_no
         AND     sc_kep_m_ucf_keeping_item_type.keeping_type_group = sc_kep_m_ucf_process.proc_code
         AND     sc_kep_t_monthly_receive.receipt_status = '2'
-        AND     NVL( PKA_KEP.fp_get_money_amount_unk(sc_kep_t_monthly_receive.membership_no, sc_kep_t_monthly_receive.receive_year, sc_kep_t_monthly_receive.receive_month, sc_kep_t_monthly_receive.seq_no  ),0) &gt; NVL(sc_kep_t_monthly_receive.ppm_amount,0)
+        AND     coalesce( PKA_KEP.fp_get_money_amount_unk(sc_kep_t_monthly_receive.membership_no, sc_kep_t_monthly_receive.receive_year, sc_kep_t_monthly_receive.receive_month, sc_kep_t_monthly_receive.seq_no  ),0) &gt; coalesce(sc_kep_t_monthly_receive.ppm_amount,0)
         AND     sc_kep_t_monthly_receive_det.membership_no = {0}
         /*WHERE*/
         

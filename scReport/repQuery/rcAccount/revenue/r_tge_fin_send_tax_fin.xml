@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <tax_date text="วันที่" table="sc_fin_send_tax_fin" type="date" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT tax_date , tax_seq , c_text
+    , ( '401N'
+    || '|' || trim( (row_number() over ())::text)
+    || '|' || c_text ) as c_tax
+    from
+    ( select
+    sc_fin_send_tax_fin.tax_date
+    ,sc_fin_send_tax_fin.tax_seq
+    ,(  sc_fin_send_tax_fin.id_card
+    || '|' || sc_fin_send_tax_fin.prename
+    || '|' || sc_fin_send_tax_fin.memname
+    || '|' ||  sc_fin_send_tax_fin.memsurname
+    || '|' || pka_com_function.fp_get_thaidate(sc_fin_send_tax_fin.tax_date ,'ddmmyyyy')
+    || '|' || trim( to_char( sc_fin_send_tax_fin.paid_amount ,'9999999.99'))
+    || '|' || trim( to_char( sc_fin_send_tax_fin.tax_amount ,'9999999.99'))
+    || '|' || '1'
+    ) as c_text
+    FROM sc_fin_send_tax_fin
+    ,sc_fin_ucf_company
+    WHERE 1=1
+    and sc_fin_send_tax_fin.company_id = sc_fin_ucf_company.company_id
+    and sc_fin_send_tax_fin.paid_amount  &gt; 0  
+    /*WHERE*/
+    ORDER BY sc_fin_send_tax_fin.tax_date  , sc_fin_send_tax_fin.tax_seq
+    ) tb
+
+  </sql>
+  <sub />
+</root>

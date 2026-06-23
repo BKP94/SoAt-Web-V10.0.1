@@ -11,10 +11,10 @@
          pka_com_function.fp_get_group_name(sc_mem_m_ucf_member_group.member_group_control )as member_group_control,
          sc_mem_m_membership_registered.date_of_birth,
          pka_com_function.fp_form_idcard (sc_mem_m_membership_registered.id_card)as id_card,
-         pka_com_function.fp_get_member_address_letter(  sc_mem_m_membership_registered.membership_no , '0' , 1 ) as address_line1,   
-         pka_com_function.fp_get_member_address_letter(  sc_mem_m_membership_registered.membership_no , '0' , 2 ) as address_line2,   
-         pka_com_function.fp_get_member_address_letter(  sc_mem_m_membership_registered.membership_no , '0' , 3 ) as address_line3,   
-         pka_com_function.fp_get_member_address_letter(  sc_mem_m_membership_registered.membership_no , '0' , 4 ) as address_line4      
+         pka_com_function.fp_get_member_address_letter(  sc_mem_m_membership_registered.membership_no ,('0')::text, 1 ) as address_line1,   
+         pka_com_function.fp_get_member_address_letter(  sc_mem_m_membership_registered.membership_no ,('0')::text, 2 ) as address_line2,   
+         pka_com_function.fp_get_member_address_letter(  sc_mem_m_membership_registered.membership_no ,('0')::text, 3 ) as address_line3,   
+         pka_com_function.fp_get_member_address_letter(  sc_mem_m_membership_registered.membership_no ,('0')::text, 4 ) as address_line4      
          
 FROM     sc_mem_m_membership_registered,   
          sc_mem_m_ucf_member_group 

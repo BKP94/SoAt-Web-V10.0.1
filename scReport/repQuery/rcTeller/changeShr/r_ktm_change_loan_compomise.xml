@@ -16,7 +16,7 @@
   <sql>
     SELECT sc_mem_m_chg_loan_det.membership_no,
     PKA_COM_FUNCTION.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as memname,
-    pka_com_function.fp_get_thaidate(sysdate , 'dd/mm/yyyy') as sysdate_tdate,
+    pka_com_function.fp_get_thaidate(current_date , 'dd/mm/yyyy') as sysdate_tdate,
     sc_mem_m_chang_request.dep_code,
     ( select sc_mem_m_ucf_change_payment.description_detail from sc_mem_m_ucf_change_payment where reason_code = sc_mem_m_chang_request.reason_code ) as description_detail,
     sc_mem_m_chg_loan_det.document_no,
@@ -73,8 +73,8 @@
     ( sc_mem_m_ucf_prename.prename_code = sc_mem_m_membership_registered.prename_code ) and
     ( sc_mem_m_chg_loan_det.document_no = sc_mem_m_chang_request.document_no ) and
     ( sc_mem_m_membership_registered.membership_no = sc_mem_m_chang_request.membership_no ) and
-    ( sc_mem_m_chang_request.cancel_status = 0 ) and
-    ( sc_mem_m_chg_loan_det.drop_status not in  '0' )
+    ( sc_mem_m_chang_request.cancel_status = '0' ) and
+    ( sc_mem_m_chg_loan_det.drop_status not in  ('0') )
     and sc_mem_m_chang_request.approve_status = '2'
     /*WHERE*/
     --and sc_mem_m_chang_request.operate_date = '18/03/2021'

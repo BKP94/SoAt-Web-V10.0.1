@@ -9,14 +9,14 @@
     ( sc_mem_m_ucf_prename.prename||sc_mem_m_membership_registered.member_name||'  '||sc_mem_m_membership_registered.member_surname
     ||' ('||sc_mem_m_member_address.membership_no||')'
     ) as name,
-    (decode(sc_mem_m_member_address.address_no,null,'','เลขที่ '||sc_mem_m_member_address.address_no)
-    ||decode(sc_mem_m_member_address.moo,null,'','หมู่ '||sc_mem_m_member_address.moo)
-    ||decode(sc_mem_m_member_address.road,null,'',' ถ.'||sc_mem_m_member_address.road)
-    ||decode(sc_mem_m_member_address.soi,null,'',' ซ.'||sc_mem_m_member_address.soi)
+    ((CASE sc_mem_m_member_address.address_no WHEN null THEN '' ELSE 'เลขที่ '||sc_mem_m_member_address.address_no END)
+    ||(CASE sc_mem_m_member_address.moo WHEN null THEN '' ELSE 'หมู่ '||sc_mem_m_member_address.moo END)
+    ||(CASE sc_mem_m_member_address.road WHEN null THEN '' ELSE ' ถ.'||sc_mem_m_member_address.road END)
+    ||(CASE sc_mem_m_member_address.soi WHEN null THEN '' ELSE ' ซ.'||sc_mem_m_member_address.soi END)
     ) as address1,
-    (decode(sc_mem_m_member_address.tambol,null,'',decode(sc_mem_m_ucf_province.province_code,'10','แขวง','ต.')||sc_mem_m_member_address.tambol)
-    ||decode(sc_mem_m_ucf_district.district_name,null,'',decode(sc_mem_m_ucf_province.province_code,'10',' เขต',' อ.')||sc_mem_m_ucf_district.district_name)
-    ||decode(sc_mem_m_ucf_province.province_name,null,'',decode(sc_mem_m_ucf_province.province_code,'10',' ',' จ.')||sc_mem_m_ucf_province.province_name)
+    ((CASE sc_mem_m_member_address.tambol WHEN null THEN '' ELSE (CASE sc_mem_m_ucf_province.province_code WHEN '10' THEN 'แขวง' ELSE 'ต.' END)||sc_mem_m_member_address.tambol END)
+    ||(CASE sc_mem_m_ucf_district.district_name WHEN null THEN '' ELSE (CASE sc_mem_m_ucf_province.province_code WHEN '10' THEN ' เขต' ELSE ' อ.' END)||sc_mem_m_ucf_district.district_name END)
+    ||(CASE sc_mem_m_ucf_province.province_name WHEN null THEN '' ELSE (CASE sc_mem_m_ucf_province.province_code WHEN '10' THEN ' ' ELSE ' จ.' END)||sc_mem_m_ucf_province.province_name END)
     ) as address2,
     sc_mem_m_member_address.postcode as address3
     from sc_mem_m_member_address,

@@ -31,15 +31,13 @@
         ,PKA_LON_REQSRV.fp_calc_agetext_m_live( sc_mem_m_membership_registered.membership_no , sc_lon_m_loan_request.begining_of_contract  ) as  AGE_LIFE_TEXT
         ,PKA_LON_REQSRV.fp_calc_agetext_m_age( sc_mem_m_membership_registered.membership_no , sc_lon_m_loan_request.begining_of_contract  ) as  age_mem_text
         ,sc_mem_m_membership_registered.approve_date as approve_date 
-, decode( sc_mem_m_membership_registered.marriage_status 
-                  ,'1' , (   select sc_mem_m_ucf_prename.prename || sc_mem_m_member_spouse_info.spouse_name || '  ' || sc_mem_m_member_spouse_info.spouse_surname
+, (CASE sc_mem_m_membership_registered.marriage_status WHEN '1' THEN (   select sc_mem_m_ucf_prename.prename || sc_mem_m_member_spouse_info.spouse_name || '  ' || sc_mem_m_member_spouse_info.spouse_surname
       from sc_mem_m_member_spouse_info
            ,sc_mem_m_ucf_prename
            
       where sc_mem_m_member_spouse_info.prename_code = sc_mem_m_ucf_prename.prename_code
       and sc_mem_m_member_spouse_info.membership_no = sc_mem_m_membership_registered.membership_no
-       ) 
-,' ' ) as spouse_name
+       ) ELSE ' ' END) as spouse_name
 
 
 , (   select sc_mem_m_member_spouse_info.salary_amount
@@ -55,24 +53,24 @@
    ,sc_lon_m_loan_request.total_share_value as share_stock
    ,sc_lon_m_loan_request.monthshare as share_amount
    ,sc_lon_m_loan_request.req_contract_period as req_contract_period
-   ,nvl(( select sum( item_amount )
+   ,coalesce(( select sum( item_amount )
    
    from sc_lon_m_req_salnet_inc
    where item_code = '11'
    and sc_lon_m_req_salnet_inc.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no ),0)  as academic_amount
 
-   ,nvl((select sum(item_amount)from sc_lon_m_req_salnet_exp
+   ,coalesce((select sum(item_amount)from sc_lon_m_req_salnet_exp
    where sc_lon_m_req_salnet_exp.item_code = '34'  
    and sc_lon_m_req_salnet_exp.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no),0) as send_drop
 
-   ,nvl(( select sum( item_amount )
+   ,coalesce(( select sum( item_amount )
    from sc_lon_m_req_salnet_inc
    where item_code = '12'
    and sc_lon_m_req_salnet_inc.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no ),0)  as  remuneration_amount
    ,sc_lon_m_loan_request.max_loan_permit as max_loan_permit
    ,sc_lon_m_loan_request.mem_request_amount as mem_request_amount
 
-    ,nvl((select sum((principal_balance_of_loan + interest_amount + sc_lon_m_req_fee.amount))
+    ,coalesce((select sum((principal_balance_of_loan + interest_amount + sc_lon_m_req_fee.amount))
      from sc_lon_m_loan_history ,sc_lon_m_req_fee
      where sc_lon_m_loan_history.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no 
      and   sc_lon_m_req_fee.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no 
@@ -89,18 +87,18 @@
    ,sc_lon_m_loan_request.loan_request_amount   as loan_request_amount
    ,sc_lon_m_rule.loan_type_description as loan_type_description
 
-   ,nvl(( select sum( item_amount )
+   ,coalesce(( select sum( item_amount )
    from sc_lon_m_req_salnet_inc
    where  sc_lon_m_req_salnet_inc.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no ),0) as sum_inc_amount /*รายได้*/
 
-   ,nvl(( select sum( item_amount )
+   ,coalesce(( select sum( item_amount )
    from sc_lon_m_req_salnet_exp
    where  sc_lon_m_req_salnet_exp.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no ),0) as sum_exp_amount /*รายจ่าย*/
 
    ,mem_request_amount - total_old_loan - total_oldint - fee_amount - buy_share as paid_amount /*รับจริง*/
    ,monthdep + monthloan + monthshare as monthly
 
-   ,nvl(( select sum( payment_amount )
+   ,coalesce(( select sum( payment_amount )
    from sc_lon_m_loan_history
    where sc_lon_m_loan_history.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
     and sc_lon_m_loan_history.clear_target = '1'

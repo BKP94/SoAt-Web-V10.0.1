@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="K005" rep_text="" procedure="pka_rep_scq.sp_form13_mis65({operate_date_1})">
+  <arg>
+    <operate_date text="ลงวันที่" table="sc_rep_scq_form13_mis65" type="date" readonly="0" />
+  </arg>
+  <combo />
+  <sql>        select operate_date,
+    loan_group,
+    loan_desc,
+    principal_balance,
+    emer_due,
+    emer_3lt,
+    emer_3gt,
+    norm_due,
+    norm_3lt,
+    norm_3gt,
+    spec_due,
+    spec_3lt,
+    spec_3gt
+    from sc_rep_scq_form13_mis65
+    where  1 = 1
+    /*WHERE*/
+    order by loan_group,
+  loan_item</sql>
+  <sub />
+</root>

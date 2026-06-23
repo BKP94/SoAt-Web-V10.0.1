@@ -31,7 +31,7 @@
     ,sc_kep_m_agent_send.post_date
     ,pka_com_function.fp_get_coopname () as coop_name
     ,sc_kep_m_agent_send.keeping_amount as c_sum
-    ,pka_com_function.fp_get_moneythai (sc_kep_m_agent_send.keeping_amount) as thai_sum
+    ,pka_com_function.fp_get_moneythai ((sc_kep_m_agent_send.keeping_amount)::double precision) as thai_sum
     ,sc_kep_m_agent_send.keeping_balance
     ,sc_kep_m_agent_send.keeping_amount - sc_kep_m_agent_send.keeping_balance as keeping_receive
     ,sc_kep_m_agent_send.count_return

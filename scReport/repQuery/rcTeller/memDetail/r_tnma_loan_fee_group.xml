@@ -38,21 +38,18 @@ order by sc_mem_m_ucf_member_group.member_group_control
 sc_lon_m_req_fee.fee_type,
 sc_lon_m_ucf_fee.fee_name,
 sum(lr.interest_first) as interest_first
-FROM sc_lon_m_req_fee,
-sc_lon_m_contract ,
-sc_mem_m_membership_registered ,
-sc_mem_m_ucf_member_group ,
-sc_lon_m_rule ,
-sc_lon_m_ucf_fee,
-(SELECT loan_requestment_no, SUM(interest_first) AS interest_first
+FROM sc_lon_m_req_fee
+cross join sc_lon_m_contract
+cross join sc_mem_m_membership_registered
+cross join sc_mem_m_ucf_member_group
+left join sc_lon_m_rule on sc_lon_m_contract.loan_type = sc_lon_m_rule.loan_type
+left join sc_lon_m_ucf_fee on sc_lon_m_req_fee.fee_type = sc_lon_m_ucf_fee.fee_type
+left join (SELECT loan_requestment_no, SUM(interest_first) AS interest_first
 FROM sc_lon_m_loan_request
-GROUP BY loan_requestment_no) lr
+GROUP BY loan_requestment_no) lr on sc_lon_m_contract.loan_requestment_no = lr.loan_requestment_no
 WHERE sc_lon_m_req_fee.loan_requestment_no = sc_lon_m_contract.loan_requestment_no
 AND sc_lon_m_contract.membership_no = sc_mem_m_membership_registered.membership_no
 AND sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no
-AND sc_lon_m_contract.loan_type = sc_lon_m_rule.loan_type(+)
-AND sc_lon_m_req_fee.fee_type = sc_lon_m_ucf_fee.fee_type(+)
-AND sc_lon_m_contract.loan_requestment_no = lr.loan_requestment_no(+)
 --AND  sc_mem_m_membership_registered.member_group_no = {0}
 --and sc_lon_m_contract .loan_type = {1}
 /*WHERE*/

@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="D005" rep_text="รายงานรายการวัสดุของสหกรณ์ที่ถูกแก้ไข">
+  <arg>
+    <edit_date text="วันที่" table="sc_acc_m_expire_edit" type="date" operator="bt" />
+  </arg>
+  <combo />
+  <sql>    SELECT   DISTINCT sc_acc_m_expire_edit.material_id ,
+    sc_acc_m_expire_edit.sequence_no ,
+    sc_acc_m_expire_edit.description ,
+    sc_acc_m_expire_edit.rate_expire ,
+    sc_acc_m_expire_edit.edit_id ,
+    sc_acc_m_expire_edit.edit_date ,
+    sc_acc_m_expire_edit.description_new ,
+    sc_acc_m_expire_edit.rate_expire_new ,
+    sc_acc_m_expire_edit.type_expire ,
+    sc_acc_m_expire.doc_old,
+    case sc_acc_m_expire_edit.type_expire when 'UPDATE_EDT' then 'แก้ไข'  else 'ลบ' end as type_expire1,
+    sc_acc_m_expire.ending_of_account_cal
+    FROM sc_acc_m_expire_edit,
+    sc_acc_m_expire
+    WHERE (sc_acc_m_expire.material_id = sc_acc_m_expire_edit.material_id)
+    /*and   ( sc_acc_m_expire_edit.edit_id between :adtm_begindate and :adtm_enddate )*/
+    and   ( sc_acc_m_expire_edit.type_expire = 'UPDATE_EDT' ) or ( sc_acc_m_expire_edit.type_expire = 'UPDATE_DEL' )
+    /*WHERE*/
+    order by sc_acc_m_expire.doc_old
+  </sql>
+  <sub />
+</root>

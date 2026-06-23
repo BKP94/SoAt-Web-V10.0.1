@@ -10,7 +10,7 @@
     sc_mem_m_membership_registered.approve_date ,
     sc_mem_m_membership_registered.member_name ,
     sc_mem_m_membership_registered.member_surname ,
-    PKA_LON_REQSRV.fp_calc_agetext( sc_mem_m_membership_registered.date_of_birth )  as age,
+    PKA_LON_REQSRV.fp_calc_agetext( sc_mem_m_membership_registered.date_of_birth, localtimestamp)  as age,
     sc_mem_m_ucf_member_group.member_group_no,
     sc_mem_m_ucf_member_group.member_group_name,
     sc_mem_m_ucf_member_group.member_group_control ,
@@ -36,7 +36,7 @@
     from     sc_mem_m_membership_registered tb_mem_female ,
     sc_mem_m_application_form tb_app_female
     where  tb_mem_female.application_form_no = tb_app_female.application_form_no
-    and 	  ( tb_mem_female.approve_date between  to_date('!opdate_1!') and to_date('!opdate_2!') )
+    and 	  ( tb_mem_female.approve_date between  ('!opdate_1!')::timestamp and ('!opdate_2!')::timestamp )
     and	  tb_mem_female.sex = 'F'
     ) as c_female
 
@@ -44,7 +44,7 @@
     from     sc_mem_m_membership_registered tb_mem_male ,
     sc_mem_m_application_form tb_app_male
     where  tb_mem_male.application_form_no = tb_app_male.application_form_no
-    and 	  ( tb_mem_male.approve_date between  to_date('!opdate_1!') and to_date('!opdate_2!') )
+    and 	  ( tb_mem_male.approve_date between  ('!opdate_1!')::timestamp and ('!opdate_2!')::timestamp )
     and 	  tb_mem_male.sex = 'M'
     ) as c_male
 
@@ -62,7 +62,7 @@
     and	    (	sc_mem_m_member_work_info.position_code		= sc_mem_m_ucf_position.position_code )
     and	    (	sc_mem_m_membership_registered.branch_id				= sc_com_m_branch.branch_id )
     and		sc_mem_m_membership_registered.application_form_no = sc_mem_m_application_form.application_form_no
-    and (  sc_mem_m_membership_registered.approve_date between  to_date('!opdate_1!') and to_date('!opdate_2!'))
+    and (  sc_mem_m_membership_registered.approve_date between  ('!opdate_1!')::timestamp and ('!opdate_2!')::timestamp)
     /*WHERE*/
   </sql>
   <sub />

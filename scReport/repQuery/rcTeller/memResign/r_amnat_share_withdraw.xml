@@ -31,7 +31,7 @@
     sc_mem_m_ucf_member_group.control_id
     ,pka_com_function.fp_get_thaidate(sc_mem_m_membership_registered.resignation_approve_date) AS resignation_approve_date_tdate
 
-    , nvl( ( 		SELECT sum( sc_com_m_receipt_item.item_amount )
+    , coalesce( ( 		SELECT sum( sc_com_m_receipt_item.item_amount )
     FROM sc_com_m_receipt,
     sc_com_m_receipt_item
     WHERE ( sc_com_m_receipt_item.receipt_no = sc_com_m_receipt.receipt_no ) AND
@@ -40,8 +40,8 @@
     sc_com_m_receipt.membership_no =sc_mem_m_share_withdraw_head.membership_no  ) , 0 )  AS tnl_amount
     ,sc_mem_m_ucf_member_type.mem_type_code
     ,sc_mem_m_ucf_member_type.mem_type_desc
-    --  ,to_date(  '!withdraw_date_1!' ) AS begin_date
-    -- ,to_date(  '!withdraw_date_2!' ) AS end_date
+    --  ,('!withdraw_date_1!')::timestamp AS begin_date
+    -- ,('!withdraw_date_2!')::timestamp AS end_date
 
     from sc_mem_m_share_withdraw_det,
     sc_mem_m_share_withdraw_head,

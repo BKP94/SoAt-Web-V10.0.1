@@ -11,13 +11,12 @@
     ,   sc_cls_confirm_mem.member_group_no
     ,   pka_com_function.fp_get_member_name(sc_cls_confirm_mem.membership_no)as mem_name
     --ที่อยู่ปัจจุบัน
-    ,   pka_com_function.fp_get_member_address_letter(sc_cls_confirm_mem.membership_no, '0' , 6 ) || ' หมู่ที่ '||pka_com_function.fp_get_member_address_letter(sc_cls_confirm_mem.membership_no, '0' , 8 )||decode(pka_com_function.fp_get_member_address_letter(sc_cls_confirm_mem.membership_no, '0' , 9 )
-    ,'-','',' ถนน '|| pka_com_function.fp_get_member_address_letter(sc_cls_confirm_mem.membership_no, '0' , 9 ) ) as address_1
+    ,   pka_com_function.fp_get_member_address_letter(sc_cls_confirm_mem.membership_no,('0')::text, 6 ) || ' หมู่ที่ '||pka_com_function.fp_get_member_address_letter(sc_cls_confirm_mem.membership_no,('0')::text, 8 )||(CASE pka_com_function.fp_get_member_address_letter(sc_cls_confirm_mem.membership_no,('0')::text, 9 ) WHEN '-' THEN '' ELSE ' ถนน '|| pka_com_function.fp_get_member_address_letter(sc_cls_confirm_mem.membership_no,('0')::text, 9 ) END) as address_1
 
 
-    ,'ตำบล'||pka_com_function.fp_get_member_address_letter(sc_cls_confirm_mem.membership_no, '0' , 11 ) ||' อำเภอ'||pka_com_function.fp_get_member_address_letter(sc_cls_confirm_mem.membership_no, '0' , 12 )as address_2
+    ,'ตำบล'||pka_com_function.fp_get_member_address_letter(sc_cls_confirm_mem.membership_no,('0')::text, 11 ) ||' อำเภอ'||pka_com_function.fp_get_member_address_letter(sc_cls_confirm_mem.membership_no,('0')::text, 12 )as address_2
 
-    ,   'จังหวัด'||pka_com_function.fp_get_member_address_letter(sc_cls_confirm_mem.membership_no, '0' , 13 )||' '|| pka_com_function.fp_get_member_address_letter(sc_cls_confirm_mem.membership_no, '0' , 14 ) as address_3
+    ,   'จังหวัด'||pka_com_function.fp_get_member_address_letter(sc_cls_confirm_mem.membership_no,('0')::text, 13 )||' '|| pka_com_function.fp_get_member_address_letter(sc_cls_confirm_mem.membership_no,('0')::text, 14 ) as address_3
 
     ,pka_com_function.fp_get_thaidate('!book_date!','SD MONTH YYYY')as book_date
     ,pka_com_function.fp_get_thaidate(sc_cls_confirm_mem.confirm_date,'SD MONTH YYYY')as book_date2
@@ -52,7 +51,7 @@
         where 1=1
         and sc_cls_confirm_data.confirm_date = {1}
         and sc_cls_confirm_data.membership_no = {0}
-        and sc_cls_confirm_data.data_group not in 'ISU'
+        and sc_cls_confirm_data.data_group not in ('ISU')
 
         order by sc_cls_confirm_data.data_group desc
         ,   sc_cls_confirm_data.data_type

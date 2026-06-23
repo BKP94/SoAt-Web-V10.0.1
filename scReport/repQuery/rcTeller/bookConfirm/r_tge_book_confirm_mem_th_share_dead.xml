@@ -16,8 +16,8 @@
 ,       '1. เงินค่าหุ้น (ณ '||trim(pka_com_function.fp_get_thaidate('!data_date!','SD MONTH YYYY'))||')' as paragraph_5
 ,       '2. เงินสงเคราะห์สมาชิกถึงแก่กรรม' as paragraph_6
 ,       sc_mem_m_membership_registered.membership_no
-,       to_snumber(pka_com_function.fp_shr_get_balance_atdate( sc_mem_m_membership_registered.membership_no , '!data_date!' ))as share_mem
-,       (select nvl(to_snumber(money_return),0)
+,       to_snumber((pka_com_function.fp_shr_get_balance_atdate( sc_mem_m_membership_registered.membership_no , '!data_date!' ))::bigint)as share_mem
+,       (select coalesce(to_snumber((money_return)::bigint),'0')
          from   sc_fin_money_return
          where  return_method = '003'
          and    membership_no = sc_mem_m_membership_registered.membership_no

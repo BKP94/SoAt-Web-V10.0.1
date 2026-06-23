@@ -36,7 +36,7 @@
  --,(select sum(insurance_approve) 
 --from sc_mem_m_app_member_insurance
 --where sc_mem_m_application_form.application_form_no  = sc_mem_m_app_member_insurance.application_form_no  ) insurance_approve
-    , NVL(sc_mem_m_app_work_info.position_long,'ไม่ระบุ') AS position_name
+    , coalesce(sc_mem_m_app_work_info.position_long,'ไม่ระบุ') AS position_name
     , sc_mem_m_ucf_salary_level.level_name
     , sc_mem_m_app_work_info.level_code
     , sc_mem_m_application_form.date_of_birth
@@ -47,23 +47,18 @@
                                                           from sc_mem_m_application_form
                                                           where sc_mem_m_application_form.approve_status = '2')) as hum_id_card
     ,sc_mem_m_membership_registered.id_card
-    FROM sc_mem_m_application_form,
-    sc_mem_m_app_work_info,
-    sc_mem_m_ucf_prename,
-    sc_mem_m_app_share,
-    sc_mem_m_ucf_member_group,
-    sc_mem_m_ucf_application_type,
-    sc_mem_m_ucf_member_type  ,
-    sc_mem_m_membership_registered ,
-    sc_mem_m_ucf_salary_level
-    WHERE ( sc_mem_m_application_form.application_form_no = sc_mem_m_app_work_info.application_form_no(+) ) and
-    ( sc_mem_m_membership_registered.application_form_no(+) =   sc_mem_m_application_form.application_form_no )and
-    ( sc_mem_m_application_form.prename_code = sc_mem_m_ucf_prename.prename_code ) and
+    FROM sc_mem_m_application_form
+    cross join sc_mem_m_ucf_prename
+    cross join sc_mem_m_ucf_member_group
+    cross join sc_mem_m_ucf_member_type
+    left join sc_mem_m_app_work_info on sc_mem_m_application_form.application_form_no = sc_mem_m_app_work_info.application_form_no
+    left join sc_mem_m_membership_registered on sc_mem_m_membership_registered.application_form_no = sc_mem_m_application_form.application_form_no
+    left join sc_mem_m_app_share on sc_mem_m_application_form.application_form_no = sc_mem_m_app_share.application_form_no
+    left join sc_mem_m_ucf_application_type on sc_mem_m_application_form.appl_type_code = sc_mem_m_ucf_application_type.appl_type_code
+    left join sc_mem_m_ucf_salary_level on sc_mem_m_app_work_info.level_code = sc_mem_m_ucf_salary_level.level_code
+    WHERE ( sc_mem_m_application_form.prename_code = sc_mem_m_ucf_prename.prename_code ) and
     ( sc_mem_m_application_form.member_group_no = sc_mem_m_ucf_member_group.member_group_no ) and
-    ( sc_mem_m_application_form.application_form_no = sc_mem_m_app_share.application_form_no(+) ) and
-    ( sc_mem_m_application_form.appl_type_code = sc_mem_m_ucf_application_type.appl_type_code(+) ) and
-    ( sc_mem_m_ucf_member_type.mem_type_code = sc_mem_m_application_form.mem_type )    and
-    ( sc_mem_m_app_work_info.level_code = sc_mem_m_ucf_salary_level.level_code(+))
+    ( sc_mem_m_ucf_member_type.mem_type_code = sc_mem_m_application_form.mem_type )
     /*WHERE*/
   </sql>
   <sub />

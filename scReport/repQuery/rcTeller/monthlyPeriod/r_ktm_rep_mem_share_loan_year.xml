@@ -9,7 +9,7 @@
   <combo />
   <sql>select sum(tab.row_memno)over( partition by (member_group_no) order by tab.membership_no ,tab.member_group_no ) as rowno,  tab.*
 from (     SELECT sc_rep_mem_share_loan_year.client_id,
-    decode(lag(sc_rep_mem_share_loan_year.membership_no,1,null)over(  order by sc_rep_mem_share_loan_year.membership_no , sc_rep_mem_share_loan_year.member_group_no ) ,sc_rep_mem_share_loan_year.membership_no,0,1) as row_memno,
+    (CASE lag(sc_rep_mem_share_loan_year.membership_no,1,null)over(  order by sc_rep_mem_share_loan_year.membership_no , sc_rep_mem_share_loan_year.member_group_no ) WHEN sc_rep_mem_share_loan_year.membership_no THEN 0 ELSE 1 END) as row_memno,
     sc_rep_mem_share_loan_year.seq_no,
     sc_rep_mem_share_loan_year.membership_no,
     sc_rep_mem_share_loan_year.member_group_no,
@@ -21,18 +21,18 @@ from (     SELECT sc_rep_mem_share_loan_year.client_id,
     sc_rep_mem_share_loan_year.emer_balance,
     sc_rep_mem_share_loan_year.emer_period,
     sc_mem_m_ucf_member_group.member_group_type,
-    decode( sc_rep_mem_share_loan_year.emer_balance , 0 , 0 ,  sc_rep_mem_share_loan_year.emer_installment ) as emer_installment  ,
+    (CASE sc_rep_mem_share_loan_year.emer_balance WHEN 0 THEN 0 ELSE sc_rep_mem_share_loan_year.emer_installment END) as emer_installment  ,
     sc_rep_mem_share_loan_year.norm_contract,
     sc_rep_mem_share_loan_year.norm_loantype,
     sc_rep_mem_share_loan_year.norm_balance,
     sc_rep_mem_share_loan_year.norm_period,
 
-    decode( sc_rep_mem_share_loan_year.norm_balance , 0 , 0 ,  sc_rep_mem_share_loan_year.norm_installment ) as norm_installment  ,
+    (CASE sc_rep_mem_share_loan_year.norm_balance WHEN 0 THEN 0 ELSE sc_rep_mem_share_loan_year.norm_installment END) as norm_installment  ,
     sc_rep_mem_share_loan_year.spec_contract,
     sc_rep_mem_share_loan_year.spec_loantype,
     sc_rep_mem_share_loan_year.spec_balance,
     sc_rep_mem_share_loan_year.spec_period,
-    decode( sc_rep_mem_share_loan_year.spec_balance , 0 , 0 ,  sc_rep_mem_share_loan_year.spec_installment ) as spec_installment  ,
+    (CASE sc_rep_mem_share_loan_year.spec_balance WHEN 0 THEN 0 ELSE sc_rep_mem_share_loan_year.spec_installment END) as spec_installment  ,
 
     sc_rep_mem_share_loan_year.salary_amount,
     sc_mem_m_ucf_member_group.member_group_name,
@@ -74,7 +74,7 @@ sc_rep_mem_share_loan_year.spec_intarr &gt; 0
     <r_ktm_rep_mem_share_loan_year_nest_a>
       <sql>SELECT        
 sc_lon_m_rule.loan_type
-,decode( sc_lon_m_ucf_loan_code.loan_code , '0' ,sc_lon_m_rule.loan_type_description  ,  sc_lon_m_ucf_loan_code.loan_code_desc    || '  ' || sc_lon_m_rule.loan_type_description  ) as loan_type_description
+,(CASE sc_lon_m_ucf_loan_code.loan_code WHEN '0' THEN sc_lon_m_rule.loan_type_description ELSE sc_lon_m_ucf_loan_code.loan_code_desc    || '  ' || sc_lon_m_rule.loan_type_description END) as loan_type_description
 , sum( sc_rep_mem_share_loan_bal.emer_balance ) as loan_balance
     FROM sc_rep_mem_share_loan_bal,   
          sc_lon_m_ucf_loan_code,   
@@ -97,7 +97,7 @@ sc_lon_m_rule.loan_type</sql>
     <r_ktm_rep_mem_share_loan_year_nest_b>
       <sql>SELECT        
 sc_lon_m_rule.loan_type
-,decode( sc_lon_m_ucf_loan_code.loan_code , '0' ,sc_lon_m_rule.loan_type_description  ,  sc_lon_m_ucf_loan_code.loan_code_desc    || '  ' || sc_lon_m_rule.loan_type_description  ) as loan_type_description
+,(CASE sc_lon_m_ucf_loan_code.loan_code WHEN '0' THEN sc_lon_m_rule.loan_type_description ELSE sc_lon_m_ucf_loan_code.loan_code_desc    || '  ' || sc_lon_m_rule.loan_type_description END) as loan_type_description
 , sum( sc_rep_mem_share_loan_bal.emer_balance ) as loan_balance
     FROM sc_rep_mem_share_loan_bal,   
          sc_lon_m_ucf_loan_code,   
@@ -120,7 +120,7 @@ sc_lon_m_rule.loan_type</sql>
     <r_ktm_rep_mem_share_loan_year_nest_c>
       <sql>SELECT        
 sc_lon_m_rule.loan_type
-,decode( sc_lon_m_ucf_loan_code.loan_code , '0' ,sc_lon_m_rule.loan_type_description  ,  sc_lon_m_ucf_loan_code.loan_code_desc    || '  ' || sc_lon_m_rule.loan_type_description  ) as loan_type_description
+,(CASE sc_lon_m_ucf_loan_code.loan_code WHEN '0' THEN sc_lon_m_rule.loan_type_description ELSE sc_lon_m_ucf_loan_code.loan_code_desc    || '  ' || sc_lon_m_rule.loan_type_description END) as loan_type_description
 , sum( sc_rep_mem_share_loan_bal.emer_balance ) as loan_balance
     FROM sc_rep_mem_share_loan_bal,   
          sc_lon_m_ucf_loan_code,   

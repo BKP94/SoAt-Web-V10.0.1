@@ -11,17 +11,15 @@
     pka_com_function.fp_get_group_name(sc_mem_m_membership_registered.member_group_no)  as  member_group_name,
     case sc_mem_m_membership_registered.marriage_status when '0' then 'โสด' when '1' then 'สมรส' when '2' then 'ม่าย' when '3' then 'หย่าร้าง' end as marriage_name,
     sc_mem_m_membership_registered.approve_date,
-    pka_lon_reqsrv.fp_calc_agetext(sc_mem_m_membership_registered.date_of_birth) as age,
+    pka_lon_reqsrv.fp_calc_agetext(sc_mem_m_membership_registered.date_of_birth, localtimestamp) as age,
     pka_mem.fp_desc_position(sc_mem_m_member_work_info.position_code ) as position_name,
      substr(pka_lon_reqsrv.fp_calc_agetext(pka_lon_reqsrv.fp_calc_install_m_age(sc_mem_m_membership_registered.membership_no)),1,30) as age_mem_text,
-    decode( sc_mem_m_membership_registered.marriage_status 
-                  , '1' , (   select sc_mem_m_ucf_prename.prename || sc_mem_m_member_spouse_info.spouse_name || '  ' || sc_mem_m_member_spouse_info.spouse_surname
+    (CASE sc_mem_m_membership_registered.marriage_status WHEN '1' THEN (   select sc_mem_m_ucf_prename.prename || sc_mem_m_member_spouse_info.spouse_name || '  ' || sc_mem_m_member_spouse_info.spouse_surname
       from sc_mem_m_member_spouse_info
       ,sc_mem_m_ucf_prename
       where sc_mem_m_member_spouse_info.prename_code = sc_mem_m_ucf_prename.prename_code
       and sc_mem_m_member_spouse_info.membership_no = sc_mem_m_membership_registered.membership_no
-       ) 
-,' ' ) as spouse_name,
+       ) ELSE ' ' END) as spouse_name,
     sc_mem_m_membership_registered.resignation_approve_date,
     sc_mem_m_membership_registered.membership_no,
     sc_mem_m_membership_registered.date_of_birth,
@@ -35,8 +33,8 @@
 
     pka_com_function.fp_get_thaidate('!op_date_1!','DD MONTH YYYY') as t_bdate,
     pka_com_function.fp_get_thaidate('!op_date_2!','DD MONTH YYYY') as t_edate,
-    to_date('!op_date_1!') as adtm_bdate,
-    to_date('!op_date_2!') as adtm_edate
+    ('!op_date_1!')::timestamp as adtm_bdate,
+    ('!op_date_2!')::timestamp as adtm_edate
 
     FROM sc_mem_m_membership_registered,
     sc_mem_m_ucf_member_type,
@@ -52,8 +50,8 @@
       <sql>        select sc_mem_m_share_holding_detail.period,
         sc_mem_m_share_holding_detail.operate_date,
         sc_mem_m_share_holding_detail.share_value,
-        decode(sc_mem_m_ucf_share_item_type.sign_flag,-1,sc_mem_m_share_holding_detail.share_value,0) as share_decr ,
-        decode(sc_mem_m_ucf_share_item_type.sign_flag,1,sc_mem_m_share_holding_detail.share_value,0)  as share_incr ,
+        (CASE sc_mem_m_ucf_share_item_type.sign_flag WHEN -1 THEN sc_mem_m_share_holding_detail.share_value ELSE 0 END) as share_decr ,
+        (CASE sc_mem_m_ucf_share_item_type.sign_flag WHEN 1 THEN sc_mem_m_share_holding_detail.share_value ELSE 0 END)  as share_incr ,
         sc_mem_m_share_holding_detail.share_stock,
         sc_mem_m_share_holding_detail.seq_no,
         sc_mem_m_share_holding_detail.item_type,

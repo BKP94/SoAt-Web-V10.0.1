@@ -49,7 +49,7 @@
   <sub>
     <r_ktm_member_record_by_group_nest_share>
       <sql>select sc_mem_m_share_holding_detail.seq_no
-        ,nvl(sc_mem_m_share_holding_detail.period,0) as period
+        ,coalesce(sc_mem_m_share_holding_detail.period,0) as period
         ,sc_mem_m_share_holding_detail.share_value
         --*sc_mem_m_ucf_share_item_type.sign_flag as share_value
         ,sc_mem_m_share_holding_detail.share_stock

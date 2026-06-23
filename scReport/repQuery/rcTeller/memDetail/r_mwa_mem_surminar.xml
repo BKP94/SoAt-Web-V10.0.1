@@ -6,19 +6,19 @@
   <combo />
   <sql>SELECT sum(tab.row_memno)over(order by tab.membership_no ,tab.seq_no) as rowno,  tab.*
 FROM (
-select  decode(lag(sc_mem_surminar.membership_no,1,null)over(  order by  sc_mem_surminar.membership_no,sc_mem_surminar.seq_no) ,sc_mem_surminar.membership_no,0,1) as row_memno,
+select  (CASE lag(sc_mem_surminar.membership_no,1,null)over(  order by  sc_mem_surminar.membership_no,sc_mem_surminar.seq_no) WHEN sc_mem_surminar.membership_no THEN 0 ELSE 1 END) as row_memno,
     sc_mem_surminar.membership_no,
     (select prename from sc_mem_m_ucf_prename where prename_code = sc_mem_m_membership_registered.prename_code)||sc_mem_m_membership_registered.member_name||' '||sc_mem_m_membership_registered.member_surname as member_name,
     substr(pka_lon_reqsrv.fp_calc_agetext_m_live(sc_mem_m_membership_registered.membership_no),1,30) as age_life_text ,
     pka_com_function.fp_get_group_name_mem ( sc_mem_m_membership_registered.membership_no ) as member_group_name,
-    PKA_COM_FUNCTION.fp_get_member_address_line(sc_mem_m_membership_registered.membership_no,'0') as address, --ที่อยู่ปัจจุบัน
-    PKA_COM_FUNCTION.fp_get_member_address_tel(sc_mem_m_membership_registered.membership_no, '0') as telephone,
+    PKA_COM_FUNCTION.fp_get_member_address_line(sc_mem_m_membership_registered.membership_no,('0')::text) as address, --ที่อยู่ปัจจุบัน
+    PKA_COM_FUNCTION.fp_get_member_address_tel(sc_mem_m_membership_registered.membership_no,('0')::text) as telephone,
     sc_mem_surminar.seq_no,
     sc_mem_surminar.operate,
     pka_com_function.fp_get_thaidate(sc_mem_surminar.operate , 'dd/mm/yyyy') as operate_tdate,
     sc_mem_surminar.remark
     
-    ,( select max( to_number(to_char( sc_mem_surminar.operate  ,'yyyy')))+543
+    ,( select max( ((to_char( sc_mem_surminar.operate  ,'yyyy'))::numeric))+543
        from sc_mem_surminar 
        where sc_mem_surminar.membership_no = sc_mem_m_membership_registered.membership_no
        ) as max_year

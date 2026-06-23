@@ -12,7 +12,7 @@
 	,sc_mem_m_ucf_resign_cause.resign_cause_code
     ,sc_mem_m_ucf_resign_cause.resign_cause_name
 	,pka_com_function.fp_get_member_name(sc_mem_m_resign_requestment.MEMBERSHIP_NO) as memname
-    ,pka_lon_reqsrv.fp_calc_agetext(sc_mem_m_membership_registered.date_of_birth) as agetext
+    ,pka_lon_reqsrv.fp_calc_agetext(sc_mem_m_membership_registered.date_of_birth, localtimestamp) as agetext
 	,SC_MEM_M_MEMBERSHIP_REGISTERED.MEMBER_GROUP_NO
 	,SC_MEM_M_UCF_MEMBER_GROUP.MEMBER_GROUP_NAME
 	,sc_mem_m_resign_requestment.REMARK
@@ -47,7 +47,7 @@
     AND (SC_MEM_M_MEMBERSHIP_REGISTERED.MEMBER_GROUP_NO = SC_MEM_M_UCF_MEMBER_GROUP.MEMBER_GROUP_NO)
     AND (sc_mem_m_resign_requestment.RESIGN_DOC_NO = sc_mem_m_resign_share.RESIGN_DOC_NO)
     AND (sc_mem_m_resign_requestment.approve_result &lt;&gt; '0')
-and sc_mem_m_resign_requestment.cancel_status &lt;&gt; 1
+and sc_mem_m_resign_requestment.cancel_status &lt;&gt; '1'
 and sc_mem_m_ucf_resign_cause.resign_cause_code in ('1108','1109')
 
 /*WHERE*/

@@ -9,83 +9,83 @@
     sc_mem_m_ucf_member_group.member_group_control,
     pka_com_function.fp_get_group_name(sc_mem_m_ucf_member_group.member_group_control) AS group_name,
 
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ก' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_1_ก,
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ก' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_1_ก,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ก' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_1_ก,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ก' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_1_ก,
 
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ข' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_2_ข,
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ข' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_2_ข,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ข' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_2_ข,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ข' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_2_ข,
 
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ฉก' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_3_ฉก,
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ฉก' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_3_ฉก,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ฉก' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_3_ฉก,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ฉก' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_3_ฉก,
 
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ท' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_4_ท,
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ท' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_4_ท,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ท' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_4_ท,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ท' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_4_ท,
 
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ผ' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_5_ผ,
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ผ' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_5_ผ,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ผ' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_5_ผ,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ผ' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_5_ผ,
 
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'พ' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_6_พ,
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'พ' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_6_พ,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'พ' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_6_พ,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'พ' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_6_พ,
 
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ร' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_7_ร,
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ร' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_7_ร,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ร' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_7_ร,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ร' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_7_ร,
 
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ว' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_8_ว,
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ว' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_8_ว,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ว' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_8_ว,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ว' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_8_ว,
 
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ส' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_9_ส,
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ส' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_9_ส,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ส' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_9_ส,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ส' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_9_ส,
 
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สก' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_10_สก,
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สก' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_10_สก,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สก' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_10_สก,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สก' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_10_สก,
 
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สข' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_11_สข,
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สข' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_11_สข,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สข' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_11_สข,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สข' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_11_สข,
 
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สค' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_12_สค,
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สค' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_12_สค,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สค' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_12_สค,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สค' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_12_สค,
 
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สง' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_13_สง,
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สง' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_13_สง,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สง' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_13_สง,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สง' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_13_สง,
 
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สจ' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_14_สจ,
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สจ' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_14_สจ,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สจ' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_14_สจ,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สจ' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_14_สจ,
 
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สช' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_15_สช,
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สช' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_15_สช,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สช' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_15_สช,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สช' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_15_สช,
 
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สฐ' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_16_สฐ,
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สฐ' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_16_สฐ,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สฐ' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_16_สฐ,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สฐ' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_16_สฐ,
 
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สน' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_17_สน,
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สน' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_17_สน,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สน' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_17_สน,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สน' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_17_สน,
 
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สบ' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_18_สบ,
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สบ' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_18_สบ,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สบ' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_18_สบ,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สบ' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_18_สบ,
 
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สป' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_19_สป,
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สป' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_19_สป,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สป' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_19_สป,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สป' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_19_สป,
 
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สพ' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_20_สพ,
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สพ' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_20_สพ,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สพ' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_20_สพ,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สพ' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_20_สพ,
 
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สร' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_21_สร,
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สร' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_21_สร,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สร' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_21_สร,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สร' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_21_สร,
 
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สส' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_22_สส,
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สส' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_22_สส,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สส' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_22_สส,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สส' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_22_สส,
 
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สห' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_23_สห,
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สห' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_23_สห,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สห' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_23_สห,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สห' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_23_สห,
 
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สอ' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_24_สอ,
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สอ' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_24_สอ,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สอ' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_24_สอ,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'สอ' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_24_สอ,
 
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ป' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_25_ป,
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ป' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_25_ป,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ป' THEN sc_com_m_receipt_item.principal_amount END),0) AS prin_25_ป,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL' AND sc_com_m_receipt_item.loan_type = 'ป' THEN sc_com_m_receipt_item.interest_amount END),0) AS int_25_ป,
 
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL'  THEN sc_com_m_receipt_item.principal_amount END),0) AS sum_prin,
-    NVL(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL'  THEN sc_com_m_receipt_item.interest_amount END),0) AS sum_int
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL'  THEN sc_com_m_receipt_item.principal_amount END),0) AS sum_prin,
+    coalesce(SUM(CASE WHEN sc_com_m_receipt_item.item_type_id = 'PL'  THEN sc_com_m_receipt_item.interest_amount END),0) AS sum_int
 
     FROM sc_com_m_receipt
     JOIN sc_mem_m_ucf_member_group

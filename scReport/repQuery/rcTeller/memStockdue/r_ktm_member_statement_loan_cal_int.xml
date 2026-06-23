@@ -8,7 +8,7 @@
   <combo />
   <sql>    SELECT sc_mem_m_membership_registered.membership_no ,
     PKA_COM_FUNCTION.fp_get_member_name( sc_mem_m_membership_registered.membership_no ) as membername ,
-    PKA_LON_INTSRV.fp_calint ( sc_lon_m_loan_card.loan_contract_no  ,   to_date( sysdate ) ) as interest_calculate ,
+    PKA_LON_INTSRV.fp_calint ( sc_lon_m_loan_card.loan_contract_no  ,   current_date ) as interest_calculate ,
 
     sc_lon_m_loan_card.loan_contract_no,
     sc_lon_m_loan_card.principal_balance,
@@ -24,7 +24,7 @@
     sc_lon_m_loan_card_detail.period,
 
     sc_lon_m_ucf_loan_card_item.item_type_code,
-    sc_lon_m_ucf_loan_card_item.item_type_description || decode( sc_lon_m_ucf_loan_card_item.item_type_code , 'KC' ,  ' ( ' || sc_lon_m_loan_card_detail.membership_no || ' )', '' ) as item_type_description ,
+    sc_lon_m_ucf_loan_card_item.item_type_description || (CASE sc_lon_m_ucf_loan_card_item.item_type_code WHEN 'KC' THEN ' ( ' || sc_lon_m_loan_card_detail.membership_no || ' )' ELSE '' END) as item_type_description ,
     sc_lon_m_ucf_loan_card_item.sign_status ,
 
     sc_lon_m_contract.begining_of_contract,

@@ -11,7 +11,7 @@ select sc_lon_m_rule.loan_type,
          sc_lon_m_loan_card.principal_balance,
          sc_lon_m_rule.loan_group_code,
          sc_lon_m_loan_card.loan_contract_no,
-         pka_com_function.fp_get_thaidate(sysdate , 'DD/MM/YYYY') as sysdate_tdate,
+         pka_com_function.fp_get_thaidate(current_date , 'DD/MM/YYYY') as sysdate_tdate,
          
 	(	CASE
 		  	WHEN  sc_lon_m_rule.loan_type = 'อส'  THEN 'T01'

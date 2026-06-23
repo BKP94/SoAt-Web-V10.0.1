@@ -21,8 +21,8 @@
     trim('!as_address!') as as_address,
     trim('!as_position!') as as_position,
     trim('!as_description!') as as_description,
-    to_snumber( '!adc_amount!') as adc_amount,
-    pka_com_function.fp_get_moneythai ( '!adc_amount!' ) as thai_adc_amount,
+    to_snumber(('!adc_amount!')::bigint) as adc_amount,
+    pka_com_function.fp_get_moneythai (('!adc_amount!')::double precision) as thai_adc_amount,
     pka_com_function.fp_get_member_name('!membership_no_1!') as as_receiver
     FROM sc_mem_m_membership_registered
     WHERE 1 = 1

@@ -1,0 +1,245 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <metadata name="sqlDataSource1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>17, 17</value>
+  </metadata>
+  <data name="customSqlQuery1.Sql" xml:space="preserve">
+    <value>select ai_year , id_card , member_name , address_pres , interest_paid , tax_paid , thai_tax_paid , membership_no , pragan_amt , sumrong_amt
+,book_tdate   ,coop_name  ,manager_name   ,position_name  , book_tday , book_tmonth , book_tyear , other_income
+
+, RIGHT(to_snumber(other_income),3) as other_income_right
+, REPLACE( to_snumber(other_income) , RIGHT(to_snumber(other_income),3) , '') as other_income_left
+, RIGHT(to_snumber(tax_paid),3) as tax_paid_right
+, REPLACE( to_snumber(tax_paid) , RIGHT(to_snumber(tax_paid),3) , '') as tax_paid_left
+
+from (  
+
+  SELECT pka_com_function.fp_get_thaidate('!book_date_1!' , 'SD MONTH YYYY') as book_tdate   --วันเดือนปีที่ออกหนังสือรับรอง
+,   pka_com_function.fp_get_thaidate('!book_date_1!' , 'SD') as book_tday
+,   pka_com_function.fp_get_thaidate('!book_date_1!' , 'MONTH') as book_tmonth
+,   pka_com_function.fp_get_thaidate('!book_date_1!' , 'YYYY') as book_tyear
+,  (select coop_name from sc_cnt_m_coop) as coop_name
+,  (select manager_name from sc_cnt_m_coop) as manager_name
+,  (select manager_position  from sc_cnt_m_coop)   as position_name  --ตำแหน่งผู้เซ็นต์
+,  sc_acc_m_account_year.account_year + 543    as ai_year    --ปีภาษีที่จ่าย
+, sc_fin_send_tax_hr.id_card  as id_card 
+, sc_fin_send_tax_hr.prename || sc_fin_send_tax_hr.memname || ' ' ||   sc_fin_send_tax_hr.memsurname  as member_name 
+, pka_com_function.fp_get_member_address_pres( sc_hr_off_member.membership_no ) as address_pres 
+,  nvl( sum( sc_fin_send_tax_hr.paid_amount    ),0)  as interest_paid 
+,  nvl( sum( sc_fin_send_tax_hr.tax_amount ),0)  as  tax_paid 
+,  pka_com_function.fp_get_moneythai (  nvl( sum( sc_fin_send_tax_hr.tax_amount ) , 0)  ) as thai_tax_paid 
+      
+ , sc_fin_send_tax_hr.official_no   as membership_no
+, nvl( (  select sum( income_amount )
+    from sc_hr_off_salary_income_other
+   where 1=1
+   and income_code = '1020'
+   and official_no = sc_fin_send_tax_hr.official_no   
+   and sal_year = sc_acc_m_account_year.account_year
+ ) , 0 ) as pragan_amt
+,  nvl( (  select sum( income_amount )
+    from sc_hr_off_salary_income_other
+   where 1=1
+   and income_code = '1005'
+   and official_no = sc_fin_send_tax_hr.official_no   
+   and sal_year = sc_acc_m_account_year.account_year
+ ) , 0 )  as sumrong_amt
+
+,  nvl( (  select sum( other_income )
+    from sc_hr_off_salary_paid
+   where 1=1
+   and official_no = sc_fin_send_tax_hr.official_no   
+   and sal_year = sc_acc_m_account_year.account_year
+ ) , 0 )  as other_income
+
+    FROM sc_fin_send_tax_hr,   
+         sc_hr_off_member,   
+         sc_mem_m_member_address  ,
+         sc_acc_m_account_year
+   WHERE ( sc_fin_send_tax_hr.official_no = sc_hr_off_member.official_no ) and  
+         ( sc_hr_off_member.membership_no = sc_mem_m_member_address.membership_no ) and  
+         ( ( sc_mem_m_member_address.address_type = '0' ) AND  
+         ( sc_fin_send_tax_hr.tax_date between  sc_acc_m_account_year.beginning_of_account and sc_acc_m_account_year.ending_of_account     ) )   
+/*WHERE*/
+  
+GROUP BY sc_fin_send_tax_hr.official_no
+    , sc_fin_send_tax_hr.id_card
+    , sc_fin_send_tax_hr.prename
+    , sc_fin_send_tax_hr.memname
+    , sc_fin_send_tax_hr.memsurname
+    , pka_com_function.fp_get_member_address_pres( sc_hr_off_member.membership_no )  
+    , sc_acc_m_account_year.account_year
+
+
+union all
+
+  SELECT pka_com_function.fp_get_thaidate('!book_date_1!' , 'SD MONTH YYYY') as book_tdate   --วันเดือนปีที่ออกหนังสือรับรอง
+,   pka_com_function.fp_get_thaidate('!book_date_1!' , 'SD') as book_tday
+,   pka_com_function.fp_get_thaidate('!book_date_1!' , 'MONTH') as book_tmonth
+,   pka_com_function.fp_get_thaidate('!book_date_1!' , 'YYYY') as book_tyear
+,  (select coop_name from sc_cnt_m_coop) as coop_name
+,  (select manager_name from sc_cnt_m_coop) as manager_name
+,  (select manager_position  from sc_cnt_m_coop)   as position_name   --ตำแหน่งผู้เซ็นต์
+,  sc_acc_m_account_year.account_year + 543    as ai_year     --ปีภาษีที่จ่าย
+, sc_fin_send_tax_fin.id_card  as id_card 
+, sc_fin_send_tax_fin.prename || sc_fin_send_tax_fin.memname || ' ' ||   sc_fin_send_tax_fin.memsurname  as member_name 
+, sc_fin_ucf_company.address_no || ' ' ||
+         sc_fin_ucf_company.road || ' ' ||
+         PKA_COM_FUNCTION.fp_get_sub_district_name   (  sc_fin_ucf_company.tambol )   || ' ' ||
+         PKA_COM_FUNCTION.fp_get_district_name   (  sc_fin_ucf_company.province_code , sc_fin_ucf_company.district_code )    || ' ' ||
+         PKA_COM_FUNCTION.fp_get_province_name   ( sc_fin_ucf_company.province_code )  || ' ' || 
+         sc_fin_ucf_company.postcode   as address_pres 
+,  nvl( sum( sc_fin_send_tax_fin.paid_amount    ),0)  as interest_paid 
+,  nvl( sum( sc_fin_send_tax_fin.tax_amount ),0)  as  tax_paid 
+,  pka_com_function.fp_get_moneythai (  nvl( sum( sc_fin_send_tax_fin.tax_amount ) , 0)  ) as thai_tax_paid 
+      
+ , sc_fin_send_tax_fin.company_id   as membership_no
+, 0.00 as pragan_amt
+, 0.00 as sumrong_amt
+, 0.00 as other_income
+    FROM sc_fin_send_tax_fin,         
+         sc_fin_ucf_company,
+         sc_acc_m_account_year
+   WHERE 1=1 and  
+         ( sc_fin_send_tax_fin.company_id = sc_fin_ucf_company.company_id ) and       
+         ( sc_fin_send_tax_fin.tax_date between  sc_acc_m_account_year.beginning_of_account and sc_acc_m_account_year.ending_of_account     )    
+/*WHERE*/
+
+  
+GROUP BY sc_fin_send_tax_fin.company_id
+    , sc_fin_send_tax_fin.id_card
+    , sc_fin_send_tax_fin.prename
+    , sc_fin_send_tax_fin.memname
+    , sc_fin_send_tax_fin.memsurname
+    , sc_fin_ucf_company.address_no
+    , sc_fin_ucf_company.road
+    , sc_fin_ucf_company.tambol
+    , sc_fin_ucf_company.district_code
+    , sc_fin_ucf_company.province_code
+    , sc_fin_ucf_company.postcode  
+    , sc_acc_m_account_year.account_year
+) 
+where 1=1
+order by membership_no</value>
+  </data>
+  <data name="sqlDataSource1.ResultSchemaSerializable" xml:space="preserve">
+    <value>PERhdGFTZXQgTmFtZT0ic3FsRGF0YVNvdXJjZTEiPjxWaWV3IE5hbWU9IlF1ZXJ5Ij48RmllbGQgTmFtZT0iQUlfWUVBUiIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iSURfQ0FSRCIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJNRU1CRVJfTkFNRSIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJBRERSRVNTX1BSRVMiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iSU5URVJFU1RfUEFJRCIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iVEFYX1BBSUQiIFR5cGU9IkRlY2ltYWwiIC8+PEZpZWxkIE5hbWU9IlRIQUlfVEFYX1BBSUQiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iTUVNQkVSU0hJUF9OTyIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJQUkFHQU5fQU1UIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJTVU1ST05HX0FNVCIgVHlwZT0iRGVjaW1hbCIgLz48RmllbGQgTmFtZT0iQk9PS19UREFURSIgVHlwZT0iU3RyaW5nIiAvPjxGaWVsZCBOYW1lPSJDT09QX05BTUUiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iTUFOQUdFUl9OQU1FIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IlBPU0lUSU9OX05BTUUiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iQk9PS19UREFZIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IkJPT0tfVE1PTlRIIiBUeXBlPSJTdHJpbmciIC8+PEZpZWxkIE5hbWU9IkJPT0tfVFlFQVIiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iT1RIRVJfSU5DT01FIiBUeXBlPSJEZWNpbWFsIiAvPjxGaWVsZCBOYW1lPSJPVEhFUl9JTkNPTUVfUklHSFQiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iT1RIRVJfSU5DT01FX0xFRlQiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iVEFYX1BBSURfUklHSFQiIFR5cGU9IlN0cmluZyIgLz48RmllbGQgTmFtZT0iVEFYX1BBSURfTEVGVCIgVHlwZT0iU3RyaW5nIiAvPjwvVmlldz48L0RhdGFTZXQ+</value>
+  </data>
+</root>

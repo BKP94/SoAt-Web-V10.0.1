@@ -11,13 +11,13 @@
     tm.*
     from (
     select sc_mem_m_membership_registered.membership_no,
-    nvl(sc_mem_m_share_mem.share_stock,0) as share_stock,
-    nvl(sum(decode(sc_lon_m_rule.loan_group_code,'01',sc_lon_m_loan_card.principal_balance,0)),0) as loan_01,
-    nvl(sum(decode(sc_lon_m_rule.loan_group_code,'02',sc_lon_m_loan_card.principal_balance,0)),0) as loan_02,
-    nvl(sum(decode(sc_lon_m_rule.loan_group_code,'03',sc_lon_m_loan_card.principal_balance,0)),0) as loan_03,
-    nvl(sum(decode(sc_lon_m_rule.loan_group_code,'01',1,0)),0) as count_01,
-    nvl(sum(decode(sc_lon_m_rule.loan_group_code,'02',1,0)),0) as count_02,
-    nvl(sum(decode(sc_lon_m_rule.loan_group_code,'03',1,0)),0) as count_03
+    coalesce(sc_mem_m_share_mem.share_stock,0) as share_stock,
+    coalesce(sum((CASE sc_lon_m_rule.loan_group_code WHEN '01' THEN sc_lon_m_loan_card.principal_balance ELSE 0 END)),0) as loan_01,
+    coalesce(sum((CASE sc_lon_m_rule.loan_group_code WHEN '02' THEN sc_lon_m_loan_card.principal_balance ELSE 0 END)),0) as loan_02,
+    coalesce(sum((CASE sc_lon_m_rule.loan_group_code WHEN '03' THEN sc_lon_m_loan_card.principal_balance ELSE 0 END)),0) as loan_03,
+    coalesce(sum((CASE sc_lon_m_rule.loan_group_code WHEN '01' THEN 1 ELSE 0 END)),0) as count_01,
+    coalesce(sum((CASE sc_lon_m_rule.loan_group_code WHEN '02' THEN 1 ELSE 0 END)),0) as count_02,
+    coalesce(sum((CASE sc_lon_m_rule.loan_group_code WHEN '03' THEN 1 ELSE 0 END)),0) as count_03
     from sc_mem_m_membership_registered,sc_mem_m_share_mem,sc_lon_m_loan_card,sc_lon_m_rule
     where sc_mem_m_membership_registered.membership_no = sc_mem_m_share_mem.membership_no
     and sc_mem_m_membership_registered.membership_no = sc_lon_m_loan_card.membership_no
@@ -43,7 +43,7 @@
   <sub>
     <r_ktm_share_loan_balance_2group_no_nest_conno>
       <sql>
-        select sc_lon_m_loan_card.loan_type||'/'||nvl((select loan_code_desc from sc_lon_m_ucf_loan_code where loan_code = sc_lon_m_loan_card.loan_code and loan_code != '0'),'ปกติ') as loan_code ,
+        select sc_lon_m_loan_card.loan_type||'/'||coalesce((select loan_code_desc from sc_lon_m_ucf_loan_code where loan_code = sc_lon_m_loan_card.loan_code and loan_code != '0'),'ปกติ') as loan_code ,
         sc_lon_m_loan_card.loan_contract_no ,
         sc_lon_m_rule.loan_type,
         (case when principal_balance &gt; 0 then 1 else 0 end) as have_loan,
@@ -67,7 +67,7 @@
         sum(tm.have_loan) as have_loan,
         count(distinct  tm.membership_no  ) as membership_no
         from (
-        select sc_lon_m_loan_card.loan_type||'/'||nvl((select loan_code_desc from sc_lon_m_ucf_loan_code where loan_code = sc_lon_m_loan_card.loan_code and loan_code != '0'),'ปกติ') as loan_code ,
+        select sc_lon_m_loan_card.loan_type||'/'||coalesce((select loan_code_desc from sc_lon_m_ucf_loan_code where loan_code = sc_lon_m_loan_card.loan_code and loan_code != '0'),'ปกติ') as loan_code ,
         sc_lon_m_loan_card.loan_contract_no ,
         sc_lon_m_rule.loan_type,
         (case when principal_balance &gt; 0 then 1 else 0 end) as have_loan,

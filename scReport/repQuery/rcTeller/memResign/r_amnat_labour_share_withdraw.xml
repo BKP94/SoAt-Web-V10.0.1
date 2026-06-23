@@ -24,17 +24,17 @@
     ,sc_com_m_receipt.recept_amount
     ,sc_mem_m_ucf_member_type.mem_type_code
     ,sc_mem_m_ucf_member_type.mem_type_desc
-    ,to_date(  '!op_date_1!' ) as begin_date
-    ,to_date(  '!op_date_2!' ) as end_date
+    ,('!op_date_1!')::timestamp as begin_date
+    ,('!op_date_2!')::timestamp as end_date
 
-    , nvl( (  SELECT   sum( sc_mem_m_share_withdraw_det.share_stock - sc_mem_m_share_withdraw_det.share_withdraw )
+    , coalesce( (  SELECT   sum( sc_mem_m_share_withdraw_det.share_stock - sc_mem_m_share_withdraw_det.share_withdraw )
     FROM sc_mem_m_share_withdraw_head,
     sc_mem_m_share_withdraw_det
     WHERE 	sc_mem_m_share_withdraw_head.withdraw_doc_no = sc_mem_m_share_withdraw_det.withdraw_doc_no
     AND 		sc_mem_m_share_withdraw_head.membership_no = sc_mem_m_membership_registered.membership_no
     AND   		sc_mem_m_share_withdraw_head.withdraw_status = '0'  ) , 0 )  as share_balance
     
-     , nvl (( select sum(sc_com_m_receipt_item.balance )
+     , coalesce(( select sum(sc_com_m_receipt_item.balance )
      from  sc_com_m_receipt ,sc_com_m_receipt_item 
      where sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no
      and   sc_com_m_receipt.membership_no = sc_mem_m_membership_registered.membership_no
@@ -58,7 +58,7 @@
     and      ( sc_com_m_receipt.membership_no = sc_mem_m_membership_registered.membership_no)
     and      ( sc_com_m_receipt.money_type_id = 'TNL' )
     and      ( sc_com_m_receipt.receipt_status = '0' )
-    and      ( sc_com_m_receipt.receipt_date between to_date(  '!op_date_1!' ) and  to_date(  '!op_date_2!' ))
+    and      ( sc_com_m_receipt.receipt_date between ('!op_date_1!')::timestamp and  ('!op_date_2!')::timestamp)
     /*WHERE*/
   </sql>
   <sub>

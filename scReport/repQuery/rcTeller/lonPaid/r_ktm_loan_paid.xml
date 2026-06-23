@@ -90,10 +90,10 @@
   <sub>
     <r_ktm_loan_paid_coll_nest>
       <sql>
-        SELECT "SC_LON_M_CONTRACT_COLL"."COLLATERAL_TYPE_CODE",
-        "SC_LON_M_CONTRACT_COLL"."REF_OWN_NO",
-        "SC_LON_M_CONTRACT_COLL"."COLLATERAL_DESCRIPTION"
-        FROM "SC_LON_M_CONTRACT_COLL"
+        SELECT sc_lon_m_contract_coll.collateral_type_code,
+        sc_lon_m_contract_coll.ref_own_no,
+        sc_lon_m_contract_coll.collateral_description
+        FROM sc_lon_m_contract_coll
         WHERE ( sc_lon_m_contract_coll.loan_contract_no = {0}  ) AND
         ( sc_lon_m_contract_coll.status = '0' )
 
@@ -104,24 +104,24 @@
 
     <r_ktm_loan_paid_old_loan_nest>
       <sql>
-        SELECT "SC_COM_M_RECEIPT"."RECEIPT_NO",
-        "SC_COM_M_RECEIPT_ITEM"."DESCRIPTION",
-        "SC_COM_M_RECEIPT_ITEM"."PRINCIPAL_AMOUNT",
-        "SC_COM_M_RECEIPT_ITEM"."INTEREST_AMOUNT",
-        "SC_COM_M_RECEIPT_ITEM"."LOAN_TYPE",
-        "SC_COM_M_RECEIPT_ITEM"."ITEM_AMOUNT",
-        decode(  sc_com_m_ucf_receipt_item_type.group_item , 'LON' , sc_com_m_receipt_item.loan_type , sc_com_m_ucf_receipt_item_type.item_type_name )  as loan_type_des,
-        "SC_COM_M_RECEIPT"."RECEPT_AMOUNT",
-        "SC_COM_M_UCF_RECEIPT_ITEM_TYPE"."GROUP_ITEM",
-        "SC_COM_M_UCF_RECEIPT_ITEM_TYPE"."SORT_ORDER",
-        "SC_LON_M_RULE"."REF_CONTRACT_TYPE"
-        FROM "SC_COM_M_RECEIPT",
-        "SC_COM_M_RECEIPT_ITEM",
-        "SC_COM_M_UCF_RECEIPT_ITEM_TYPE",
-        "SC_LON_M_RULE"
-        WHERE ( "SC_COM_M_RECEIPT"."RECEIPT_NO" = "SC_COM_M_RECEIPT_ITEM"."RECEIPT_NO" ) and
-        ( "SC_COM_M_RECEIPT_ITEM"."ITEM_TYPE_ID" = "SC_COM_M_UCF_RECEIPT_ITEM_TYPE"."ITEM_TYPE_ID" ) and
-        ( "SC_LON_M_RULE"."LOAN_TYPE" = "SC_COM_M_RECEIPT_ITEM"."LOAN_TYPE" ) and
+        SELECT sc_com_m_receipt.receipt_no,
+        sc_com_m_receipt_item.description,
+        sc_com_m_receipt_item.principal_amount,
+        sc_com_m_receipt_item.interest_amount,
+        sc_com_m_receipt_item.loan_type,
+        sc_com_m_receipt_item.item_amount,
+        (CASE sc_com_m_ucf_receipt_item_type.group_item WHEN 'LON' THEN sc_com_m_receipt_item.loan_type ELSE sc_com_m_ucf_receipt_item_type.item_type_name END)  as loan_type_des,
+        sc_com_m_receipt.recept_amount,
+        sc_com_m_ucf_receipt_item_type.group_item,
+        sc_com_m_ucf_receipt_item_type.sort_order,
+        sc_lon_m_rule.ref_contract_type
+        FROM sc_com_m_receipt,
+        sc_com_m_receipt_item,
+        sc_com_m_ucf_receipt_item_type,
+        sc_lon_m_rule
+        WHERE ( sc_com_m_receipt.receipt_no = sc_com_m_receipt_item.receipt_no ) and
+        ( sc_com_m_receipt_item.item_type_id = sc_com_m_ucf_receipt_item_type.item_type_id ) and
+        ( sc_lon_m_rule.loan_type = sc_com_m_receipt_item.loan_type ) and
         ( ( sc_com_m_receipt.loan_contract_no = {0} ) AND
         ( sc_com_m_receipt.money_type_id = 'CLR' ) AND
         ( sc_com_m_receipt.receipt_status = '0' ) ) AND
@@ -131,15 +131,15 @@
 
     <r_ktm_loan_paid_mpaid_nest>
       <sql>
-        SELECT "SC_LON_M_CONTRACT_MULTI_PAID"."SEQ_NO",
-        "SC_COM_M_UCF_MONEY_TYPE"."MONEY_TYPE_ID",
-        "SC_COM_M_UCF_MONEY_TYPE"."MONEY_TYPE_NAME",
-        "SC_LON_M_CONTRACT_MULTI_PAID"."BANK_CODE",
-        "SC_LON_M_CONTRACT_MULTI_PAID"."BANK_ACC_NO",
-        "SC_LON_M_CONTRACT_MULTI_PAID"."PAID_AMOUNT"
-        FROM "SC_LON_M_CONTRACT_MULTI_PAID",
-        "SC_COM_M_UCF_MONEY_TYPE"
-        WHERE ( "SC_COM_M_UCF_MONEY_TYPE"."MONEY_TYPE_ID" = "SC_LON_M_CONTRACT_MULTI_PAID"."TYPE_PAY_MONEY" ) and
+        SELECT sc_lon_m_contract_multi_paid.seq_no,
+        sc_com_m_ucf_money_type.money_type_id,
+        sc_com_m_ucf_money_type.money_type_name,
+        sc_lon_m_contract_multi_paid.bank_code,
+        sc_lon_m_contract_multi_paid.bank_acc_no,
+        sc_lon_m_contract_multi_paid.paid_amount
+        FROM sc_lon_m_contract_multi_paid,
+        sc_com_m_ucf_money_type
+        WHERE ( sc_com_m_ucf_money_type.money_type_id = sc_lon_m_contract_multi_paid.type_pay_money ) and
         ( ( sc_lon_m_contract_multi_paid.loan_contract_no = {0}  ) )
 
       </sql>

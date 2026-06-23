@@ -10,8 +10,7 @@ from (
 SELECT sc_rep_mem_share_loan_year.client_id,
     sc_rep_mem_share_loan_year.seq_no,
     sc_rep_mem_share_loan_year.membership_no,
-    decode(lag(sc_mem_m_ucf_member_group.member_group_no,1,null) over(order by sc_mem_m_ucf_member_group.member_group_no,sc_rep_mem_share_loan_year.membership_no)
-    ,sc_mem_m_ucf_member_group.member_group_no,0,1)as row_memno ,
+    (CASE lag(sc_mem_m_ucf_member_group.member_group_no,1,null) over(order by sc_mem_m_ucf_member_group.member_group_no,sc_rep_mem_share_loan_year.membership_no) WHEN sc_mem_m_ucf_member_group.member_group_no THEN 0 ELSE 1 END)as row_memno ,
     sc_rep_mem_share_loan_year.emer_contract,
     sc_rep_mem_share_loan_year.emer_loantype,
     sc_rep_mem_share_loan_year.emer_balance,

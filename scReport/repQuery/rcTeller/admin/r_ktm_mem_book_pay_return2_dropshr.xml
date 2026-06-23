@@ -13,9 +13,9 @@
     ( select coop_name from sc_cnt_m_coop) as coop_name ,
     pka_com_function.fp_get_group_name(sc_kep_t_monthly_receive.member_group_no) as member_group_name,
     sc_mem_m_share_mem.share_amount,
-    pka_com_function.fp_get_month_name(sc_rep_kep_return_month.last_month,'LT') as last_month_thai,
+    pka_com_function.fp_get_month_name((sc_rep_kep_return_month.last_month)::int,'LT') as last_month_thai,
     sc_rep_kep_return_month.last_year + 543 as last_year_thai,
-    pka_com_function.fp_get_month_name(sc_kep_t_monthly_receive.receive_month,'LT') as receive_month_thai,
+    pka_com_function.fp_get_month_name((sc_kep_t_monthly_receive.receive_month)::int,'LT') as receive_month_thai,
     sc_kep_t_monthly_receive.receive_year + 543 as receive_year_thai,
     pka_com_function.fp_get_thaidate(sc_rep_kep_return_month.book_date , 'SD MONTH YYYY') as book_date_tdate ,
     '!as_name_1!' as ass_name,
@@ -56,9 +56,9 @@
   <sub>
     <r_ktm_mem_book_pay_return2_dropshr_nest_loan>
       <sql>
-        select rownum + 1 as row_no ,
+        select row_number() over () + 1 as row_no ,
         sc_kep_t_monthly_receive_det.unkeep_money_amount ,
-        nvl( ( select rec_det.unkeep_principal_of_loan  -- เดือนก่อนหน้าใช้เงินต้น
+        coalesce( ( select rec_det.unkeep_principal_of_loan  -- เดือนก่อนหน้าใช้เงินต้น
         from sc_kep_t_monthly_receive_det rec_det
         where rec_det.receive_year = sc_rep_kep_return_month.last_year
         and   rec_det.receive_month = sc_rep_kep_return_month.last_month
@@ -69,9 +69,9 @@
         sc_lon_m_contract.loan_contract_no ,
         sc_lon_m_contract.begining_of_contract ,
         sc_lon_m_loan_card.last_calcint_date ,
-        pka_com_function.fp_get_month_name(sc_kep_t_monthly_receive_det.receive_month,'LT') as receive_month_thai,
+        pka_com_function.fp_get_month_name((sc_kep_t_monthly_receive_det.receive_month)::int,'LT') as receive_month_thai,
         sc_kep_t_monthly_receive_det.receive_year + 543 as receive_year_thai,
-        pka_com_function.fp_get_month_name(sc_rep_kep_return_month.last_month,'LT') as last_month_thai,
+        pka_com_function.fp_get_month_name((sc_rep_kep_return_month.last_month)::int,'LT') as last_month_thai,
         sc_rep_kep_return_month.last_year + 543 as last_year_thai
 
         from  sc_kep_t_monthly_receive_det ,

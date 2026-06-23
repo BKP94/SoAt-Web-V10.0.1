@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <year_1 align="center" special="year" text="ปี" column="year_1" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <month_1 align="center" special="month" text="เดือน" type="integer" column="month_1" combo="monthThLong" sqlwhere="0" sqlreplace="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select sc_acc_m_expire_warranty_detail.meterial_id,
+         sc_acc_m_expire_warranty_detail.seq_no,
+         sc_acc_m_expire_warranty_detail.operate_date,
+         pka_com_function.fp_get_thaidate(sc_acc_m_expire_warranty_detail.operate_date,'DD/MM/YYYY') as operate_tdate,    
+         sc_acc_m_expire_warranty_detail.warranty_start_date,
+         pka_com_function.fp_get_thaidate(sc_acc_m_expire_warranty_detail.warranty_start_date,'DD/MM/YYYY') as warranty_start_tdate,
+         sc_acc_m_expire_warranty_detail.warranty_end_date,
+         pka_com_function.fp_get_thaidate(sc_acc_m_expire_warranty_detail.warranty_end_date,'DD/MM/YYYY') as warranty_end_tdate,
+         sc_acc_m_expire_warranty_detail.warranty_year,
+         
+         case 
+         when pkb_mwa.fp_warrenty_status(sc_acc_m_expire_warranty_detail.meterial_id,sysdate) = 1 then 'อยู่ในประกัน'
+         when pkb_mwa.fp_warrenty_status(sc_acc_m_expire_warranty_detail.meterial_id,sysdate) = 2 then 'หมดประกัน'
+         else 'ไม่มีประกัน'
+         end as warranty_status,
+         
+         sc_acc_m_expire_warranty_detail.warranty_price,
+         sc_acc_m_expire_warranty_detail.company_waranry,
+         sc_acc_m_expire.description
+
+    from sc_acc_m_expire_warranty_detail,  
+         sc_acc_m_expire  
+         
+   where 1=1 
+   and  sc_acc_m_expire.material_id = sc_acc_m_expire_warranty_detail.meterial_id
+   and EXTRACT(month from to_date(sc_acc_m_expire_warranty_detail.operate_date)) = '!month_1!'
+   and EXTRACT(YEAR from to_date(sc_acc_m_expire_warranty_detail.operate_date)) = '!year_1!'
+    /*where*/
+   order by sc_acc_m_expire_warranty_detail.meterial_id,
+   sc_acc_m_expire_warranty_detail.seq_no</sql>
+  <sub />
+</root>

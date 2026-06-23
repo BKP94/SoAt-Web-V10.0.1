@@ -13,12 +13,12 @@
     ,       '!operate_date_2!'as to_date
     ,       sc_mem_m_chang_request.salary_amount
     ,       sc_mem_m_chg_share_det.drop_status_last
-    ,       to_snumber(sc_mem_m_chg_share_det.shr_value_old)as shr_value_old
-    ,       to_snumber(sc_mem_m_chg_share_det.shr_value_new)as shr_value_new
-    ,       to_snumber(decode(sc_mem_m_chg_share_det.drop_status_last,1,0,sc_mem_m_chg_share_det.shr_value_old))as old_share
-    ,       to_snumber(sc_mem_m_chg_share_det.shr_value_new - sc_mem_m_chg_share_det.shr_value_old)as change_share_amount
-    ,       substr(to_snumber(sc_mem_m_chg_share_det.shr_value_new - sc_mem_m_chg_share_det.shr_value_old),2,10)as reduce_share_amount
-    ,       substr((sc_mem_m_chg_share_det.shr_value_new - sc_mem_m_chg_share_det.shr_value_old),0,1)as sign
+    ,       to_snumber((sc_mem_m_chg_share_det.shr_value_old)::bigint)as shr_value_old
+    ,       to_snumber((sc_mem_m_chg_share_det.shr_value_new)::bigint)as shr_value_new
+    ,       to_snumber(((CASE sc_mem_m_chg_share_det.drop_status_last WHEN '1' THEN 0 ELSE sc_mem_m_chg_share_det.shr_value_old END))::bigint)as old_share
+    ,       to_snumber((sc_mem_m_chg_share_det.shr_value_new - sc_mem_m_chg_share_det.shr_value_old)::bigint)as change_share_amount
+    ,       substr(to_snumber((sc_mem_m_chg_share_det.shr_value_new - sc_mem_m_chg_share_det.shr_value_old)::bigint),2,10)as reduce_share_amount
+    ,       substr((sc_mem_m_chg_share_det.shr_value_new - sc_mem_m_chg_share_det.shr_value_old)::text,0,1)as sign
     from    sc_mem_m_chang_request,
     sc_mem_m_chg_share_det ,
     sc_mem_m_membership_registered

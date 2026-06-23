@@ -5,11 +5,11 @@
   <combo />
   <sql>
     select tab_main.*
-    , decode(row_id,1, 'เลขประจำตัวประชาชน (Personal Id)','')  AS id_type
+    , (CASE row_id WHEN 1 THEN 'เลขประจำตัวประชาชน (Personal Id)' ELSE '' END)  AS id_type
     from (
     SELECT sc_mem_m_membership_registered.id_card
     --	, '103010 เลขประจำตัวประชาชน (Personal Id)' AS id_type
-    ,  decode(lag(sc_mem_m_membership_registered.id_card,1,null)over( ORDER BY seq_no,sc_lon_m_loan_card.principal_balance DESC) ,sc_mem_m_membership_registered.id_card,1,1) as row_id
+    ,  (CASE lag(sc_mem_m_membership_registered.id_card,1,null)over( ORDER BY seq_no,sc_lon_m_loan_card.principal_balance DESC) WHEN sc_mem_m_membership_registered.id_card THEN 1 ELSE 1 END) as row_id
 
     --        'เลขประจำตัวประชาชน (Personal Id)' AS id_type
     ,trim( sc_mem_m_ucf_prename.prename ) as prename
@@ -24,7 +24,7 @@
     END
     ) AS loan_type
     ,sc_lon_m_loan_card.loan_contract_no
-    ,to_date(sc_lon_m_contract.begining_of_contract, 'dd/mm/yyyy') AS begining_of_contract
+    ,(sc_lon_m_contract.begining_of_contract)::date AS begining_of_contract
     ,
     /*ATM สัญญาเก่า ให้หมดในปี
     สัญญาในปี ให้หมดในอีก 1 ปี
@@ -33,14 +33,14 @@
     CASE
     WHEN sc_lon_m_rule.atm_status = '1'
     AND sc_lon_m_contract.begining_of_contract &lt; sc_acc_m_account_constant.beginning_of_account
-				THEN to_date(sc_acc_m_account_constant.ending_of_account, 'dd/mm/yyyy')
+				THEN (sc_acc_m_account_constant.ending_of_account)::date
 			WHEN sc_lon_m_rule.atm_status = '1'
 				AND sc_lon_m_contract.begining_of_contract &gt;= sc_acc_m_account_constant.beginning_of_account
-				THEN to_date(sc_lon_m_contract.begining_of_contract + 365, 'dd/mm/yyyy')
+				THEN (sc_lon_m_contract.begining_of_contract + 365 * interval '1 day')::date
 			WHEN sc_lon_m_rule.atm_status = '0'
-				AND sc_lon_m_contract.ending_of_contract &gt; sc_lon_m_contract.begining_of_contract + 10000
-				THEN to_date(sc_lon_m_contract.begining_of_contract + 10000, 'dd/mm/yyyy')
-			ELSE to_date(sc_lon_m_contract.ending_of_contract, 'dd/mm/yyyy')
+				AND sc_lon_m_contract.ending_of_contract &gt; sc_lon_m_contract.begining_of_contract + 10000 * interval '1 day'
+				THEN (sc_lon_m_contract.begining_of_contract + 10000 * interval '1 day')::date
+			ELSE (sc_lon_m_contract.ending_of_contract)::date
 			END
 		) AS ending_of_contract
 	,

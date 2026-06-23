@@ -14,7 +14,7 @@
 ,       sc_dep_m_creditor.member_status
 ,       sc_dep_m_creditor.deposit_closing_date
 ,       sc_dep_m_creditor.deposit_type_code
-,       pka_com_function.fp_get_thaidate(sysdate , 'SD MONTH YYYY') as systdate
+,       pka_com_function.fp_get_thaidate(current_date , 'SD MONTH YYYY') as systdate
 FROM    sc_dep_m_creditor  
 WHERE   1=1
 /*WHERE*/

@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <first_used_day text="วันที่ซื้อ" operator="bt" table="sc_acc_m_expire" type="date" />
+    <user_id text="ผู้ครอบครอง" table="si_security_user" column="user_id" combo="si_security_user2" readonly="0" />
+  </arg>
+  <combo />
+  <sql>    SELECT sc_acc_m_expire.doc_old,
+   sc_acc_m_expire.material_id ,
+    sc_acc_m_expire.description,
+    sc_acc_m_expire.amount_value,
+    sc_acc_m_expire.first_used_day,
+    sc_acc_m_expire.accu_expire_amount,
+    sc_acc_m_expire.balance,
+    sc_acc_m_expire.remark ,
+    si_security_user.user_id,
+    si_security_user.user_name
+    FROM sc_acc_m_expire,
+    si_security_user
+    WHERE ( sc_acc_m_expire.user_keep = si_security_user.user_id ) and
+    ( sc_acc_m_expire.balance &gt; 0 )
+    /*WHERE*/
+    ORDER BY si_security_user.user_id , sc_acc_m_expire.doc_old ASC
+
+
+  </sql>
+  <sub />
+</root>

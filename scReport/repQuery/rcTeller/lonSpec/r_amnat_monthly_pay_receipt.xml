@@ -11,10 +11,10 @@
 	  sc_kep_t_monthly_receive.receipt_no as receipt_no,   
          pka_com_function.fp_get_member_name(sc_kep_t_monthly_receive.membership_no) as member_name,      
          sc_kep_t_monthly_receive.kep_method_amount as recept_amount ,   
-         pka_com_function.fp_get_moneythai ( sc_kep_t_monthly_receive.kep_method_amount ) as thai_recept_amount,   
+         pka_com_function.fp_get_moneythai ((sc_kep_t_monthly_receive.kep_method_amount)::double precision) as thai_recept_amount,   
 
 
-         ( select nvl(sum(  sc_kep_t_monthly_receive_det.mpost_principal_balance + sc_kep_t_monthly_receive_det.unkeep_principal_of_loan),0)
+         ( select coalesce(sum(  sc_kep_t_monthly_receive_det.mpost_principal_balance + sc_kep_t_monthly_receive_det.unkeep_principal_of_loan),0)
            from sc_kep_t_monthly_receive_det
 		,sc_kep_m_ucf_keeping_item_type
            where 1=1
@@ -26,7 +26,7 @@
 		and  	sc_kep_m_ucf_keeping_item_type.keeping_type_group = 'LON'
          )  as balance ,
          
-         ( select nvl(sum(  sc_kep_t_monthly_receive_det.principal_not  ),0)
+         ( select coalesce(sum(  sc_kep_t_monthly_receive_det.principal_not  ),0)
            from sc_kep_t_monthly_receive_det
 		,sc_kep_m_ucf_keeping_item_type
            where 1=1
@@ -38,7 +38,7 @@
 		and  	sc_kep_m_ucf_keeping_item_type.keeping_type_group = 'LON'
          )  as principal_amount ,
          
-         ( select nvl(sum(  sc_kep_t_monthly_receive_det.interest_not   ),0)
+         ( select coalesce(sum(  sc_kep_t_monthly_receive_det.interest_not   ),0)
            from sc_kep_t_monthly_receive_det
 		,sc_kep_m_ucf_keeping_item_type
            where 1=1
@@ -58,8 +58,7 @@
          sc_kep_t_monthly_receive.total_share_value  as share_stock,   
          pka_com_function.fp_get_group_name(sc_mem_m_ucf_member_group.member_group_control) as group_control_name,   
  
-        decode( sc_kep_t_monthly_receive.amount_form_file , 0 , 'หัก ณ ที่จ่ายไม่ได้' 
-	, 'ตัวแทนนำส่ง  ' || trim( to_char( sc_kep_t_monthly_receive.amount_form_file  , '9,999,999.99'  )  ) ) as remark    
+        (CASE sc_kep_t_monthly_receive.amount_form_file WHEN 0 THEN 'หัก ณ ที่จ่ายไม่ได้' ELSE 'ตัวแทนนำส่ง  ' || trim( to_char( sc_kep_t_monthly_receive.amount_form_file  , '9,999,999.99'  )  ) END) as remark    
 
 , sc_kep_t_monthly_receive.receive_year
 , sc_kep_t_monthly_receive.receive_month 

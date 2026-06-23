@@ -5,13 +5,13 @@
   </arg>
   <combo />
   <sql>select sum(tab.row_group)over(order by tab.member_group_no) as rowno,  tab.*
-from (  SELECT decode(lag(sc_mem_m_ucf_member_group.member_group_no,1,null)over(  order by sc_mem_m_ucf_member_group.member_group_no ) ,sc_mem_m_ucf_member_group.member_group_no ,0,1 ) as row_group
+from (  SELECT (CASE lag(sc_mem_m_ucf_member_group.member_group_no,1,null)over(  order by sc_mem_m_ucf_member_group.member_group_no ) WHEN sc_mem_m_ucf_member_group.member_group_no THEN 0 ELSE 1 END) as row_group
 ,       sc_lon_m_contract.begining_of_contract
 ,       sc_lon_m_contract.loan_contract_no
 ,       sc_lon_m_contract.loan_approve_amount
 ,       sc_mem_m_ucf_member_group.member_group_no
 ,       sc_mem_m_ucf_member_group.member_group_name
-,       sysdate
+,       current_date
 from    sc_lon_m_contract
 ,       sc_mem_m_membership_registered
 ,       sc_mem_m_ucf_member_group

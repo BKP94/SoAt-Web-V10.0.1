@@ -16,9 +16,9 @@
 ,       (select month_name_thai from sc_cnt_m_month where month_no = extract(month from sc_cls_confirm_data.confirm_date)) as confirm_month_thai
 ,       extract(year from sc_cls_confirm_data.confirm_date)+543 as confirm_year
 ,       sc_cls_confirm_data.confirm_date
-,       pka_com_function.fp_get_member_address_letter( sc_cls_confirm_mem.membership_no , 0 , 1 ) as line_1
-,       pka_com_function.fp_get_member_address_letter( sc_cls_confirm_mem.membership_no , 0 , 2 ) as line_2
-,       pka_com_function.fp_get_member_address_letter( sc_cls_confirm_mem.membership_no , 0 , 3 )||' '||pka_com_function.fp_get_member_address_letter( sc_cls_confirm_mem.membership_no , 0 , 4 ) as line_3
+,       pka_com_function.fp_get_member_address_letter( sc_cls_confirm_mem.membership_no ,(0)::text, 1 ) as line_1
+,       pka_com_function.fp_get_member_address_letter( sc_cls_confirm_mem.membership_no ,(0)::text, 2 ) as line_2
+,       pka_com_function.fp_get_member_address_letter( sc_cls_confirm_mem.membership_no ,(0)::text, 3 )||' '||pka_com_function.fp_get_member_address_letter( sc_cls_confirm_mem.membership_no ,(0)::text, 4 ) as line_3
 ,       (select manager_name from sc_cnt_m_coop) as manager_name
 ,       '!book_no!' as book_no
 ,       '!book_date!' as book_date

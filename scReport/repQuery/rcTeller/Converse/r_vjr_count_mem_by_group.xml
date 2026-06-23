@@ -7,8 +7,8 @@
   <combo />
   <sql>SELECT  sc_mem_m_ucf_member_group.member_group_no
 ,       sc_mem_m_ucf_member_group.member_group_name
-,       sum(decode(sc_mem_m_membership_registered.sex,'M','1','0')) as sum_male
-,       sum(decode(sc_mem_m_membership_registered.sex,'F','1','0')) as sum_female
+,       sum((CASE sc_mem_m_membership_registered.sex WHEN 'M' THEN '1' ELSE '0' END)::int) as sum_male
+,       sum((CASE sc_mem_m_membership_registered.sex WHEN 'F' THEN '1' ELSE '0' END)::int) as sum_female
 ,       count(sc_mem_m_membership_registered.membership_no) as count_mem
 
 FROM    sc_mem_m_membership_registered

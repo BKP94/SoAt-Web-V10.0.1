@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <confirm_date align="center" text="ณ วันที่" table="sc_cls_confirm_data" type="date" column="confirm_date" readonly="0" comboreplace="0" combowhere="0" />
+  </arg>
+  <combo />
+  <sql>select  sc_dep_m_rule.deposit_name
+,       sc_dep_m_rule.deposit_type_code
+,       sc_cls_confirm_data.confirm_date
+,       sc_cls_confirm_data.membership_no
+,       pka_com_function.fp_get_member_name( sc_cls_confirm_data.membership_no ) as member_name
+,       pka_com_function.fp_get_group_name_mem( sc_cls_confirm_data.membership_no ) as member_group_name
+,       pka_com_function.fp_form( sc_cls_confirm_data.data_refno , 'XX-XXXXXXXXXX' ) as deposit_account_no
+,       sc_cls_confirm_data.data_balance as deposit_balance
+
+,       (select coalesce(sum(principal_balance),0)
+        from    sc_lon_m_loan_card
+        where   membership_no = sc_cls_confirm_data.membership_no
+        and     loan_type = CASE WHEN sc_cls_confirm_data.data_type = '91' THEN '12' ELSE '11' END
+        ) as principal_balance
+
+from    sc_cls_confirm_data
+,       sc_dep_m_rule
+where   sc_cls_confirm_data.data_type = sc_dep_m_rule.deposit_type_code
+and     sc_cls_confirm_data.data_group = 'DEP'
+and     sc_cls_confirm_data.data_type in ('90','91')
+/*WHERE*/
+--and     sc_cls_confirm_data.confirm_date = '30/06/2024'
+--and     sc_cls_confirm_data.membership_no = '00049'
+order by sc_cls_confirm_data.data_refno</sql>
+  <sub />
+</root>

@@ -13,7 +13,7 @@
       ,sc_lon_m_rule.ref_contract_no
       ,FPB_GET_LOAN_TYPE_DESC( FPB_GET_LOAN_TYPE_REF(  sc_lon_m_rule.ref_contract_no ))  as loan_type_description 
       ,'!year_1!' +543 as req_year
-      ,pka_com_function.fp_get_month_name('!month_1!','LT') as req_month_name
+      ,pka_com_function.fp_get_month_name(('!month_1!')::int,'LT') as req_month_name
 FROM sc_lon_m_rule,   
      sc_acc_m_account_master,   
      sc_lon_m_contract,   
@@ -31,8 +31,8 @@ and sc_lon_m_contract_multi_paid.type_pay_money = sc_com_m_ucf_money_type.money_
 and  sc_lon_m_contract_multi_paid.seq_no = 1
 and  sc_lon_m_rule.invest_status = '0'
 /*WHERE*/
-and   to_number(to_char(  sc_lon_m_contract.begining_of_contract  ,'yyyy')) = '!year_1!'
-and   to_number(to_char(  sc_lon_m_contract.begining_of_contract  ,'mm')) =  '!month_1!'
+and   ((to_char(  sc_lon_m_contract.begining_of_contract  ,'yyyy'))::numeric) = '!year_1!'
+and   ((to_char(  sc_lon_m_contract.begining_of_contract  ,'mm'))::numeric) =  '!month_1!'
 --and   sc_lon_m_contract.begining_of_contract = '02/05/2023'
 --and  sc_lon_m_rule.ref_contract_no = 'ฐ'
 GROUP BY sc_lon_m_contract.begining_of_contract

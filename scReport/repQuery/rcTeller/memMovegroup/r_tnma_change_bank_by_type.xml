@@ -38,7 +38,7 @@
     sc_mem_edit_bank.entry_id ,
     pka_com_function.fp_get_thaidate(sc_mem_edit_bank.entry_date , 'dd/mm/yyyy hh24:mi:ss') as entry_date ,
     pka_com_function.fp_get_thaidate(sc_mem_edit_bank.entry_date , 'dd/mm/yyyy') as entry_date_tdate ,
-    pka_com_function.fp_get_thaidate(sysdate , 'dd/mm/yyyy') as sysdate_tdate
+    pka_com_function.fp_get_thaidate(current_date , 'dd/mm/yyyy') as sysdate_tdate
 
     FROM sc_mem_m_membership_registered ,
     sc_mem_m_ucf_member_group,
@@ -47,7 +47,7 @@
     WHERE 1=1
     and sc_mem_m_membership_registered.member_group_no = sc_mem_m_ucf_member_group.member_group_no
     and sc_mem_m_membership_registered.membership_no = sc_mem_edit_bank.membership_no
-    and to_date(sc_mem_edit_bank.entry_date) between '!entry_date_1!' and '!entry_date_2!'
+    and (sc_mem_edit_bank.entry_date)::date between '!entry_date_1!' and '!entry_date_2!'
 
     /*WHERE*/
 

@@ -15,7 +15,7 @@
     sc_mem_m_resign_requestment.different_shareloan,
     --88888888.88 as different_shareloan,
     --888888.88 as fund_mony,
-    nvl((select sum(total_balance) as total_balance from sc_fund_mem where membership_no = sc_mem_m_resign_requestment.membership_no),0) as fund_mony,
+    coalesce((select sum(total_balance) as total_balance from sc_fund_mem where membership_no = sc_mem_m_resign_requestment.membership_no),0) as fund_mony,
     sc_mem_m_ucf_resign_cause.resign_cause_code,
     sc_mem_m_ucf_resign_cause.resign_cause_name,
     sc_mem_m_membership_registered.member_group_no,

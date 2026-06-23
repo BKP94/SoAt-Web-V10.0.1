@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="A010" rep_text="แบบรายงานที่ 8 - แบบรายงานการดำรงสินทรัพย์สภาพคล่อง2">
+  <arg>
+    <year special="year" text="ปี" type="integer" sqlwhere="0" sqlreplace="1" />
+    <month special="month" text="เดือน" type="integer" combo="monthThLong" sqlwhere="0" sqlreplace="1" />
+  </arg>
+  <combo />
+  <sql>    select td.rowx,
+    td.operate_date,
+    coalesce((select sum(pka_acc_glbal.fp_get_balance_gl(account_id,td.operate_date)) from sc_acc_m_account_master where asset_old_group = 'D05'),0) as coll_10,
+    coalesce((select sum(pka_acc_glbal.fp_get_balance_gl(account_id,td.operate_date)) from sc_acc_m_account_master where asset_old_group = 'D10'),0) as coll_11,
+    coalesce((select sum(pka_acc_glbal.fp_get_balance_gl(account_id,td.operate_date)) from sc_acc_m_account_master where asset_old_group = 'D15'),0) as coll_12,
+    coalesce((select sum(pka_acc_glbal.fp_get_balance_gl(account_id,td.operate_date)) from sc_acc_m_account_master where asset_old_group = 'D20'),0) as coll_13,
+    coalesce((select sum(pka_acc_glbal.fp_get_balance_gl(account_id,td.operate_date)) from sc_acc_m_account_master where asset_old_group = 'D25'),0) as coll_14,
+    coalesce((select sum(pka_acc_glbal.fp_get_balance_gl(account_id,td.operate_date)) from sc_acc_m_account_master where asset_old_group = 'D30'),0) as coll_15
+    from (
+    select level as rowx,
+    pka.to_date(level||'/'!month!'/'!year!'') as operate_date
+    from generate_series(1, extract(day from (date_trunc('month', pka.to_date('1/'!month!'/'!year!'')) + interval '1 month' - interval '1 day'))::int) as level
+) td
+where 1=1
+/*WHERE*/
+  </sql>
+  <sub />
+</root>

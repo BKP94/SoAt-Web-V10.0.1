@@ -8,25 +8,25 @@
   </arg>
   <combo />
   <sql>    select  sc_mem_m_membership_registered.membership_no ,
-    nvl( ( select sum( nvl( data_balance , 0 ) )
+    coalesce( ( select sum( coalesce( data_balance , 0 ) )
     from	sc_cls_confirm_data
     where	sc_cls_confirm_data.membership_no	= sc_mem_m_membership_registered.membership_no
     and		confirm_date	=	'!adtm_data_1!'
     and		data_type		=	'SH'
-    and		nvl( data_balance , 0 ) &gt;	0	 ) , 0 ) as share_stock,
+    and		coalesce( data_balance , 0 ) &gt;	0	 ) , 0 ) as share_stock,
     sc_mem_m_ucf_member_group.member_group_name ,
     sc_mem_m_ucf_member_group.member_group_control ,
     sc_mem_m_membership_registered.member_group_no ,
     sc_mem_m_ucf_prename.prename,
     sc_mem_m_membership_registered.member_name,
     sc_mem_m_membership_registered.member_surname,
-    pka_com_function.fp_get_thaidate(sysdate , 'SD MONTH YYYY') as sysdate_tdate ,
-    nvl( ( select sum( nvl( data_balance , 0 ) )
+    pka_com_function.fp_get_thaidate(current_date , 'SD MONTH YYYY') as sysdate_tdate ,
+    coalesce( ( select sum( coalesce( data_balance , 0 ) )
     from	sc_cls_confirm_data
     where	sc_cls_confirm_data.membership_no	= sc_mem_m_membership_registered.membership_no
     and		confirm_date	=	'!adtm_data_1!'
     and		data_group		=	'LON'
-    and		nvl( data_balance , 0 ) &gt;	0	 ) , 0 ) as sum_balanace,
+    and		coalesce( data_balance , 0 ) &gt;	0	 ) , 0 ) as sum_balanace,
     pka_com_function.fp_get_coopname() as coop_name,
     '!adtm_data_1!' as adtm_data,
     '!adtm_data_1!' as adtm_edate,

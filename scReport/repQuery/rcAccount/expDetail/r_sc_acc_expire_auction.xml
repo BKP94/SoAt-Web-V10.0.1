@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <operate_date text="วันที่" table="sc_acc_m_expire_detail" type="date" column="operate_date" operator="bt" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select pka_com_function.fp_get_thaidate(operate_date, 'DD/MM/YYYY') as sale_date
+, pka_com_function.fp_get_thaidate(operate_date , 'YYYY') as sale_year
+, sale_amount /*ราคาขาย*/
+, remark
+, bf_value /*ยอดยกมา*/
+, buy_in_year /*ลดลง*/
+from sc_acc_m_expire_detail
+where 1=1
+and item_type = 'EXS'
+/*WHERE*/
+--and operate_date between '01/1/2019' and '26/9/2023'</sql>
+  <sub />
+</root>

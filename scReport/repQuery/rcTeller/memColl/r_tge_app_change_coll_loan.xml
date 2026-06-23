@@ -12,7 +12,7 @@
     pka_com_function.fp_get_thaidate(sc_lon_m_coll_change_head.approve_date , 'dd/mm/yyyy') as approve_tdate ,
     pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no) as member_name,
     '-'||trim(pka_com_function.fp_get_group_name(sc_mem_m_membership_registered.member_group_no)) as member_group ,
-    '-เงินเดือน '||REPLACE(to_snumber(pka_com_function.fp_get_member_salary(sc_mem_m_membership_registered.membership_no)),RIGHT(to_snumber(pka_com_function.fp_get_member_salary(sc_mem_m_membership_registered.membership_no)),3),null) as member_salary ,
+    '-เงินเดือน '||REPLACE(to_snumber((pka_com_function.fp_get_member_salary(sc_mem_m_membership_registered.membership_no))::bigint),RIGHT(to_snumber((pka_com_function.fp_get_member_salary(sc_mem_m_membership_registered.membership_no))::bigint),3),null) as member_salary ,
     sc_lon_m_coll_change_head.loan_contract_no,
     sc_lon_m_contract.begining_of_contract,
     sc_lon_m_contract.loan_approve_amount,
@@ -36,16 +36,16 @@
     <r_tge_app_change_coll_loan_old_nest>
       <sql>
         select
-        decode(sc_lon_m_coll_change_det.seq_no , null ,null ,sc_lon_m_coll_change_det.seq_no ||'.' ) as seq_no,
-        decode(sc_lon_m_coll_change_det.old_collateral_refno , null ,null ,'-ทะเบียน '||trim((sc_lon_m_coll_change_det.old_collateral_refno ))) as old_collateral_refno ,
+        (CASE sc_lon_m_coll_change_det.seq_no WHEN null THEN null ELSE sc_lon_m_coll_change_det.seq_no ||'.' END) as seq_no,
+        (CASE sc_lon_m_coll_change_det.old_collateral_refno WHEN null THEN null ELSE '-ทะเบียน '||trim((sc_lon_m_coll_change_det.old_collateral_refno )) END) as old_collateral_refno ,
         sc_lon_m_coll_change_det.old_collateral_description,
-        decode(sc_lon_m_coll_change_det.old_collateral_refno , null ,null ,'-'||trim(pka_com_function.fp_get_group_name_mem(sc_lon_m_coll_change_det.old_collateral_refno)))as old_member_group ,
-        decode(sc_lon_m_coll_change_det.old_collateral_refno , null ,null ,'-เงินเดือน '||REPLACE(to_snumber(pka_com_function.fp_get_member_salary(sc_lon_m_coll_change_det.old_collateral_refno)),RIGHT(to_snumber(pka_com_function.fp_get_member_salary(sc_lon_m_coll_change_det.old_collateral_refno)),3),null)) as old_salary ,
-        decode(sc_lon_m_coll_change_det.new_collateral_refno , null ,null ,'-ทะเบียน '||trim((sc_lon_m_coll_change_det.new_collateral_refno ))) as new_collateral_refno ,
+        (CASE sc_lon_m_coll_change_det.old_collateral_refno WHEN null THEN null ELSE '-'||trim(pka_com_function.fp_get_group_name_mem(sc_lon_m_coll_change_det.old_collateral_refno)) END)as old_member_group ,
+        (CASE sc_lon_m_coll_change_det.old_collateral_refno WHEN null THEN null ELSE '-เงินเดือน '||REPLACE(to_snumber((pka_com_function.fp_get_member_salary(sc_lon_m_coll_change_det.old_collateral_refno))::bigint),RIGHT(to_snumber((pka_com_function.fp_get_member_salary(sc_lon_m_coll_change_det.old_collateral_refno))::bigint),3),null) END) as old_salary ,
+        (CASE sc_lon_m_coll_change_det.new_collateral_refno WHEN null THEN null ELSE '-ทะเบียน '||trim((sc_lon_m_coll_change_det.new_collateral_refno )) END) as new_collateral_refno ,
         sc_lon_m_coll_change_det.new_collateral_description,
-        decode(sc_lon_m_coll_change_det.new_collateral_refno , null ,null ,'-'||trim(pka_com_function.fp_get_group_name_mem(sc_lon_m_coll_change_det.new_collateral_refno)))as new_member_group ,
-        decode(sc_lon_m_coll_change_det.new_collateral_refno , null ,null ,'-เงินเดือน '||REPLACE(to_snumber(pka_com_function.fp_get_member_salary(sc_lon_m_coll_change_det.new_collateral_refno)),RIGHT(to_snumber(pka_com_function.fp_get_member_salary(sc_lon_m_coll_change_det.new_collateral_refno)),3),null)) as new_salary ,
-        decode(sc_lon_m_coll_change_det.new_collateral_amount , 0 , null , to_snumber(sc_lon_m_coll_change_det.new_collateral_amount) ) as new_collateral_amount
+        (CASE sc_lon_m_coll_change_det.new_collateral_refno WHEN null THEN null ELSE '-'||trim(pka_com_function.fp_get_group_name_mem(sc_lon_m_coll_change_det.new_collateral_refno)) END)as new_member_group ,
+        (CASE sc_lon_m_coll_change_det.new_collateral_refno WHEN null THEN null ELSE '-เงินเดือน '||REPLACE(to_snumber((pka_com_function.fp_get_member_salary(sc_lon_m_coll_change_det.new_collateral_refno))::bigint),RIGHT(to_snumber((pka_com_function.fp_get_member_salary(sc_lon_m_coll_change_det.new_collateral_refno))::bigint),3),null) END) as new_salary ,
+        (CASE sc_lon_m_coll_change_det.new_collateral_amount WHEN 0 THEN null ELSE to_snumber((sc_lon_m_coll_change_det.new_collateral_amount)::bigint) END) as new_collateral_amount
         from
         sc_lon_m_coll_change_det
 

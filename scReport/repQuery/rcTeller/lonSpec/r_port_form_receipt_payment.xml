@@ -17,10 +17,10 @@
 ,       sc_fin_vourcher_head.vourcher_desc
 ,       si_security_user.user_id
 ,       si_security_user.user_name
-,       pka_com_function.fp_get_thaidate( sysdate , 'SD MONTH YYYY' ) as sysdate_thai
+,       pka_com_function.fp_get_thaidate( current_date , 'SD MONTH YYYY' ) as sysdate_thai
 ,       (select manager_name from sc_cnt_m_coop) as manager_name
 ,       (select coop_name from sc_cnt_m_coop) as coop_name
-,       nvl((select total_loan_int from sc_mem_m_membership_registered where membership_no = sc_fin_vourcher_head.vourcher_owner),0) as total_loan_int
+,       coalesce((select total_loan_int from sc_mem_m_membership_registered where membership_no = sc_fin_vourcher_head.vourcher_owner),0) as total_loan_int
 from    sc_fin_vourcher_head
 ,       si_security_user
 ,       sc_fin_ucf_vourcher_group
@@ -44,13 +44,13 @@ sc_fin_vourcher_head.vourcher_name,
 sc_fin_vourcher_head.operate_date,
 sc_fin_vourcher_head.vourcher_value,
 sc_fin_vourcher_head.entry_fin ,
-pka_com_function.fp_get_moneythai (  sc_fin_vourcher_head.vourcher_value  ) as thai_vourcher_value ,
+pka_com_function.fp_get_moneythai ((sc_fin_vourcher_head.vourcher_value)::double precision) as thai_vourcher_value ,
 si_security_user.user_name ,
 sc_fin_vourcher_detail.account_id,
 sc_fin_ucf_item_type.item_description,
 sc_fin_vourcher_detail.item_amount,
 sc_fin_vourcher_head.vourcher_value,
-pka_com_function.fp_get_moneythai (  sc_fin_vourcher_head.vourcher_value  ) as thai_vourcher_value
+pka_com_function.fp_get_moneythai ((sc_fin_vourcher_head.vourcher_value)::double precision) as thai_vourcher_value
 FROM sc_fin_vourcher_head
 ,si_security_user
 ,sc_fin_ucf_vourcher_group
@@ -78,13 +78,13 @@ sc_fin_vourcher_head.vourcher_name,
 sc_fin_vourcher_head.operate_date,
 sc_fin_vourcher_head.vourcher_value,
 sc_fin_vourcher_head.entry_fin ,
-pka_com_function.fp_get_moneythai (  sc_fin_vourcher_head.vourcher_value  ) as thai_vourcher_value ,
+pka_com_function.fp_get_moneythai ((sc_fin_vourcher_head.vourcher_value)::double precision) as thai_vourcher_value ,
 si_security_user.user_name ,
 sc_fin_vourcher_detail.account_id,
 sc_fin_ucf_item_type.item_description,
 sc_fin_vourcher_detail.item_amount,
 sc_fin_vourcher_head.vourcher_value,
-pka_com_function.fp_get_moneythai (  sc_fin_vourcher_head.vourcher_value  ) as thai_vourcher_value
+pka_com_function.fp_get_moneythai ((sc_fin_vourcher_head.vourcher_value)::double precision) as thai_vourcher_value
 FROM sc_fin_vourcher_head
 ,si_security_user
 ,sc_fin_ucf_vourcher_group

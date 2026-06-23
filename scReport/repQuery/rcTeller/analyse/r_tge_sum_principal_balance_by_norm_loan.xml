@@ -4,8 +4,7 @@
     <at_date align="center" text="วันที่" type="date" column="at_date" sqlwhere="0" sqlreplace="1" readonly="0" />
   </arg>
   <combo />
-  <sql>select  tab.* , (select max(count_mem) from tab where account_id = '6' and confirm_date = '!at_date!') as mem_no_loan
-from    (
+  <sql>with tab as (
 select  *
 from    (
 select  '3' as account_id
@@ -211,7 +210,9 @@ and     sc_cls_confirm_data.data_balance &gt; '0'
 and     sc_cls_confirm_data.confirm_date = '!at_date!'
 group by sc_cls_confirm_data.confirm_date
 )
-) tab
+)
+select  tab.* , (select max(count_mem) from tab where account_id = '6' and confirm_date = '!at_date!') as mem_no_loan
+from    tab
 --รายงานมี Formatting Rules</sql>
   <sub />
 </root>

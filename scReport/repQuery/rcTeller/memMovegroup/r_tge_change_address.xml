@@ -15,26 +15,26 @@
     sc_mem_edit_address.address_type,
 
     trim(sc_mem_edit_address.pre_address_no ||' '||
-    decode(sc_mem_edit_address.pre_mooban , null , null ,'มบ.'||sc_mem_edit_address.pre_mooban) ||' '||
-    decode(sc_mem_edit_address.pre_moo , null , null ,'ม.'||sc_mem_edit_address.pre_moo) ||' '||
-    decode(sc_mem_edit_address.pre_soi , null , null ,'ซ.'||sc_mem_edit_address.pre_soi) ||' '||
-    decode(sc_mem_edit_address.pre_road , null , null ,'ถ.'||sc_mem_edit_address.pre_road) ||' '||
-    decode(sc_mem_edit_address.pre_tambol , null , null ,decode(sc_mem_edit_address.pre_province_code , '010' , 'แขวง'||PKA_COM_FUNCTION.fp_get_sub_district_name (sc_mem_edit_address.pre_tambol) , 'ต.'||PKA_COM_FUNCTION.fp_get_sub_district_name (sc_mem_edit_address.pre_tambol))) ||' '||
-    decode(sc_mem_edit_address.pre_district_code , null , null ,decode(sc_mem_edit_address.pre_province_code , '010' , 'เขต'||PKA_COM_FUNCTION.fp_get_district_name(sc_mem_edit_address.pre_province_code,sc_mem_edit_address.pre_district_code) , 'อ.'||PKA_COM_FUNCTION.fp_get_district_name(sc_mem_edit_address.pre_province_code,sc_mem_edit_address.pre_district_code))||' '||
-    decode(sc_mem_edit_address.pre_province_code , null , null ,'จ.'||PKA_COM_FUNCTION.fp_get_province_name(sc_mem_edit_address.pre_province_code)) ||' '||
+    (CASE sc_mem_edit_address.pre_mooban WHEN null THEN null ELSE 'มบ.'||sc_mem_edit_address.pre_mooban END) ||' '||
+    (CASE sc_mem_edit_address.pre_moo WHEN null THEN null ELSE 'ม.'||sc_mem_edit_address.pre_moo END) ||' '||
+    (CASE sc_mem_edit_address.pre_soi WHEN null THEN null ELSE 'ซ.'||sc_mem_edit_address.pre_soi END) ||' '||
+    (CASE sc_mem_edit_address.pre_road WHEN null THEN null ELSE 'ถ.'||sc_mem_edit_address.pre_road END) ||' '||
+    (CASE sc_mem_edit_address.pre_tambol WHEN null THEN null ELSE (CASE sc_mem_edit_address.pre_province_code WHEN '010' THEN 'แขวง'||PKA_COM_FUNCTION.fp_get_sub_district_name (sc_mem_edit_address.pre_tambol) ELSE 'ต.'||PKA_COM_FUNCTION.fp_get_sub_district_name (sc_mem_edit_address.pre_tambol) END) END) ||' '||
+    (CASE sc_mem_edit_address.pre_district_code WHEN null THEN null ELSE (CASE sc_mem_edit_address.pre_province_code WHEN '010' THEN 'เขต'||PKA_COM_FUNCTION.fp_get_district_name(sc_mem_edit_address.pre_province_code,sc_mem_edit_address.pre_district_code) ELSE 'อ.'||PKA_COM_FUNCTION.fp_get_district_name(sc_mem_edit_address.pre_province_code,sc_mem_edit_address.pre_district_code) END)||' '||
+    (CASE sc_mem_edit_address.pre_province_code WHEN null THEN null ELSE 'จ.'||PKA_COM_FUNCTION.fp_get_province_name(sc_mem_edit_address.pre_province_code) END) ||' '||
     sc_mem_edit_address.pre_postcode||' '||
-    decode(sc_mem_edit_address.pre_telephone , null , null ,'โทร.'||sc_mem_edit_address.pre_telephone ))) as old_address,
+    (CASE sc_mem_edit_address.pre_telephone WHEN null THEN null ELSE 'โทร.'||sc_mem_edit_address.pre_telephone END) END)) as old_address,
 
     trim(sc_mem_edit_address.address_no ||' '||
-    decode(sc_mem_edit_address.mooban , null , null ,'มบ'||sc_mem_edit_address.mooban) ||' '||
-    decode(sc_mem_edit_address.moo , null , null ,'ม.'||sc_mem_edit_address.moo) ||' '||
-    decode(sc_mem_edit_address.soi , null , null ,'ซ.'||sc_mem_edit_address.soi) ||' '||
-    decode(sc_mem_edit_address.road , null , null ,'ถ.'||sc_mem_edit_address.road) ||' '||
-    decode(sc_mem_edit_address.tambol , null , null ,decode(sc_mem_edit_address.province_code , '010' , 'แขวง'||PKA_COM_FUNCTION.fp_get_sub_district_name (sc_mem_edit_address.tambol) , 'ต.'||PKA_COM_FUNCTION.fp_get_sub_district_name (sc_mem_edit_address.tambol))) ||' '||
-    decode(sc_mem_edit_address.district_code , null , null ,decode(sc_mem_edit_address.province_code , '010' , 'เขต'||PKA_COM_FUNCTION.fp_get_district_name(sc_mem_edit_address.province_code,sc_mem_edit_address.district_code) , 'อ.'||PKA_COM_FUNCTION.fp_get_district_name(sc_mem_edit_address.province_code,sc_mem_edit_address.district_code))||' '||
-    decode(sc_mem_edit_address.province_code , null , null ,'จ.'||PKA_COM_FUNCTION.fp_get_province_name(sc_mem_edit_address.province_code)) ||' '||
+    (CASE sc_mem_edit_address.mooban WHEN null THEN null ELSE 'มบ'||sc_mem_edit_address.mooban END) ||' '||
+    (CASE sc_mem_edit_address.moo WHEN null THEN null ELSE 'ม.'||sc_mem_edit_address.moo END) ||' '||
+    (CASE sc_mem_edit_address.soi WHEN null THEN null ELSE 'ซ.'||sc_mem_edit_address.soi END) ||' '||
+    (CASE sc_mem_edit_address.road WHEN null THEN null ELSE 'ถ.'||sc_mem_edit_address.road END) ||' '||
+    (CASE sc_mem_edit_address.tambol WHEN null THEN null ELSE (CASE sc_mem_edit_address.province_code WHEN '010' THEN 'แขวง'||PKA_COM_FUNCTION.fp_get_sub_district_name (sc_mem_edit_address.tambol) ELSE 'ต.'||PKA_COM_FUNCTION.fp_get_sub_district_name (sc_mem_edit_address.tambol) END) END) ||' '||
+    (CASE sc_mem_edit_address.district_code WHEN null THEN null ELSE (CASE sc_mem_edit_address.province_code WHEN '010' THEN 'เขต'||PKA_COM_FUNCTION.fp_get_district_name(sc_mem_edit_address.province_code,sc_mem_edit_address.district_code) ELSE 'อ.'||PKA_COM_FUNCTION.fp_get_district_name(sc_mem_edit_address.province_code,sc_mem_edit_address.district_code) END)||' '||
+    (CASE sc_mem_edit_address.province_code WHEN null THEN null ELSE 'จ.'||PKA_COM_FUNCTION.fp_get_province_name(sc_mem_edit_address.province_code) END) ||' '||
     sc_mem_edit_address.postcode||' '||
-    decode(sc_mem_edit_address.telephone , null , null ,'โทร.'||sc_mem_edit_address.telephone ))) as new_address
+    (CASE sc_mem_edit_address.telephone WHEN null THEN null ELSE 'โทร.'||sc_mem_edit_address.telephone END) END)) as new_address
 
     from sc_mem_edit_address
     where 1=1

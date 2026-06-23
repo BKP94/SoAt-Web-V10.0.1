@@ -12,10 +12,10 @@
     ,       '!operate_date_1!'as from_date
     ,       '!operate_date_2!'as to_date
     ,       sc_mem_m_chang_request.salary_amount
-    ,       to_snumber(decode(sc_mem_m_chg_share_det.drop_status_last,'1','0',sc_mem_m_chg_share_det.shr_value_old)) as shr_value_old
-    ,       to_snumber(sc_mem_m_chg_share_det.shr_value_new) as shr_value_new
-    ,       to_snumber(sc_mem_m_chg_share_det.shr_value_new - decode(sc_mem_m_chg_share_det.drop_status_last,'1','0',sc_mem_m_chg_share_det.shr_value_old))as add_share_amount
-    ,       (select pka_com_function.fp_get_moneythai((sum(sc_mem_m_chg_share_det.shr_value_new - decode(sc_mem_m_chg_share_det.drop_status_last,'1','0',sc_mem_m_chg_share_det.shr_value_old))))
+    ,       to_snumber(((CASE sc_mem_m_chg_share_det.drop_status_last WHEN '1' THEN '0' ELSE sc_mem_m_chg_share_det.shr_value_old END))::bigint) as shr_value_old
+    ,       to_snumber((sc_mem_m_chg_share_det.shr_value_new)::bigint) as shr_value_new
+    ,       to_snumber((sc_mem_m_chg_share_det.shr_value_new - (CASE sc_mem_m_chg_share_det.drop_status_last WHEN '1' THEN '0' ELSE sc_mem_m_chg_share_det.shr_value_old END))::bigint)as add_share_amount
+    ,       (select pka_com_function.fp_get_moneythai(((sum(sc_mem_m_chg_share_det.shr_value_new - (CASE sc_mem_m_chg_share_det.drop_status_last WHEN '1' THEN '0' ELSE sc_mem_m_chg_share_det.shr_value_old END))))::double precision)
     from   sc_mem_m_chg_share_det
     ,      sc_mem_m_chang_request
     where  sc_mem_m_chang_request.document_no = sc_mem_m_chg_share_det.document_no

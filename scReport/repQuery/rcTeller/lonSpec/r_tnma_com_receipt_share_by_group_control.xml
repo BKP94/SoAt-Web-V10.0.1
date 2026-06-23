@@ -8,7 +8,7 @@
   <combo />
   <sql>select  sc_mem_m_ucf_member_group.member_group_control
     ,   pka_com_function.fp_get_group_name(sc_mem_m_ucf_member_group.member_group_control) as group_control_name
-    ,   to_snumber( sum(sc_com_m_receipt_item.item_amount) ) as item_amount
+    ,   to_snumber((sum(sc_com_m_receipt_item.item_amount))::bigint) as item_amount
 
 from    sc_com_m_receipt
     ,   sc_com_m_receipt_item

@@ -6,10 +6,10 @@
   <combo />
   <sql>select  sc_mem_m_membership_registered.membership_no
 ,pka_com_function.fp_get_member_name(sc_mem_m_membership_registered.membership_no)||' / '||sc_mem_m_membership_registered.membership_no as membername
-,pka_com_function.fp_get_member_address_letter(sc_mem_m_membership_registered.membership_no, 0,1) as mem_address_line1
-,pka_com_function.fp_get_member_address_letter(sc_mem_m_membership_registered.membership_no, 0,2) as mem_address_line2
-,pka_com_function.fp_get_member_address_letter(sc_mem_m_membership_registered.membership_no, 0,3) as mem_address_line3
-,pka_com_function.fp_get_member_address_letter(sc_mem_m_membership_registered.membership_no, 0,4) as mem_address_line4
+,pka_com_function.fp_get_member_address_letter(sc_mem_m_membership_registered.membership_no,(0)::text,1) as mem_address_line1
+,pka_com_function.fp_get_member_address_letter(sc_mem_m_membership_registered.membership_no,(0)::text,2) as mem_address_line2
+,pka_com_function.fp_get_member_address_letter(sc_mem_m_membership_registered.membership_no,(0)::text,3) as mem_address_line3
+,pka_com_function.fp_get_member_address_letter(sc_mem_m_membership_registered.membership_no,(0)::text,4) as mem_address_line4
 ,sc_mem_m_ucf_member_group.member_group_name
 ,sc_mem_m_ucf_member_group.member_group_no
 --ที่อยู่ coop

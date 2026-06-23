@@ -10,10 +10,10 @@
   <combo />
   <sql>    select  'This is to certify that '||trim(pka_com_function.fp_get_member_name_eng(sc_mem_m_membership_registered.membership_no))||' the guarantor/sponsor of' as paragraph_1
     ,       ' ' ||'!guarantor_of!'||' is a member of our customers, has maintained' as paragraph_2
-    ,       ' Saving Account No. '||trim(sc_cls_confirm_data.data_refno)||' with us since '||trim(pka_com_function.fp_get_month_name(extract (month from sc_dep_m_creditor.deposit_opened_date) ,'LE'))||
-    ' '||trim(extract(day from sc_dep_m_creditor.deposit_opened_date))|| ', '||trim(extract(year from sc_dep_m_creditor.deposit_opened_date))||'. The total balance at' as paragraph_3
-    ,       ' '||trim(pka_com_function.fp_get_month_name(extract (month from sc_cls_confirm_data.confirm_date) ,'LE'))||
-    ' '||trim(extract(day from sc_cls_confirm_data.confirm_date))||', '||trim(extract(year from sc_cls_confirm_data.confirm_date))||', has an amount '||to_snumber(sc_cls_confirm_data.data_balance)||
+    ,       ' Saving Account No. '||trim(sc_cls_confirm_data.data_refno)||' with us since '||trim(pka_com_function.fp_get_month_name((extract (month from sc_dep_m_creditor.deposit_opened_date))::int,'LE'))||
+    ' '||trim(extract(day from sc_dep_m_creditor.deposit_opened_date)::text)|| ', '||trim(extract(year from sc_dep_m_creditor.deposit_opened_date)::text)||'. The total balance at' as paragraph_3
+    ,       ' '||trim(pka_com_function.fp_get_month_name((extract (month from sc_cls_confirm_data.confirm_date))::int,'LE'))||
+    ' '||trim(extract(day from sc_cls_confirm_data.confirm_date)::text)||', '||trim(extract(year from sc_cls_confirm_data.confirm_date)::text)||', has an amount '||to_snumber((sc_cls_confirm_data.data_balance)::bigint)||
     ' in baht currency. This amount of shares'as paragraph_4
     ,       ' stated above can be converted and withdrawn into cash immediately upon request from the member.' as paragraph_5
     ,       sc_mem_m_membership_registered.membership_no
@@ -23,8 +23,8 @@
     ,       sc_cnt_m_coop.coop_name
     ,       pka_com_function.fp_get_thaidate('!book_date!','SD')as day
     ,       pka_com_function.fp_get_thaidate('!book_date!','MM')as month
-    ,       pka_com_function.fp_get_month_name(pka_com_function.fp_get_thaidate('!book_date!','MM'),'LE')as month_eng
-    ,       pka_com_function.fp_get_thaidate('!book_date!','YYYY')-543 as year
+    ,       pka_com_function.fp_get_month_name((pka_com_function.fp_get_thaidate('!book_date!','MM'))::int,'LE')as month_eng
+    ,       pka_com_function.fp_get_thaidate('!book_date!','YYYY')::integer-543 as year
     ,      (select trim(pka_com_function.fp_get_member_name_eng(membership_no))
     from   sc_hr_off_member
     where  sc_hr_off_member.official_position = '008'

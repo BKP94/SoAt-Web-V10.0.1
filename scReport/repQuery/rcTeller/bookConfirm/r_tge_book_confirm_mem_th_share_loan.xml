@@ -11,16 +11,16 @@
 ,       ' เป็นสมาชิก'||trim(sc_cnt_m_coop.coop_name)||' เลขทะเบียนสมาชิก '||trim(sc_mem_m_membership_registered.membership_no)||' สังกัด' as paragraph_2
 ,       trim(pka_com_function.fp_get_group_name_mem(sc_mem_m_membership_registered.membership_no))||' ณ วันที่ '||
         trim(pka_com_function.fp_get_thaidate('!data_date!','SD MONTH YYYY'))||' มีหุ้น '||
-        REPLACE(to_snumber(pka_com_function.fp_shr_get_balance_atdate( sc_mem_m_membership_registered.membership_no , '!data_date!' )/sc_share_m_constant.share_value_perunit),
-        RIGHT(to_snumber(pka_com_function.fp_shr_get_balance_atdate( sc_mem_m_membership_registered.membership_no , '!data_date!' )/sc_share_m_constant.share_value_perunit),3),null)||
-        ' หุ้น เป็นเงิน '||REPLACE(to_snumber(pka_com_function.fp_shr_get_balance_atdate( sc_mem_m_membership_registered.membership_no , '!data_date!' )),
-        RIGHT(to_snumber(pka_com_function.fp_shr_get_balance_atdate( sc_mem_m_membership_registered.membership_no , '!data_date!' )),3),null)||' บาท' as paragraph_3
-,       ' ('||(pka_com_function.fp_get_moneythai(pka_com_function.fp_shr_get_balance_atdate( sc_mem_m_membership_registered.membership_no ,'!data_date!' ))||') และมีหนี้สินผูกพันกับสหกรณ์ จำนวน ') as paragraph_4        
-,       (to_snumber((select  nvl(sum(pka_com_function.fp_lon_get_balance_atdate ( sc_lon_m_loan_card.loan_contract_no , '!data_date!' )),0)
+        REPLACE(to_snumber((pka_com_function.fp_shr_get_balance_atdate( sc_mem_m_membership_registered.membership_no , '!data_date!' )/sc_share_m_constant.share_value_perunit)::bigint),
+        RIGHT(to_snumber((pka_com_function.fp_shr_get_balance_atdate( sc_mem_m_membership_registered.membership_no , '!data_date!' )/sc_share_m_constant.share_value_perunit)::bigint),3),null)||
+        ' หุ้น เป็นเงิน '||REPLACE(to_snumber((pka_com_function.fp_shr_get_balance_atdate( sc_mem_m_membership_registered.membership_no , '!data_date!' ))::bigint),
+        RIGHT(to_snumber((pka_com_function.fp_shr_get_balance_atdate( sc_mem_m_membership_registered.membership_no , '!data_date!' ))::bigint),3),null)||' บาท' as paragraph_3
+,       ' ('||(pka_com_function.fp_get_moneythai((pka_com_function.fp_shr_get_balance_atdate( sc_mem_m_membership_registered.membership_no ,'!data_date!' ))::double precision)||') และมีหนี้สินผูกพันกับสหกรณ์ จำนวน ') as paragraph_4        
+,       (to_snumber(((select  coalesce(sum(pka_com_function.fp_lon_get_balance_atdate ( sc_lon_m_loan_card.loan_contract_no , '!data_date!' )),0)
                             from    sc_lon_m_loan_card
                             where   sc_lon_m_loan_card.membership_no = sc_mem_m_membership_registered.membership_no
-                          )))||
-        ' บาท ('||(select  pka_com_function.fp_get_moneythai(sum(pka_com_function.fp_lon_get_balance_atdate ( sc_lon_m_loan_card.loan_contract_no , '!data_date!' )))
+                          ))::bigint))||
+        ' บาท ('||(select  pka_com_function.fp_get_moneythai((sum(pka_com_function.fp_lon_get_balance_atdate ( sc_lon_m_loan_card.loan_contract_no , '!data_date!' )))::double precision)
            from     sc_lon_m_loan_card
            where    sc_lon_m_loan_card.membership_no = sc_mem_m_membership_registered.membership_no
           )||')' as paragraph_5
@@ -36,7 +36,7 @@ from    sc_mem_m_membership_registered
 ,       sc_share_m_constant
 where   1=1
 and     pka_com_function.fp_shr_get_balance_atdate( sc_mem_m_membership_registered.membership_no , '!data_date!' ) &gt; 0
-and     ((select  nvl(sum(pka_com_function.fp_lon_get_balance_atdate ( sc_lon_m_loan_card.loan_contract_no , '!data_date!' )),0)
+and     ((select  coalesce(sum(pka_com_function.fp_lon_get_balance_atdate ( sc_lon_m_loan_card.loan_contract_no , '!data_date!' )),0)
         from     sc_lon_m_loan_card
         where    sc_lon_m_loan_card.membership_no = sc_mem_m_membership_registered.membership_no
         ) &gt; 0)

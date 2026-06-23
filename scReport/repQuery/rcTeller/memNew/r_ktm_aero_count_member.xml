@@ -119,8 +119,8 @@
 
     , '!op_date_1!'  as bdate
     , pka_com_function.fp_get_thaidate ( '!op_date_2!' , 'MONTH YYYY' ) as edate
-    , to_char( '!commit_chood_1!' ) as commit_chood
-    , to_char( '!commit_count_1!' ) as commit_count
+    , ('!commit_chood_1!')::text as commit_chood
+    , ('!commit_count_1!')::text as commit_count
     , pka_com_function.fp_get_thaidate('!commit_date_1!', 'SD MONTH YYYY') as commit_date
     FROM sc_mem_m_membership_registered
     WHERE mem_type = '01'  AND

@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <arg>
+    <account_year text="ปี" special="year" table="sc_acc_m_account_budget_group" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select tac.rowno||'.'||sum(1)over(partition BY(budget_id) , (nature)  order by tac.budget_id ,tac.sort_order )AS acc_rowno,tac.*
+from (
+        select sum(tab.row_memno)over(order by tab.budget_id )AS rowno ,tab.*
+        from (
+              select sc_acc_m_account_budget_group.account_year + 543 as account_year
+                  ,(sc_acc_m_account_budget_group.account_year - 1 ) + 543 as account_year_old
+                  ,(sc_acc_m_account_budget_group.account_year + 1 ) + 543 as account_year_req
+                  ,(case when lag(sc_acc_m_account_budget_group.budget_id,1,null) over(order by sc_acc_m_account_budget_group.budget_id ) = sc_acc_m_account_budget_group.budget_id then 0 else 1 end)as row_memno
+                  ,sc_acc_m_account_budget_group.budget_id
+                  ,sc_acc_m_account_budget_group.budget_name
+                  ,sc_acc_m_account_budget_group.total_budjet --ตั้งไว้
+                  
+                  ,sc_acc_m_account_master.account_id
+                  ,sc_acc_m_account_master.account_name
+                  ,sc_acc_m_account_master.nature
+                  ,sc_acc_m_account_budget.account_budget --ใช้ไป
+                  ,sc_acc_m_account_budget.budget_req --ปีการเงินขอตั้ง
+                  ,sc_acc_m_account_budget.budget_desc
+                  ,sc_acc_m_account_budget.sort_order
+
+              from sc_acc_m_account_budget
+                  ,sc_acc_m_account_budget_group
+                  ,sc_acc_m_account_master
+              where sc_acc_m_account_budget.account_year = sc_acc_m_account_budget_group.account_year
+              and   sc_acc_m_account_budget.budget_id = sc_acc_m_account_budget_group.budget_id
+              and   sc_acc_m_account_master.account_id = sc_acc_m_account_budget.account_id
+              /*WHERE*/
+              --and   sc_acc_m_account_budget.account_year = 2023
+              --and   sc_acc_m_account_budget.branch_id = '01'
+        )tab
+)tac</sql>
+  <sub />
+</root>

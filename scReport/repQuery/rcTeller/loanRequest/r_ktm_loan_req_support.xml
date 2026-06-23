@@ -7,7 +7,7 @@
     <approve_status default="2" text="สถานะ" table="sc_lon_m_loan_request" combo="approve_status" readonly="0" />
   </arg>
   <combo />
-  <sql>SELECT PKA_COM_FUNCTION.fp_get_member_name( sc_lon_m_loan_request.membership_no, 0) as membername ,
+  <sql>SELECT PKA_COM_FUNCTION.fp_get_member_name( sc_lon_m_loan_request.membership_no,(0)::text) as membername ,
     sc_lon_m_loan_request.membership_no ,
     sc_lon_m_loan_request.loan_type ,
     sc_lon_m_loan_request.loan_requestment_no ,
@@ -25,39 +25,39 @@
     sc_lon_m_loan_request.crem_code,
     sc_doc_regis.regis_date,
     sc_doc_regis.request_amount,
-    pka_lon_reqsrv.fp_rule_loanpermit_levelcustom(sc_lon_m_loan_request.loan_type ,sc_lon_m_loan_request.membership_no ,to_date(sysdate) ,'loan_by_salary') as recoverable
+    pka_lon_reqsrv.fp_rule_loanpermit_levelcustom(sc_lon_m_loan_request.loan_type ,sc_lon_m_loan_request.membership_no ,current_date ,'loan_by_salary') as recoverable
 
-    ,( select nvl(sum(fund_new),0)
+    ,( select coalesce(sum(fund_new),0)
     from sc_lon_m_req_fund_new
     where sc_lon_m_req_fund_new.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
     ) as fund_new
 
-    ,(  select nvl(sum(fund_real),0) + nvl(sum(fund_int),0)
+    ,(  select coalesce(sum(fund_real),0) + coalesce(sum(fund_int),0)
     from sc_lon_m_req_fund_ret
     where sc_lon_m_req_fund_ret.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
     and fund_ret &gt; 0
     ) as fund_ret
 
-    , ( select nvl(sum(fund_real),0) + nvl(sum(fund_int),0)
+    , ( select coalesce(sum(fund_real),0) + coalesce(sum(fund_int),0)
     from sc_lon_m_req_fund_ret
     where sc_lon_m_req_fund_ret.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
     and fund_ret &gt; 0
     and deposit_account_no = 'NEW'
     ) as fund_ret_old
 
-    ,(  select nvl(sum(fund_real),0) + nvl(sum(fund_int),0)
+    ,(  select coalesce(sum(fund_real),0) + coalesce(sum(fund_int),0)
     from sc_lon_m_req_fund_ret
     where sc_lon_m_req_fund_ret.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
     and fund_ret &gt; 0
     and deposit_account_no &lt;&gt; 'NEW'
     ) as fund_ret_50
 
-    ,nvl((select sc_lon_m_req_fee.amount
+    ,coalesce((select sc_lon_m_req_fee.amount
     from sc_lon_m_req_fee
     where ( sc_lon_m_req_fee.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
     and fee_type = '05' )) ,0)as amount
 
-    ,nvl((select sc_lon_m_req_fee.real_amount
+    ,coalesce((select sc_lon_m_req_fee.real_amount
     from sc_lon_m_req_fee
     where ( sc_lon_m_req_fee.loan_requestment_no = sc_lon_m_loan_request.loan_requestment_no
     and fee_type = '05' )) ,0)as real_amount
@@ -124,7 +124,7 @@
     <r_ktm_loan_req_support_nest_coll>
       <sql>
         select sc_lon_m_req_coll.collateral_description,
-        ( case collateral_type_code when '01' then  pka_com_function.fp_get_member_name(trim( ref_own_no ),0)
+        ( case collateral_type_code when '01' then  pka_com_function.fp_get_member_name(trim( ref_own_no ),(0)::text)
         when '02' then 'ใช้หุ้นค้ำประกัน'
         when '03' then 'เงินฝากเลขที่ '||ref_own_no
         else  'ที่ดินเลขที่ '||collateral_description

@@ -1,0 +1,91 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root cat_id="D005" rep_text="บัญชีแยกประเภท A4 (แนวตั้ง) " procedure="pka_rep_acc.sp_rep_gl_bf({account_id_1},{account_id_2},{journal_date_1})">
+  <arg>
+    <year special="year" text="ปีบัญชี" table="sc_acc_m_account_year" type="integer" column="account_year" readonly="0" />
+    <journal_date text="วันที่" table="sc_acc_m_general_ledger" type="date" operator="bt" sqlwhere="0" sqlreplace="1" readonly="0" />
+    <account_id text="ตั้งแต่บัญชี" table="sc_acc_m_account_master" operator="bt" combo="sc_acc_m_account_master3" mustvalue="1" readonly="0" />
+  </arg>
+  <combo />
+  <sql>select tab.*
+from ( 
+SELECT sc_acc_m_general_ledger.account_id as "เลขที่บัญชี",
+    CASE WHEN sc_acc_m_general_ledger.dr_amount = 0 THEN null ELSE sc_acc_m_general_ledger.dr_amount END as  "เดบิต",
+    CASE WHEN sc_acc_m_general_ledger.cr_amount = 0 THEN null ELSE sc_acc_m_general_ledger.cr_amount END as "เครดิต",
+    sc_acc_m_general_ledger.desc_journal_detail as "รายละเอียด",
+    sc_acc_m_general_ledger.doc_no as "เลขเอกสาร",
+    CASE WHEN sc_acc_m_general_ledger.dr_balance = 0 THEN null ELSE sc_acc_m_general_ledger.dr_balance END as  "เดบิต คงเหลือ",
+    CASE WHEN sc_acc_m_general_ledger.cr_balance = 0 THEN null ELSE sc_acc_m_general_ledger.cr_balance END as "เครดิต คงเหลือ",
+    sc_acc_m_general_ledger.sequence_gl_no as "ลำดับ",
+    sc_acc_m_general_ledger.journal_date as "วันที่",
+    sc_acc_m_general_ledger.branch_id as "สาขา",
+    sc_acc_m_general_ledger.from_banch as "หน่วย" ,
+
+    sc_acc_m_account_master.nature ,
+    sc_acc_m_general_ledger.acc_book_type_id,
+  
+    CASE WHEN sc_acc_m_account_master.nature = 'DR' THEN null ELSE sc_acc_m_account_master.begin_balance_temp END as "เครดิต ยกมา" ,
+    CASE WHEN sc_acc_m_account_master.nature = 'CR' THEN null ELSE sc_acc_m_account_master.begin_balance_temp END as "เดบิต ยกมา" ,
+
+    sc_acc_m_account_master.account_name as "ชื่อบัญชี"
+	,sc_acc_m_general_ledger.account_year
+    FROM sc_acc_m_general_ledger,
+    sc_acc_m_account_master ,
+    sc_com_m_branch 
+    WHERE ( sc_acc_m_general_ledger.account_id = sc_acc_m_account_master.account_id ) and
+    ( sc_com_m_branch.branch_id = sc_acc_m_general_ledger.branch_id ) and
+    ( sc_acc_m_general_ledger.acc_book_type_id != 'CM' )    
+    
+  and  sc_acc_m_general_ledger.journal_date between   '!journal_date_1!' and  '!journal_date_2!' 
+
+union
+
+SELECT sc_acc_m_account_master.account_id "เลขที่บัญชี",
+    null as  "เดบิต",
+    null as "เครดิต",
+    null as "รายละเอียด",
+    null as  "เลขเอกสาร",
+    null as "เดบิต คงเหลือ",
+    null as  "เครดิต คงเหลือ",
+    null as "ลำดับ",
+    null as "วันที่",
+    null as "สาขา",
+    null as "หน่วย" ,
+
+    sc_acc_m_account_master.nature ,
+    null acc_book_type_id,
+  
+    CASE WHEN sc_acc_m_account_master.nature = 'DR' THEN null ELSE sc_acc_m_account_master.begin_balance_temp END as "เครดิต ยกมา" ,
+    CASE WHEN sc_acc_m_account_master.nature = 'CR' THEN null ELSE sc_acc_m_account_master.begin_balance_temp END as "เดบิต ยกมา" ,
+
+    sc_acc_m_account_master.account_name as "ชื่อบัญชี"
+	 ,sc_acc_m_account_year.account_year
+    FROM sc_acc_m_account_master 
+    , sc_acc_m_account_year
+    WHERE 1=1
+	 and account_type_id = '3'
+	 and (not exists(
+						select null
+						from sc_acc_m_general_ledger
+						where sc_acc_m_general_ledger.acc_book_type_id != 'CM'
+						and  sc_acc_m_general_ledger.account_id = sc_acc_m_account_master.account_id 
+						and  sc_acc_m_general_ledger.journal_date between  '!journal_date_1!' and  '!journal_date_2!' 
+										
+						 )
+		 )
+
+) tab
+,sc_acc_m_account_master
+,sc_acc_m_account_year
+where 1=1
+and sc_acc_m_account_master.account_id = tab."เลขที่บัญชี"
+and sc_acc_m_account_year.account_year =  tab.account_year 
+/*WHERE*/
+--and sc_acc_m_account_master.account_id between '100000' and '220000'
+--and sc_acc_m_account_year.account_year = 2019 
+order by    tab."เลขที่บัญชี" ,
+    tab."วันที่" ,
+    tab."สาขา",
+    tab."ลำดับ"
+  </sql>
+  <sub />
+</root>

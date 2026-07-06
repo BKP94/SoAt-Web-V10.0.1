@@ -39,15 +39,16 @@
     </None>
   </ItemGroup>
 
-  <!-- DevExpress Blazor 25.2 — เปลี่ยน theme ที่ appsettings.json → "DevExpress:Theme" (จุดเดียว) -->
+  <!-- DevExpress Blazor 26.1 — เปลี่ยน theme ที่ appsettings.json → "DevExpress:Theme" (จุดเดียว) -->
   <ItemGroup>
-    <PackageReference Include="DevExpress.Blazor" Version="25.2.7" />
-    <PackageReference Include="DevExpress.Blazor.Themes" Version="25.2.7" />
+    <PackageReference Include="DevExpress.Blazor" Version="26.1.3" />
+    <PackageReference Include="DevExpress.Blazor.Themes" Version="26.1.3" />
+    <PackageReference Include="DevExpress.Images.Blazor" Version="26.1.3" />
     <!-- Native Blazor Report Viewer (DxReportViewer) — reuse legacy XtraReport บน net10.
          ดึง DevExpress.Drawing (engine ของ DX เอง) แทน System.Drawing.Common -->
-    <PackageReference Include="DevExpress.Blazor.Reporting.Viewer" Version="25.2.7" />
+    <PackageReference Include="DevExpress.Blazor.Reporting.Viewer" Version="26.1.3" />
     <!-- XtraReport .resx บางตัวฝัง non-string resource (รูป/logo embedded) → ต้องการ assembly นี้ตอน build/runtime (MSB3822) -->
-    <PackageReference Include="System.Resources.Extensions" Version="10.0.0" />
+    <PackageReference Include="System.Resources.Extensions" Version="10.0.9" />
   </ItemGroup>
 
 </Project>

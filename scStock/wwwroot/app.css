@@ -283,6 +283,16 @@ a.home-card:hover {
 .op-btn--danger { background: #e5484d; }
 .op-btn-label { font-size: .7rem; color: var(--ink-muted, #6b7787); }
 
+/* ── Bootstrap Icons — ขนาดมาตรฐาน (bi เป็น font → คุมขนาดด้วย font-size) ──
+   icon ทั่วไป 16px | icon ในปุ่ม Operate 32px. โหลดหลัง theme → ชนะ DevExpress ที่ specificity เท่ากัน */
+.bi { font-size: 16px; }
+.op-btn .bi { font-size: 32px; }
+
+/* ── DxGrid: caption ของ header center ทุกคอลัมน์/ทุกกริด (global default) ──
+   DevExpress ดัน caption ตาม TextAlignment ผ่าน justify-content ของ .dxbl-grid-header-content
+   → override เฉพาะ justify-content (layout ล้วน) — data cell ยัง align ตาม TextAlignment เดิม */
+.dxbl-grid-header-content { justify-content: center !important; text-align: center; }
+
 /* ── Form helpers (global — ใช้ร่วมข้าม Header/Tabs/Detail component) ──
    scoped CSS ของ Index ส่งไม่ถึง child component → helper พวกนี้ต้อง global */
 .nb-titlebar {
@@ -313,8 +323,35 @@ a.home-card:hover {
 
 .nb-loading { padding: 48px; text-align: center; color: var(--ink-muted, #6b7787); }
 
+/* ── ScLoading — overlay กลางจอ ระหว่างประมวลผล callback (เลียน sc.loading) ─────── */
+.sc-loading {
+    position: fixed; inset: 0; z-index: 1200;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(15, 23, 42, .28);
+}
+.sc-loading-box {
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
+    min-width: 160px; padding: 26px 34px;
+    background: #fff; border-radius: 14px; box-shadow: 0 12px 40px rgba(15, 23, 42, .25);
+}
+.sc-loading-text { font-size: .9rem; color: var(--ink-muted, #6b7787); }
+
 .nb-tabs { margin: 0; }
 .nb-tabbody { padding: 16px 6px 8px; }
+
+/* popup ที่มี tabs (nb-poptabs): จำกัดความสูง body ของแต่ละแท็บ + scroll กัน grid ล้น popup
+   (เลียน legacy VerticalScrollBarMode=Auto) */
+.nb-poptabs .nb-tabbody { max-height: 460px; overflow-y: auto; }
+/* popup ที่ไม่มี tabs: wrap grid ใน .nb-pop-scroll เพื่อจำกัดความสูง + scroll */
+.nb-pop-scroll { max-height: 480px; overflow-y: auto; }
+
+/* กองทุนผู้ค้ำ sub-tab จ่ายคืน/เก็บเพิ่ม (UTabpgShareCollFund) — 2 grid ในแท็บเดียว */
+.nb-fund-block { margin-bottom: 18px; }
+.nb-fund-title { font-weight: 600; margin-bottom: 6px; color: var(--ink, #29323d); }
+
+/* popup ลายเซ็น (PopSignature) — จัดกลางรูป + scale พอดีกรอบ */
+.nb-sign-wrap { display: flex; align-items: center; justify-content: center; height: 100%; min-height: 320px; }
+.nb-sign-img { max-width: 100%; max-height: 340px; object-fit: contain; }
 
 .nb-section-title {
     margin: 4px 0 12px; font-size: 1.05rem; font-weight: 700; color: var(--navy-800, #1f3a5f);
@@ -445,15 +482,112 @@ h1:focus { outline: none; }
 /* Prompt font for whole app; also drives DevExpress (Bootstrap 5) via --bs-body-font-family (font/layout only - see CLAUDE.md) */
 :root { --bs-body-font-family: "Prompt", "Segoe UI", Tahoma, sans-serif; }
 
-/* ── ScLoading — overlay กลางจอ ระหว่างประมวลผล callback (เลียน sc.loading) ─────── */
-.sc-loading {
-    position: fixed; inset: 0; z-index: 1200;
-    display: flex; align-items: center; justify-content: center;
-    background: rgba(15, 23, 42, .28);
+/* ════════════════════════════════════════════════════════════════
+   DevExpress editor — standard ทั้ง app (อ่านง่าย + มุมโค้ง)
+   readability/layout เท่านั้น — ไม่แตะ accent/focus/theme (ดู CLAUDE.md)
+   ════════════════════════════════════════════════════════════════ */
+/* editor ทุกชนิด (textbox/combobox/date/spin ฯลฯ) มุมโค้ง 5px */
+.dxbl-text-edit,
+.dxbl-combobox,
+.dxbl-date-edit,
+.dxbl-spin-edit,
+.dxbl-masked-input { border-radius: 5px !important; }
+
+/* Enabled=false (read-only viewer) → ตัวหนังสือดำ พื้นขาว (default DevExpress จาง/เทา อ่านยาก) */
+.dxbl-text-edit.dxbl-disabled,
+.dxbl-text-edit[aria-disabled="true"],
+.dxbl-combobox.dxbl-disabled,
+.dxbl-date-edit.dxbl-disabled {
+    background-color: #fff !important;
+    opacity: 1 !important;
 }
-.sc-loading-box {
-    display: flex; flex-direction: column; align-items: center; gap: 14px;
-    min-width: 160px; padding: 26px 34px;
-    background: #fff; border-radius: 14px; box-shadow: 0 12px 40px rgba(15, 23, 42, .25);
+.dxbl-text-edit.dxbl-disabled .dxbl-text-edit-input,
+.dxbl-text-edit .dxbl-text-edit-input:disabled,
+.dxbl-text-edit .dxbl-text-edit-input[disabled],
+.dxbl-combobox.dxbl-disabled .dxbl-text-edit-input {
+    color: #000 !important;
+    -webkit-text-fill-color: #000 !important;
+    opacity: 1 !important;
 }
-.sc-loading-text { font-size: .9rem; color: var(--ink-muted, #6b7787); }
+/* ปุ่ม icon ฝังในกล่อง (DxEditorButton) — ลบเส้นกั้นระหว่างปุ่มที่ติดกัน */
+.dxbl-text-edit .dxbl-text-edit-btn + .dxbl-text-edit-btn,
+.dxbl-text-edit .dxbl-btn-group .dxbl-text-edit-btn + .dxbl-text-edit-btn {
+    border-left: 0 !important;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   scteldet — Member Profile Viewer (PanHead read-only + dynamic tabs)
+   layout/chrome เท่านั้น — ไม่ override DevExpress (ดู CLAUDE.md)
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── PanHead: ค้นหา + ข้อมูลหัวสมาชิก ─────────────────────────── */
+.nb-head { display: flex; flex-direction: column; gap: 14px; }
+.nb-head-search { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.nb-head-searchbox { min-width: 260px; }
+.nb-head-empty {
+    padding: 28px; text-align: center; color: #9ca3af;
+    border: 1px dashed #d1d5db; border-radius: 10px; background: var(--page-bg, #f3f5f9);
+}
+.nb-head-body { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+.nb-head-photo { flex: 0 0 auto; }
+.nb-head-photo img {
+    width: 132px; height: 168px; object-fit: cover;
+    border-radius: 10px; border: 1px solid var(--line, #e6e9ef); background: #fff;
+}
+.nb-head-photo-empty {
+    width: 132px; height: 168px; display: flex; align-items: center; justify-content: center;
+    color: #9ca3af; border-radius: 10px; border: 1px solid var(--line, #e6e9ef); background: var(--page-bg, #f3f5f9);
+}
+.nb-head-fields { flex: 1 1 420px; min-width: 320px; }
+
+/* read-only value (แทน editor ในหน้า viewer) */
+.nb-ro { color: var(--ink, #1f2733); font-size: .92rem; }
+.nb-ro-strong { font-weight: 700; }
+.nb-ro-num { font-variant-numeric: tabular-nums; }
+.nb-ro-stub { color: #9ca3af; font-style: italic; }
+
+/* ── PanTabs: NavBar กลุ่ม (G1–G8) ───────────────────────────── */
+.nb-tabs-wrap { display: flex; flex-direction: column; gap: 12px; }
+.nb-tabs-empty {
+    padding: 28px; text-align: center; color: #9ca3af;
+    border: 1px dashed #d1d5db; border-radius: 10px; background: var(--page-bg, #f3f5f9);
+}
+.nb-groupbar { display: flex; flex-wrap: wrap; gap: 8px; }
+.nb-group-btn {
+    padding: 7px 16px; border: 1px solid var(--line, #e6e9ef); border-radius: 999px;
+    background: #fff; color: var(--ink-muted, #6b7787); font-size: .86rem; font-weight: 600;
+    cursor: pointer; transition: all .15s;
+}
+.nb-group-btn:hover { border-color: var(--accent, #3b82f6); color: var(--navy-800, #1f3a5f); }
+.nb-group-btn--active {
+    background: var(--navy-800, #1f3a5f); border-color: var(--navy-800, #1f3a5f); color: #fff;
+}
+
+/* ── G1 tab (scteldet) — read-only viewer helpers ─────────────── */
+/* แถว grid ที่ "ยกเลิก"/"งด" (gain_status='1', drop_dividend) — เลียน legacy row สีแดง */
+.nb-row-cancel td { color: #b91c1c; }
+/* share_state: sign_flag<0 → font แดง (ใช้ nb-row-cancel ร่วม), item_type='XS' → font เขียว */
+.nb-row-xs td { color: #15803d; }
+/* loan_detail: loan_group='2' (คำขอรออนุมัติ) → พื้นขาว font แดง */
+.nb-row-request td { background-color: #ffffff !important; color: #dc2626 !important; }
+/* loan_detail: เงินกู้พิเศษกลุ่ม 03 รับเป็นงวด จ่ายเงินผู้กู้ไม่ครบ → พื้นแดง font ดำ */
+.nb-row-special td { background-color: #dc2626 !important; color: #000000 !important; }
+/* form read-only ในแท็บ: caption ชิด, label มุมซ้าย */
+.nb-tab-form { margin-top: 4px; }
+.nb-tab-yearbar { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+.nb-tab-yearbar-label { font-size: .9rem; font-weight: 600; color: var(--ink-muted, #6b7787); }
+.nb-subtitle { margin: 18px 0 10px; font-size: .95rem; font-weight: 700; color: var(--navy-800, #1f3a5f); }
+.nb-grid-summary { margin-top: 8px; text-align: right; font-size: .85rem; color: var(--ink-muted, #6b7787); }
+.nb-coll-msg { margin-top: 8px; padding: 8px 12px; border: 1px solid var(--border, #d8dee6); border-radius: 6px; font-size: .9rem; color: #b91c1c; }
+/* giro: กลุ่มปุ่มเดือน 12 ปุ่ม (แทน radio_month legacy) */
+.nb-month-group { display: inline-flex; gap: 4px; flex-wrap: wrap; }
+.nb-month-btn { padding: 3px 10px; font-size: .82rem; border: 1px solid var(--border, #d8dee6); border-radius: 4px; background: #fff; color: var(--ink, #33404d); cursor: pointer; }
+.nb-month-btn:hover { background: var(--navy-050, #eef3fa); }
+.nb-month-btn--active { background: var(--navy-800, #1f3a5f); color: #fff; border-color: var(--navy-800, #1f3a5f); }
+/* ปุ่ม link ใน grid cell (เปิด popup รายละเอียด) */
+.nb-linkbtn { background: none; border: none; padding: 0; color: var(--navy-800, #1f3a5f); cursor: pointer; font-size: .85rem; }
+/* สรุปยอดใต้ popup รายละเอียดใบเสร็จคืน */
+.nb-pop-summary { margin-top: 10px; display: flex; flex-direction: column; gap: 3px; text-align: right; font-size: .85rem; color: var(--ink, #33404d); }
+/* ── G6: แถบ cascade (เลือกครั้งที่ ในแท็บ law popup ราคาประเมิน/ผลบังคับคดี) ── */
+.nb-cascade-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+.nb-cascade-label { font-size: .9rem; font-weight: 600; color: var(--ink-muted, #6b7787); }

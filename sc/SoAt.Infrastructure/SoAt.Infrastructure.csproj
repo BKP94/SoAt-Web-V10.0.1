@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.1.79" />
-    <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="23.7.0" />
+    <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="23.26.200" />
   </ItemGroup>
 
   <PropertyGroup>

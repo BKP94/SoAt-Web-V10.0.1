@@ -1,0 +1,84 @@
+@* ── ScCombo — combo กลางตัวเดียว (ทุก module) — แก้ได้ + แก้ไม่ได้ + cascade ─────────
+   ทุก combo เดินเส้นเดียวกัน: โหลด list จาก sc.combo.itemsAsync แล้วเลือกวิธีแสดง
+     • ReadOnly=false → <DxComboBox> เลือกได้ (Value=Code, Text=Name)
+     • ReadOnly=true  → <DxTextBox Enabled="false"> โชว์ Name ของ Code ที่ตรง
+
+   ใช้งาน:
+     <ScCombo Combo="@sc.combo.sc_mem_m_ucf_member_type" @bind-Value="x" />             // แก้ได้
+     <ScCombo Combo="@sc.combo.sc_mem_m_ucf_member_type" Value="@H?.MemType" ReadOnly /> // แก้ไม่ได้
+     <ScCombo Combo="@sc.combo.sc_acc_m_ucf_bank_branch" Args="@(new object[]{ bankId })"
+              @bind-Value="branchId" />                                                 // cascade
+
+   - Combo = descriptor const (sc.combo.*) / raw select (item_code,item_desc) / key=value
+   - Args  = พารามิเตอร์ cascade → แทน {0}/{1} (+ /*WHERE*/) — เปลี่ยน Args = โหลดใหม่
+   - ห้าม override theme — แตะแค่ layout (CssClass) *@
+@inject sc.dbFactory DbFactory
+
+@if (ReadOnly)
+{
+    <DxTextBox Text="@_displayText" Enabled="false" CssClass="@CssClass" />
+}
+else
+{
+    <DxComboBox Data="@_items" TData="sc.ComboItem" TValue="string"
+                Value="@Value" ValueChanged="@OnSelected"
+                ValueFieldName="@nameof(sc.ComboItem.Code)"
+                TextFieldName="@nameof(sc.ComboItem.Name)"
+                NullText="@NullText"
+                CssClass="@CssClass" />
+}
+
+@code {
+    /// combo source: descriptor const (sc.combo.*) / raw select / key=value
+    [Parameter, EditorRequired] public string Combo { get; set; } = default!;
+    /// ค่า code ที่เลือก/เก็บใน model (รองรับ @bind-Value)
+    [Parameter] public string? Value { get; set; }
+    [Parameter] public EventCallback<string?> ValueChanged { get; set; }
+    /// พารามิเตอร์ cascade ({0}/{1}) — เปลี่ยนค่า = โหลด list ใหม่
+    [Parameter] public object?[]? Args { get; set; }
+    /// true = read-only (DxTextBox โชว์คำอธิบาย) / false = dropdown แก้ได้
+    [Parameter] public bool ReadOnly { get; set; }
+    /// css เสริม (layout เท่านั้น)
+    [Parameter] public string? CssClass { get; set; }
+    /// ข้อความ placeholder ของ dropdown
+    [Parameter] public string? NullText { get; set; }
+
+    private IReadOnlyList<sc.ComboItem> _items = System.Array.Empty<sc.ComboItem>();
+    private string _displayText = "";
+    private string? _loadedKey;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // โหลด list ใหม่เมื่อ Combo หรือ Args เปลี่ยน (เลี่ยง query ซ้ำทุก render)
+        var args = Args ?? System.Array.Empty<object?>();
+        var key = Combo + "|" + string.Join(",", args);
+        if (key != _loadedKey)
+        {
+            _loadedKey = key;
+            // cascade ที่ parent ยังไม่เลือก (มี Args แต่ค่าว่างหมด) → list ว่าง (เลียน legacy: ไม่มี parent = ไม่มีตัวเลือก)
+            var cascadeUnset = args.Length > 0
+                && args.All(a => a is null || (a is string s && s.Length == 0));
+            if (cascadeUnset)
+            {
+                _items = System.Array.Empty<sc.ComboItem>();
+            }
+            else
+            {
+                await using var db = DbFactory.create();
+                _items = await sc.combo.itemsAsync(db, Combo, args);
+            }
+        }
+        if (ReadOnly) _displayText = DescOf(Value);
+    }
+
+    private async Task OnSelected(string? v)
+    {
+        Value = v;
+        await ValueChanged.InvokeAsync(v);
+    }
+
+    private string DescOf(string? code)
+        => string.IsNullOrEmpty(code)
+            ? ""
+            : _items.FirstOrDefault(i => i.Code == code)?.Name ?? code;
+}

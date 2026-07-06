@@ -11,7 +11,7 @@
 
 > **ทิศ frontend (ตัดสินใจ 2026-06-04):** เปลี่ยนจาก React/TypeScript → **Blazor Server + DevExpress**
 > เหตุผล: ทีมถนัด C#, ผู้ใช้ใน intranet (จุดอ่อน Blazor Server ไม่กระทบ), และ reuse legacy XtraReports ~2,900 ตัวได้
-> React (`frontend/`) ถูกลบออกแล้ว (commit `da07ed6`). **โครง Blazor scaffold แล้ว (2026-06-04)** + **ใส่ DevExpress.Blazor 25.2.7 แล้ว (2026-06-04)** — theme `office-white` (bs5) | ⚠️ license ปัจจุบันเป็น evaluation (build เตือน DX1000) ยังไม่ผ่าน license จริง
+> React (`frontend/`) ถูกลบออกแล้ว (commit `da07ed6`). **โครง Blazor scaffold แล้ว (2026-06-04)** + **ใส่ DevExpress.Blazor 26.1.3 แล้ว** (2026-06-04 ลง 25.2.7 → up ทั้งโปรเจคเป็น 26.1.3 เมื่อ 2026-07-04) — theme `office-white` (bs5) | ⚠️ license ปัจจุบันเป็น evaluation (build เตือน DX1000) ยังไม่ผ่าน license จริง
 
 ### โครงสร้าง repo (หลัง scaffold Blazor)
 แต่ละ module = **Blazor Server app แยกตัวจริง** (รันแยก port ได้ เหมือน legacy ที่แต่ละ `sc*` แยก IIS site) — ยังไม่ login → เด้งไป **scCenter** (login กลาง)
@@ -80,7 +80,7 @@ await conn.ExecuteAsync("SET LOCAL app.login_br = @br", new { br = branchId });
 - **Auth: cookie-based** (Blazor Server) — service เรียกตรงผ่าน DI, ไม่ผ่าน HTTP/JWT
 
 ### Blazor Server + DevExpress (frontend)
-> โครง scaffold + ลง DevExpress.Blazor 25.2.7 แล้ว (2026-06-04). **Wiring จุดเดียวต่อ app:** csproj (`DevExpress.Blazor` + `.Themes`), `Program.cs` (`AddDevExpressBlazor()`), `_Imports.razor` (`@using DevExpress.Blazor`), `App.razor` (theme `<link>` อ่านจาก config). **เปลี่ยน theme = แก้ `appsettings.json` → `"DevExpress:Theme"` เท่านั้น** (ค่า: `office-white`/`blazing-berry`/`blazing-dark`/`purple`)
+> โครง scaffold + ลง DevExpress.Blazor 26.1.3 แล้ว (2026-06-04 ลง 25.2.7 → up 26.1.3 ทั้งโปรเจค 2026-07-04). **Wiring จุดเดียวต่อ app:** csproj (`DevExpress.Blazor` + `.Themes`), `Program.cs` (`AddDevExpressBlazor()`), `_Imports.razor` (`@using DevExpress.Blazor`), `App.razor` (theme `<link>` อ่านจาก config). **เปลี่ยน theme = แก้ `appsettings.json` → `"DevExpress:Theme"` เท่านั้น** (ค่า: `office-white`/`blazing-berry`/`blazing-dark`/`purple`)
 - Component = PascalCase `.razor`, module folder ตรง legacy เป๊ะ (case-sensitive)
 - Navigation: scCenter เป็น public landing, login เมื่อเข้า module
 - **Format/value ทุกตัวมาจาก `sc.*`** (อย่า hardcode ในหน้า) — ผูกกับ utility C# โดยตรง:
@@ -123,7 +123,7 @@ await conn.ExecuteAsync("SET LOCAL app.login_br = @br", new { br = branchId });
 - [ ] เริ่ม migrate module ไหนก่อน — [ ] Module-level permission
 - [ ] federation strategy ของ `view_tel_get_creamation` (dblink 3 Oracle DB)
 - [x] Scaffold โครง Blazor Server — **เสร็จ 2026-06-04** (scCenter host + scTeller module, cookie auth ข้าม app)
-- [x] ใส่ DevExpress.Blazor 25.2.7 — **เสร็จ 2026-06-04** (theme office-white, config-driven, build 0 error)
+- [x] ใส่ DevExpress.Blazor — **เสร็จ 2026-06-04** (25.2.7) → **up เป็น 26.1.3 ทั้งโปรเจค 2026-07-04** (35 csproj, restore+build 0 error, NU1608 หมด) — theme office-white, config-driven
 
 ---
 
@@ -139,7 +139,7 @@ await conn.ExecuteAsync("SET LOCAL app.login_br = @br", new { br = branchId });
 
 ## สถานะ Stack ใหม่ (2026-06-04)
 - Backend: build clean, sc.db migration สมบูรณ์ — service layer ย้ายเป็น `sc/` (เดิม `backend/`). **ตัด SoAt.API + JWT ทิ้งแล้ว** (Blazor เรียก service ตรงผ่าน DI)
-- **Frontend: Blazor scaffold + DevExpress 25.2.7 แล้ว** — `scCenter` (host, :5100) + `scTeller` (module, :5110), cookie auth ข้าม app, build+run ผ่าน. theme `office-white` (config-driven, จุดเดียวที่ `appsettings DevExpress:Theme`). ⚠️ license ยังเป็น evaluation (DX1000)
+- **Frontend: Blazor scaffold + DevExpress 26.1.3 แล้ว** (up จาก 25.2.7 → 26.1.3 ทั้งโปรเจค 2026-07-04) — `scCenter` (host, :5100) + `scTeller` (module, :5110), cookie auth ข้าม app, build+run ผ่าน. theme `office-white` (config-driven, จุดเดียวที่ `appsettings DevExpress:Theme`). ⚠️ license ยังเป็น evaluation (DX1000)
 - **DB schema:** คุมที่ **pgAdmin** แล้ว (ลบ SQL deployers + `Database/` 2026-06-04). schema เดิมที่ deploy ไว้ (Tables 1,460 / Functions 352+46 stub / Triggers 376 / Views 171) ยังอยู่ใน PG — จากนี้แก้ที่ pgAdmin
 - **ประวัติ (git):** schema `.sql` ทั้งหมด + Step 6 (46 package stubs ใน `Database/Functions/_pkg_stubs/`) + 1 view defer (`VIEW_TEL_GET_CREAMATION` federate 3 Oracle DB) เก็บใน history commit `162c67d`/`4f4a925` — กู้คืนได้ถ้าต้องการ reference
 

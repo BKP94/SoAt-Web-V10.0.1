@@ -79,7 +79,7 @@
 
     // route ที่ migrate เสร็จแล้ว — นอกเหนือจากนี้ขึ้นเมนูแต่ disabled
     private static readonly HashSet<string> _implemented =
-        new(StringComparer.OrdinalIgnoreCase) { "/", "/sctelnewbma" };
+        new(StringComparer.OrdinalIgnoreCase) { "/", "/sctelnewbma", "/scteldet" };
 
     private List<ScMenuItemDto> _top = [];
     private Dictionary<int, List<ScMenuItemDto>> _childrenByGroup = [];   // groupIndex → children

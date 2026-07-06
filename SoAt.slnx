@@ -4,6 +4,7 @@
     <Project Path="sc/SoAt.Domain/SoAt.Domain.csproj" />
     <Project Path="sc/SoAt.Infrastructure/SoAt.Infrastructure.csproj" />
     <Project Path="sc/SoAt.Core/SoAt.Core.csproj" />
+    <Project Path="sc/SoAt.Blazor/SoAt.Blazor.csproj" />
   </Folder>
   <Project Path="scAccount/scAccount.csproj" />
   <Project Path="scAdmin/scAdmin.csproj" />

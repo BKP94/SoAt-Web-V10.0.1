@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <!-- Shared Razor Class Library กลาง — component ที่ทุก module (32 sc*) reuse ได้
+       combo จุดเดียว: <ScCombo Combo="@sc.combo.xxx" @bind-Value="..." /> (editable)
+       หรือ <ScCombo ReadOnly Combo="@sc.combo.xxx" Value="@code" /> (read-only) — เส้นเดียวกัน
+       ref SoAt.Core (เรียก sc.dbFactory/sc.combo) + DevExpress.Blazor (DxComboBox/DxTextBox) -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DevExpress.Blazor" Version="26.1.3" />
+    <ProjectReference Include="..\SoAt.Core\SoAt.Core.csproj" />
+  </ItemGroup>
+
+</Project>

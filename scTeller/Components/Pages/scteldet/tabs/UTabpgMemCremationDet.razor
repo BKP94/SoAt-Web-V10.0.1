@@ -1,0 +1,55 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+
+@* ── G6 Tab: สมาคมฌาปนกิจ (legacy u_tabpg_mem_cremation_det) — view_tel_get_creamation ──
+   ⚠️ DEFERRED: view_tel_get_creamation ยังไม่มีใน PG (federate 3 Oracle DB ผ่าน dblink,
+      ยังไม่ตัดสินใจ federation strategy — CLAUDE.md). service คืน list ว่างไว้ก่อน
+      เมื่อ federation พร้อมจะแสดง grid ตามปกติ *@
+
+@if (string.IsNullOrEmpty(Model.MembershipNo))
+{
+    <div class="nb-empty">— ยังไม่ได้เลือกสมาชิก —</div>
+}
+else if (_rows.Count == 0)
+{
+    <div class="nb-coll-msg">
+        ยังไม่พร้อมใช้งาน — รอเชื่อม federation ของ view_tel_get_creamation (รวมข้อมูล 3 ฐาน Oracle)
+    </div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn">
+        <Columns>
+            <DxGridDataColumn Caption="ลำดับ" Name="seq" Width="60px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+                <FooterTemplate>@string.Format("รวม : {0} รายการ", _rows.Count)</FooterTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="สมาคม" FieldName="CremName" Width="240px" />
+            <DxGridDataColumn Caption="ประเภท" FieldName="CremType" Width="160px" />
+            <DxGridDataColumn Caption="เลขทะเบียนสมาชิก" FieldName="MembershipNo" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="ยอดเงิน" FieldName="CreamAmount" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((CremationDetDto)context.DataItem).CreamAmount)</CellDisplayTemplate>
+            </DxGridDataColumn>
+        </Columns>
+        <EmptyDataAreaTemplate>— ไม่มีข้อมูลสมาคมฌาปนกิจ —</EmptyDataAreaTemplate>
+        <TotalSummary>
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Count" FooterColumnName="seq" />
+        </TotalSummary>
+    </DxGrid>
+}
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private List<CremationDetDto> _rows = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+        _rows = await Svc.GetCremationDetAsync(_loadedFor);
+    }
+}

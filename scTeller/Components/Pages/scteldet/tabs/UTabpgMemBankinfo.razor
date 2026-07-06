@@ -1,0 +1,76 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+@inject sc.dbFactory DbFactory
+
+@* ── G1 Tab 7: บัญชีธนาคาร (legacy u_tabpg_mem_bankinfo) — read-only grid ──
+   sc_mem_m_member_bank_accno — ธนาคารรับโอนของสมาชิก + flag การใช้งานแต่ละประเภท
+   bank name ผ่าน sc.combo (warm sc_fin_m_bank → sc.combo.text), เลขบัญชี mask ผ่าน sc.value.toMask, flag '1'/'Y' → ✔ *@
+
+@if (string.IsNullOrEmpty(Model.MembershipNo))
+{
+    <div class="nb-empty">— ยังไม่ได้เลือกสมาชิก —</div>
+}
+else if (_rows.Count == 0)
+{
+    <div class="nb-empty">— ไม่มีบัญชีธนาคาร —</div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn">
+        <Columns>
+            <DxGridDataColumn Caption="#" Width="44px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ธนาคาร">
+                <CellDisplayTemplate>
+                    @{ var r = (BankInfoDto)context.DataItem; }
+                    @sc.combo.text(sc.combo.sc_fin_m_bank, r.BankId)
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="สาขา" FieldName="BankBranchId" Width="90px" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="เลขที่บัญชี" Width="140px">
+                <CellDisplayTemplate>
+                    @{ var r = (BankInfoDto)context.DataItem; }
+                    @sc.value.toMask(r.BankAccNo, "999-9-99999-9")
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ชำระหนี้" Width="72px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@Flag(((BankInfoDto)context.DataItem).PaidLoan)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="รับปันผล" Width="72px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@Flag(((BankInfoDto)context.DataItem).PaidDividen)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ถอนหุ้น" Width="72px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@Flag(((BankInfoDto)context.DataItem).ShareWithdraw)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="รับเงินเดือน" Width="80px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@Flag(((BankInfoDto)context.DataItem).PaidSalary)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="หักผ่านธนาคาร" Width="90px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@Flag(((BankInfoDto)context.DataItem).MustcollLoan)</CellDisplayTemplate>
+            </DxGridDataColumn>
+        </Columns>
+    </DxGrid>
+}
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private List<BankInfoDto> _rows = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+        _rows = await Svc.GetBankInfoAsync(_loadedFor);
+        await using var db = DbFactory.create();
+        await sc.combo.warmAsync(db, sc.combo.sc_fin_m_bank);
+    }
+
+    // flag legacy เก็บเป็น string '1'/'Y'/'true' → แสดง ✔
+    private static string Flag(string? v)
+        => (v == "1" || v == "Y" || v == "y" || v == "true") ? "✔" : "";
+}

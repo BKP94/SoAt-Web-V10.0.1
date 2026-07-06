@@ -1,0 +1,94 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+
+@* ── G2 Tab 3: ประกัน (legacy u_tabpg_mem_detail_insurance_detail) — read-only grid ──
+   insurance_status / cancel_status เป็น static combo ใน legacy (ListEditItem) → map inline (faithful)
+   ปุ่มพิมพ์ใน legacy ข้ามไป (viewer). สรุปผลรวม ทุนประกัน (insurance_cost) ท้ายตาราง *@
+
+@if (string.IsNullOrEmpty(Model.MembershipNo))
+{
+    <div class="nb-empty">— ยังไม่ได้เลือกสมาชิก —</div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn">
+        <Columns>
+            <DxGridDataColumn Caption="#" Width="44px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ประเภทประกัน" FieldName="InsuranceType" Width="100px" />
+            <DxGridDataColumn Caption="สถานะประกัน" Width="100px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@StatusText(((InsureDto)context.DataItem).InsuranceStatus)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="อ้างอิง" FieldName="RefContract" Width="120px" />
+            <DxGridDataColumn Caption="รายละเอียด" FieldName="InsuranceDetail" />
+            <DxGridDataColumn Caption="ทุนประกัน" FieldName="InsuranceCost" Width="120px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((InsureDto)context.DataItem).InsuranceCost)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เบี้ยประกัน" Width="110px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((InsureDto)context.DataItem).InsuranceApprove)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ประกันล่วงหน้า" Width="120px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((InsureDto)context.DataItem).AdvanAmount)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="งวด" FieldName="InsurancePeriod" Width="70px" TextAlignment="GridTextAlignment.Right" />
+            <DxGridDataColumn Caption="เบี้ยค้าง" Width="110px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((InsureDto)context.DataItem).InsuranceBalance)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เริ่มสัญญา" Width="110px">
+                <CellDisplayTemplate>@sc.value.toStringTH(((InsureDto)context.DataItem).BeginingOfContract)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ล่าสุด" FieldName="LastPeriod" Width="80px" TextAlignment="GridTextAlignment.Right" />
+            <DxGridDataColumn Caption="ชำระต่องวด" Width="110px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((InsureDto)context.DataItem).InsurancePeriodAmount)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ยอดเรียกเก็บ" Width="110px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((InsureDto)context.DataItem).PendingAmount)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ค้างเรียกเก็บ" Width="110px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((InsureDto)context.DataItem).InsuranceArrearPending)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="สถานะ" Width="90px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@CancelText(((InsureDto)context.DataItem).CancelStatus)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เริ่มเก็บรายเดือน" Width="120px">
+                <CellDisplayTemplate>@sc.value.toStringTH(((InsureDto)context.DataItem).StartKeepDate)</CellDisplayTemplate>
+            </DxGridDataColumn>
+        </Columns>
+        <EmptyDataAreaTemplate>— ไม่มีข้อมูลประกัน —</EmptyDataAreaTemplate>
+        <TotalSummary>
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Sum" FieldName="InsuranceCost" DisplayText="{0:n2}" />
+        </TotalSummary>
+    </DxGrid>
+}
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private List<InsureDto> _rows = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+        _rows = await Svc.GetInsureAsync(_loadedFor);
+    }
+
+    // static combo ตาม legacy ascx (ListEditItem)
+    private static string StatusText(string? code) => code switch
+    {
+        "0" => "ปกติ",
+        "1" => "จบสัญญา",
+        _   => code ?? ""
+    };
+
+    private static string CancelText(string? code) => code switch
+    {
+        "0" => "ปกติ",
+        "1" => "งดเก็บ",
+        _   => code ?? ""
+    };
+}

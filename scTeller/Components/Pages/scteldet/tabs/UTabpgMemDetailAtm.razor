@@ -1,0 +1,74 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+@inject sc.dbFactory DbFactory
+
+@* ── G1 Tab 8: บัตร ATM (legacy u_tabpg_mem_detail_atm) — read-only grid ──
+   UNION บัตรฝาก (sc_atm_dep_creditor) + บัตรกู้ (sc_atm_lon_card) ที่ close_status='0'
+   ธนาคารผ่าน sc.combo (warm sc_fin_m_bank → sc.combo.text) *@
+
+@if (string.IsNullOrEmpty(Model.MembershipNo))
+{
+    <div class="nb-empty">— ยังไม่ได้เลือกสมาชิก —</div>
+}
+else if (_rows.Count == 0)
+{
+    <div class="nb-empty">— ไม่มีบัตร ATM —</div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn">
+        <Columns>
+            <DxGridDataColumn Caption="#" Width="44px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เลขที่บัญชี" Width="150px">
+                <CellDisplayTemplate>
+                    @{ var r = (AtmDto)context.DataItem; }
+                    @sc.value.toMask(r.DepositAccountNo, "999-9-99999-9")
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ธนาคาร">
+                <CellDisplayTemplate>
+                    @{ var r = (AtmDto)context.DataItem; }
+                    @sc.combo.text(sc.combo.sc_fin_m_bank, r.BankCode)
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="วงเงินอนุมัติ" Width="120px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>
+                    @{ var r = (AtmDto)context.DataItem; }
+                    @sc.value.toStringF(r.ApproveAmount)
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="วงเงินถอนได้" Width="120px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>
+                    @{ var r = (AtmDto)context.DataItem; }
+                    @sc.value.toStringF(r.WithdrawableAmount)
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="วันที่สมัคร" Width="110px">
+                <CellDisplayTemplate>
+                    @{ var r = (AtmDto)context.DataItem; }
+                    @sc.value.toStringTH(r.DateRegis)
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
+        </Columns>
+    </DxGrid>
+}
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private List<AtmDto> _rows = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+        _rows = await Svc.GetAtmAsync(_loadedFor);
+        await using var db = DbFactory.create();
+        await sc.combo.warmAsync(db, sc.combo.sc_fin_m_bank);
+    }
+}

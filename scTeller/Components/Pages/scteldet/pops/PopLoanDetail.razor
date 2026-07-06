@@ -1,0 +1,66 @@
+@using SoAt.Application.ScTeller
+@using scTeller.Components.Pages.scteldet.tabs
+
+@* ── PopLoanDetail — แสดงรายละเอียดเงินกู้ (เลียน legacy scteldet/pops/popLoan_detail.ascx) ──
+   DxTabs 9 sub-tab. tab เริ่มต้น = "เคลื่อนไหวสัญญา" (ActiveTabIndex=1) ตาม legacy
+   รับ loan_contract_no (จาก G3 Tab 1 รายละเอียดเงินกู้) → ส่งลง sub-tab (dumb component โหลดเอง)
+   grid ใน popup: nb-poptabs จำกัดความสูง body + scroll *@
+
+<DxPopup Visible="Visible" VisibleChanged="OnVisibleChanged" HeaderText="แสดงรายละเอียดเงินกู้"
+         Width="1400px" Height="680px" ShowFooter="true" CloseOnEscape="true">
+    <BodyContentTemplate Context="pop">
+        <DxTabs CssClass="nb-tabs nb-poptabs" ActiveTabIndex="1">
+            <DxTabPage Text="รายละเอียดเงินกู้">
+                <div class="nb-tabbody"><UTabpgLoanDetailLoanDetailMain LoanContractNo="@LoanContractNo" /></div>
+            </DxTabPage>
+            <DxTabPage Text="เคลื่อนไหวสัญญา">
+                <div class="nb-tabbody"><UTabpgLoanDetailLoanDetail LoanContractNo="@LoanContractNo" /></div>
+            </DxTabPage>
+            <DxTabPage Text="เงินกู้เอทีเอ็ม">
+                <div class="nb-tabbody"><UTabpgLoanDetailAtmdet LoanContractNo="@LoanContractNo" /></div>
+            </DxTabPage>
+            <DxTabPage Text="รายการค้ำประกัน">
+                <div class="nb-tabbody"><UTabpgLoanDetailCollDetail LoanContractNo="@LoanContractNo" /></div>
+            </DxTabPage>
+            <DxTabPage Text="โอนหนี้ให้ผู้ค้ำ">
+                <div class="nb-tabbody"><UTabpgLoanDetailCollTrans LoanContractNo="@LoanContractNo" /></div>
+            </DxTabPage>
+            <DxTabPage Text="การจ่ายเงิน">
+                <div class="nb-tabbody"><UTabpgLoanDetailPayment LoanContractNo="@LoanContractNo" /></div>
+            </DxTabPage>
+            <DxTabPage Text="รายการหักกลบ">
+                <div class="nb-tabbody"><UTabpgLoanDetailRecclear LoanContractNo="@LoanContractNo" /></div>
+            </DxTabPage>
+            <DxTabPage Text="หลายวัตถุประสงค์">
+                <div class="nb-tabbody"><UTabpgLoanDetailMultiobject LoanContractNo="@LoanContractNo" /></div>
+            </DxTabPage>
+            <DxTabPage Text="ค่างวดรายเดือน">
+                <div class="nb-tabbody"><UTabpgLoanDetailStepPay LoanContractNo="@LoanContractNo" /></div>
+            </DxTabPage>
+        </DxTabs>
+    </BodyContentTemplate>
+    <FooterContentTemplate>
+        <DxButton Text="ปิดหน้าจอ" RenderStyle="ButtonRenderStyle.Secondary" Click="Close" />
+    </FooterContentTemplate>
+</DxPopup>
+
+@code {
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public EventCallback<bool> VisibleChanged { get; set; }
+
+    [Parameter] public string? LoanContractNo { get; set; }
+
+    private Task Close() => CloseInternal();
+
+    private async Task OnVisibleChanged(bool visible)
+    {
+        Visible = visible;
+        await VisibleChanged.InvokeAsync(visible);
+    }
+
+    private async Task CloseInternal()
+    {
+        Visible = false;
+        await VisibleChanged.InvokeAsync(false);
+    }
+}

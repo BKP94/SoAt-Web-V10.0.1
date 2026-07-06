@@ -1,0 +1,54 @@
+@using SoAt.Application.ScTeller
+@using scTeller.Components.Pages.scteldet
+@inject IScteldetService Svc
+
+@* ── G7 Tab 5: เปลี่ยนสถานะ/บันทึกช่วยจำ (legacy u_tabpg_mem_detail_chg_memo_status) — viewer read-only ──
+   PERMIT_DESC: legacy = PKA_SRV_DBATTRIB.GETCOLTEXT (column comment) → service เรียก pka_srv_dbattrib.getcoltext *@
+
+@if (string.IsNullOrEmpty(Model.MembershipNo))
+{
+    <div class="nb-empty">— ยังไม่ได้เลือกสมาชิก —</div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn">
+        <Columns>
+            <DxGridDataColumn Caption="ลำดับ" Name="seq" Width="55px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+                <FooterTemplate>@_rows.Count รายการ</FooterTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="วันที่เปลี่ยน" Width="110px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.value.toStringTH(((MemoStatusChgDto)context.DataItem).EntryDate)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="สถานะ / บันทึกช่วยจำ" Width="240px">
+                <CellDisplayTemplate>@Desc((MemoStatusChgDto)context.DataItem)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ผู้ทำรายการ" FieldName="EntryId" Width="110px" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="หมายเหตุ" FieldName="RemarkDesc" Width="260px" />
+        </Columns>
+        <EmptyDataAreaTemplate>— ไม่มีประวัติการเปลี่ยนสถานะ/บันทึกช่วยจำ —</EmptyDataAreaTemplate>
+        <TotalSummary>
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Count" FooterColumnName="seq" />
+        </TotalSummary>
+    </DxGrid>
+}
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private List<MemoStatusChgDto> _rows = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+        _rows = await Svc.GetMemoStatusChgAsync(_loadedFor);
+    }
+
+    // legacy โชว์ PERMIT_DESC ตรง — dev fallback เป็นรหัสถ้า column comment ยังไม่ครบ
+    private static string Desc(MemoStatusChgDto r)
+        => string.IsNullOrEmpty(r.PermitDesc) ? (r.PermitName ?? "") : r.PermitDesc;
+}

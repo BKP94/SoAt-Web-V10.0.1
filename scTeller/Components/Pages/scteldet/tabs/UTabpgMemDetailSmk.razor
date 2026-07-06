@@ -1,0 +1,52 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+
+@* ── G2 Tab 2: สมาคมฌาปนกิจ (legacy u_tabpg_mem_detail_smk — sc_mem_m_member_cremation) ──
+   crem_type เป็น static combo ใน legacy (ListEditItem 01=ครูไทย / 02=ชุมนุม) → map inline (faithful) *@
+
+@if (string.IsNullOrEmpty(Model.MembershipNo))
+{
+    <div class="nb-empty">— ยังไม่ได้เลือกสมาชิก —</div>
+}
+else if (_rows.Count == 0)
+{
+    <div class="nb-empty">— ไม่มีข้อมูลสมาคมฌาปนกิจ —</div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn">
+        <Columns>
+            <DxGridDataColumn Caption="#" Width="44px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ประเภทสมาคม" Width="160px">
+                <CellDisplayTemplate>@CremTypeText(((SmkDto)context.DataItem).CremType)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เลขที่สมาคม" FieldName="CremMemno" Width="200px" />
+        </Columns>
+    </DxGrid>
+}
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private List<SmkDto> _rows = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+        _rows = await Svc.GetSmkAsync(_loadedFor);
+    }
+
+    // static combo ตาม legacy ascx (ListEditItem)
+    private static string CremTypeText(string? code) => code switch
+    {
+        "01" => "ครูไทย",
+        "02" => "ชุมนุม",
+        _    => code ?? ""
+    };
+}

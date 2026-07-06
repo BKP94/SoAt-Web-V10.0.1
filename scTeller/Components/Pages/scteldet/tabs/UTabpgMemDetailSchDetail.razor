@@ -1,0 +1,73 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+@inject sc.dbFactory DbFactory
+
+@* ── G6 Tab 4: ทุนการศึกษา (legacy u_tabpg_mem_detail_sch_detail) — viewer read-only ──
+   grid; approve_status='0' → ทั้งแถวสีแดง; Sum SCH_RECEIVE
+   combos: receiver_type / approve_status (static); id_card mask; payment resolved ใน SQL แล้ว *@
+
+@if (string.IsNullOrEmpty(Model.MembershipNo))
+{
+    <div class="nb-empty">— ยังไม่ได้เลือกสมาชิก —</div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn"
+            CustomizeElement="OnCustomizeElement">
+        <Columns>
+            <DxGridDataColumn Caption="ปีที่รับทุน" Name="seq" Width="90px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@(((SchDetailDto)context.DataItem).ReceiveYear)</CellDisplayTemplate>
+                <FooterTemplate>@_rows.Count รายการ</FooterTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ประเภททุน" Width="90px">
+                <CellDisplayTemplate>@sc.combo.text(sc.combo.receiver_type, ((SchDetailDto)context.DataItem).ReceiverType)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ระดับชั้น" FieldName="SchDesc" Width="130px" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="บัตรประชาชน" Width="150px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.mask.idCard(((SchDetailDto)context.DataItem).IdCard)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ผู้รับทุน" FieldName="SchName" />
+            <DxGridDataColumn Caption="จำนวนเงิน" FieldName="SchReceive" Width="110px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((SchDetailDto)context.DataItem).SchReceive)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="สถานะ" Width="100px">
+                <CellDisplayTemplate>@sc.combo.text(sc.combo.approve_status, ((SchDetailDto)context.DataItem).ApproveStatus)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="การรับเงิน" FieldName="PaymentTypeCode" Width="120px" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="หมายเหตุ" FieldName="PaymentName" />
+        </Columns>
+        <EmptyDataAreaTemplate>— ไม่มีข้อมูลทุนการศึกษา —</EmptyDataAreaTemplate>
+        <TotalSummary>
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Count" FooterColumnName="seq" />
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Sum" FieldName="SchReceive" DisplayText="{0:n2}" />
+        </TotalSummary>
+    </DxGrid>
+}
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private List<SchDetailDto> _rows = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+
+        await using (var db = DbFactory.create())
+            await sc.combo.warmAsync(db, sc.combo.receiver_type, sc.combo.approve_status);
+
+        _rows = await Svc.GetSchDetailAsync(_loadedFor);
+    }
+
+    // เลียน legacy: approve_status = '0' (ไม่อนุมัติ) → ทั้งแถวสีแดง
+    private void OnCustomizeElement(GridCustomizeElementEventArgs e)
+    {
+        if (e.ElementType != GridElementType.DataRow) return;
+        if (e.Grid.GetDataItem(e.VisibleIndex) is SchDetailDto r && r.ApproveStatus == "0")
+            e.Style = "color:rgb(139,0,0);";
+    }
+}

@@ -1,0 +1,36 @@
+@using SoAt.Application.ScTeller
+
+@* ── grid ผู้รับเงินสงเคราะห์ (ใช้ร่วม ss1-4 — โครงตารางเหมือนกันทุกตัว) ──
+   เป็น presentational component ล้วน: รับ Rows มาแสดง ไม่ query เอง (tab เป็นคน query) *@
+
+@if (Rows.Count == 0)
+{
+    <div class="nb-empty">— ไม่มีข้อมูลผู้รับเงินสงเคราะห์ —</div>
+}
+else
+{
+    <DxGrid Data="Rows" PageSize="0" ShowAllRows="true"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn">
+        <Columns>
+            <DxGridDataColumn Caption="ลำดับ" Width="60px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="คำนำหน้า" FieldName="Prename" Width="90px" />
+            <DxGridDataColumn Caption="ชื่อ" FieldName="GainName" Width="140px" />
+            <DxGridDataColumn Caption="นามสกุล" FieldName="GainSurname" Width="140px" />
+            <DxGridDataColumn Caption="ผู้ที่เกี่ยวข้อง" FieldName="RelatedNa" Width="120px" />
+            <DxGridDataColumn Caption="รหัสบัตรประชาชน" Width="150px">
+                <CellDisplayTemplate>@sc.mask.idCard(((CremGainDto)context.DataItem).IdCard)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ที่อยู่" FieldName="AddressGain" />
+            <DxGridDataColumn Caption="ผู้ทำรายการ" FieldName="EntryId" Width="100px" />
+            <DxGridDataColumn Caption="วันที่บันทึก" Width="110px">
+                <CellDisplayTemplate>@sc.value.toStringTH(((CremGainDto)context.DataItem).EntryDate)</CellDisplayTemplate>
+            </DxGridDataColumn>
+        </Columns>
+    </DxGrid>
+}
+
+@code {
+    [Parameter, EditorRequired] public List<CremGainDto> Rows { get; set; } = new();
+}

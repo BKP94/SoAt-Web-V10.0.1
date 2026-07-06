@@ -1,0 +1,231 @@
+@using SoAt.Application.ScTeller
+
+@* ── PanHead (scteldet) — ค้นหา + ข้อมูลหัวสมาชิก (read-only viewer) ───────────────
+   legacy panHead.ascx: ช่องเลขทะเบียน + ปุ่มอ่านบัตร + dw_data (ฟอร์มหลัก) + dw_data2 (กล่องพับ) + รูป
+   - ค้นหา → raise OnSearchMember(membershipNo) ให้ Page โหลด header+photo
+   - อ่านบัตร → raise OnScanCard (Page เรียก LookupMemberByIdCardAsync = pka_mid_sync.fp_find_memno; รอ bridge เครื่องอ่านบัตร)
+   - Format ทุกตัวจาก sc.* : วันที่ sc.value.toStringTH (พ.ศ.), บัตร sc.mask.idCard, เงิน sc.value.toStringF
+   - combo ทุกช่องผ่าน <ScCombo ReadOnly> (แปลง code→คำอธิบาย) แทน legacy css="combo-xxx"
+   - dw_data2 (รายละเอียดเพิ่มเติม) = DxFormLayoutGroup Expandable เริ่มพับ (เลียน legacy ASPxRoundPanel Collapsed=true) *@
+
+<div class="nb-head">
+
+    @* แสดง column ครบทุกช่องเสมอ (แม้ยังไม่เลือกสมาชิก = ค่าว่าง) — ไม่มี if H is null
+       ทุก field อ้าง H?.Xxx null-safe; sc.* formatter รับ null อยู่แล้ว → คืน "" *@
+    <div class="nb-head-body">
+
+        @* รูปสมาชิก *@
+        <div class="nb-head-photo">
+            @if (!string.IsNullOrEmpty(PhotoBase64))
+            {
+                <img src="data:image/jpeg;base64,@PhotoBase64" alt="รูปสมาชิก" />
+            }
+            else
+            {
+                <div class="nb-head-photo-empty">ไม่มีรูป</div>
+            }
+        </div>
+
+        @* ข้อมูลสมาชิก (read-only form) *@
+        <div class="nb-head-fields">
+            <DxFormLayout CssClass="nb-form">
+                <DxFormLayoutGroup Caption="ข้อมูลสมาชิก" ColSpanMd="12" Decoration="FormLayoutGroupDecoration.None">
+
+                    <DxFormLayoutItem Caption="เลขทะเบียน" ColSpanMd="4">
+                        @* ปุ่มค้นหา/อ่านบัตรฝังในกล่อง (DxEditorButton) — กดได้จริง *@
+                        <DxTextBox @ref="_searchBox" @bind-Text="_searchNo"
+                                   NullText="กรอกเลขทะเบียน…"
+                                   CssClass="nb-head-searchbox"
+                                   @bind-Text:after="@(() => InvokeSearch())">
+                            <Buttons>
+                                <DxEditorButton Text="🔍" Tooltip="ค้นหา" Click="@InvokeSearch" />
+                                <DxEditorButton Text="💳" Tooltip="อ่านบัตรประชาชน" Click="@(() => OnScanCard.InvokeAsync())" />
+                            </Buttons>
+                        </DxTextBox>
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="ชื่อ-สกุล" ColSpanMd="5">
+                        <DxTextBox Text="@H?.MemberName" Enabled="false"></DxTextBox>
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="สถานะอื่น ๆ" ColSpanMd="3">
+                        <ScCombo Combo="@sc.combo.sc_mem_m_ucf_other_code" Value="@H?.OtherCode" ReadOnly />
+                    </DxFormLayoutItem>
+
+                    <DxFormLayoutItem Caption="ชื่ออังกฤษ" ColSpanMd="4">
+                        <DxTextBox Text="@H?.EngName" Enabled="false"></DxTextBox>
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="หน่วย" ColSpanMd="4">
+                        <DxTextBox Text="@H?.MemberGroupName" Enabled="false"></DxTextBox>
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="กลุ่มเลือกตั้ง" ColSpanMd="4">
+                        <ScCombo Combo="@sc.combo.sc_mem_m_ucf_election_group" Value="@H?.ElectionGroup" ReadOnly />
+                    </DxFormLayoutItem>
+
+                    @* ประเภท/สถานะ = combo แปลง code→คำอธิบาย ผ่าน component กลาง <ScCombo ReadOnly>
+                       (โหลด list จาก sc.combo.itemsAsync เอง — UI ไม่แตะ DTO/Service) แทน legacy css="combo-xxx" *@
+                    <DxFormLayoutItem Caption="ประเภท" ColSpanMd="3">
+                        <ScCombo Combo="@sc.combo.sc_mem_m_ucf_member_type" Value="@H?.MemType" ReadOnly />
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="วันเกิด" ColSpanMd="3">
+                        <DxTextBox Text="@sc.value.toStringTH(H?.DateOfBirth)" Enabled="false"></DxTextBox>
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="อายุ" ColSpanMd="3">
+                        <DxTextBox Text="@H?.AgeLifeText" Enabled="false"></DxTextBox>
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="สถานะภาพ" ColSpanMd="3">
+                        <ScCombo Combo="@sc.combo.sc_mem_m_ucf_marriage_status" Value="@H?.MarriageStatus" ReadOnly />
+                    </DxFormLayoutItem>
+
+                    <DxFormLayoutItem Caption="เพศ" ColSpanMd="3">
+                        <ScCombo Combo="@sc.combo.sex" Value="@H?.Sex" ReadOnly />
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="สถานะ" ColSpanMd="3">
+                        <ScCombo Combo="@sc.combo.sc_mem_m_ucf_member_status" Value="@H?.MemberStatusCode" ReadOnly />
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="วันที่เป็นสมาชิก" ColSpanMd="3">
+                        <DxTextBox Text="@sc.value.toStringTH(H?.ApproveDate)" Enabled="false"></DxTextBox>
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="อายุสมาชิก" ColSpanMd="3">
+                        <DxTextBox Text="@H?.AgeMemText" Enabled="false"></DxTextBox>
+                    </DxFormLayoutItem>
+
+                    <DxFormLayoutItem Caption="อายุสมาชิก(60)" ColSpanMd="3">
+                        <DxTextBox Text="@H?.AgeMem60" Enabled="false"></DxTextBox>
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="เหตุผลพ้นสภาพ" ColSpanMd="3">
+                        <ScCombo Combo="@sc.combo.sc_mem_m_ucf_resign_cause" Value="@H?.ResignCode" ReadOnly />
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="วันที่เสียชีวิต" ColSpanMd="3">
+                        <DxTextBox Text="@sc.value.toStringTH(H?.DeadDate)" Enabled="false"></DxTextBox>
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="ตำแหน่ง" ColSpanMd="3">
+                        <ScCombo Combo="@sc.combo.sc_mem_m_ucf_position" Value="@H?.PositionLong" ReadOnly />
+                    </DxFormLayoutItem>
+
+                    <DxFormLayoutItem Caption="เงินเดือน" ColSpanMd="3">
+                        <DxTextBox Text="@sc.value.toStringF(H?.SalaryAmount)" Enabled="false"></DxTextBox>
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="วันที่ลาออก" ColSpanMd="3">
+                        <DxTextBox Text="@sc.value.toStringTH(H?.ResignationApproveDate)" Enabled="false"></DxTextBox>
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="วันที่เกษียณ" ColSpanMd="3">
+                        <DxTextBox Text="@sc.value.toStringTH(H?.RetireDate)" Enabled="false"></DxTextBox>
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="หุ้นรายเดือน" ColSpanMd="3">
+                        <DxTextBox Text="@sc.value.toStringF(H?.ShareAmount)" Enabled="false"></DxTextBox>
+                    </DxFormLayoutItem>
+
+                    <DxFormLayoutItem Caption="สถานะ งดส่งหุ้น" ColSpanMd="3">
+                        <ScCombo Combo="@DropStatusCombo" Value="@H?.DropStatus" ReadOnly />
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="ดบ. สะสม" ColSpanMd="3">
+                        <DxTextBox Text="@sc.value.toStringF(H?.TotalLoanInt)" Enabled="false"></DxTextBox>
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="เลขบัตร ปชช." ColSpanMd="3">
+                        <DxTextBox Text="@sc.mask.idCard(H?.IdCard)" Enabled="false"></DxTextBox>
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="ทุนเรือนหุ้น" ColSpanMd="3">
+                        <DxTextBox Text="@sc.value.toStringF(H?.ShareStock)" Enabled="false"></DxTextBox>
+                    </DxFormLayoutItem>
+
+                    <DxFormLayoutItem Caption="งวดหุ้น" ColSpanMd="3">
+                        <DxTextBox Text="@sc.value.toStringF(H?.PeriodRecrieve, sc.att.datatype.Integer)" Enabled="false"></DxTextBox>
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="บัญชีรับปันผล" ColSpanMd="3">
+                        <DxTextBox Text="@H?.AccNoRecDiv" Enabled="false"></DxTextBox>
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="ทุนประกัน" ColSpanMd="3">
+                        <DxTextBox Text="@sc.value.toStringF(H?.InsuranceCost)" Enabled="false"></DxTextBox>
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="เบี้ยประกัน" ColSpanMd="3">
+                        <DxTextBox Text="@sc.value.toStringF(H?.InsurancePay)" Enabled="false"></DxTextBox>
+                    </DxFormLayoutItem>
+
+                    <DxFormLayoutItem Caption="FollowME OTP" ColSpanMd="3">
+                        <DxTextBox Text="@H?.MobileNumber" Enabled="false"></DxTextBox>
+                    </DxFormLayoutItem>
+
+                    <DxFormLayoutItem Caption="หมายเหตุ" ColSpanMd="12">
+                        <DxMemo Text="@H?.Remark" Enabled="false" Rows="3"></DxMemo>
+                    </DxFormLayoutItem>
+
+                    <DxFormLayoutGroup Caption="รายละเอียดเพิ่มเติม" ColSpanMd="12"
+                                       ExpandButtonDisplayMode="GroupExpandButtonDisplayMode.Start">
+                        <DxFormLayoutItem Caption="เลขที่บำนาญ" ColSpanMd="3">
+                            <DxTextBox Text="@H?.RetireId" Enabled="false"></DxTextBox>
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem Caption="เหตุบำนาญ" ColSpanMd="3">
+                            <DxTextBox Text="@H?.RetireText" Enabled="false"></DxTextBox>
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem Caption="วิธีรับปันผล" ColSpanMd="3">
+                            <ScCombo Combo="@sc.combo.sc_com_m_ucf_money_type_dividen" Value="@H?.MethodRecieveDividend" ReadOnly />
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem Caption="หมู่เลือด" ColSpanMd="3">
+                            <ScCombo Combo="@sc.combo.sc_mem_m_ucf_blood" Value="@H?.BloodCode" ReadOnly />
+                        </DxFormLayoutItem>
+
+                        <DxFormLayoutItem Caption="ที่อยู่ปัจจุบัน" ColSpanMd="12">
+                            <DxTextBox Text="@H?.Address" Enabled="false"></DxTextBox>
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem Caption="ที่อยู่ตามทะเบียนบ้าน" ColSpanMd="12">
+                            <DxTextBox Text="@H?.AddressT" Enabled="false"></DxTextBox>
+                        </DxFormLayoutItem>
+                    </DxFormLayoutGroup>
+                </DxFormLayoutGroup>
+            </DxFormLayout>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+    /// รูปสมาชิก base64 (Page แปลงจาก byte[] ของ GetMemberPhotoAsync)
+    [Parameter] public string? PhotoBase64 { get; set; }
+    /// ยิงกลับ Page เมื่อค้นหา (Enter หรือปุ่มค้นหา)
+    [Parameter] public EventCallback<string> OnSearchMember { get; set; }
+    /// ยิงกลับ Page เมื่อกดอ่านบัตร
+    [Parameter] public EventCallback OnScanCard { get; set; }
+    /// token จาก Page — เพิ่มค่าทุกครั้งที่กด New เพื่อสั่งล้าง+โฟกัสช่องค้นหา (legacy New = เริ่มใหม่)
+    [Parameter] public int ResetToken { get; set; }
+
+    // static combo งดส่งหุ้น (legacy inline ListEditItems: 0=ปกติ,1=งดส่ง,2=เปลี่ยนแปลงชำระ) — ไม่ใช่ combo DB
+    private const string DropStatusCombo = "0=ปกติ/1=งดส่ง/2=เปลี่ยนแปลงชำระ";
+
+    private string? _searchNo;
+    private DxTextBox? _searchBox;
+    private int _lastReset;
+    private bool _focusAfterReset;
+
+    private ScteldetHeaderDto? H => Model.Header;
+
+    protected override void OnParametersSet()
+    {
+        // New ถูกกด (ResetToken เปลี่ยน) → ล้างช่องค้นหา + ตั้งธงให้โฟกัสหลัง render
+        if (ResetToken != _lastReset)
+        {
+            _lastReset = ResetToken;
+            _searchNo = null;
+            _focusAfterReset = true;
+            return;
+        }
+
+        // หลังค้นหาเสร็จ: เติม 0 เต็มรูป (membership_no ที่ผ่าน sc.scCoop.ofParse ใน service)
+        //   กลับมาแสดงในช่อง เช่น คีย์ "2" → ช่องโชว์ "000002" (legacy: ofPadMember)
+        if (H is not null && !string.IsNullOrEmpty(H.MembershipNo))
+            _searchNo = H.MembershipNo;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_focusAfterReset && _searchBox is not null)
+        {
+            _focusAfterReset = false;
+            await _searchBox.FocusAsync();
+        }
+    }
+
+    private async Task InvokeSearch()
+    {
+        if (!string.IsNullOrWhiteSpace(_searchNo))
+            await OnSearchMember.InvokeAsync(_searchNo.Trim());
+    }
+}

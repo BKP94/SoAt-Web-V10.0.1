@@ -1,0 +1,48 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+
+@* ── popup popLoan_detail sub-tab 8: ค่างวดรายเดือน (legacy u_tabpg_loan_detail_step_pay) — read-only ── *@
+
+@if (string.IsNullOrEmpty(LoanContractNo))
+{
+    <div class="nb-empty">— ไม่มีข้อมูล —</div>
+}
+else if (_rows.Count == 0)
+{
+    <div class="nb-empty">— ไม่มีข้อมูลค่างวดรายเดือน —</div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn">
+        <Columns>
+            <DxGridDataColumn Caption="วันที่เริ่มชำระ" Width="120px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.value.toStringTH(((LoanDetailStepPayDto)context.DataItem).EffectiveDate)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="งวดตั้งแต่" Width="90px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.value.toStringF(((LoanDetailStepPayDto)context.DataItem).PeriodStepBf, sc.att.datatype.Integer)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ถึง" Width="90px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.value.toStringF(((LoanDetailStepPayDto)context.DataItem).PeriodStep, sc.att.datatype.Integer)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ชำระต่องวด" Width="120px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((LoanDetailStepPayDto)context.DataItem).PeriodPayment)</CellDisplayTemplate>
+            </DxGridDataColumn>
+        </Columns>
+    </DxGrid>
+}
+
+@code {
+    [Parameter] public string? LoanContractNo { get; set; }
+
+    private string? _loadedFor;
+    private List<LoanDetailStepPayDto> _rows = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (LoanContractNo == _loadedFor) return;
+        _loadedFor = LoanContractNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+        _rows = await Svc.GetLoanDetailStepPayAsync(_loadedFor);
+    }
+}

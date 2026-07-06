@@ -1,0 +1,48 @@
+@using SoAt.Application.ScTeller
+@using scTeller.Components.Pages.scteldet.tabs
+
+@* ── PopDeptDetail — รายละเอียดเงินฝาก (เลียน legacy scteldet/pops/popDeptDetail.ascx) ──
+   DxTabs 3 sub-tab: ข้อมูลเงินฝาก / การเคลื่อนไหว / ภาระค้ำประกัน
+   รับ deposit_account_no (key ดิบ) → ส่งลง sub-tab (dumb component โหลดเอง)
+   grid ใน popup: nb-poptabs จำกัดความสูง body + scroll *@
+
+<DxPopup Visible="Visible" VisibleChanged="OnVisibleChanged" HeaderText="แสดงรายละเอียดเงินฝาก"
+         Width="1100px" Height="624px" ShowFooter="true" CloseOnEscape="true">
+    <BodyContentTemplate Context="pop">
+        <DxTabs CssClass="nb-tabs nb-poptabs">
+            <DxTabPage Text="ข้อมูลเงินฝาก">
+                <div class="nb-tabbody"><UTabpgDeptDetailMain DepositAccountNo="@DepositAccountNo" /></div>
+            </DxTabPage>
+            <DxTabPage Text="การเคลื่อนไหว">
+                <div class="nb-tabbody"><UTabpgDeptDetailDeptDetail DepositAccountNo="@DepositAccountNo" /></div>
+            </DxTabPage>
+            <DxTabPage Text="ภาระค้ำประกัน">
+                <div class="nb-tabbody"><UTabpgDeptDetailDeptDetailColl DepositAccountNo="@DepositAccountNo" /></div>
+            </DxTabPage>
+        </DxTabs>
+    </BodyContentTemplate>
+    <FooterContentTemplate>
+        <DxButton Text="ปิดหน้าจอ" RenderStyle="ButtonRenderStyle.Secondary" Click="Close" />
+    </FooterContentTemplate>
+</DxPopup>
+
+@code {
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public EventCallback<bool> VisibleChanged { get; set; }
+
+    [Parameter] public string? DepositAccountNo { get; set; }
+
+    private Task Close() => CloseInternal();
+
+    private async Task OnVisibleChanged(bool visible)
+    {
+        Visible = visible;
+        await VisibleChanged.InvokeAsync(visible);
+    }
+
+    private async Task CloseInternal()
+    {
+        Visible = false;
+        await VisibleChanged.InvokeAsync(false);
+    }
+}

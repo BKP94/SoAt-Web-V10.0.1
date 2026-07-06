@@ -1,0 +1,44 @@
+@* ── PanOperate (scteldet) — แถบปุ่มแนวตั้งขวา ────────────────────────────────────
+   viewer (read-only) → ไม่มี Save/Cancel. ปุ่ม raise EventCallback กลับให้ Page
+   เลียน legacy panOperate.ascx: New / ScanID / Signature / Memo / PrintTab
+   Signature/Memo/PrintTab/ScanID = stub รอบนี้ (ผูกระบบจริงภายหลัง) *@
+
+<div class="op-item">
+    @* <button type="button" class="op-btn" title="เพิ่มใหม่ / ล้างหน้า" disabled="@Busy" @onclick="OnNew"><i class="bi bi-file-earmark-plus"></i></button> *@
+    <DxButton RenderStyle="ButtonRenderStyle.Link" title="เพิ่มใหม่ / ล้างหน้า"
+              disabled="@Busy" @onclick="OnNew" CssClass="op-btn"
+              IconCssClass="@sc.icon.FileEarmarkPlus">
+    </DxButton>
+    <span class="op-btn-label">เพิ่มใหม่</span>
+</div>
+
+<div class="op-item">
+    <button type="button" class="op-btn" title="อ่านบัตรประชาชน" disabled="@Busy" @onclick="OnScanCard"><i class="bi bi-credit-card-2-front"></i></button>
+    <span class="op-btn-label">อ่านบัตร</span>
+</div>
+
+<div class="op-item">
+    <button type="button" class="op-btn" title="ลายเซ็น" disabled="@Busy" @onclick="OnSignature"><i class="bi bi-vector-pen"></i></button>
+    <span class="op-btn-label">ลายเซ็น</span>
+</div>
+
+<div class="op-item">
+    <button type="button" class="op-btn" title="บันทึกข้อความ (Memo)" disabled="@Busy" @onclick="OnMemo"><i class="bi bi-journal-text"></i></button>
+    <span class="op-btn-label">Memo</span>
+</div>
+
+<div class="op-item">
+    <button type="button" class="op-btn" title="พิมพ์แท็บปัจจุบัน" disabled="@Busy" @onclick="OnPrintTab"><i class="bi bi-printer"></i></button>
+    <span class="op-btn-label">พิมพ์</span>
+</div>
+
+@code {
+    /// ปิดปุ่มทั้งหมดระหว่างกำลังโหลด
+    [Parameter] public bool Busy { get; set; }
+
+    [Parameter] public EventCallback OnNew { get; set; }
+    [Parameter] public EventCallback OnScanCard { get; set; }
+    [Parameter] public EventCallback OnSignature { get; set; }
+    [Parameter] public EventCallback OnMemo { get; set; }
+    [Parameter] public EventCallback OnPrintTab { get; set; }
+}

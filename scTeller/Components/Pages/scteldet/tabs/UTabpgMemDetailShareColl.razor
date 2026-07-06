@@ -1,0 +1,103 @@
+@using SoAt.Application.ScTeller
+@using scTeller.Components.Pages.scteldet.pops
+@inject IScteldetService Svc
+@inject sc.dbFactory DbFactory
+
+@* ── G3 Tab 2: หุ้นค้ำ/กองทุน (legacy u_tabpg_mem_detail_share_coll) — read-only grid ──
+   close_status (decode 1→C) = combo fund_close_status; paid_return_method = combo sc_fund_ucf_return_method
+   เลียน legacy: close_status != '0' (ปิดแล้ว) → ระบายแดงทั้งแถว. สรุปหนี้คงเหลือ + ยอดกองทุน ท้ายตาราง *@
+
+@if (string.IsNullOrEmpty(Model.MembershipNo))
+{
+    <div class="nb-empty">— ยังไม่ได้เลือกสมาชิก —</div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true" CustomizeElement="OnCustomizeElement"
+            RowDoubleClick="OnRowDoubleClick"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn">
+        <Columns>
+            <DxGridDataColumn Caption="ลำดับ" Width="60px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="" Width="46px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>
+                    <button type="button" class="nb-linkbtn" title="รายละเอียดกองทุนผู้ค้ำ"
+                            @onclick="() => OpenDetail((ShareCollDto)context.DataItem)">🔍</button>
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เลขที่สัญญา" FieldName="LoanContractNo" Width="120px" />
+            <DxGridDataColumn Caption="วันที่เริ่ม" Width="110px">
+                <CellDisplayTemplate>@sc.value.toStringTH(((ShareCollDto)context.DataItem).OpenDay)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="วงเงินกู้" Width="120px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((ShareCollDto)context.DataItem).PricipalBalance)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="หนี้คงเหลือ" FieldName="PrincipalBalance" Width="120px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((ShareCollDto)context.DataItem).PrincipalBalance)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ยอดกองทุน" FieldName="TotalBalance" Width="120px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((ShareCollDto)context.DataItem).TotalBalance)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="สถานะ" Width="90px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.combo.text(sc.combo.fund_close_status, ((ShareCollDto)context.DataItem).CloseStatus)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="วิธีการคืน" Width="130px">
+                <CellDisplayTemplate>@sc.combo.text(sc.combo.sc_fund_ucf_return_method, ((ShareCollDto)context.DataItem).PaidReturnMethod)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="วันที่ล่าสุด" Width="110px">
+                <CellDisplayTemplate>@sc.value.toStringTH(((ShareCollDto)context.DataItem).LastAccessDate)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="วันที่คืน" Width="110px">
+                <CellDisplayTemplate>@sc.value.toStringTH(((ShareCollDto)context.DataItem).ReturnDate)</CellDisplayTemplate>
+            </DxGridDataColumn>
+        </Columns>
+        <EmptyDataAreaTemplate>— ไม่มีข้อมูลหุ้นค้ำ/กองทุน —</EmptyDataAreaTemplate>
+        <TotalSummary>
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Sum" FieldName="PrincipalBalance" DisplayText="{0:n2}" />
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Sum" FieldName="TotalBalance" DisplayText="{0:n2}" />
+        </TotalSummary>
+    </DxGrid>
+}
+
+@* ── popup popShareCollDetail (pops/) — 3 sub-tabs ── *@
+<PopShareCollDetail @bind-Visible="_popVisible" LoanContractNo="@_selectedConno" />
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private List<ShareCollDto> _rows = new();
+
+    private bool _popVisible;
+    private string? _selectedConno;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+        await using (var db = DbFactory.create())
+            await sc.combo.warmAsync(db, sc.combo.fund_close_status, sc.combo.sc_fund_ucf_return_method);
+        _rows = await Svc.GetShareCollAsync(_loadedFor);
+    }
+
+    // close_status != '0' (ปิดแล้ว 'C') → ระบายแดงทั้งแถว (เลียน legacy gvRowColor-Red)
+    private void OnCustomizeElement(GridCustomizeElementEventArgs e)
+    {
+        if (e.ElementType != GridElementType.DataRow) return;
+        if (e.Grid.GetDataItem(e.VisibleIndex) is ShareCollDto r && r.CloseStatus != "0")
+            e.CssClass = "nb-row-cancel";
+    }
+
+    private void OnRowDoubleClick(GridRowClickEventArgs e)
+    {
+        if (e.Grid.GetDataItem(e.VisibleIndex) is ShareCollDto r) OpenDetail(r);
+    }
+
+    private void OpenDetail(ShareCollDto r)
+    {
+        _selectedConno = r.LoanContractNo;   // key ดิบ → popup กองทุนผู้ค้ำ
+        _popVisible = true;
+    }
+}

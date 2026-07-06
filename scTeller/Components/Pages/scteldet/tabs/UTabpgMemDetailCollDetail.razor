@@ -1,0 +1,119 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+@inject sc.dbFactory DbFactory
+
+@* ── G3 Tab 5: หลักประกัน (legacy u_tabpg_mem_detail_coll_detail) — viewer read-only ──
+   สัญญา/คำขอ ที่สมาชิก "ไปค้ำ" ให้คนอื่น → service GetCollDetailAsync (port sctel.getCalcCollUsed)
+   สถานะ coll_current = combo coll_current (W/P/T/F/A) | ลูกหนี้ = combo sc_lon_m_ucf_loan_code
+   สีแถว (เลียน legacy gv_detail_HtmlRowPrepared):
+     loan_group='2' (คำขอ)                    → พื้นขาว font แดง
+     else principal_balance>0:
+        สี rule RGB (color_red/green/blue) + font ตัดกัน (port ofSetLoanColor/ofContrastColor)
+        ถ้า loan_code!='0' OR member_status_code!='0' (ผู้กู้มีปัญหา) → override พื้น rgb(255,99,66) font ดำ
+   msg ใต้ grid = pkb_ktm.fp_get_msg_collused_teldet (KTM-only → PEAN ว่างเสมอ, แสดงเฉพาะมีค่า) *@
+
+@if (string.IsNullOrEmpty(Model.MembershipNo))
+{
+    <div class="nb-empty">— ยังไม่ได้เลือกสมาชิก —</div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true" CustomizeElement="OnCustomizeElement"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn">
+        <Columns>
+            <DxGridDataColumn Caption="#" Name="seq" Width="40px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+                <FooterTemplate>@_rows.Count สัญญา</FooterTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เลขที่สัญญา" FieldName="LoanContractNo" Width="120px" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="#" Width="40px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.value.toStringF(((CollDetailDto)context.DataItem).LoanOrder, sc.att.datatype.Integer)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ทะเบียนผู้กู้" FieldName="MembershipNo" Width="90px" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="ชื่อ-สกุลผู้กู้" FieldName="MemberName" />
+            <DxGridDataColumn Caption="ทุนเรือนหุ้น" Width="100px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((CollDetailDto)context.DataItem).ShareStock)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ยอดคงเหลือ" Width="100px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((CollDetailDto)context.DataItem).PrincipalBalance)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="วงเงินค้ำ" FieldName="UsedAmount" Width="100px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((CollDetailDto)context.DataItem).UsedAmount)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="สถานะ" Width="100px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.combo.text(sc.combo.coll_current, ((CollDetailDto)context.DataItem).CollCurrent)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ลูกหนี้" Width="100px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.combo.text(sc.combo.sc_lon_m_ucf_loan_code, ((CollDetailDto)context.DataItem).LoanCode)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ต้นค้าง" FieldName="SumArr" Width="100px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((CollDetailDto)context.DataItem).SumArr)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ดอกค้าง" FieldName="SumInterrest" Width="100px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((CollDetailDto)context.DataItem).SumInterrest)</CellDisplayTemplate>
+            </DxGridDataColumn>
+        </Columns>
+        <EmptyDataAreaTemplate>— ไม่มีสัญญาที่ค้ำประกัน —</EmptyDataAreaTemplate>
+        <TotalSummary>
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Count" FooterColumnName="seq" />
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Sum" FieldName="UsedAmount" DisplayText="{0:n2}" />
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Sum" FieldName="SumArr" DisplayText="{0:n2}" />
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Sum" FieldName="SumInterrest" DisplayText="{0:n2}" />
+        </TotalSummary>
+    </DxGrid>
+    @if (!string.IsNullOrWhiteSpace(_msg))
+    {
+        <div class="nb-coll-msg">@_msg</div>
+    }
+}
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private List<CollDetailDto> _rows = new();
+    private string _msg = "";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); _msg = ""; return; }
+        await using (var db = DbFactory.create())
+            await sc.combo.warmAsync(db, sc.combo.coll_current, sc.combo.sc_lon_m_ucf_loan_code);   // text() อ่านจาก cache → static combo ก็ต้อง warm
+        _rows = await Svc.GetCollDetailAsync(_loadedFor);
+        _msg = await Svc.GetCollUsedMsgAsync(_loadedFor);
+    }
+
+    private void OnCustomizeElement(GridCustomizeElementEventArgs e)
+    {
+        if (e.ElementType != GridElementType.DataRow) return;
+        if (e.Grid.GetDataItem(e.VisibleIndex) is not CollDetailDto r) return;
+
+        if (r.LoanGroup == "2")                       // คำขอรออนุมัติ → พื้นขาว font แดง
+        {
+            e.Style = "background-color:rgb(255,255,255);color:rgb(255,0,0);";
+        }
+        else if ((r.PrincipalBalance ?? 0) > 0)
+        {
+            // สีตามประเภทเงินกู้ใน sc_lon_m_rule (RGB) — ofSetLoanColor
+            var cr = (int)(r.ColorRed ?? 0);
+            var cg = (int)(r.ColorGreen ?? 0);
+            var cb = (int)(r.ColorBlue ?? 0);
+            if (cr > 0 || cg > 0 || cb > 0)
+                e.Style = $"background-color:rgb({cr},{cg},{cb});color:{ContrastFont(cr, cg, cb)};";
+
+            // ผู้กู้มีปัญหา (loan_code!='0' หรือ member_status_code!='0') → override พื้น rgb(255,99,66) font ดำ
+            if (r.LoanCode != "0" || (r.MemberStatusCode ?? "0") != "0")
+                e.Style = "background-color:rgb(255,99,66);color:rgb(0,0,0);";
+        }
+    }
+
+    // port ofContrastColor (sctel.cs) — luminance → font ดำ/ขาว ตัดกับพื้น
+    private static string ContrastFont(int r, int g, int b)
+    {
+        double a = 1 - (0.299 * r + 0.587 * g + 0.114 * b) / 255.0;
+        int d = a < 0.48 ? 0 : 255;
+        return $"rgb({d},{d},{d})";
+    }
+}

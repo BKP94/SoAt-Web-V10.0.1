@@ -1,0 +1,50 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+
+@* ── popLaw sub 8: รายละเอียดจำเลย (legacy u_tabpg_law_detail_jumley_detail) — read-only ──
+   grid sc_law_prosec_defendants; status 0=ปกติ/1=พ้นสภาพ *@
+
+@if (string.IsNullOrEmpty(ProsecNo))
+{
+    <div class="nb-empty">— ไม่มีข้อมูล —</div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn">
+        <Columns>
+            <DxGridDataColumn Caption="ลำดับ" Name="seq" Width="70px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+                <FooterTemplate>@_rows.Count รายการ</FooterTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="จำเลยที่" Width="80px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@(((LawJumleyDetailDto)context.DataItem).ItemOrder)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ชื่อ - นามสกุล" FieldName="DefendantName" />
+            <DxGridDataColumn Caption="สถานะ" Width="100px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@(((LawJumleyDetailDto)context.DataItem).Status == "1" ? "พ้นสภาพ" : "ปกติ")</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เลขที่บัตร" FieldName="CardId" Width="150px" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="โทรศัพท์" FieldName="Telephone" Width="150px" />
+        </Columns>
+        <EmptyDataAreaTemplate>— ไม่มีรายละเอียดจำเลย —</EmptyDataAreaTemplate>
+        <TotalSummary>
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Count" FooterColumnName="seq" />
+        </TotalSummary>
+    </DxGrid>
+}
+
+@code {
+    [Parameter] public string? ProsecNo { get; set; }
+
+    private string? _loadedFor;
+    private List<LawJumleyDetailDto> _rows = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (ProsecNo == _loadedFor) return;
+        _loadedFor = ProsecNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+        _rows = await Svc.GetLawJumleyDetailAsync(_loadedFor);
+    }
+}

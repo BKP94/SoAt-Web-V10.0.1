@@ -1,0 +1,135 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+@inject sc.dbFactory DbFactory
+
+@* ── popup popLoan_detail sub-tab 0: รายละเอียดเงินกู้ (legacy u_tabpg_loan_detail_loan_detail_main) — read-only ──
+   FormLayout ColCount=4. combos: loan_payment_type_code=loan_payment_type, drop_payment_status=loan_drop_status2,
+   loan_code=sc_lon_m_ucf_loan_code (loan_code!='0' → แดง). อัตรา ด/บ = interest_rate (fp_intrate_conno*100) แสดง %
+   คงเหลือรับเงินงวด (paid_able) = pka_mem_det.fp_cal_loan_paidable (migrate แล้ว) *@
+
+@if (_row is null)
+{
+    <div class="nb-empty">— ไม่มีข้อมูลเงินกู้ —</div>
+}
+else
+{
+    <DxFormLayout CssClass="nb-tab-form">
+        <DxFormLayoutItem Caption="วงเงินขอกู้" ColSpanMd="3">
+            <span class="nb-ro nb-ro-num">@sc.value.toStringF(_row.LoanRequestAmount)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="เริ่มสัญญา" ColSpanMd="3">
+            <span class="nb-ro" style="text-align:center;">@sc.value.toStringTH(_row.BeginingOfContract)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ด/บ สัญญา" ColSpanMd="3">
+            <span class="nb-ro nb-ro-num">@sc.value.toStringF(_row.ContractInterestRate)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="รูปแบบ" ColSpanMd="3">
+            <span class="nb-ro">@sc.combo.text(sc.combo.loan_payment_type, _row.LoanPaymentTypeCode)</span>
+        </DxFormLayoutItem>
+
+        <DxFormLayoutItem Caption="ชำระต่องวด" ColSpanMd="3">
+            <span class="nb-ro nb-ro-num">@sc.value.toStringF(_row.PeriodPaymentAmount)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="วันที่ล่าสุด" ColSpanMd="3">
+            <span class="nb-ro" style="text-align:center;">@sc.value.toStringTH(_row.LastAccessDate)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ดอกเบี้ยรวม" ColSpanMd="3">
+            <span class="nb-ro nb-ro-num">@sc.value.toStringF(_row.TotalInterest)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="สถานะ" ColSpanMd="3">
+            <span class="nb-ro">@sc.combo.text(sc.combo.loan_drop_status2, _row.DropPaymentStatus)</span>
+        </DxFormLayoutItem>
+
+        <DxFormLayoutItem Caption="ยอดคงที่" ColSpanMd="3">
+            <span class="nb-ro nb-ro-num">@sc.value.toStringF(_row.FixedPayment)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="งวดล่าสุด" ColSpanMd="3">
+            <span class="nb-ro" style="text-align:center;">@sc.value.toStringF(_row.LastPeriod, sc.att.datatype.Integer)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ด/บ ค้าง" ColSpanMd="3">
+            <span class="nb-ro nb-ro-num">@sc.value.toStringF(_row.InterestArrear)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="วันที่คิดดอก" ColSpanMd="3">
+            <span class="nb-ro" style="text-align:center;">@sc.value.toStringTH(_row.LastCalcintDate)</span>
+        </DxFormLayoutItem>
+
+        <DxFormLayoutItem Caption="งวดที่ผ่อนผัน" ColSpanMd="3">
+            <span class="nb-ro" style="text-align:center;">@sc.value.toStringF(_row.PeriodCompomise, sc.att.datatype.Integer)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="วันที่เริ่มผ่อนผัน" ColSpanMd="3">
+            <span class="nb-ro" style="text-align:center;">@sc.value.toStringTH(_row.DateCompomise)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ผ่อนผันสะสม" ColSpanMd="3">
+            <span class="nb-ro nb-ro-num">@sc.value.toStringF(_row.AccuCompomise)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="วันเริ่มเก็บ" ColSpanMd="3">
+            <span class="nb-ro" style="text-align:center;">@sc.value.toStringTH(_row.StartKeepDate)</span>
+        </DxFormLayoutItem>
+
+        <DxFormLayoutItem Caption="อัตรา ด/บ" ColSpanMd="3">
+            <span class="nb-ro" style="text-align:center;">@(sc.value.toStringF(_row.InterestRate))%</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ต้นค้าง" ColSpanMd="3">
+            <span class="nb-ro nb-ro-num">@sc.value.toStringF(_row.PrincipalArrAll)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ต้นค้างเก่า" ColSpanMd="3">
+            <span class="nb-ro nb-ro-num">@sc.value.toStringF(_row.PendingMonthArr)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ผ่านสวัสดิการ" ColSpanMd="3">
+            <span class="nb-ro" style="text-align:center;">@_row.WelfareStatus</span>
+        </DxFormLayoutItem>
+
+        <DxFormLayoutItem Caption="หมายเหตุ" ColSpanMd="9">
+            <span class="nb-ro">@_row.Remark</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="สถานะลูกหนี้" ColSpanMd="3">
+            <span class="nb-ro" style="@(_row.LoanCode != "0" ? "color:#c0392b;font-weight:600;" : "")">@sc.combo.text(sc.combo.sc_lon_m_ucf_loan_code, _row.LoanCode)</span>
+        </DxFormLayoutItem>
+
+        <DxFormLayoutItem Caption="หลักประกัน" ColSpanMd="9">
+            <span class="nb-ro">@_row.CColldetail</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="สถานะสัญญา" ColSpanMd="3">
+            <span class="nb-ro" style="text-align:center;">@_row.CloseStatus</span>
+        </DxFormLayoutItem>
+
+        <DxFormLayoutItem Caption="วัตถุประสงค์" ColSpanMd="9">
+            <span class="nb-ro">@_row.LoanObjectiveDesc</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="คงเหลือรับเงินงวด" ColSpanMd="3">
+            <span class="nb-ro nb-ro-num">@sc.value.toStringF(_row.PaidAble)</span>
+        </DxFormLayoutItem>
+
+        <DxFormLayoutItem Caption="ต้นรอเรียกเก็บ" ColSpanMd="3">
+            <span class="nb-ro nb-ro-num">@sc.value.toStringF(_row.PendingAmount)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ด/บ รอเรียกเก็บ" ColSpanMd="3">
+            <span class="nb-ro nb-ro-num">@sc.value.toStringF(_row.PendingInterest)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="เรียกเก็บล่าสุด" ColSpanMd="3">
+            <span class="nb-ro" style="text-align:center;">@sc.value.toStringTH(_row.LastProcessDate)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="คงเหลือ" ColSpanMd="3">
+            <span class="nb-ro nb-ro-num">@sc.value.toStringF(_row.PrincipalBalance)</span>
+        </DxFormLayoutItem>
+    </DxFormLayout>
+}
+
+@code {
+    [Parameter] public string? LoanContractNo { get; set; }
+
+    private string? _loadedFor;
+    private LoanDetailMainDto? _row;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (LoanContractNo == _loadedFor) return;
+        _loadedFor = LoanContractNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _row = null; return; }
+
+        await using (var db = DbFactory.create())
+            await sc.combo.warmAsync(db, sc.combo.sc_lon_m_ucf_loan_code);
+
+        _row = await Svc.GetLoanDetailMainAsync(_loadedFor);
+    }
+}

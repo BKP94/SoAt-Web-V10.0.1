@@ -1,0 +1,94 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+@inject sc.dbFactory DbFactory
+
+@* ── popup popDeptDetail sub-tab 2: การเคลื่อนไหว (legacy u_tabpg_dept_detail_dept_detail) ──
+   grid sc_dep_m_creditor_item; default focus = แถวสุดท้าย; C_WAMOUNT (ถอน) = สีแดง
+   form ล่าง (dwBottom) แสดงรายละเอียดแถวที่ focus *@
+
+<DxGrid Data="_rows" PageSize="0" ShowAllRows="true"
+            FocusedRowEnabled="true" FocusedRowChanged="OnFocusedRowChanged"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn"
+            CustomizeElement="OnCustomizeElement">
+        <Columns>
+            <DxGridDataColumn Caption="ลำดับ" FieldName="SeqNo" Width="60px" TextAlignment="GridTextAlignment.Center" AllowSort="false" />
+            <DxGridDataColumn Caption="วันที่ทำรายการ" Width="110px">
+                <CellDisplayTemplate>@sc.value.toStringTH(((DepositMovementDto)context.DataItem).OperateDate)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="อ้างอิง" FieldName="ReferToDepositDocNo" Width="120px" />
+            <DxGridDataColumn Caption="ประเภท" FieldName="PrintCode" Width="70px" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="ฝาก" Width="120px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((DepositMovementDto)context.DataItem).CDamount)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ถอน" Width="120px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((DepositMovementDto)context.DataItem).CWamount)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="คงเหลือ" Width="120px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((DepositMovementDto)context.DataItem).TotalBalance)</CellDisplayTemplate>
+            </DxGridDataColumn>
+        </Columns>
+        <EmptyDataAreaTemplate>— ไม่มีการเคลื่อนไหว —</EmptyDataAreaTemplate>
+    </DxGrid>
+    @if (_rows.Count > 0)
+    {
+        <div class="nb-grid-summary">
+            <span>ฝาก: @sc.value.toStringF(_sumDeposit)</span>
+            &nbsp;&nbsp;<span>ถอน: @sc.value.toStringF(_sumWithdraw)</span>
+            &nbsp;&nbsp;<span>สุทธิ: @sc.value.toStringF(_sumDeposit - _sumWithdraw)</span>
+        </div>
+    }
+
+    @* form ล่าง (dwBottom) — รายละเอียดแถวที่ focus *@
+    @if (_focused is not null)
+    {
+        <DxFormLayout CssClass="nb-tab-form">
+            <DxFormLayoutItem Caption="ลำดับ" ColSpanMd="6">
+                <span class="nb-ro" style="text-align:center;">@sc.value.toStringF(_focused.SeqNo, sc.att.datatype.Integer)</span>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="ประเภท" ColSpanMd="6">
+                <span class="nb-ro">@_focused.PrintCodeDesc</span>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="ชื่อผู้ทำรายการ" ColSpanMd="6">
+                <span class="nb-ro">@sc.combo.text(sc.combo.si_security_user, _focused.OfficerId)</span>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="วันที่ทำรายการ" ColSpanMd="6">
+                <span class="nb-ro" style="text-align:center;">@sc.value.toStringTH(_focused.LastAccessDate, true)</span>
+            </DxFormLayoutItem>
+        </DxFormLayout>
+    }
+
+@code {
+    [Parameter] public string? DepositAccountNo { get; set; }
+
+    private string? _loadedFor;
+    private List<DepositMovementDto> _rows = new();
+    private DepositMovementDto? _focused;
+    private decimal _sumDeposit, _sumWithdraw;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (DepositAccountNo == _loadedFor) return;
+        _loadedFor = DepositAccountNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); _focused = null; return; }
+
+        await using (var db = DbFactory.create())
+            await sc.combo.warmAsync(db, sc.combo.si_security_user);
+
+        _rows = await Svc.GetDepositMovementAsync(_loadedFor);
+        _sumDeposit = _rows.Sum(x => x.CDamount ?? 0m);
+        _sumWithdraw = _rows.Sum(x => x.CWamount ?? 0m);
+        _focused = _rows.LastOrDefault();   // default focus = แถวสุดท้าย (เลียน legacy)
+    }
+
+    private void OnFocusedRowChanged(GridFocusedRowChangedEventArgs e)
+    {
+        if (e.DataItem is DepositMovementDto r) _focused = r;
+    }
+
+    // เลียน legacy: C_WAMOUNT (ถอน) = สีแดง
+    private void OnCustomizeElement(GridCustomizeElementEventArgs e)
+    {
+        if (e.ElementType == GridElementType.DataCell && e.Column.Caption == "ถอน")
+            e.Style = "color:rgb(139,0,0);";
+    }
+}

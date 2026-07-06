@@ -1,0 +1,64 @@
+@using SoAt.Application.ScTeller
+@using scTeller.Components.Pages.scteldet
+@inject IScteldetService Svc
+@inject sc.dbFactory DbFactory
+
+@* ── G7 Tab 14: ประวัติเปลี่ยนสิทธิ์ (legacy u_tabpg_mem_detail_permit_changed) — viewer read-only ──
+   new_status/old_status = check (สถานะใช้งาน/ยกเลิก); permit_name → sc.combo.permit_changed (16 รายการ hardcode ตาม .ascx) *@
+
+@if (string.IsNullOrEmpty(Model.MembershipNo))
+{
+    <div class="nb-empty">— ยังไม่ได้เลือกสมาชิก —</div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn">
+        <Columns>
+            <DxGridDataColumn Caption="ลำดับ" Name="seq" Width="55px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+                <FooterTemplate>@_rows.Count รายการ</FooterTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="วันที่" Width="110px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.value.toStringTH(((PermitChangedDto)context.DataItem).OperateDate)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="สถานะใช้งาน" Width="90px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate><DxCheckBox Checked="@(((PermitChangedDto)context.DataItem).NewStatus == "1")" ReadOnly="true" /></CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="สถานะยกเลิก" Width="90px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate><DxCheckBox Checked="@(((PermitChangedDto)context.DataItem).OldStatus == "1")" ReadOnly="true" /></CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="สิทธิ์" Width="220px">
+                <CellDisplayTemplate>@sc.combo.text(sc.combo.permit_changed, ((PermitChangedDto)context.DataItem).PermitName)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="หมายเหตุ" FieldName="RemarkDesc" Width="240px" />
+            <DxGridDataColumn Caption="ผู้ทำรายการ" FieldName="EntryId" Width="110px" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="วันที่บันทึก" Width="110px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.value.toStringTH(((PermitChangedDto)context.DataItem).EntryDate)</CellDisplayTemplate>
+            </DxGridDataColumn>
+        </Columns>
+        <EmptyDataAreaTemplate>— ไม่มีประวัติการเปลี่ยนสิทธิ์ —</EmptyDataAreaTemplate>
+        <TotalSummary>
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Count" FooterColumnName="seq" />
+        </TotalSummary>
+    </DxGrid>
+}
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private List<PermitChangedDto> _rows = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+
+        await using (var db = DbFactory.create())
+            await sc.combo.warmAsync(db, sc.combo.permit_changed);
+
+        _rows = await Svc.GetPermitChangedAsync(_loadedFor);
+    }
+}

@@ -1,0 +1,28 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+
+@* ── G2 Tab 4: ผู้รับเงินสงเคราะห์ 1 (legacy u_tabpg_mem_recipient_ss1 — crem_type '01') ── *@
+
+@if (string.IsNullOrEmpty(Model.MembershipNo))
+{
+    <div class="nb-empty">— ยังไม่ได้เลือกสมาชิก —</div>
+}
+else
+{
+    <CremGainGrid Rows="_rows" />
+}
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private List<CremGainDto> _rows = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+        _rows = await Svc.GetCremGainAsync(_loadedFor, "01");
+    }
+}

@@ -1,0 +1,57 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+@inject sc.dbFactory DbFactory
+
+@* ── popup popShareCollDetail sub-tab 2: รายการเคลื่อนไหว (legacy u_tabpg_share_coll_detail_state) — read-only ──
+   grid sc_fund_mem_detail order seq_no. item_type = combo sc_mem_m_ucf_share_item_type2
+   รับ (sign_flag=1) / จ่าย (sign_flag=-1) / คงเหลือ. grid ใน popup ครอบ nb-tabbody (scroll ที่ shell) *@
+
+<DxGrid Data="_rows" PageSize="0" ShowAllRows="true"
+        ColumnResizeMode="GridColumnResizeMode.NextColumn">
+    <Columns>
+            <DxGridDataColumn Caption="ลำดับ" Width="70px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="วันที่รายการ" Width="100px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.value.toStringTH(((ShareCollStateDto)context.DataItem).OperateDate)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="รหัส" Width="160px">
+                <CellDisplayTemplate>@sc.combo.text(sc.combo.sc_mem_m_ucf_share_item_type2, ((ShareCollStateDto)context.DataItem).ItemType)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เลขที่อ้างอิง" FieldName="RefDocNo" Width="130px" />
+            <DxGridDataColumn Caption="รับ" FieldName="PrincipalAmountI" Width="110px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((ShareCollStateDto)context.DataItem).PrincipalAmountI)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="จ่าย" FieldName="PrincipalAmountP" Width="110px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((ShareCollStateDto)context.DataItem).PrincipalAmountP)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="คงเหลือ" Width="110px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((ShareCollStateDto)context.DataItem).Balance)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ผู้ทำรายการ" FieldName="UserId" Width="100px" TextAlignment="GridTextAlignment.Center" />
+        </Columns>
+        <EmptyDataAreaTemplate>— ไม่มีรายการเคลื่อนไหว —</EmptyDataAreaTemplate>
+        <TotalSummary>
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Sum" FieldName="PrincipalAmountI" DisplayText="{0:n2}" />
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Sum" FieldName="PrincipalAmountP" DisplayText="{0:n2}" />
+        </TotalSummary>
+    </DxGrid>
+
+@code {
+    [Parameter] public string? LoanContractNo { get; set; }
+
+    private string? _loadedFor;
+    private List<ShareCollStateDto> _rows = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (LoanContractNo == _loadedFor) return;
+        _loadedFor = LoanContractNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+
+        await using (var db = DbFactory.create())
+            await sc.combo.warmAsync(db, sc.combo.sc_mem_m_ucf_share_item_type2);
+
+        _rows = await Svc.GetShareCollStateAsync(_loadedFor);
+    }
+}

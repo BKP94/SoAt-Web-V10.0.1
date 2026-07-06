@@ -1,0 +1,103 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+
+@* ── popLaw sub 10: ราคาประเมิน (legacy u_tabpg_law_detail_land_appraisal) — read-only cascade ──
+   head combo item_code → head form (tidin/building) + detail grid; item_type_code 1/2/3 inline *@
+
+@if (string.IsNullOrEmpty(ProsecNo))
+{
+    <div class="nb-empty">— ไม่มีข้อมูล —</div>
+}
+else if (_items.Count == 0)
+{
+    <div class="nb-empty">— ไม่มีข้อมูลราคาประเมิน —</div>
+}
+else
+{
+    <div class="nb-cascade-bar">
+        <span class="nb-cascade-label">ครั้งที่ :</span>
+        <DxComboBox Data="_items" TData="sc.ComboItem" TValue="string"
+                    Value="_sel" ValueChanged="@((string v) => OnSelectAsync(v))"
+                    TextFieldName="Name" ValueFieldName="Code"
+                    NullText="ระบุครั้งที่..." />
+    </div>
+
+    @if (_head is not null)
+    {
+        <DxFormLayout CssClass="nb-tab-form">
+            <DxFormLayoutItem Caption="เอกสารสิทธิ์ที่ดิน" ColSpanMd="6">
+                <span class="nb-ro">@_head.Tidin</span>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="สิ่งปลูกสร้าง" ColSpanMd="6">
+                <span class="nb-ro">@_head.Building</span>
+            </DxFormLayoutItem>
+        </DxFormLayout>
+    }
+
+    @if (_details.Count > 0)
+    {
+        <DxGrid Data="_details" PageSize="0" ShowAllRows="true"
+                ColumnResizeMode="GridColumnResizeMode.NextColumn">
+            <Columns>
+                <DxGridDataColumn Caption="ประเภทการประเมิน" Width="200px">
+                    <CellDisplayTemplate>@ItemType(((LawLandAppraisalDetailDto)context.DataItem).ItemTypeCode)</CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn Caption="เนื้อที่(ตร.ว.)" Width="128px" TextAlignment="GridTextAlignment.Right">
+                    <CellDisplayTemplate>@sc.value.toStringF(((LawLandAppraisalDetailDto)context.DataItem).Area)</CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn Caption="ราคาทั้งแปลง(บาท)" Width="145px" TextAlignment="GridTextAlignment.Right">
+                    <CellDisplayTemplate>@sc.value.toStringF(((LawLandAppraisalDetailDto)context.DataItem).LandParcelAmount)</CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn Caption="พื้นที่ใช้สอย(ตร.ม.)" Width="136px" TextAlignment="GridTextAlignment.Right">
+                    <CellDisplayTemplate>@sc.value.toStringF(((LawLandAppraisalDetailDto)context.DataItem).Space)</CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn Caption="ราคารวม(บาท)" Width="145px" TextAlignment="GridTextAlignment.Right">
+                    <CellDisplayTemplate>@sc.value.toStringF(((LawLandAppraisalDetailDto)context.DataItem).TotalPriceSpace)</CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn Caption="ราคาที่ดินรวมสิ่งปลูกสร้าง(บาท)" Width="185px" TextAlignment="GridTextAlignment.Right">
+                    <CellDisplayTemplate>@sc.value.toStringF(((LawLandAppraisalDetailDto)context.DataItem).TidinAndBuildingAmount)</CellDisplayTemplate>
+                </DxGridDataColumn>
+            </Columns>
+        </DxGrid>
+    }
+}
+
+@code {
+    [Parameter] public string? ProsecNo { get; set; }
+
+    private string? _loadedFor;
+    private List<sc.ComboItem> _items = new();
+    private string? _sel;
+    private LawLandAppraisalHeadDto? _head;
+    private List<LawLandAppraisalDetailDto> _details = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (ProsecNo == _loadedFor) return;
+        _loadedFor = ProsecNo;
+        _sel = null; _head = null; _details = new();
+        if (string.IsNullOrEmpty(_loadedFor)) { _items = new(); return; }
+
+        _items = await Svc.GetLawLandItemCodesAsync(_loadedFor);
+        if (_items.Count > 0) await OnSelectAsync(_items[0].Code);   // legacy เลือกครั้งแรกอัตโนมัติ
+    }
+
+    private async Task OnSelectAsync(string? code)
+    {
+        _sel = code;
+        if (string.IsNullOrEmpty(_loadedFor) || string.IsNullOrEmpty(code))
+        {
+            _head = null; _details = new(); return;
+        }
+        _head = await Svc.GetLawLandHeadAsync(_loadedFor, code);
+        _details = await Svc.GetLawLandDetailAsync(_loadedFor, code);
+    }
+
+    private static string ItemType(string? v) => v switch
+    {
+        "1" => "ราคาประเมินสหกรณ์",
+        "2" => "ราคาประเมินเจ้าพนักงานบังคับคดี",
+        "3" => "ราคาประเมินกรมที่ดิน",
+        _ => v ?? ""
+    };
+}

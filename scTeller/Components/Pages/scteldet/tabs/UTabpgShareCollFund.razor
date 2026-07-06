@@ -1,0 +1,78 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+
+@* ── popup popShareCollDetail sub-tab 3: จ่ายคืน/เก็บเพิ่ม (legacy u_tabpg_share_coll_fund) — read-only ──
+   gvFundRet (sc_lon_m_req_fund_ret) = จ่ายคืน + gvFundNew (sc_lon_m_req_fund_new) = เก็บเพิ่ม
+   ทุกช่องเงินเป็นจำนวนเต็ม (legacy col-integer). fund_extra legacy ปิด column แต่คงไว้ในสรุป *@
+
+<div class="nb-fund-block">
+    <div class="nb-fund-title">จ่ายคืน</div>
+    <DxGrid Data="_ret" PageSize="0" ShowAllRows="true"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn">
+        <Columns>
+                <DxGridDataColumn Caption="#" Width="50px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                    <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn Caption="เลขสัญญา" FieldName="LoanContractNo" Width="120px" TextAlignment="GridTextAlignment.Center" />
+                <DxGridDataColumn Caption="วงเงินทุน" Width="130px" TextAlignment="GridTextAlignment.Right">
+                    <CellDisplayTemplate>@sc.value.toStringF(((ShareCollFundRetDto)context.DataItem).ApproveAmount, sc.att.datatype.Integer)</CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn Caption="คืนกองทุน" FieldName="FundRet" Width="130px" TextAlignment="GridTextAlignment.Right">
+                    <CellDisplayTemplate>@sc.value.toStringF(((ShareCollFundRetDto)context.DataItem).FundRet, sc.att.datatype.Integer)</CellDisplayTemplate>
+                </DxGridDataColumn>
+        </Columns>
+        <EmptyDataAreaTemplate>— ไม่มีรายการจ่ายคืน —</EmptyDataAreaTemplate>
+        <TotalSummary>
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Sum" FieldName="FundRet" DisplayText="{0:n0}" />
+        </TotalSummary>
+    </DxGrid>
+</div>
+
+<div class="nb-fund-block">
+    <div class="nb-fund-title">เก็บเพิ่ม</div>
+    <DxGrid Data="_new" PageSize="0" ShowAllRows="true"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn">
+        <Columns>
+                <DxGridDataColumn Caption="#" Width="50px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                    <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn Caption="เลขสัญญา" FieldName="LoanContractNo" Width="120px" TextAlignment="GridTextAlignment.Center" />
+                <DxGridDataColumn Caption="วงเงินทุน" Width="120px" TextAlignment="GridTextAlignment.Right">
+                    <CellDisplayTemplate>@sc.value.toStringF(((ShareCollFundNewDto)context.DataItem).ApproveAmount, sc.att.datatype.Integer)</CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn Caption="กองทุนปัจจุบัน" FieldName="FundCur" Width="120px" TextAlignment="GridTextAlignment.Right">
+                    <CellDisplayTemplate>@sc.value.toStringF(((ShareCollFundNewDto)context.DataItem).FundCur, sc.att.datatype.Integer)</CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn Caption="กองทุนใหม่" FieldName="FundNew" Width="120px" TextAlignment="GridTextAlignment.Right">
+                    <CellDisplayTemplate>@sc.value.toStringF(((ShareCollFundNewDto)context.DataItem).FundNew, sc.att.datatype.Integer)</CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn Caption="เก็บเพิ่ม" FieldName="FundAdd" Width="120px" TextAlignment="GridTextAlignment.Right">
+                    <CellDisplayTemplate>@sc.value.toStringF(((ShareCollFundNewDto)context.DataItem).FundAdd, sc.att.datatype.Integer)</CellDisplayTemplate>
+                </DxGridDataColumn>
+        </Columns>
+        <EmptyDataAreaTemplate>— ไม่มีรายการเก็บเพิ่ม —</EmptyDataAreaTemplate>
+        <TotalSummary>
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Sum" FieldName="FundCur" DisplayText="{0:n0}" />
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Sum" FieldName="FundNew" DisplayText="{0:n0}" />
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Sum" FieldName="FundAdd" DisplayText="{0:n0}" />
+        </TotalSummary>
+    </DxGrid>
+</div>
+
+@code {
+    [Parameter] public string? LoanContractNo { get; set; }
+
+    private string? _loadedFor;
+    private List<ShareCollFundRetDto> _ret = new();
+    private List<ShareCollFundNewDto> _new = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (LoanContractNo == _loadedFor) return;
+        _loadedFor = LoanContractNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _ret = new(); _new = new(); return; }
+
+        _ret = await Svc.GetShareCollFundRetAsync(_loadedFor);
+        _new = await Svc.GetShareCollFundNewAsync(_loadedFor);
+    }
+}

@@ -1,0 +1,72 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+
+@* ── G1 Tab 4: ผู้รับผลประโยชน์ (legacy u_tabpg_mem_detail_gain_detail) — read-only grid ──
+   sc_mem_m_member_recrieve_gain (+head/prename/concern). gain_status='1' (ยกเลิก) → row สีแดง
+   เลียน legacy ที่ระบาย row ยกเลิกแดง — ทำผ่าน DxGrid CustomizeElement (แตะแค่ layout) *@
+
+@if (string.IsNullOrEmpty(Model.MembershipNo))
+{
+    <div class="nb-empty">— ยังไม่ได้เลือกสมาชิก —</div>
+}
+else if (_rows.Count == 0)
+{
+    <div class="nb-empty">— ไม่มีข้อมูลผู้รับผลประโยชน์ —</div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true" CustomizeElement="OnCustomizeElement"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn">
+        <Columns>
+            <DxGridDataColumn Caption="#" Width="44px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ลำดับ" FieldName="OrderNumber" Width="64px" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="ชื่อ-สกุล ผู้รับผลประโยชน์" FieldName="GainName" />
+            <DxGridDataColumn Caption="ความเกี่ยวข้อง" FieldName="RelatedNa" Width="120px" />
+            <DxGridDataColumn Caption="เลขบัตร ปชช." Width="150px">
+                <CellDisplayTemplate>
+                    @{ var r = (GainDetailDto)context.DataItem; }
+                    @sc.mask.idCard(r.GainIdCard)
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ร้อยละ" Width="80px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>
+                    @{ var r = (GainDetailDto)context.DataItem; }
+                    @sc.value.toStringF(r.GainPercent)
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="โทรศัพท์" FieldName="GainTelephone" Width="110px" />
+            <DxGridDataColumn Caption="วันที่บันทึก" Width="110px">
+                <CellDisplayTemplate>
+                    @{ var r = (GainDetailDto)context.DataItem; }
+                    @sc.value.toStringTH(r.BookDate)
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="สถานะ" FieldName="GainStatusDesc" Width="80px" TextAlignment="GridTextAlignment.Center" />
+        </Columns>
+    </DxGrid>
+}
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private List<GainDetailDto> _rows = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+        _rows = await Svc.GetGainDetailAsync(_loadedFor);
+    }
+
+    // row ยกเลิก (gain_status='1') → ระบายแดง (เลียน legacy)
+    private void OnCustomizeElement(GridCustomizeElementEventArgs e)
+    {
+        if (e.ElementType != GridElementType.DataRow) return;
+        if (e.Grid.GetDataItem(e.VisibleIndex) is GainDetailDto r && r.GainStatus == "1")
+            e.CssClass = "nb-row-cancel";
+    }
+}

@@ -1,0 +1,82 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+@inject sc.dbFactory DbFactory
+
+@* ── G2 Tab 8: ผู้ค้ำ/ผู้ใช้ค้ำ (legacy u_tabpg_mem_member_refer) — read-only grid ──
+   ความสัมพันธ์ (conceern_code) เป็น DB combo (sc_mem_m_ucf_concern)
+   สถานะ refer_status / สถานะการเป็นสมาชิก member_status_code = static combo (ListEditItem)
+   เลียน legacy ที่ระบายแดงเมื่อ refer_status='1' (ยกเลิก) หรือ member_status_code='3' (ลาออก) *@
+
+@if (string.IsNullOrEmpty(Model.MembershipNo))
+{
+    <div class="nb-empty">— ยังไม่ได้เลือกสมาชิก —</div>
+}
+else if (_rows.Count == 0)
+{
+    <div class="nb-empty">— ไม่มีข้อมูลผู้ค้ำ/ผู้ใช้ค้ำ —</div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true" CustomizeElement="OnCustomizeElement"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn">
+        <Columns>
+            <DxGridDataColumn Caption="ลำดับ" Width="60px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เลขทะเบียน" FieldName="MembershipNoRef" Width="110px" />
+            <DxGridDataColumn Caption="ชื่อ - สกุล" FieldName="MemberName" />
+            <DxGridDataColumn Caption="ความสัมพันธ์" Width="130px">
+                <CellDisplayTemplate>@sc.combo.text(sc.combo.sc_mem_m_ucf_concern, ((MemberReferDto)context.DataItem).ConceernCode)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ผู้บันทึก" FieldName="EntryId" Width="100px" />
+            <DxGridDataColumn Caption="สถานะ" Width="90px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@ReferStatusText(((MemberReferDto)context.DataItem).ReferStatus)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="สถานะการเป็นสมาชิก" Width="130px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@MemberStatusText(((MemberReferDto)context.DataItem).MemberStatusCode)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ผู้ยกเลิก" FieldName="CancelId" Width="100px" />
+        </Columns>
+    </DxGrid>
+}
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private List<MemberReferDto> _rows = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+        await using (var db = DbFactory.create())
+            await sc.combo.warmAsync(db, sc.combo.sc_mem_m_ucf_concern);
+        _rows = await Svc.GetMemberReferAsync(_loadedFor);
+    }
+
+    // static combo ตาม legacy ascx (ListEditItem)
+    private static string ReferStatusText(string? code) => code switch
+    {
+        "0" => "ปกติ",
+        "1" => "ยกเลิก",
+        _   => code ?? ""
+    };
+
+    private static string MemberStatusText(string? code) => code switch
+    {
+        "0" => "เป็นสมาชิก",
+        "3" => "ลาออก",
+        _   => code ?? ""
+    };
+
+    // row ยกเลิก (refer_status='1') หรือผู้ถูกอ้างถึงลาออก (member_status_code='3') → ระบายแดง (เลียน legacy)
+    private void OnCustomizeElement(GridCustomizeElementEventArgs e)
+    {
+        if (e.ElementType != GridElementType.DataRow) return;
+        if (e.Grid.GetDataItem(e.VisibleIndex) is MemberReferDto r &&
+            (r.ReferStatus == "1" || r.MemberStatusCode == "3"))
+            e.CssClass = "nb-row-cancel";
+    }
+}

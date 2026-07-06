@@ -1,0 +1,85 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+
+@* ── G3 Tab: ประวัติการกู้ (legacy u_tabpg_mem_detail_loan_detail_history) ──
+   grid view_tel_det_lon_zero (รวมสัญญาปิด/ยอด 0) — read-only
+   สีแถว (legacy HtmlRowPrepared): loan_group='2' (คำขอรออนุมัติ) → พื้นขาว font แดง *@
+
+@if (string.IsNullOrEmpty(Model.MembershipNo))
+{
+    <div class="nb-empty">— ยังไม่ได้เลือกสมาชิก —</div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn"
+            CustomizeElement="Customize">
+        <Columns>
+            <DxGridDataColumn Caption="ลำดับ" Name="seq" Width="60px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+                <FooterTemplate>@string.Format("รวม : {0} รายการ", _rows.Count)</FooterTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เลขที่สัญญา" FieldName="LoanContractNo" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="วันที่ทำสัญญา" Width="120px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.value.toStringTH(((LoanDetailHistoryDto)context.DataItem).BeginingOfContract)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เงินอนุมัติ" FieldName="LoanApproveAmount" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((LoanDetailHistoryDto)context.DataItem).LoanApproveAmount)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ส่งงวดละ" FieldName="LoanInstallmentAmount" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((LoanDetailHistoryDto)context.DataItem).LoanInstallmentAmount)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ชำระต่องวด" FieldName="PeriodPaymentAmount" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((LoanDetailHistoryDto)context.DataItem).PeriodPaymentAmount)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="คิดดอกเบี้ยล่าสุด" Width="130px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.value.toStringTH(((LoanDetailHistoryDto)context.DataItem).LastCalcintDate)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="งวดล่าสุด" FieldName="LastPeriod" Width="90px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.value.toStringF(((LoanDetailHistoryDto)context.DataItem).LastPeriod, sc.att.datatype.Integer)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เงินต้นคงเหลือ" FieldName="PrincipalBalance" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((LoanDetailHistoryDto)context.DataItem).PrincipalBalance)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ดอกเบี้ยสะสมปีนี้" FieldName="YearTotalInterest" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((LoanDetailHistoryDto)context.DataItem).YearTotalInterest)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ดอกเบี้ยค้าง" FieldName="InterestArrear" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((LoanDetailHistoryDto)context.DataItem).InterestArrear)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="สถานะพักชำระ" Width="120px">
+                <CellDisplayTemplate>@sc.combo.text(sc.combo.loan_drop_status, ((LoanDetailHistoryDto)context.DataItem).DropPaymentStatus)</CellDisplayTemplate>
+            </DxGridDataColumn>
+        </Columns>
+        <EmptyDataAreaTemplate>— ไม่มีประวัติการกู้ —</EmptyDataAreaTemplate>
+        <TotalSummary>
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Count" FooterColumnName="seq" />
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Sum" FieldName="PrincipalBalance" DisplayText="{0:n2}" />
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Sum" FieldName="YearTotalInterest" DisplayText="{0:n2}" />
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Sum" FieldName="InterestArrear" DisplayText="{0:n2}" />
+        </TotalSummary>
+    </DxGrid>
+}
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private List<LoanDetailHistoryDto> _rows = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+        _rows = await Svc.GetLoanDetailHistoryAsync(_loadedFor);
+    }
+
+    // legacy: loan_group='2' → พื้นขาว font แดง (คำขอรออนุมัติ)
+    private void Customize(GridCustomizeElementEventArgs e)
+    {
+        if (e.ElementType != GridElementType.DataRow) return;
+        if (e.Grid.GetDataItem(e.VisibleIndex) is not LoanDetailHistoryDto r) return;
+        if (r.LoanGroup == "2") e.CssClass = "nb-row-request";
+    }
+}

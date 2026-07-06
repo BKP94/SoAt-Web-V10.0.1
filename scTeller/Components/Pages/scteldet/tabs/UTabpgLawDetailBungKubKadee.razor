@@ -1,0 +1,109 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+
+@* ── popLaw sub 11: ผลการบังคับคดี (legacy u_tabpg_law_detail_bung_kub_kadee) — read-only cascade ──
+   head combo seq_no_yed → head form + detail grid (ตารางการขายทอดตลาด); kadee_status 0/1/2 inline *@
+
+@if (string.IsNullOrEmpty(ProsecNo))
+{
+    <div class="nb-empty">— ไม่มีข้อมูล —</div>
+}
+else if (_items.Count == 0)
+{
+    <div class="nb-empty">— ไม่มีข้อมูลการบังคับคดี —</div>
+}
+else
+{
+    <div class="nb-cascade-bar">
+        <span class="nb-cascade-label">ครั้งที่ยึด :</span>
+        <DxComboBox Data="_items" TData="sc.ComboItem" TValue="string"
+                    Value="_sel" ValueChanged="@((string v) => OnSelectAsync(v))"
+                    TextFieldName="Name" ValueFieldName="Code"
+                    NullText="ระบุครั้งที่ยึด..." />
+    </div>
+
+    @if (_head is not null)
+    {
+        <DxFormLayout CssClass="nb-tab-form">
+            <DxFormLayoutItem Caption="สำนักงานบังคับคดี" ColSpanMd="8">
+                <span class="nb-ro">@_head.BungKubKadeJungwat</span>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="คดีอยู่ระหว่าง" ColSpanMd="4">
+                <span class="nb-ro">@KadeeStatus(_head.KadeeStatus)</span>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="ผลการขาย" ColSpanMd="8">
+                <span class="nb-ro">@_head.ResultSale</span>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="ในราคา" ColSpanMd="4">
+                <span class="nb-ro nb-ro-num">@sc.value.toStringF(_head.SaleAmount)</span>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="โอนกรรมสิทธิ์เมื่อวันที่" ColSpanMd="4">
+                <span class="nb-ro" style="text-align:center;">@sc.value.toStringTH(_head.OwnershipDate)</span>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="วันที่รับเงินจากการขาย" ColSpanMd="4">
+                <span class="nb-ro" style="text-align:center;">@sc.value.toStringTH(_head.SaleReceiveDate)</span>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="สหกรณ์ประกาศขายในราคา" ColSpanMd="4">
+                <span class="nb-ro nb-ro-num">@sc.value.toStringF(_head.SaleAmountCoop)</span>
+            </DxFormLayoutItem>
+        </DxFormLayout>
+    }
+
+    @if (_details.Count > 0)
+    {
+        <DxGrid Data="_details" PageSize="0" ShowAllRows="true"
+                ColumnResizeMode="GridColumnResizeMode.NextColumn">
+            <Columns>
+                <DxGridDataColumn Caption="ครั้งที่" Width="100px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                    <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn Caption="วันประกาศขายทอดตลาด" Width="180px" TextAlignment="GridTextAlignment.Center">
+                    <CellDisplayTemplate>@sc.value.toStringTH(((LawBungKubKadeeDetailDto)context.DataItem).OperateDate)</CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn Caption="ราคาขาย" Width="150px" TextAlignment="GridTextAlignment.Right">
+                    <CellDisplayTemplate>@sc.value.toStringF(((LawBungKubKadeeDetailDto)context.DataItem).SaleAmount)</CellDisplayTemplate>
+                </DxGridDataColumn>
+            </Columns>
+        </DxGrid>
+    }
+}
+
+@code {
+    [Parameter] public string? ProsecNo { get; set; }
+
+    private string? _loadedFor;
+    private List<sc.ComboItem> _items = new();
+    private string? _sel;
+    private LawBungKubKadeeHeadDto? _head;
+    private List<LawBungKubKadeeDetailDto> _details = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (ProsecNo == _loadedFor) return;
+        _loadedFor = ProsecNo;
+        _sel = null; _head = null; _details = new();
+        if (string.IsNullOrEmpty(_loadedFor)) { _items = new(); return; }
+
+        _items = await Svc.GetLawBungKubSeqAsync(_loadedFor);
+        if (_items.Count > 0) await OnSelectAsync(_items[0].Code);
+    }
+
+    private async Task OnSelectAsync(string? code)
+    {
+        _sel = code;
+        if (string.IsNullOrEmpty(_loadedFor) || string.IsNullOrEmpty(code))
+        {
+            _head = null; _details = new(); return;
+        }
+        _head = await Svc.GetLawBungKubHeadAsync(_loadedFor, code);
+        _details = await Svc.GetLawBungKubDetailAsync(_loadedFor, code);
+    }
+
+    private static string KadeeStatus(string? v) => v switch
+    {
+        "0" => "ทำบัญชีรับจ่าย",
+        "1" => "รอหนังสือโอนกรรมสิทธิ์",
+        "2" => "ทำบัญชีรับจ่ายและรอหนังสือโอนกรรมสิทธิ์",
+        _ => v ?? ""
+    };
+}

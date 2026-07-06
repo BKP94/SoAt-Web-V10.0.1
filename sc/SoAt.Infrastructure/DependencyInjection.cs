@@ -32,6 +32,7 @@ public static class DependencyInjection
         services.AddScoped<IScAppService, ScAppService>();
         services.AddScoped<IFinDailyService, FinDailyService>();
         services.AddScoped<ISctelnewbmaService, SctelnewbmaService>();
+        services.AddScoped<IScteldetService, ScteldetService>();
 
         return services;
     }

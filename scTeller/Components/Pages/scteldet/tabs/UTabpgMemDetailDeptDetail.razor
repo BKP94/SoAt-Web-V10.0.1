@@ -1,0 +1,117 @@
+@using SoAt.Application.ScTeller
+@using scTeller.Components.Pages.scteldet.pops
+@inject IScteldetService Svc
+
+@* ── G5 Tab 1: รายละเอียดเงินฝาก (legacy u_tabpg_mem_detail_dept_detail) — viewer read-only ──
+   grid sc_dep_m_creditor; close_status='C' → ทั้งแถวสีแดง + ยอดคงเหลือแสดง "ปิดบัญชี"
+   ปุ่ม 🔍 / double-click → popup popDeptDetail (3 sub-tabs: ข้อมูล/เคลื่อนไหว/ค้ำประกัน) *@
+
+@if (string.IsNullOrEmpty(Model.MembershipNo))
+{
+    <div class="nb-empty">— ยังไม่ได้เลือกสมาชิก —</div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn"
+            CustomizeElement="OnCustomizeElement"
+            RowDoubleClick="OnRowDoubleClick">
+        <Columns>
+            <DxGridDataColumn Caption="#" Width="40px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เลขบัญชี" FieldName="DepositAccountNo2" Width="120px" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="ประเภท" FieldName="DepositType" Width="150px" />
+            <DxGridDataColumn Caption="ชื่อบัญชี" FieldName="DepositAccountName" Width="180px" />
+            <DxGridDataColumn Caption="วันที่เปิดบัญชี" Width="100px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.value.toStringTH(((DepositListDto)context.DataItem).DepositOpenedDate)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="หักรายเดือน" Width="110px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((DepositListDto)context.DataItem).MonthlyDepositAmount)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="" Width="50px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>
+                    <button type="button" class="nb-linkbtn" title="รายละเอียดเงินฝาก"
+                            @onclick="() => OpenDept((DepositListDto)context.DataItem)">🔍</button>
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ยอดค้ำเงินกู้" Width="110px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((DepositListDto)context.DataItem).LoanHoldingAmount)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="อายัดเงินฝาก" Width="110px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((DepositListDto)context.DataItem).DepositStandsecurityAmount)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ยอดคงเหลือ" Width="120px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>
+                    @{
+                        var r = (DepositListDto)context.DataItem;
+                    }
+                    @(r.CloseStatus == "C" ? "ปิดบัญชี" : sc.value.toStringF(r.DepositBalanceT))
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="วันที่คิดดอกเบี้ยล่าสุด" Width="130px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.value.toStringTH(((DepositListDto)context.DataItem).LastCalcintDate)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ดอกเบี้ยสะสม" Width="110px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((DepositListDto)context.DataItem).AccumulateInterest)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ผู้ทำรายการ" FieldName="OfficerId" Width="100px" TextAlignment="GridTextAlignment.Center" />
+        </Columns>
+        <EmptyDataAreaTemplate>— ไม่มีบัญชีเงินฝาก —</EmptyDataAreaTemplate>
+    </DxGrid>
+    <div class="nb-grid-summary">
+        <span>@_rows.Count บัญชี</span>
+        &nbsp;&nbsp;<span>ยอดคงเหลือรวม: @sc.value.toStringF(_sumBalanceT)</span>
+        &nbsp;&nbsp;<span>ยอดที่ถอนได้: @sc.value.toStringF(_sumWithdrawable)</span>
+        &nbsp;&nbsp;<span>เช็ครอเคลียริ่ง: @sc.value.toStringF(_sumChequePending)</span>
+        &nbsp;&nbsp;<span>ค้ำเงินกู้: @sc.value.toStringF(_sumLoanHolding)</span>
+        &nbsp;&nbsp;<span>อายัด: @sc.value.toStringF(_sumStandsecurity)</span>
+    </div>
+}
+
+@* ── popup popDeptDetail (pops/) — 3 sub-tabs ── *@
+<PopDeptDetail @bind-Visible="_popVisible" DepositAccountNo="@_selectedDepno" />
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private List<DepositListDto> _rows = new();
+    private decimal _sumBalanceT, _sumWithdrawable, _sumChequePending, _sumLoanHolding, _sumStandsecurity;
+
+    private bool _popVisible;
+    private string? _selectedDepno;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+
+        _rows = await Svc.GetDepositListAsync(_loadedFor);
+        _sumBalanceT = _rows.Sum(x => x.DepositBalanceT ?? 0m);
+        _sumWithdrawable = _rows.Sum(x => x.WithdrawableAmount ?? 0m);
+        _sumChequePending = _rows.Sum(x => x.ChequePendingAmount ?? 0m);
+        _sumLoanHolding = _rows.Sum(x => x.LoanHoldingAmount ?? 0m);
+        _sumStandsecurity = _rows.Sum(x => x.DepositStandsecurityAmount ?? 0m);
+    }
+
+    // เลียน legacy: close_status='C' → ทั้งแถวสีแดง
+    private void OnCustomizeElement(GridCustomizeElementEventArgs e)
+    {
+        if (e.ElementType != GridElementType.DataRow) return;
+        if (e.Grid.GetDataItem(e.VisibleIndex) is DepositListDto r && r.CloseStatus == "C")
+            e.Style = "color:rgb(139,0,0);";
+    }
+
+    private void OnRowDoubleClick(GridRowClickEventArgs e)
+    {
+        if (e.Grid.GetDataItem(e.VisibleIndex) is DepositListDto r) OpenDept(r);
+    }
+
+    private void OpenDept(DepositListDto r)
+    {
+        _selectedDepno = r.DepositAccountNo;   // key ดิบ (ไม่ใช่ formatted)
+        _popVisible = true;
+    }
+}

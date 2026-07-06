@@ -1,0 +1,77 @@
+@using SoAt.Application.ScTeller
+@using scTeller.Components.Pages.scteldet.tabs
+
+@* ── PopLawDetail — รายละเอียดการดำเนินคดี (เลียน legacy scteldet/pops/popLawDetail.ascx) ──
+   DxTabs 11 sub-tab (legacy popLawDetailTabs ActiveTabIndex=1 = รายละเอียดผู้ค้ำประกัน)
+   รับ prosec_no → ส่งลง sub-tab (dumb component โหลดเองจาก ProsecNo)
+   grid ใน popup: nb-poptabs จำกัดความสูง body + scroll (ไม่ล้น popup) *@
+
+<DxPopup Visible="Visible" VisibleChanged="OnVisibleChanged" HeaderText="@HeaderText"
+         Width="1180px" Height="660px" ShowFooter="true" CloseOnEscape="true" Shown="OnShown">
+    <BodyContentTemplate Context="pop">
+        <DxTabs CssClass="nb-tabs nb-poptabs" @bind-ActiveTabIndex="_activeTab">
+            <DxTabPage Text="ฝากเรียกเก็บ">
+                <div class="nb-tabbody"><UTabpgLawDetailDepositCollection ProsecNo="@ProsecNo" /></div>
+            </DxTabPage>
+            <DxTabPage Text="รายละเอียดผู้ค้ำประกัน">
+                <div class="nb-tabbody"><UTabpgLawDetailCollateralDetail ProsecNo="@ProsecNo" /></div>
+            </DxTabPage>
+            <DxTabPage Text="สถานภาพหนี้ปัจจุบัน">
+                <div class="nb-tabbody"><UTabpgLawDetailLoanDetailstatus ProsecNo="@ProsecNo" /></div>
+            </DxTabPage>
+            <DxTabPage Text="การดำเนินคดี">
+                <div class="nb-tabbody"><UTabpgLawDetailDumNernKadee ProsecNo="@ProsecNo" /></div>
+            </DxTabPage>
+            <DxTabPage Text="การดำเนินการหลังพิพากษา">
+                <div class="nb-tabbody"><UTabpgLawDetailPipagsaDetail ProsecNo="@ProsecNo" /></div>
+            </DxTabPage>
+            <DxTabPage Text="หนังสือเตือนการชำระหนี้">
+                <div class="nb-tabbody"><UTabpgLawDetailBookAlertpay ProsecNo="@ProsecNo" /></div>
+            </DxTabPage>
+            <DxTabPage Text="รายละเอียดการนำฟ้อง">
+                <div class="nb-tabbody"><UTabpgLawDetailNumphongDetail ProsecNo="@ProsecNo" /></div>
+            </DxTabPage>
+            <DxTabPage Text="รายละเอียดจำเลย">
+                <div class="nb-tabbody"><UTabpgLawDetailJumleyDetail ProsecNo="@ProsecNo" /></div>
+            </DxTabPage>
+            <DxTabPage Text="บังคับลูกหนี้ตามคำพิพากษา">
+                <div class="nb-tabbody"><UTabpgLawDetailBungkubPipagsa ProsecNo="@ProsecNo" /></div>
+            </DxTabPage>
+            <DxTabPage Text="ราคาประเมิน">
+                <div class="nb-tabbody"><UTabpgLawDetailLandAppraisal ProsecNo="@ProsecNo" /></div>
+            </DxTabPage>
+            <DxTabPage Text="ผลการบังคับคดี">
+                <div class="nb-tabbody"><UTabpgLawDetailBungKubKadee ProsecNo="@ProsecNo" /></div>
+            </DxTabPage>
+        </DxTabs>
+    </BodyContentTemplate>
+    <FooterContentTemplate>
+        <DxButton Text="ปิดหน้าจอ" RenderStyle="ButtonRenderStyle.Secondary" Click="Close" />
+    </FooterContentTemplate>
+</DxPopup>
+
+@code {
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public EventCallback<bool> VisibleChanged { get; set; }
+
+    [Parameter] public string? ProsecNo { get; set; }
+    [Parameter] public string HeaderText { get; set; } = "รายละเอียดการดำเนินคดี";
+
+    private int _activeTab = 1;   // legacy popLawDetailTabs ActiveTabIndex=1
+
+    private void OnShown() => _activeTab = 1;
+
+    private Task Close() => CloseInternal();
+
+    private async Task OnVisibleChanged(bool visible)
+    {
+        Visible = visible;
+        await VisibleChanged.InvokeAsync(visible);
+    }
+
+    private async Task CloseInternal()
+    {
+        Visible = false;
+        await VisibleChanged.InvokeAsync(false);
+    }
+}

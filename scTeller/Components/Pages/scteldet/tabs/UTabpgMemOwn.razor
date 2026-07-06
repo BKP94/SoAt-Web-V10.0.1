@@ -1,0 +1,48 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+
+@* ── G1 Tab 3: สมาชิกโอนมา (legacy u_tabpg_mem_own) — read-only viewer ──
+   sc_mem_m_member_own_info — เงินออม/หนี้เดิมที่โอนมา + มติ + วันที่เป็นสมาชิกครั้งแรก *@
+
+@if (string.IsNullOrEmpty(Model.MembershipNo))
+{
+    <div class="nb-empty">— ยังไม่ได้เลือกสมาชิก —</div>
+}
+else if (_own is null)
+{
+    <div class="nb-empty">— ไม่มีข้อมูลสมาชิกโอนมา —</div>
+}
+else
+{
+    <DxFormLayout CssClass="nb-tab-form">
+        <DxFormLayoutGroup Caption="ข้อมูลสมาชิกโอนมา" ColSpanMd="12" Decoration="FormLayoutGroupDecoration.None">
+            <DxFormLayoutItem Caption="วันที่เป็นสมาชิกครั้งแรก" ColSpanMd="6">
+                <DxTextBox Text="@sc.value.toStringTH(_own.FirstDate)" Enabled="false" />
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="เงินออมเดิม" ColSpanMd="3">
+                <DxTextBox Text="@sc.value.toStringF(_own.OtherSaving)" Enabled="false" />
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="ยอดหนี้เดิม" ColSpanMd="3">
+                <DxTextBox Text="@sc.value.toStringF(_own.OwnTotalLoan)" Enabled="false" />
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="รายละเอียดมติ" ColSpanMd="12">
+                <DxTextBox Text="@_own.MatiDetail" Enabled="false" />
+            </DxFormLayoutItem>
+        </DxFormLayoutGroup>
+    </DxFormLayout>
+}
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private OwnInfoDto? _own;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _own = null; return; }
+        _own = await Svc.GetOwnInfoAsync(_loadedFor);
+    }
+}

@@ -1,0 +1,72 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+
+@* ── G1 Tab 6: ปันผล-เฉลี่ยคืน (รวมทุกปี) (legacy u_tabpg_mem_detail_devidend_detail_all) ──
+   sc_mem_m_capital_stock_detail + _rate + _pay — สรุปต่อปี (account_year +543 จาก SQL แล้ว)
+   drop_dividend ไม่ว่าง (เช่น 'งด') → ปีที่งดจ่าย → row สีแดง (เลียน legacy) *@
+
+@if (string.IsNullOrEmpty(Model.MembershipNo))
+{
+    <div class="nb-empty">— ยังไม่ได้เลือกสมาชิก —</div>
+}
+else if (_rows.Count == 0)
+{
+    <div class="nb-empty">— ไม่มีข้อมูลปันผล —</div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true" CustomizeElement="OnCustomizeElement"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn">
+        <Columns>
+            <DxGridDataColumn Caption="ปี" FieldName="AccountYear" Width="64px" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="อัตราปันผล" Width="90px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((DevidendAllDto)context.DataItem).ShareRate)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เงินปันผล" Width="120px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((DevidendAllDto)context.DataItem).Dividend)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="อัตราเฉลี่ยคืน" Width="90px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((DevidendAllDto)context.DataItem).LonintRate)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เงินเฉลี่ยคืน" Width="120px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((DevidendAllDto)context.DataItem).AverageReturn)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เงินรางวัล" Width="110px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((DevidendAllDto)context.DataItem).TotalMoneyReward)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="รวมรับ" Width="120px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((DevidendAllDto)context.DataItem).Total)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="สถานะ" FieldName="DropDividend" Width="80px" TextAlignment="GridTextAlignment.Center" />
+        </Columns>
+    </DxGrid>
+
+    <div class="nb-sum nb-sum--ok">รวมเงินปันผลทุกปี: @sc.value.toStringF(_sumDividend) &nbsp;|&nbsp; รวมเงินเฉลี่ยคืน: @sc.value.toStringF(_sumAverage)</div>
+}
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private List<DevidendAllDto> _rows = new();
+    private decimal _sumDividend;
+    private decimal _sumAverage;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); _sumDividend = _sumAverage = 0; return; }
+        _rows = await Svc.GetDevidendAllAsync(_loadedFor);
+        _sumDividend = _rows.Sum(r => r.Dividend ?? 0);
+        _sumAverage = _rows.Sum(r => r.AverageReturn ?? 0);
+    }
+
+    // ปีที่งดจ่าย (drop_dividend ไม่ว่าง) → row สีแดง
+    private void OnCustomizeElement(GridCustomizeElementEventArgs e)
+    {
+        if (e.ElementType != GridElementType.DataRow) return;
+        if (e.Grid.GetDataItem(e.VisibleIndex) is DevidendAllDto r && !string.IsNullOrWhiteSpace(r.DropDividend))
+            e.CssClass = "nb-row-cancel";
+    }
+}

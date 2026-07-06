@@ -1,0 +1,57 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+
+@* ── popup popLoan_detail sub-tab 4: โอนหนี้ให้ผู้ค้ำ (legacy u_tabpg_loan_detail_coll_trans) — read-only ── *@
+
+@if (string.IsNullOrEmpty(LoanContractNo))
+{
+    <div class="nb-empty">— ไม่มีข้อมูล —</div>
+}
+else if (_rows.Count == 0)
+{
+    <div class="nb-empty">— ไม่มีรายการโอนหนี้ให้ผู้ค้ำ —</div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn">
+        <Columns>
+            <DxGridDataColumn Caption="ที่" Width="50px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เลขที่สัญญา" FieldName="LoanContractNo" Width="120px" />
+            <DxGridDataColumn Caption="ทะเบียน" FieldName="MembershipNo" Width="90px" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="ชื่อผู้ค้ำ" FieldName="MemberName" MinWidth="150" />
+            <DxGridDataColumn Caption="วันที่เริ่มสัญญา" Width="110px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.value.toStringTH(((LoanDetailCollTransDto)context.DataItem).BeginingOfContract)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="วงเงินอนุมัติ" Width="110px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((LoanDetailCollTransDto)context.DataItem).LoanApproveAmount)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ชำระต่องวด" Width="110px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((LoanDetailCollTransDto)context.DataItem).PeriodPaymentAmount)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="งวดล่าสุด" Width="80px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.value.toStringF(((LoanDetailCollTransDto)context.DataItem).LastPeriod, sc.att.datatype.Integer)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ยอดเงินคงเหลือ" Width="115px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((LoanDetailCollTransDto)context.DataItem).PrincipalBalance)</CellDisplayTemplate>
+            </DxGridDataColumn>
+        </Columns>
+    </DxGrid>
+}
+
+@code {
+    [Parameter] public string? LoanContractNo { get; set; }
+
+    private string? _loadedFor;
+    private List<LoanDetailCollTransDto> _rows = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (LoanContractNo == _loadedFor) return;
+        _loadedFor = LoanContractNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+        _rows = await Svc.GetLoanDetailCollTransAsync(_loadedFor);
+    }
+}

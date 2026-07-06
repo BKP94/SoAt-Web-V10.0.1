@@ -1,0 +1,68 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+@inject sc.dbFactory DbFactory
+
+@* ── G6 Tab: สมาชิกสมทบ / ผู้ที่อ้างอิงผู้นี้ (legacy u_tabpg_mem_userefer) ──
+   grid sc_mem_m_member_member_refer — WHERE membership_no_ref = สมาชิกปัจจุบัน
+   (สมาชิกที่ผู้นี้เป็นผู้อ้างอิงให้ — ตรงข้ามทิศกับ G2 member_refer)
+   สีแถว (legacy): refer_status='1' หรือ member_status_code='3' → แถวแดง *@
+
+@if (string.IsNullOrEmpty(Model.MembershipNo))
+{
+    <div class="nb-empty">— ยังไม่ได้เลือกสมาชิก —</div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn"
+            CustomizeElement="Customize">
+        <Columns>
+            <DxGridDataColumn Caption="ลำดับ" Name="seq" Width="60px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+                <FooterTemplate>@string.Format("รวม : {0} รายการ", _rows.Count)</FooterTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เลขทะเบียนสมาชิก" FieldName="MembershipNo" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="ชื่อ-สกุล" FieldName="MemberName" Width="240px" />
+            <DxGridDataColumn Caption="ความสัมพันธ์" Width="160px">
+                <CellDisplayTemplate>@sc.combo.text(sc.combo.sc_mem_m_ucf_concern, ((UsereferDto)context.DataItem).ConceernCode)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="สถานะสมาชิก" Width="120px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.combo.text(sc.combo.member_status_code, ((UsereferDto)context.DataItem).MemberStatusCode)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ผู้บันทึก" FieldName="EntryId" Width="120px" />
+            <DxGridDataColumn Caption="ผู้ยกเลิก" FieldName="CancelId" Width="120px" />
+        </Columns>
+        <EmptyDataAreaTemplate>— ไม่มีสมาชิกสมทบ —</EmptyDataAreaTemplate>
+        <TotalSummary>
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Count" FooterColumnName="seq" />
+        </TotalSummary>
+    </DxGrid>
+}
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private List<UsereferDto> _rows = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+        await using (var db = DbFactory.create())
+        {
+            await sc.combo.warmAsync(db, sc.combo.sc_mem_m_ucf_concern);
+            await sc.combo.warmAsync(db, sc.combo.member_status_code);
+        }
+        _rows = await Svc.GetUsereferAsync(_loadedFor);
+    }
+
+    // legacy: refer_status='1' หรือ member_status_code='3' → แถวแดง
+    private void Customize(GridCustomizeElementEventArgs e)
+    {
+        if (e.ElementType != GridElementType.DataRow) return;
+        if (e.Grid.GetDataItem(e.VisibleIndex) is not UsereferDto r) return;
+        if (r.ReferStatus == "1" || r.MemberStatusCode == "3") e.CssClass = "nb-row-request";
+    }
+}

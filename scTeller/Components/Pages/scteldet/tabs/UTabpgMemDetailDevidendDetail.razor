@@ -1,0 +1,197 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+@inject sc.dbFactory DbFactory
+
+@* ── G1 Tab 5: ปันผล-เฉลี่ยคืน (รายปี) (legacy u_tabpg_mem_detail_devidend_detail) ──
+   เลือกปีบัญชี (พ.ศ. = account_year+543) → header สรุป + รายการถือหุ้นรายเดือน
+   + รายละเอียดคำนวณปันผล + รายการจ่าย. เป็น viewer read-only ทั้งหมด *@
+
+@if (string.IsNullOrEmpty(Model.MembershipNo))
+{
+    <div class="nb-empty">— ยังไม่ได้เลือกสมาชิก —</div>
+}
+else if (_years.Count == 0)
+{
+    <div class="nb-empty">— ไม่มีข้อมูลปันผล —</div>
+}
+else
+{
+    <div class="nb-tab-yearbar">
+        <span class="nb-tab-yearbar-label">ปีบัญชี</span>
+        <DxComboBox Data="_years"
+                    Value="_year"
+                    ValueChanged="@((int v) => OnYearChanged(v))"
+                    TextFieldName="@nameof(YearItem.Text)"
+                    ValueFieldName="@nameof(YearItem.Year)"
+                    Style="min-width:140px" />
+    </div>
+
+    @if (_head is not null)
+    {
+        <DxFormLayout CssClass="nb-tab-form">
+            <DxFormLayoutGroup Caption="สรุปปันผล-เฉลี่ยคืน ประจำปี" ColSpanMd="12" Decoration="FormLayoutGroupDecoration.None">
+                <DxFormLayoutItem Caption="อัตราปันผล (%)" ColSpanMd="3">
+                    <span class="nb-ro nb-ro-num">@sc.value.toStringF(_head.ShareRate)</span>
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="เงินปันผล" ColSpanMd="3">
+                    <span class="nb-ro nb-ro-num">@sc.value.toStringF(_head.Dividend)</span>
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="อัตราเฉลี่ยคืน (%)" ColSpanMd="3">
+                    <span class="nb-ro nb-ro-num">@sc.value.toStringF(_head.LonintRate)</span>
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="เงินเฉลี่ยคืน" ColSpanMd="3">
+                    <span class="nb-ro nb-ro-num">@sc.value.toStringF(_head.AverageReturn)</span>
+                </DxFormLayoutItem>
+
+                <DxFormLayoutItem Caption="ดอกเบี้ยรวม" ColSpanMd="3">
+                    <span class="nb-ro nb-ro-num">@sc.value.toStringF(_head.TotalInterest)</span>
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="รวมจ่าย" ColSpanMd="3">
+                    <span class="nb-ro nb-ro-num">@sc.value.toStringF(_head.TotalPay)</span>
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="เงินรางวัล" ColSpanMd="3">
+                    <span class="nb-ro nb-ro-num">@sc.value.toStringF(_head.TotalMoneyReward)</span>
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="สมทบ" ColSpanMd="3">
+                    <span class="nb-ro nb-ro-num">@sc.value.toStringF(_head.SomtobAmount)</span>
+                </DxFormLayoutItem>
+
+                <DxFormLayoutItem Caption="ธนาคารรับโอน" ColSpanMd="6">
+                    <ScCombo Combo="@sc.combo.sc_fin_m_bank" Value="@_head.BankCode" ReadOnly />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="เลขที่บัญชี" ColSpanMd="6">
+                    <span class="nb-ro">@sc.value.toMask(_head.BankAccNo, "999-9-99999-9")</span>
+                </DxFormLayoutItem>
+            </DxFormLayoutGroup>
+        </DxFormLayout>
+    }
+
+    @* รายการถือหุ้นรายเดือน (unpivot m01..m12) *@
+    @if (_gotint.Count > 0)
+    {
+        <div class="nb-subtitle">หุ้นที่ถือรายเดือน</div>
+        <DxGrid Data="_monthRows" PageSize="0" ShowAllRows="true"
+                ColumnResizeMode="GridColumnResizeMode.NextColumn">
+            <Columns>
+                <DxGridDataColumn Caption="เดือน" FieldName="Month" Width="80px" TextAlignment="GridTextAlignment.Center" />
+                <DxGridDataColumn Caption="หุ้น" FieldName="Value" TextAlignment="GridTextAlignment.Right" />
+            </Columns>
+        </DxGrid>
+    }
+
+    @* รายละเอียดการคำนวณปันผล *@
+    @if (_detail.Count > 0)
+    {
+        <div class="nb-subtitle">รายละเอียดการคำนวณ</div>
+        <DxGrid Data="_detail" PageSize="0" ShowAllRows="true"
+                ColumnResizeMode="GridColumnResizeMode.NextColumn">
+            <Columns>
+                <DxGridDataColumn Caption="วันที่ทำรายการ" Width="120px">
+                    <CellDisplayTemplate>@sc.value.toStringTH(((DividendDetailDto)context.DataItem).PreOperateDate)</CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn Caption="ประเภท" FieldName="PreItemType" Width="90px" TextAlignment="GridTextAlignment.Center" />
+                <DxGridDataColumn Caption="มูลค่าหุ้น" Width="120px" TextAlignment="GridTextAlignment.Right">
+                    <CellDisplayTemplate>@sc.value.toStringF(((DividendDetailDto)context.DataItem).PreShareValue)</CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn Caption="จำนวนวัน" FieldName="PreDayCount" Width="90px" TextAlignment="GridTextAlignment.Right" />
+                <DxGridDataColumn Caption="ปันผล" Width="120px" TextAlignment="GridTextAlignment.Right">
+                    <CellDisplayTemplate>@sc.value.toStringF(((DividendDetailDto)context.DataItem).PreDividend)</CellDisplayTemplate>
+                </DxGridDataColumn>
+            </Columns>
+        </DxGrid>
+    }
+
+    @* รายการจ่ายปันผล *@
+    @if (_payment.Count > 0)
+    {
+        <div class="nb-subtitle">รายการจ่าย</div>
+        <DxGrid Data="_payment" PageSize="0" ShowAllRows="true"
+                ColumnResizeMode="GridColumnResizeMode.NextColumn">
+            <Columns>
+                <DxGridDataColumn Caption="ประเภท" FieldName="AccountType" Width="100px" TextAlignment="GridTextAlignment.Center" />
+                <DxGridDataColumn Caption="จำนวนเงิน" Width="120px" TextAlignment="GridTextAlignment.Right">
+                    <CellDisplayTemplate>@sc.value.toStringF(((DevidendPaymentDto)context.DataItem).ItemAmount)</CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn Caption="ธนาคาร">
+                    <CellDisplayTemplate>@sc.combo.text(sc.combo.sc_fin_m_bank, ((DevidendPaymentDto)context.DataItem).BankCode)</CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn Caption="เลขที่บัญชี" Width="140px">
+                    <CellDisplayTemplate>@sc.value.toMask(((DevidendPaymentDto)context.DataItem).BankAccNo, "999-9-99999-9")</CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn Caption="สัญญากู้" FieldName="LoanContractNo" Width="120px" />
+                <DxGridDataColumn Caption="วันที่โอน" Width="110px">
+                    <CellDisplayTemplate>@sc.value.toStringTH(((DevidendPaymentDto)context.DataItem).PostDate)</CellDisplayTemplate>
+                </DxGridDataColumn>
+            </Columns>
+        </DxGrid>
+    }
+}
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private List<YearItem> _years = new();
+    private int _year;
+
+    private DevidendHeadDto? _head;
+    private List<GotintDto> _gotint = new();
+    private List<MonthRow> _monthRows = new();
+    private List<DividendDetailDto> _detail = new();
+    private List<DevidendPaymentDto> _payment = new();
+
+    // year list = ค.ศ. (storage) → display พ.ศ. (+543) ตาม sc.* convention
+    public record YearItem(int Year, string Text);
+    public record MonthRow(string Month, string? Value);
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        if (string.IsNullOrEmpty(_loadedFor))
+        {
+            _years = new(); _year = 0; ClearYearData();
+            return;
+        }
+        await using (var db = DbFactory.create())
+            await sc.combo.warmAsync(db, sc.combo.sc_fin_m_bank);
+        var raw = await Svc.GetDevidendYearsAsync(_loadedFor);
+        _years = raw.Select(y => new YearItem(y.AccountYear, (y.AccountYear + 543).ToString())).ToList();
+        if (_years.Count > 0)
+        {
+            _year = _years[0].Year;   // ปีล่าสุด
+            await LoadYearAsync();
+        }
+        else
+        {
+            _year = 0; ClearYearData();
+        }
+    }
+
+    private async Task OnYearChanged(int year)
+    {
+        _year = year;
+        await LoadYearAsync();
+    }
+
+    private async Task LoadYearAsync()
+    {
+        if (string.IsNullOrEmpty(_loadedFor) || _year == 0) { ClearYearData(); return; }
+        _head = await Svc.GetDevidendHeadAsync(_loadedFor, _year);
+        _gotint = await Svc.GetDevidendGotintAsync(_loadedFor, _year);
+        _detail = await Svc.GetDevidendDetailAsync(_loadedFor, _year);
+        _payment = await Svc.GetDevidendPaymentAsync(_loadedFor, _year);
+
+        // unpivot m01..m12 → label เดือน 1..12
+        _monthRows = _gotint
+            .Select((g, i) => new MonthRow($"{i + 1:00}", sc.value.toStringF(g.GotInt)))
+            .ToList();
+    }
+
+    private void ClearYearData()
+    {
+        _head = null;
+        _gotint = new(); _monthRows = new();
+        _detail = new(); _payment = new();
+    }
+}

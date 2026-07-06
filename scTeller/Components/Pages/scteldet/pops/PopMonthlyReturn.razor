@@ -1,0 +1,137 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+
+@* ── PopMonthlyReturn — รายละเอียดใบเสร็จคืน (เลียน legacy scteldet/pops/popMonthlyReturn.ascx) ──
+   รับ key (membership_no / year / month / seq) → โหลด detail rows บน Shown
+   grid มี band 3 กลุ่ม (เรียกเก็บ/เก็บได้/เก็บไม่ได้) + สรุปยอดท้าย
+   grid ใน popup: nb-pop-scroll จำกัดความสูง + scroll (ไม่ล้น popup) *@
+
+<DxPopup Visible="Visible" VisibleChanged="OnVisibleChanged" HeaderText="รายละเอียดใบเสร็จคืน"
+         Width="1100px" Height="600px" ShowFooter="true" CloseOnEscape="true">
+    <BodyContentTemplate Context="pop">
+        @if (_detailRows.Count == 0)
+        {
+            <div class="nb-empty">— ไม่มีรายละเอียด —</div>
+        }
+        else
+        {
+            <div class="nb-pop-scroll">
+                <DxGrid Data="_detailRows" PageSize="0" ShowAllRows="true"
+                        ColumnResizeMode="GridColumnResizeMode.NextColumn">
+                    <Columns>
+                        <DxGridDataColumn Caption="#" Width="40px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                            <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+                        </DxGridDataColumn>
+                        <DxGridDataColumn Caption="รหัส" FieldName="KeepingTypeCode" Width="70px" />
+                        <DxGridDataColumn Caption="รายการ" FieldName="ReceiveDescription" Width="200px" />
+                        <DxGridDataColumn Caption="งวด" Width="60px" TextAlignment="GridTextAlignment.Right">
+                            <CellDisplayTemplate>@sc.value.toStringF(((MonthlyReturnDetailDto)context.DataItem).Period)</CellDisplayTemplate>
+                        </DxGridDataColumn>
+                        <DxGridBandColumn Caption="ยอดเรียกเก็บ">
+                            <Columns>
+                                <DxGridDataColumn Caption="เงินต้น" Width="100px" TextAlignment="GridTextAlignment.Right">
+                                    <CellDisplayTemplate>@sc.value.toStringF(((MonthlyReturnDetailDto)context.DataItem).KeepingP)</CellDisplayTemplate>
+                                </DxGridDataColumn>
+                                <DxGridDataColumn Caption="ดอกเบี้ย" Width="100px" TextAlignment="GridTextAlignment.Right">
+                                    <CellDisplayTemplate>@sc.value.toStringF(((MonthlyReturnDetailDto)context.DataItem).KeepingI)</CellDisplayTemplate>
+                                </DxGridDataColumn>
+                                <DxGridDataColumn Caption="รวม" Width="100px" TextAlignment="GridTextAlignment.Right">
+                                    <CellDisplayTemplate>@sc.value.toStringF(((MonthlyReturnDetailDto)context.DataItem).KeepingA)</CellDisplayTemplate>
+                                </DxGridDataColumn>
+                            </Columns>
+                        </DxGridBandColumn>
+                        <DxGridBandColumn Caption="ยอดเก็บได้">
+                            <Columns>
+                                <DxGridDataColumn Caption="เงินต้น" Width="100px" TextAlignment="GridTextAlignment.Right">
+                                    <CellDisplayTemplate>@sc.value.toStringF(((MonthlyReturnDetailDto)context.DataItem).IncomeP)</CellDisplayTemplate>
+                                </DxGridDataColumn>
+                                <DxGridDataColumn Caption="ดอกเบี้ย" Width="100px" TextAlignment="GridTextAlignment.Right">
+                                    <CellDisplayTemplate>@sc.value.toStringF(((MonthlyReturnDetailDto)context.DataItem).IncomeI)</CellDisplayTemplate>
+                                </DxGridDataColumn>
+                                <DxGridDataColumn Caption="รวม" Width="100px" TextAlignment="GridTextAlignment.Right">
+                                    <CellDisplayTemplate>@sc.value.toStringF(((MonthlyReturnDetailDto)context.DataItem).IncomeA)</CellDisplayTemplate>
+                                </DxGridDataColumn>
+                            </Columns>
+                        </DxGridBandColumn>
+                        <DxGridBandColumn Caption="ยอดเก็บไม่ได้">
+                            <Columns>
+                                <DxGridDataColumn Caption="เงินต้น" Width="100px" TextAlignment="GridTextAlignment.Right">
+                                    <CellDisplayTemplate>@sc.value.toStringF(((MonthlyReturnDetailDto)context.DataItem).UnkeepP)</CellDisplayTemplate>
+                                </DxGridDataColumn>
+                                <DxGridDataColumn Caption="ดอกเบี้ย" Width="100px" TextAlignment="GridTextAlignment.Right">
+                                    <CellDisplayTemplate>@sc.value.toStringF(((MonthlyReturnDetailDto)context.DataItem).UnkeepI)</CellDisplayTemplate>
+                                </DxGridDataColumn>
+                                <DxGridDataColumn Caption="รวม" Width="100px" TextAlignment="GridTextAlignment.Right">
+                                    <CellDisplayTemplate>@sc.value.toStringF(((MonthlyReturnDetailDto)context.DataItem).UnkeepA)</CellDisplayTemplate>
+                                </DxGridDataColumn>
+                            </Columns>
+                        </DxGridBandColumn>
+                    </Columns>
+                </DxGrid>
+            </div>
+            <div class="nb-pop-summary">
+                <span>รวมยอดเรียกเก็บ: @sc.value.toStringF(_sumKeepP) / @sc.value.toStringF(_sumKeepI) / @sc.value.toStringF(_sumKeepA)</span>
+                <span>รวมยอดเก็บได้: @sc.value.toStringF(_sumIncomeP) / @sc.value.toStringF(_sumIncomeI) / @sc.value.toStringF(_sumIncomeA)</span>
+                <span>รวมยอดเก็บไม่ได้: @sc.value.toStringF(_sumUnkeepP) / @sc.value.toStringF(_sumUnkeepI) / @sc.value.toStringF(_sumUnkeepA)</span>
+            </div>
+        }
+    </BodyContentTemplate>
+    <FooterContentTemplate>
+        <DxButton Text="ปิดหน้าจอ" RenderStyle="ButtonRenderStyle.Secondary" Click="Close" />
+    </FooterContentTemplate>
+</DxPopup>
+
+@code {
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public EventCallback<bool> VisibleChanged { get; set; }
+
+    [Parameter] public string? MembershipNo { get; set; }
+    [Parameter] public int? ReceiveYear { get; set; }
+    [Parameter] public int? ReceiveMonth { get; set; }
+    [Parameter] public decimal SeqNo { get; set; }
+
+    private List<MonthlyReturnDetailDto> _detailRows = new();
+    private decimal _sumKeepP, _sumKeepI, _sumKeepA;
+    private decimal _sumIncomeP, _sumIncomeI, _sumIncomeA;
+    private decimal _sumUnkeepP, _sumUnkeepI, _sumUnkeepA;
+
+    private string? _loadedKey;
+
+    // โหลด detail เมื่อ popup เปิด + key เปลี่ยน (Shown ไม่ยิงซ้ำหลัง param propagate → ใช้ OnParametersSet แทน)
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!Visible) { _loadedKey = null; return; }
+        if (string.IsNullOrEmpty(MembershipNo) || ReceiveYear is null || ReceiveMonth is null) return;
+
+        var key = $"{MembershipNo}|{ReceiveYear}|{ReceiveMonth}|{SeqNo}";
+        if (key == _loadedKey) return;
+        _loadedKey = key;
+
+        _detailRows = await Svc.GetMonthlyReturnDetailAsync(
+            MembershipNo, ReceiveYear.Value, ReceiveMonth.Value, SeqNo);
+
+        _sumKeepP = _detailRows.Sum(x => x.KeepingP ?? 0m);
+        _sumKeepI = _detailRows.Sum(x => x.KeepingI ?? 0m);
+        _sumKeepA = _detailRows.Sum(x => x.KeepingA ?? 0m);
+        _sumIncomeP = _detailRows.Sum(x => x.IncomeP ?? 0m);
+        _sumIncomeI = _detailRows.Sum(x => x.IncomeI ?? 0m);
+        _sumIncomeA = _detailRows.Sum(x => x.IncomeA ?? 0m);
+        _sumUnkeepP = _detailRows.Sum(x => x.UnkeepP ?? 0m);
+        _sumUnkeepI = _detailRows.Sum(x => x.UnkeepI ?? 0m);
+        _sumUnkeepA = _detailRows.Sum(x => x.UnkeepA ?? 0m);
+    }
+
+    private Task Close() => CloseInternal();
+
+    private async Task OnVisibleChanged(bool visible)
+    {
+        Visible = visible;
+        await VisibleChanged.InvokeAsync(visible);
+    }
+
+    private async Task CloseInternal()
+    {
+        Visible = false;
+        await VisibleChanged.InvokeAsync(false);
+    }
+}

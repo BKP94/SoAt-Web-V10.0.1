@@ -1,0 +1,59 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+
+@* ── popLaw sub 3: สถานภาพหนี้ปัจจุบัน (legacy u_tabpg_law_detail_loan_detailstatus) — read-only ──
+   grid sc_law_prosec_loan "ภาระหนี้คงเหลือตามคำพิพากษา"; Sum 4 คอลัมน์ตัวเลข *@
+
+@if (string.IsNullOrEmpty(ProsecNo))
+{
+    <div class="nb-empty">— ไม่มีข้อมูล —</div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn">
+        <Columns>
+            <DxGridDataColumn Caption="เลขที่สัญญา" Name="seq" FieldName="LoanContractNo" Width="140px" TextAlignment="GridTextAlignment.Center">
+                <FooterTemplate>@_rows.Count รายการ</FooterTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="วันที่ล่าสุด" Width="120px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.value.toStringTH(((LawLoanDetailStatusDto)context.DataItem).LastCalcintDate)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ดอกเบี้ยค้าง" FieldName="InterestArrear" Width="140px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((LawLoanDetailStatusDto)context.DataItem).InterestArrear)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เงินต้น" FieldName="ProcPrincipalBalance" Width="140px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((LawLoanDetailStatusDto)context.DataItem).ProcPrincipalBalance)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ดอกเบี้ยคำนวณ" FieldName="ProcInterestArrear" Width="140px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((LawLoanDetailStatusDto)context.DataItem).ProcInterestArrear)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="รวม" FieldName="ProcAllAssetAmount" Width="140px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((LawLoanDetailStatusDto)context.DataItem).ProcAllAssetAmount)</CellDisplayTemplate>
+            </DxGridDataColumn>
+        </Columns>
+        <EmptyDataAreaTemplate>— ไม่มีสถานภาพหนี้ —</EmptyDataAreaTemplate>
+        <TotalSummary>
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Count" FooterColumnName="seq" />
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Sum" FieldName="InterestArrear" DisplayText="{0:n2}" />
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Sum" FieldName="ProcPrincipalBalance" DisplayText="{0:n2}" />
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Sum" FieldName="ProcInterestArrear" DisplayText="{0:n2}" />
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Sum" FieldName="ProcAllAssetAmount" DisplayText="{0:n2}" />
+        </TotalSummary>
+    </DxGrid>
+}
+
+@code {
+    [Parameter] public string? ProsecNo { get; set; }
+
+    private string? _loadedFor;
+    private List<LawLoanDetailStatusDto> _rows = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (ProsecNo == _loadedFor) return;
+        _loadedFor = ProsecNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+        _rows = await Svc.GetLawLoanDetailStatusAsync(_loadedFor);
+    }
+}

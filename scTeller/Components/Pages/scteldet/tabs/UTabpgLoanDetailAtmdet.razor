@@ -1,0 +1,60 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+
+@* ── popup popLoan_detail sub-tab 2: เงินกู้เอทีเอ็ม (legacy u_tabpg_loan_detail_atmdet) — read-only ── *@
+
+@if (string.IsNullOrEmpty(LoanContractNo))
+{
+    <div class="nb-empty">— ไม่มีข้อมูล —</div>
+}
+else if (_rows.Count == 0)
+{
+    <div class="nb-empty">— ไม่มีรายการเงินกู้เอทีเอ็ม —</div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn">
+        <Columns>
+            <DxGridDataColumn Caption="ที่" Width="50px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="วันที่รายการ" Width="105px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.value.toStringTH(((LoanDetailAtmDto)context.DataItem).OperateDate)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ลำดับ" Width="60px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.value.toStringF(((LoanDetailAtmDto)context.DataItem).SeqNo, sc.att.datatype.Integer)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="รหัส" FieldName="ItemDesc" Width="140px" />
+            <DxGridDataColumn Caption="จำนวนเงิน" Width="110px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((LoanDetailAtmDto)context.DataItem).LoanBalance)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ยอดที่กดได้" Width="110px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((LoanDetailAtmDto)context.DataItem).PrinAmount)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ค่าธ/น.การกด" Width="110px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((LoanDetailAtmDto)context.DataItem).FeeAmount)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ยอดอนุมัติ" Width="110px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((LoanDetailAtmDto)context.DataItem).ApproveAmount)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เอกสาร" FieldName="TransactionNo" Width="120px" />
+            <DxGridDataColumn Caption="หมายเหตุ" FieldName="Remark" MinWidth="120" />
+        </Columns>
+    </DxGrid>
+}
+
+@code {
+    [Parameter] public string? LoanContractNo { get; set; }
+
+    private string? _loadedFor;
+    private List<LoanDetailAtmDto> _rows = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (LoanContractNo == _loadedFor) return;
+        _loadedFor = LoanContractNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+        _rows = await Svc.GetLoanDetailAtmAsync(_loadedFor);
+    }
+}

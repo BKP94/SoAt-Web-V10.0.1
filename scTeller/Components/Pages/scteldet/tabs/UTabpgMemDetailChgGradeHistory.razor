@@ -1,0 +1,47 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+
+@* ── G7 Tab 7: ประวัติเปลี่ยนเกรด (legacy u_tabpg_mem_detail_chg_grade_history) — viewer read-only ── *@
+
+@if (string.IsNullOrEmpty(Model.MembershipNo))
+{
+    <div class="nb-empty">— ยังไม่ได้เลือกสมาชิก —</div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn">
+        <Columns>
+            <DxGridDataColumn Caption="ลำดับ" Name="seq" Width="55px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+                <FooterTemplate>@_rows.Count รายการ</FooterTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="วันที่เปลี่ยน" Width="110px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.value.toStringTH(((GradeHistoryChgDto)context.DataItem).OperateDate)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เกรดเดิม" FieldName="PreotherDesc" Width="220px" />
+            <DxGridDataColumn Caption="เกรดใหม่" FieldName="OtherDesc" Width="220px" />
+            <DxGridDataColumn Caption="ผู้ทำรายการ" FieldName="EntryId" Width="110px" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="หมายเหตุ" FieldName="Remark" Width="220px" />
+        </Columns>
+        <EmptyDataAreaTemplate>— ไม่มีประวัติการเปลี่ยนเกรด —</EmptyDataAreaTemplate>
+        <TotalSummary>
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Count" FooterColumnName="seq" />
+        </TotalSummary>
+    </DxGrid>
+}
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private List<GradeHistoryChgDto> _rows = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+        _rows = await Svc.GetGradeHistoryChgAsync(_loadedFor);
+    }
+}

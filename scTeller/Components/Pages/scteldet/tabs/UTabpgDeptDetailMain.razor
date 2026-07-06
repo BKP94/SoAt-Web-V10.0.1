@@ -1,0 +1,85 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+
+@* ── popup popDeptDetail sub-tab 1: ข้อมูลเงินฝาก (legacy u_tabpg_dept_detail_main) — read-only ──
+   FormLayout ColCount=4 (แต่ละช่อง ColSpanMd=3). checkbox = read-only ☑/☐ *@
+
+@if (_row is null)
+{
+    <div class="nb-empty">— ไม่มีข้อมูลบัญชี —</div>
+}
+else
+{
+    <DxFormLayout CssClass="nb-tab-form">
+        <DxFormLayoutItem Caption="ทะเบียน" ColSpanMd="3">
+            <span class="nb-ro" style="text-align:center;">@_row.MembershipNo</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ชื่อ-ชื่อสกุล" ColSpanMd="3">
+            <span class="nb-ro">@_row.MemberName</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="เลขที่บัญชี" ColSpanMd="3">
+            <span class="nb-ro" style="text-align:center;">@_row.DepositAccountNo</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ประเภท" ColSpanMd="3">
+            <span class="nb-ro">@_row.DepositTypeCode</span>
+        </DxFormLayoutItem>
+
+        <DxFormLayoutItem Caption="วันที่บัญชี" ColSpanMd="3">
+            <span class="nb-ro" style="text-align:center;">@sc.value.toStringTH(_row.DepositOpenedDate)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ชื่อบัญชี" ColSpanMd="3">
+            <span class="nb-ro">@_row.DepositAccountName</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="จ่าย ด/บ รายเดือน" ColSpanMd="3">
+            <span class="nb-ro" style="text-align:center;">@(_row.MonthlyIntStatus == "1" ? "☑" : "☐")</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="สมุดคู่ฝาก" ColSpanMd="3">
+            <span class="nb-ro" style="text-align:center;">@_row.PassbookNo</span>
+        </DxFormLayoutItem>
+
+        <DxFormLayoutItem Caption="เพื่อ" ColSpanMd="6">
+            <span class="nb-ro">@_row.DepositObjective</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="การฝากเงินรายเดือน" ColSpanMd="3">
+            <span class="nb-ro" style="text-align:center;">@(_row.MonthlyDepositStatus == "1" ? "☑" : "☐")</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="จำนวนเงิน" ColSpanMd="3">
+            <span class="nb-ro nb-ro-num">@sc.value.toStringF(_row.MonthlyDepositAmount)</span>
+        </DxFormLayoutItem>
+
+        <DxFormLayoutItem Caption="ยอดคงเหลือ" ColSpanMd="3">
+            <span class="nb-ro nb-ro-num">@sc.value.toStringF(_row.DepositBalance)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ยอดที่ถอนได้" ColSpanMd="3">
+            <span class="nb-ro nb-ro-num">@sc.value.toStringF(_row.WithdrawableAmount)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ถอน/เดือน" ColSpanMd="3">
+            <span class="nb-ro" style="text-align:center;">@sc.value.toStringF(_row.WithdrawCount, sc.att.datatype.Integer)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ด/บ สะสม" ColSpanMd="3">
+            <span class="nb-ro nb-ro-num">@sc.value.toStringF(_row.AccumulateInterest)</span>
+        </DxFormLayoutItem>
+
+        <DxFormLayoutItem Caption="ข้อกำหนด" ColSpanMd="9">
+            <span class="nb-ro">@_row.Remark</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="วันที่บังคับปิด" ColSpanMd="3">
+            <span class="nb-ro" style="text-align:center;">@sc.value.toStringTH(_row.FroceCloseDate)</span>
+        </DxFormLayoutItem>
+    </DxFormLayout>
+}
+
+@code {
+    [Parameter] public string? DepositAccountNo { get; set; }
+
+    private string? _loadedFor;
+    private DepositMainDto? _row;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (DepositAccountNo == _loadedFor) return;
+        _loadedFor = DepositAccountNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _row = null; return; }
+        _row = await Svc.GetDepositMainAsync(_loadedFor);
+    }
+}

@@ -1,0 +1,118 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+@inject sc.dbFactory DbFactory
+
+@* ── G3 Tab 3: สถานะหุ้น (legacy u_tabpg_mem_detail_share_state) — header สรุป + รายการเดินหุ้น ──
+   header: sc_mem_m_share_mem (keeping_status/drop_status decode เป็นข้อความใน service แล้ว)
+   grid: share_value_decr/incr = pre-formatted จาก SQL (to_char/'- '); cancel_status = combo cancel_status
+   สีตัวอักษร (เลียน legacy HtmlRowPrepared): sign_flag<0 → แดง, item_type='XS' → เขียว (เขียว override แดง) *@
+
+@if (string.IsNullOrEmpty(Model.MembershipNo))
+{
+    <div class="nb-empty">— ยังไม่ได้เลือกสมาชิก —</div>
+}
+else
+{
+    @if (_head is not null)
+    {
+        <DxFormLayout CssClass="nb-tab-form">
+            <DxFormLayoutGroup Caption="รายละเอียดหุ้น" ColSpanMd="12" Decoration="FormLayoutGroupDecoration.None">
+                <DxFormLayoutItem Caption="ทุนเรือนหุ้น" ColSpanMd="3">
+                    <span class="nb-ro nb-ro-num">@sc.value.toStringF(_head.ShareStock)</span>
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="หุ้นรายเดือน" ColSpanMd="3">
+                    <span class="nb-ro nb-ro-num">@sc.value.toStringF(_head.ShareAmount)</span>
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="งวดล่าสุด" ColSpanMd="3">
+                    <span class="nb-ro nb-ro-num">@sc.value.toStringF(_head.PeriodRecrieve, sc.att.datatype.Integer)</span>
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="สถานะเรียกเก็บ" ColSpanMd="3">
+                    <span class="nb-ro">@_head.KeepingStatus</span>
+                </DxFormLayoutItem>
+
+                <DxFormLayoutItem Caption="หุ้นเรียกเก็บ" ColSpanMd="3">
+                    <span class="nb-ro nb-ro-num">@sc.value.toStringF(_head.PendingAmt)</span>
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="สถานะการงด" ColSpanMd="3">
+                    <span class="nb-ro">@_head.DropStatus</span>
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="หุ้นยกมาต้นปี" ColSpanMd="3">
+                    <span class="nb-ro nb-ro-num">@sc.value.toStringF(_head.BeginBalance)</span>
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="หุ้นค้างเรียกเก็บ" ColSpanMd="3">
+                    <span class="nb-ro nb-ro-num">@sc.value.toStringF(_head.PendingArrear)</span>
+                </DxFormLayoutItem>
+            </DxFormLayoutGroup>
+        </DxFormLayout>
+    }
+
+    <div class="nb-subtitle">รายการเดินหุ้น</div>
+    @if (_rows.Count == 0)
+    {
+        <div class="nb-empty">— ไม่มีรายการเดินหุ้น —</div>
+    }
+    else
+    {
+        <DxGrid Data="_rows" PageSize="0" ShowAllRows="true" CustomizeElement="OnCustomizeElement"
+                ColumnResizeMode="GridColumnResizeMode.NextColumn">
+            <Columns>
+                <DxGridDataColumn Caption="ลำดับ" FieldName="SeqNo" Width="60px" TextAlignment="GridTextAlignment.Center" AllowSort="false" />
+                <DxGridDataColumn Caption="วันที่คิดปันผล" Width="110px">
+                    <CellDisplayTemplate>@sc.value.toStringTH(((ShareStateDto)context.DataItem).DivDate)</CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn Caption="วันที่ทำรายการ" Width="110px">
+                    <CellDisplayTemplate>@sc.value.toStringTH(((ShareStateDto)context.DataItem).OperateDate)</CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn Caption="เอกสารอ้างอิง" FieldName="DocNo" Width="110px" />
+                <DxGridDataColumn Caption="รหัส" FieldName="ItemType" Width="60px" TextAlignment="GridTextAlignment.Center" />
+                <DxGridDataColumn Caption="งวด" FieldName="Period" Width="55px" TextAlignment="GridTextAlignment.Center" />
+                <DxGridDataColumn Caption="ถอน" FieldName="ShareValueDecr" Width="110px" TextAlignment="GridTextAlignment.Right" />
+                <DxGridDataColumn Caption="เพิ่ม" FieldName="ShareValueIncr" Width="110px" TextAlignment="GridTextAlignment.Right" />
+                <DxGridDataColumn Caption="จำนวน" Width="80px" TextAlignment="GridTextAlignment.Center">
+                    <CellDisplayTemplate>@sc.value.toStringF(((ShareStateDto)context.DataItem).ShareAmount, sc.att.datatype.Integer)</CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn Caption="คงเหลือ" Width="120px" TextAlignment="GridTextAlignment.Right">
+                    <CellDisplayTemplate>@sc.value.toStringF(((ShareStateDto)context.DataItem).ShareStock)</CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn Caption="หมายเหตุ" FieldName="Remark" Width="200px" />
+                <DxGridDataColumn Caption="เจ้าหน้าที่" FieldName="EntryId" Width="90px" TextAlignment="GridTextAlignment.Center" />
+                <DxGridDataColumn Caption="เวลาที่ทำ" Width="150px">
+                    <CellDisplayTemplate>@sc.value.toStringTH(((ShareStateDto)context.DataItem).EntryDate, true)</CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn Caption="สถานะ" Width="80px" TextAlignment="GridTextAlignment.Center">
+                    <CellDisplayTemplate>@sc.combo.text(sc.combo.cancel_status, ((ShareStateDto)context.DataItem).CancelStatus)</CellDisplayTemplate>
+                </DxGridDataColumn>
+            </Columns>
+        </DxGrid>
+    }
+}
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private ShareStateHeadDto? _head;
+    private List<ShareStateDto> _rows = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _head = null; _rows = new(); return; }
+        await using (var db = DbFactory.create())
+            await sc.combo.warmAsync(db, sc.combo.cancel_status);
+        _head = await Svc.GetShareStateHeadAsync(_loadedFor);
+        _rows = await Svc.GetShareStateAsync(_loadedFor);
+    }
+
+    // เลียน legacy gv_detail_HtmlRowPrepared: sign_flag<0 → แดง, item_type='XS' → เขียว (เขียว override)
+    private void OnCustomizeElement(GridCustomizeElementEventArgs e)
+    {
+        if (e.ElementType != GridElementType.DataRow) return;
+        if (e.Grid.GetDataItem(e.VisibleIndex) is not ShareStateDto r) return;
+        if (r.ItemType?.Trim() == "XS")
+            e.CssClass = "nb-row-xs";
+        else if ((r.SignFlag ?? 0) < 0)
+            e.CssClass = "nb-row-cancel";
+    }
+}

@@ -1,0 +1,83 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+@inject sc.dbFactory DbFactory
+
+@* ── G5 Tab 3: เงินรอจ่ายคืน (legacy u_tabpg_mem_detail_money_return) — viewer read-only ──
+   grid sc_fin_money_return; return_status=0 → ทั้งแถวสีแดง (เลียน HtmlRowPrepared)
+   วิธีจ่ายคืน = combo money_type, ธ.จ่ายคืน = combo bank, การจ่ายคืน = static 0/1 *@
+
+@if (string.IsNullOrEmpty(Model.MembershipNo))
+{
+    <div class="nb-empty">— ยังไม่ได้เลือกสมาชิก —</div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn"
+            CustomizeElement="OnCustomizeElement">
+        <Columns>
+            <DxGridDataColumn Caption="#" Name="seq" Width="40px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+                <FooterTemplate>@_rows.Count รายการ</FooterTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="วันที่รายการ" Width="100px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.value.toStringTH(((MoneyReturnDto)context.DataItem).OperateDate)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ประเภท" FieldName="ReturnDesc" Width="160px" />
+            <DxGridDataColumn Caption="เลขที่อ้างอิง" FieldName="Refno1" Width="110px" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="เงินคืน" FieldName="MoneyReturn" Width="110px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((MoneyReturnDto)context.DataItem).MoneyReturn)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="การจ่ายคืน" Width="90px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@(((MoneyReturnDto)context.DataItem).ReturnStatus == "1" ? "จ่ายแล้ว" : "รอจ่าย")</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เลือก" Width="55px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(((MoneyReturnDto)context.DataItem).RequestStatus == "1" ? "☑" : "☐")</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="วันที่คืน" Width="100px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.value.toStringTH(((MoneyReturnDto)context.DataItem).ReturnDate)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="วิธีจ่ายคืน" Width="130px">
+                <CellDisplayTemplate>@sc.combo.text(sc.combo.sc_com_m_ucf_money_type, ((MoneyReturnDto)context.DataItem).RequestMethod)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ผู้จ่าย" FieldName="PaidId" Width="90px" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="ธ.จ่ายคืน" Width="150px">
+                <CellDisplayTemplate>@sc.combo.text(sc.combo.sc_acc_m_ucf_bank, ((MoneyReturnDto)context.DataItem).RequestBankid)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="บช.จ่ายคืน" FieldName="RequestBankac" Width="120px" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="หมายเหตุ" FieldName="Remark" Width="180px" />
+        </Columns>
+        <EmptyDataAreaTemplate>— ไม่มีรายการเงินรอจ่ายคืน —</EmptyDataAreaTemplate>
+        <TotalSummary>
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Count" FooterColumnName="seq" />
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Sum" FieldName="MoneyReturn" DisplayText="{0:n2}" />
+        </TotalSummary>
+    </DxGrid>
+}
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private List<MoneyReturnDto> _rows = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+
+        await using (var db = DbFactory.create())
+            await sc.combo.warmAsync(db, sc.combo.sc_com_m_ucf_money_type, sc.combo.sc_acc_m_ucf_bank);
+
+        _rows = await Svc.GetMoneyReturnAsync(_loadedFor);
+    }
+
+    // เลียน legacy HtmlRowPrepared: return_status=0 → ทั้งแถวสีแดง
+    private void OnCustomizeElement(GridCustomizeElementEventArgs e)
+    {
+        if (e.ElementType != GridElementType.DataRow) return;
+        if (e.Grid.GetDataItem(e.VisibleIndex) is MoneyReturnDto r && r.ReturnStatus == "0")
+            e.Style = "color:rgb(139,0,0);";
+    }
+}

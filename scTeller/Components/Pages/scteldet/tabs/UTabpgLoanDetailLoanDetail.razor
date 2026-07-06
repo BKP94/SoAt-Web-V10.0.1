@@ -1,0 +1,94 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+
+@* ── popup popLoan_detail sub-tab 1: เคลื่อนไหวสัญญา (legacy u_tabpg_loan_detail_loan_detail) — read-only ──
+   band "เงินต้น" = รับ/คืน + ชำระ. สีแถว (เลียน gv_detail_HtmlRowPrepared):
+     sign_status>0 → แดง (Declined) | item_type_code=='XL' → font เขียว
+   footer (เลียน CustomSummaryCalculate): PAID=Σpaid; INTEREST/TOTAL = Σ(sign=-1) − Σ(sign=1) *@
+
+@if (string.IsNullOrEmpty(LoanContractNo))
+{
+    <div class="nb-empty">— ไม่มีข้อมูล —</div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true" CustomizeElement="OnCustomizeElement"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn">
+        <Columns>
+            <DxGridDataColumn Caption="ที่" Width="50px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="วันที่ทำรายการ" Width="105px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.value.toStringTH(((LoanDetailMoveDto)context.DataItem).LoanPaymentDate)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เลขอ้างอิง" FieldName="RefLoanDocNo" Width="120px" />
+            <DxGridDataColumn Caption="รหัส" FieldName="ItemTypeCode" Width="55px" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="งวด" Width="55px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.value.toStringF(((LoanDetailMoveDto)context.DataItem).Period, sc.att.datatype.Integer)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridBandColumn Caption="เงินต้น">
+                <Columns>
+                    <DxGridDataColumn Caption="รับ/คืน" Width="100px" TextAlignment="GridTextAlignment.Right">
+                        <CellDisplayTemplate>@sc.value.toStringF(((LoanDetailMoveDto)context.DataItem).RecieveReturn)</CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="ชำระ" Width="100px" TextAlignment="GridTextAlignment.Right">
+                        <CellDisplayTemplate>@sc.value.toStringF(((LoanDetailMoveDto)context.DataItem).Paid)</CellDisplayTemplate>
+                    </DxGridDataColumn>
+                </Columns>
+            </DxGridBandColumn>
+            <DxGridDataColumn Caption="ดอกเบี้ย" Width="100px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((LoanDetailMoveDto)context.DataItem).InterestAmout)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="จำนวนเงิน" Width="105px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((LoanDetailMoveDto)context.DataItem).TotalAmount)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เงินต้นคงเหลือ" Width="115px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((LoanDetailMoveDto)context.DataItem).PrincipalBalance)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ดบ.ค้าง" Width="100px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((LoanDetailMoveDto)context.DataItem).InterestArrearBal)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="วันที่คิดดอกเบี้ย" Width="110px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.value.toStringTH(((LoanDetailMoveDto)context.DataItem).InterestTo)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ผู้จ่าย" FieldName="MembershipNo" Width="80px" TextAlignment="GridTextAlignment.Center" />
+        </Columns>
+        <EmptyDataAreaTemplate>— ไม่มีรายการเคลื่อนไหว —</EmptyDataAreaTemplate>
+    </DxGrid>
+    <div class="nb-grid-summary">
+        รับ/คืน @sc.value.toStringF(_rows.Sum(r => r.RecieveReturn ?? 0))
+        | ชำระ @sc.value.toStringF(_rows.Sum(r => r.Paid ?? 0))
+        | ดอกเบี้ย @sc.value.toStringF(NetBySign(r => r.InterestAmout))
+        | จำนวนเงิน @sc.value.toStringF(NetBySign(r => r.TotalAmount))
+    </div>
+}
+
+@code {
+    [Parameter] public string? LoanContractNo { get; set; }
+
+    private string? _loadedFor;
+    private List<LoanDetailMoveDto> _rows = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (LoanContractNo == _loadedFor) return;
+        _loadedFor = LoanContractNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+        _rows = await Svc.GetLoanDetailMoveAsync(_loadedFor);
+    }
+
+    // เลียน CustomSummaryCalculate: Σ(sign=-1) − Σ(sign=1)
+    private decimal NetBySign(Func<LoanDetailMoveDto, decimal?> sel)
+        => _rows.Where(r => r.SignStatus == -1).Sum(r => sel(r) ?? 0)
+         - _rows.Where(r => r.SignStatus == 1).Sum(r => sel(r) ?? 0);
+
+    private void OnCustomizeElement(GridCustomizeElementEventArgs e)
+    {
+        if (e.ElementType != GridElementType.DataRow) return;
+        if (e.Grid.GetDataItem(e.VisibleIndex) is not LoanDetailMoveDto r) return;
+        if ((r.SignStatus ?? 0) > 0)
+            e.CssClass = "nb-row-cancel";          // แดง (Declined)
+        else if (r.ItemTypeCode == "XL")
+            e.Style = "color:green;";              // font เขียว
+    }
+}

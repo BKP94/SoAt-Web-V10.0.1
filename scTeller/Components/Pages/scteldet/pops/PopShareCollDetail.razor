@@ -1,0 +1,48 @@
+@using SoAt.Application.ScTeller
+@using scTeller.Components.Pages.scteldet.tabs
+
+@* ── PopShareCollDetail — แสดงรายละเอียดกองทุนผู้ค้ำ (เลียน legacy scteldet/pops/popShareCollDetail.ascx) ──
+   DxTabs 3 sub-tab: รายละเอียดกองทุน / รายการเคลื่อนไหว / จ่ายคืน-เก็บเพิ่ม
+   รับ loan_contract_no (จาก G3 Tab 2 หุ้นค้ำ) → ส่งลง sub-tab (dumb component โหลดเอง)
+   grid ใน popup: nb-poptabs จำกัดความสูง body + scroll *@
+
+<DxPopup Visible="Visible" VisibleChanged="OnVisibleChanged" HeaderText="แสดงรายละเอียดกองทุนผู้ค้ำ"
+         Width="1000px" Height="624px" ShowFooter="true" CloseOnEscape="true">
+    <BodyContentTemplate Context="pop">
+        <DxTabs CssClass="nb-tabs nb-poptabs">
+            <DxTabPage Text="รายละเอียดกองทุน">
+                <div class="nb-tabbody"><UTabpgShareCollDetail LoanContractNo="@LoanContractNo" /></div>
+            </DxTabPage>
+            <DxTabPage Text="รายการเคลื่อนไหว">
+                <div class="nb-tabbody"><UTabpgShareCollDetailState LoanContractNo="@LoanContractNo" /></div>
+            </DxTabPage>
+            <DxTabPage Text="จ่ายคืน/เก็บเพิ่ม">
+                <div class="nb-tabbody"><UTabpgShareCollFund LoanContractNo="@LoanContractNo" /></div>
+            </DxTabPage>
+        </DxTabs>
+    </BodyContentTemplate>
+    <FooterContentTemplate>
+        <DxButton Text="ปิดหน้าจอ" RenderStyle="ButtonRenderStyle.Secondary" Click="Close" />
+    </FooterContentTemplate>
+</DxPopup>
+
+@code {
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public EventCallback<bool> VisibleChanged { get; set; }
+
+    [Parameter] public string? LoanContractNo { get; set; }
+
+    private Task Close() => CloseInternal();
+
+    private async Task OnVisibleChanged(bool visible)
+    {
+        Visible = visible;
+        await VisibleChanged.InvokeAsync(visible);
+    }
+
+    private async Task CloseInternal()
+    {
+        Visible = false;
+        await VisibleChanged.InvokeAsync(false);
+    }
+}

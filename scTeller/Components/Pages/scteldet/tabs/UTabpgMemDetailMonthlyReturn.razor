@@ -1,0 +1,110 @@
+@using SoAt.Application.ScTeller
+@using scTeller.Components.Pages.scteldet.pops
+@inject IScteldetService Svc
+@inject sc.dbFactory DbFactory
+
+@* ── G4 Tab 2: เรียกเก็บรายเดือน (legacy u_tabpg_mem_detail_monthly_return) — viewer read-only ──
+   grid แสดงเดือนที่มียอดเก็บไม่ได้ (unkeep_amount > 0); double-click / ปุ่ม → popup รายละเอียดใบเสร็จคืน *@
+
+@if (string.IsNullOrEmpty(Model.MembershipNo))
+{
+    <div class="nb-empty">— ยังไม่ได้เลือกสมาชิก —</div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn"
+            CustomizeElement="OnCustomizeElement">
+        <Columns>
+            <DxGridDataColumn Caption="ปี" Name="seq" Width="70px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@(((MonthlyReturnDto)context.DataItem).ReceiveYear)</CellDisplayTemplate>
+                <FooterTemplate>@_rows.Count รายการ</FooterTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เดือน" Width="130px">
+                <CellDisplayTemplate>@sc.combo.text(sc.combo.monthThLong2, ((MonthlyReturnDto)context.DataItem).ReceiveMonth?.ToString())</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ยอดเรียกเก็บ" Width="120px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((MonthlyReturnDto)context.DataItem).MoneyAmount)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ยอดเก็บได้" Width="120px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((MonthlyReturnDto)context.DataItem).MoneyAmountNot)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ยอดเก็บไม่ได้" Width="120px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((MonthlyReturnDto)context.DataItem).UnkeepAmount)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="วันที่ปลด" Width="100px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.value.toStringTH(((MonthlyReturnDto)context.DataItem).PpmDate)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ยอดปลด" Width="120px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((MonthlyReturnDto)context.DataItem).PpmAmout)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ยอดค้างจริง" Width="120px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((MonthlyReturnDto)context.DataItem).UnkeepReal)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เหตุผล" FieldName="ReasonReturn" Width="180px" />
+            <DxGridDataColumn Caption="สถานะปลด" Width="90px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.combo.text(sc.combo.kep_ppm_status, ((MonthlyReturnDto)context.DataItem).PpmStatus)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="" Width="60px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>
+                    <button type="button" class="nb-linkbtn" @onclick="() => OpenDetail((MonthlyReturnDto)context.DataItem)">รายละเอียด</button>
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
+        </Columns>
+        <EmptyDataAreaTemplate>— ไม่มีรายการเรียกเก็บ —</EmptyDataAreaTemplate>
+        <TotalSummary>
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Count" FooterColumnName="seq" />
+        </TotalSummary>
+    </DxGrid>
+}
+
+@* ── popup รายละเอียดใบเสร็จคืน (pops/) ── *@
+<PopMonthlyReturn @bind-Visible="_popVisible"
+                  MembershipNo="@_loadedFor"
+                  ReceiveYear="@_selYear"
+                  ReceiveMonth="@_selMonth"
+                  SeqNo="@_selSeq" />
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private List<MonthlyReturnDto> _rows = new();
+
+    private bool _popVisible;
+    private int? _selYear;
+    private int? _selMonth;
+    private decimal _selSeq;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+
+        await using (var db = DbFactory.create())
+            await sc.combo.warmAsync(db, sc.combo.monthThLong2, sc.combo.kep_ppm_status);
+
+        _rows = await Svc.GetMonthlyReturnAsync(_loadedFor);
+    }
+
+    // ยอดเก็บไม่ได้/ยอดค้างจริง = สีแดง (เลียน gvDetail HtmlDataCellPrepared DarkRed)
+    private void OnCustomizeElement(GridCustomizeElementEventArgs e)
+    {
+        if (e.ElementType == GridElementType.DataCell &&
+            (e.Column.Caption == "ยอดเก็บไม่ได้" || e.Column.Caption == "ยอดค้างจริง"))
+        {
+            e.Style = "color:rgb(139,0,0);";   // DarkRed
+        }
+    }
+
+    // legacy: double-click / ปุ่มรายละเอียด → เปิด popMonthlyReturn ส่ง key (pop โหลด detail เอง)
+    private void OpenDetail(MonthlyReturnDto r)
+    {
+        if (r.ReceiveYear is null || r.ReceiveMonth is null) return;
+        _selYear = r.ReceiveYear;
+        _selMonth = r.ReceiveMonth;
+        _selSeq = r.SeqNo ?? 0m;
+        _popVisible = true;
+    }
+}

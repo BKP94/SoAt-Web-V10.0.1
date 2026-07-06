@@ -1,0 +1,74 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+@inject sc.dbFactory DbFactory
+
+@* ── G1 Tab 9: เบอร์มือถือ (legacy u_tabpg_mem_mobile_number) — read-only grid ──
+   sc_mobile_regis — เบอร์ที่ลงทะเบียน SMS + flag บริการ (กู้/ฝาก/โอน). เบอร์ mask 999-999-9999
+   ธนาคารผ่าน sc.combo (warm sc_fin_m_bank → sc.combo.text) *@
+
+@if (string.IsNullOrEmpty(Model.MembershipNo))
+{
+    <div class="nb-empty">— ยังไม่ได้เลือกสมาชิก —</div>
+}
+else if (_rows.Count == 0)
+{
+    <div class="nb-empty">— ไม่มีเบอร์มือถือลงทะเบียน —</div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn">
+        <Columns>
+            <DxGridDataColumn Caption="#" Width="44px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เบอร์มือถือ" Width="140px">
+                <CellDisplayTemplate>
+                    @{ var r = (MobileDto)context.DataItem; }
+                    @sc.value.toMask(r.MobileNumber, "999-999-9999")
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ธนาคาร">
+                <CellDisplayTemplate>
+                    @{ var r = (MobileDto)context.DataItem; }
+                    @sc.combo.text(sc.combo.sc_fin_m_bank, r.BankId)
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="แจ้งกู้" Width="72px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@Flag(((MobileDto)context.DataItem).MobileLon)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="แจ้งฝาก" Width="72px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@Flag(((MobileDto)context.DataItem).MobileDep)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="แจ้งโอน" Width="72px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@Flag(((MobileDto)context.DataItem).MobileTrans)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="วันที่ลงทะเบียน" Width="110px">
+                <CellDisplayTemplate>
+                    @{ var r = (MobileDto)context.DataItem; }
+                    @sc.value.toStringTH(r.EntryDate)
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
+        </Columns>
+    </DxGrid>
+}
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private List<MobileDto> _rows = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+        _rows = await Svc.GetMobileAsync(_loadedFor);
+        await using var db = DbFactory.create();
+        await sc.combo.warmAsync(db, sc.combo.sc_fin_m_bank);
+    }
+
+    private static string Flag(string? v)
+        => (v == "1" || v == "Y" || v == "y" || v == "true") ? "✔" : "";
+}

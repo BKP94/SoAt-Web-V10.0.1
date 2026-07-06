@@ -1,0 +1,96 @@
+@using SoAt.Application.ScTeller
+@using scTeller.Components.Pages.scteldet.pops
+@inject IScteldetService Svc
+
+@* ── G8 Tab: ทะเบียนสมาชิก E-Document (legacy u_tabpg_edc_memregis) — viewer read-only ──
+   grid sc_edoc_mem + ประเภท desc จาก sc_edoc_m_ucf_mem
+   double-click แถว หรือ 🔍 → PopPdf (pops/) เปิดเอกสาร (legacy page.ofPopEdocument → popPDF)
+     - filename ว่าง → ไม่มีไฟล์ | "DELETED" → แถวแดง + popup แจ้งถูกลบ
+     - อื่น → iframe src = UrlServerEdocument + path//filename?page=hsn#toolbar=0 *@
+
+@if (string.IsNullOrEmpty(Model.MembershipNo))
+{
+    <div class="nb-empty">— ยังไม่ได้เลือกสมาชิก —</div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn"
+            CustomizeElement="Customize"
+            RowDoubleClick="OnRowDoubleClick">
+        <Columns>
+            <DxGridDataColumn Caption="ลำดับ" Name="seq" Width="60px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+                <FooterTemplate>@string.Format("รวม : {0} รายการ", _rows.Count)</FooterTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เลขที่เอกสาร/ใบคำขอ/สัญญา" FieldName="ApplicationFormNo" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="ประเภท" FieldName="DocTypeName" Width="200px" />
+            <DxGridDataColumn Caption="หมายเหตุ" FieldName="Remark" Width="350px" />
+            <DxGridDataColumn Caption="วันที่" Width="180px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.value.toStringTH(((EdocMemDto)context.DataItem).EntryDate, true)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ผู้ทำ" FieldName="EntryId" Width="150px" />
+            <DxGridDataColumn Caption="หน้าที่" FieldName="PageNo" Width="75px" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="" Width="42px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>
+                    <button type="button" class="nb-linkbtn" title="รายละเอียดเอกสาร"
+                            @onclick="() => Open((EdocMemDto)context.DataItem)">🔍</button>
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
+        </Columns>
+        <EmptyDataAreaTemplate>— ไม่มีเอกสารทะเบียนสมาชิก —</EmptyDataAreaTemplate>
+        <TotalSummary>
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Count" FooterColumnName="seq" />
+        </TotalSummary>
+    </DxGrid>
+}
+
+<PopPdf @bind-Visible="_popVisible"
+        MembershipNo="@_loadedFor"
+        ApplicationFormNo="@_sel?.ApplicationFormNo"
+        DocType="@_sel?.DocType"
+        PageNo="@(_sel?.PageNo ?? 0)"
+        HeaderText="@_popHeader" />
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private List<EdocMemDto> _rows = new();
+
+    private bool _popVisible;
+    private string _popHeader = "รายละเอียดเอกสาร";
+    private EdocMemDto? _sel;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+        _rows = await Svc.GetEdocMemAsync(_loadedFor);
+    }
+
+    // legacy HtmlRowPrepared: FILENAME=="DELETED" → eColorState.Declined (แถวแดง)
+    private void Customize(GridCustomizeElementEventArgs e)
+    {
+        if (e.ElementType == GridElementType.DataRow
+            && e.Grid.GetDataItem(e.VisibleIndex) is EdocMemDto r
+            && r.Filename == "DELETED")
+        {
+            e.Style = "background-color:#f8d7da;color:#842029;";
+        }
+    }
+
+    private void OnRowDoubleClick(GridRowClickEventArgs e)
+    {
+        if (e.Grid.GetDataItem(e.VisibleIndex) is EdocMemDto r) Open(r);
+    }
+
+    // legacy page.ofPopEdocument → PopPdf (โหลดเอกสารเองบน Shown)
+    private void Open(EdocMemDto r)
+    {
+        _sel = r;
+        _popHeader = $"รายละเอียดเอกสาร — {r.ApplicationFormNo}";
+        _popVisible = true;
+    }
+}

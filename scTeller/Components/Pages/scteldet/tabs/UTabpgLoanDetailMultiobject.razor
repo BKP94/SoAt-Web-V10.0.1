@@ -1,0 +1,44 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+
+@* ── popup popLoan_detail sub-tab 7: หลายวัตถุประสงค์ (legacy u_tabpg_loan_detail_multiobject) — read-only ── *@
+
+@if (string.IsNullOrEmpty(LoanContractNo))
+{
+    <div class="nb-empty">— ไม่มีข้อมูล —</div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn">
+        <Columns>
+            <DxGridDataColumn Caption="ลำดับ" Width="60px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.value.toStringF(((LoanDetailMultiobjectDto)context.DataItem).SeqNo, sc.att.datatype.Integer)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="วัตถุประสงค์" FieldName="LoanObjectCode" MinWidth="200" />
+            <DxGridDataColumn Caption="จำนวนเงินตามวัตถุประสงค์" FieldName="LoanObjectAmount" Width="160px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((LoanDetailMultiobjectDto)context.DataItem).LoanObjectAmount)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="หมายเหตุ" FieldName="Remark" MinWidth="120" />
+        </Columns>
+        <EmptyDataAreaTemplate>— ไม่มีรายการหลายวัตถุประสงค์ —</EmptyDataAreaTemplate>
+        <TotalSummary>
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Sum" FieldName="LoanObjectAmount" DisplayText="{0:n2}" />
+        </TotalSummary>
+    </DxGrid>
+}
+
+@code {
+    [Parameter] public string? LoanContractNo { get; set; }
+
+    private string? _loadedFor;
+    private List<LoanDetailMultiobjectDto> _rows = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (LoanContractNo == _loadedFor) return;
+        _loadedFor = LoanContractNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+        _rows = await Svc.GetLoanDetailMultiobjectAsync(_loadedFor);
+    }
+}

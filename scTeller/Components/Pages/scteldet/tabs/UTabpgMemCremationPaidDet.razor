@@ -1,0 +1,64 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+@inject sc.dbFactory DbFactory
+
+@* ── G6 Tab: วิธีชำระเงิน สมาคมฌาปนกิจ (legacy u_tabpg_mem_cremation_paid_det) ──
+   grid sc_mem_m_member_cremation — read-only
+   crem_type → combo sc_mem_m_ucf_member_cremation, crem_paid → combo sc_mem_m_ucf_crem_paid2
+   deposit_status='1' → หักบัญชี *@
+
+@if (string.IsNullOrEmpty(Model.MembershipNo))
+{
+    <div class="nb-empty">— ยังไม่ได้เลือกสมาชิก —</div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn">
+        <Columns>
+            <DxGridDataColumn Caption="ลำดับ" Name="seq" Width="60px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+                <FooterTemplate>@string.Format("รวม : {0} รายการ", _rows.Count)</FooterTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="สมาคมฌาปนกิจ" Width="220px">
+                <CellDisplayTemplate>@sc.combo.text(sc.combo.sc_mem_m_ucf_member_cremation, ((CremationPaidDetDto)context.DataItem).CremType)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เลขที่สมาชิก" FieldName="CremMemno" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="เลขที่ ฌ." FieldName="CremNumber" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="วิธีชำระ" Width="150px">
+                <CellDisplayTemplate>@sc.combo.text(sc.combo.sc_mem_m_ucf_crem_paid2, ((CremationPaidDetDto)context.DataItem).CremPaid)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="หักบัญชี" Width="80px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@(((CremationPaidDetDto)context.DataItem).DepositStatus == "1" ? "✓" : "")</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เลขที่บัญชี" FieldName="DepositAccountNo" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="ธนาคาร" FieldName="BankName" Width="150px" />
+            <DxGridDataColumn Caption="เลขบัญชีธนาคาร" FieldName="BankAccNo" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="หมายเหตุ" FieldName="CremRemark" Width="200px" />
+        </Columns>
+        <EmptyDataAreaTemplate>— ไม่มีข้อมูลสมาคมฌาปนกิจ —</EmptyDataAreaTemplate>
+        <TotalSummary>
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Count" FooterColumnName="seq" />
+        </TotalSummary>
+    </DxGrid>
+}
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private List<CremationPaidDetDto> _rows = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+        await using (var db = DbFactory.create())
+        {
+            await sc.combo.warmAsync(db, sc.combo.sc_mem_m_ucf_member_cremation);
+            await sc.combo.warmAsync(db, sc.combo.sc_mem_m_ucf_crem_paid2);
+        }
+        _rows = await Svc.GetCremationPaidDetAsync(_loadedFor);
+    }
+}

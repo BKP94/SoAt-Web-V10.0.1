@@ -1,0 +1,46 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+
+@* ── popup popDeptDetail sub-tab 3: ภาระค้ำประกัน (legacy u_tabpg_dept_detail_dept_detail_coll) ──
+   grid sc_lon_m_contract_coll — สัญญาที่ใช้บัญชีเงินฝากนี้ค้ำ; รวมยอด used_amount *@
+
+<DxGrid Data="_rows" PageSize="0" ShowAllRows="true"
+        ColumnResizeMode="GridColumnResizeMode.NextColumn">
+    <Columns>
+        <DxGridDataColumn Caption="ลำดับ" Name="seq" Width="60px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+            <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+            <FooterTemplate>@_rows.Count รายการ</FooterTemplate>
+        </DxGridDataColumn>
+            <DxGridDataColumn Caption="เลขสัญญา" FieldName="LoanContractNo" Width="130px" />
+            <DxGridDataColumn Caption="ชื่อสมาชิก" FieldName="MemberName" Width="260px" />
+            <DxGridDataColumn Caption="วงเงินกู้" Width="130px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((DepositCollDto)context.DataItem).LoanApproveAmount)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ยอดค้ำประกัน" FieldName="UsedAmount" Width="130px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((DepositCollDto)context.DataItem).UsedAmount)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ยอดคงเหลือ" Width="130px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((DepositCollDto)context.DataItem).PrincipalBalance)</CellDisplayTemplate>
+            </DxGridDataColumn>
+        </Columns>
+        <EmptyDataAreaTemplate>— ไม่มีภาระค้ำประกัน —</EmptyDataAreaTemplate>
+        <TotalSummary>
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Count" FooterColumnName="seq" />
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Sum" FieldName="UsedAmount" DisplayText="{0:n2}" />
+        </TotalSummary>
+    </DxGrid>
+
+@code {
+    [Parameter] public string? DepositAccountNo { get; set; }
+
+    private string? _loadedFor;
+    private List<DepositCollDto> _rows = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (DepositAccountNo == _loadedFor) return;
+        _loadedFor = DepositAccountNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+        _rows = await Svc.GetDepositCollAsync(_loadedFor);
+    }
+}

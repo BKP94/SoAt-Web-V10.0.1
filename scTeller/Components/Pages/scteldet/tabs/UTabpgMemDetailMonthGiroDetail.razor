@@ -1,0 +1,117 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+@inject sc.dbFactory DbFactory
+
+@* ── G4 Tab 3: หักผ่านธนาคาร (legacy u_tabpg_mem_detail_month_giro_detail) — viewer read-only ──
+   combo ปี (พ.ศ.) + radio เดือน 1-12; default = ปีล่าสุด + เดือนล่าสุดของปีนั้น
+   grid = รายละเอียด giro ของ (ปี, เดือน, seq ล่าสุด) *@
+
+@if (string.IsNullOrEmpty(Model.MembershipNo))
+{
+    <div class="nb-empty">— ยังไม่ได้เลือกสมาชิก —</div>
+}
+else if (_years.Count == 0)
+{
+    <div class="nb-empty">— ไม่มีรายการหักผ่านธนาคาร —</div>
+}
+else
+{
+    <div class="nb-tab-yearbar">
+        <span class="nb-tab-yearbar-label">ปี</span>
+        <DxComboBox Data="_years" Value="_year"
+                    ValueChanged="@((int v) => OnYearChanged(v))"
+                    TextFieldName="@nameof(YearItem.Text)" ValueFieldName="@nameof(YearItem.Year)"
+                    NullText="ระบุปี" Style="min-width:120px" />
+        <span class="nb-month-group">
+            @for (int m = 1; m <= 12; m++)
+            {
+                var mm = m;
+                <button type="button"
+                        class="@($"nb-month-btn{(mm == _month ? " nb-month-btn--active" : "")}")"
+                        @onclick="() => OnMonthChanged(mm)">
+                    @sc.combo.text(sc.combo.monthThShot, mm.ToString())
+                </button>
+            }
+        </span>
+    </div>
+
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn">
+        <Columns>
+            <DxGridDataColumn Caption="ลำดับ" Name="seq" Width="60px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+                <FooterTemplate>@_rows.Count รายการ</FooterTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ยอดเรียกเก็บประจำเดือน" Width="150px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((GiroDetailDto)context.DataItem).MoneyAmount)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ยอดหัก ณ ที่จ่าย" Width="140px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((GiroDetailDto)context.DataItem).PaidAmount)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ยอดหักจากธนาคาร" Width="140px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((GiroDetailDto)context.DataItem).GiroAmount)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ยอดคงเหลือ" Width="130px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((GiroDetailDto)context.DataItem).Balance)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="สถานะ" FieldName="ReceiptStatus" Width="80px" TextAlignment="GridTextAlignment.Center" />
+        </Columns>
+        <EmptyDataAreaTemplate>— ไม่มีรายการ —</EmptyDataAreaTemplate>
+        <TotalSummary>
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Count" FooterColumnName="seq" />
+        </TotalSummary>
+    </DxGrid>
+}
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private List<YearItem> _years = new();
+    private int _year;
+    private int _month;
+    private List<GiroDetailDto> _rows = new();
+
+    public record YearItem(int Year, string Text);
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        _years = new(); _rows = new(); _year = 0; _month = 0;
+        if (string.IsNullOrEmpty(_loadedFor)) return;
+
+        await using (var db = DbFactory.create())
+            await sc.combo.warmAsync(db, sc.combo.monthThShot);
+
+        var years = await Svc.GetGiroYearsAsync(_loadedFor);   // พ.ศ. เรียงมาก→น้อย
+        _years = years.Where(y => y.ReceiveYear.HasValue)
+                      .Select(y => new YearItem(y.ReceiveYear!.Value, y.ReceiveYear!.Value.ToString()))
+                      .ToList();
+        if (_years.Count == 0) return;
+
+        // default = ปีล่าสุด (index 0) + เดือนล่าสุดของปีนั้น (legacy eDataBinding)
+        _year = _years[0].Year;
+        _month = await Svc.GetGiroLatestMonthAsync(_loadedFor, _year) ?? 0;
+        await LoadRows();
+    }
+
+    private async Task OnYearChanged(int year)
+    {
+        _year = year;
+        _month = await Svc.GetGiroLatestMonthAsync(_loadedFor!, _year) ?? 0;
+        await LoadRows();
+    }
+
+    private async Task OnMonthChanged(int month)
+    {
+        _month = month;
+        await LoadRows();
+    }
+
+    private async Task LoadRows()
+    {
+        if (_year <= 0 || _month <= 0) { _rows = new(); return; }
+        _rows = await Svc.GetGiroDetailAsync(_loadedFor!, _year, _month);
+    }
+}

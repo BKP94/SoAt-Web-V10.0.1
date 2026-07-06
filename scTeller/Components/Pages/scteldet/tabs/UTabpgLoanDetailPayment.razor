@@ -1,0 +1,47 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+@inject sc.dbFactory DbFactory
+
+@* ── popup popLoan_detail sub-tab 5: การจ่ายเงิน (legacy u_tabpg_loan_detail_payment) — read-only form single row ──
+   combos: type_pay_money=sc_com_m_ucf_money_type (decode 0→-), bank_code=sc_acc_m_ucf_bank2 *@
+
+@if (_row is null)
+{
+    <div class="nb-empty">— ไม่มีข้อมูลการจ่ายเงิน —</div>
+}
+else
+{
+    <DxFormLayout CssClass="nb-tab-form">
+        <DxFormLayoutItem Caption="ประเภทการจ่าย" ColSpanMd="6">
+            <span class="nb-ro">@(_row.TypePayMoney == "0" ? "-" : sc.combo.text(sc.combo.sc_com_m_ucf_money_type, _row.TypePayMoney))</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ธนาคาร" ColSpanMd="6">
+            <span class="nb-ro">@sc.combo.text(sc.combo.sc_acc_m_ucf_bank2, _row.BankCode)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="สาขา" ColSpanMd="6">
+            <span class="nb-ro">@_row.BranchCode</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="เลขที่บัญชี" ColSpanMd="6">
+            <span class="nb-ro">@_row.BankAccNo</span>
+        </DxFormLayoutItem>
+    </DxFormLayout>
+}
+
+@code {
+    [Parameter] public string? LoanContractNo { get; set; }
+
+    private string? _loadedFor;
+    private LoanDetailPaymentDto? _row;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (LoanContractNo == _loadedFor) return;
+        _loadedFor = LoanContractNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _row = null; return; }
+
+        await using (var db = DbFactory.create())
+            await sc.combo.warmAsync(db, sc.combo.sc_com_m_ucf_money_type, sc.combo.sc_acc_m_ucf_bank2);
+
+        _row = await Svc.GetLoanDetailPaymentAsync(_loadedFor);
+    }
+}

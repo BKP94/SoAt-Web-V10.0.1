@@ -1,0 +1,165 @@
+@page "/scteldet/Page"
+@page "/scteldet"
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+@inject NavigationManager Nav
+
+@* ── scteldet — สอบถามประวัติสมาชิก (Member Profile Viewer, read-only) ─────────────
+   โครงมาตรฐาน (PageRegions): Header + Tabs + Operate (ไม่มี Detail)
+   Page ถือ model (_model/_lookups) ตัวเดียว ส่งลง child ผ่าน [Parameter] (reference ร่วม)
+   - PanHead ยิง OnSearchMember(no) → โหลด header+photo
+   - PanOperate ยิง EventCallback (New/ScanID/Signature/Memo/PrintTab) — viewer ไม่มี Save
+   - PanTabs โหลดแท็บ dynamic ตาม Model.Groups (permission-driven) *@
+
+<PageTitle>สอบถามประวัติสมาชิก — scTeller</PageTitle>
+
+<div class="nb-titlebar">
+    <div>
+        <h1 class="nb-title">สอบถามประวัติสมาชิก</h1>
+        <span class="nb-sub">@(_model.Header is null ? "กรอกเลขทะเบียนเพื่อเรียกข้อมูล" : _model.Header.MemberName)</span>
+    </div>
+    <a class="nb-back" href=".">← กลับหน้าหลัก</a>
+</div>
+
+@if (!_ready)
+{
+    <div class="nb-loading">กำลังโหลดข้อมูล…</div>
+}
+else
+{
+    <CascadingValue Value="_msg" IsFixed="false">
+        <PageRegions>
+            <HeaderContent>
+                <PanHead Model="_model" PhotoBase64="@_photoBase64"
+                         ResetToken="_resetToken"
+                         OnSearchMember="OnSearchMember" OnScanCard="OnScanCard" />
+            </HeaderContent>
+            <TabsContent>
+                <PanTabs Model="_model" />
+            </TabsContent>
+            <OperateContent>
+                <PanOperate Busy="_busy"
+                            OnNew="OnNew" OnScanCard="OnScanCard"
+                            OnSignature="OnSignature" OnMemo="OnMemo" OnPrintTab="OnPrintTab" />
+            </OperateContent>
+        </PageRegions>
+    </CascadingValue>
+}
+
+@* ── popup ลายเซ็น + บันทึกข้อความ (pops/) ── *@
+<scTeller.Components.Pages.scteldet.pops.PopSignature @bind-Visible="_signVisible" MembershipNo="@_model.MembershipNo" />
+<scTeller.Components.Pages.scteldet.pops.PopMemmo @bind-Visible="_memoVisible" MembershipNo="@_model.MembershipNo" />
+
+<ScMessage @ref="_msg" />
+<ScLoading @ref="_loading" />
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
+
+    private ScteldetModel _model = new();
+    private bool _ready;       // metadata โหลดเสร็จ → render region (แทน guard _lookups เดิม)
+    private string? _photoBase64;
+
+    private bool _busy;
+    private int _resetToken;   // เพิ่มทุกครั้งที่กด New → สั่ง PanHead ล้าง+โฟกัสช่องค้นหา
+    private bool _signVisible; // popup ลายเซ็น
+    private bool _memoVisible; // popup บันทึกข้อความ
+    private ScMessage _msg = default!;
+    private ScLoading _loading = default!;
+
+    private string _userId   = "";
+    private string _branchId = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthState is not null)
+        {
+            var user = (await AuthState).User;
+            _userId   = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
+            _branchId = user.FindFirst("branch_id")?.Value ?? "";
+        }
+
+        _model.Groups  = await Svc.GetTabMetadataAsync();   // permission-driven group/tab metadata
+        _ready         = true;
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        // _msg ถูก assign ผ่าน @ref หลัง render แรก → re-render ครั้งเดียวให้ cascade ส่ง instance ลง child
+        if (firstRender) StateHasChanged();
+    }
+
+    // ── PanHead: ค้นหาสมาชิก → โหลด header + รูป ────────────────────────────────────
+    private async Task OnSearchMember(string membershipNo)
+    {
+        _busy = true;
+        // ล้างรูป+header เดิมก่อนเริ่ม query เพื่อกัน "รูปสมาชิกคนก่อนค้าง" ระหว่าง await
+        //   (ถ้าไม่ล้าง: render กลางคันจะเห็น Header ใหม่ + _photoBase64 เก่า → เข้า if แสดงรูปผิดคน)
+        _photoBase64 = null;
+        try
+        {
+            var header = await _loading.RunAsync(() => Svc.GetMemberHeaderAsync(membershipNo), "กำลังเรียกข้อมูล…");
+            if (header is null)
+            {
+                await _msg.Error(sc.msg.C($"ไม่พบสมาชิกเลขทะเบียน [ {membershipNo} ]"));
+                return;
+            }
+
+            _model.MembershipNo = header.MembershipNo;
+            _model.Header       = header;
+
+            var photo   = await Svc.GetMemberPhotoAsync(header.MembershipNo);
+            _photoBase64 = photo is { Length: > 0 } ? Convert.ToBase64String(photo) : null;
+            // tab จะ re-query เองผ่าน OnParametersSetAsync (Model.MembershipNo เปลี่ยน)
+        }
+        catch (Exception ex)
+        {
+            await _msg.Error($"เกิดข้อผิดพลาด: {ex.Message}");
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    // ── PanOperate ──────────────────────────────────────────────────────────────────
+    // New — ล้างหน้า (เลือกสมาชิกใหม่)
+    private void OnNew()
+    {
+        _model.MembershipNo = null;
+        _model.Header       = null;
+        _photoBase64        = null;
+        _resetToken++;          // → PanHead ล้างช่องค้นหา + โฟกัส
+    }
+
+    // อ่านบัตร ปชช. → membership_no (service ready = pka_mid_sync.fp_find_memno; รอ bridge เครื่องอ่านบัตร)
+    private async Task OnScanCard()
+        => await _msg.Info(sc.msg.C("การอ่านบัตรประชาชนอยู่ระหว่างเชื่อมระบบ (เครื่องอ่านบัตร)"));
+
+    // ลายเซ็น — เปิด popup (legacy ofSignature: ต้องมีสมาชิกก่อน)
+    private async Task OnSignature()
+    {
+        if (string.IsNullOrEmpty(_model.MembershipNo))
+        {
+            await _msg.Error(sc.msg.C("กรุณาระบุ ทะเบียน"));
+            return;
+        }
+        _signVisible = true;
+    }
+
+    // บันทึกข้อความ — เปิด popup read-only (legacy popMemmo: ต้องมีสมาชิกก่อน)
+    private async Task OnMemo()
+    {
+        if (string.IsNullOrEmpty(_model.MembershipNo))
+        {
+            await _msg.Error(sc.msg.C("กรุณาระบุ ทะเบียน"));
+            return;
+        }
+        _memoVisible = true;
+    }
+
+    private async Task OnPrintTab()
+        => await _msg.Info(sc.msg.C("พิมพ์แท็บปัจจุบันอยู่ระหว่าง migrate (เชื่อมระบบรายงาน)"));
+}

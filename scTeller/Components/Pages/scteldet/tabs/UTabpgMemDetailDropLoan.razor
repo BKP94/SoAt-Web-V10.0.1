@@ -1,0 +1,46 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+@inject sc.dbFactory DbFactory
+
+@* ── G3 Tab 4: งดส่งเงินกู้ (legacy u_tabpg_mem_detail_drop_loan) — read-only grid ──
+   ประเภทเงินกู้ (loan_type) = DB combo sc_lon_m_rule. ไม่มีสี row *@
+
+@if (string.IsNullOrEmpty(Model.MembershipNo))
+{
+    <div class="nb-empty">— ยังไม่ได้เลือกสมาชิก —</div>
+}
+else if (_rows.Count == 0)
+{
+    <div class="nb-empty">— ไม่มีรายการงดส่งเงินกู้ —</div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn">
+        <Columns>
+            <DxGridDataColumn Caption="ลำดับ" Width="70px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ประเภทเงินกู้">
+                <CellDisplayTemplate>@sc.combo.text(sc.combo.sc_lon_m_rule, ((DropLoanDto)context.DataItem).LoanType)</CellDisplayTemplate>
+            </DxGridDataColumn>
+        </Columns>
+    </DxGrid>
+}
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private List<DropLoanDto> _rows = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+        await using (var db = DbFactory.create())
+            await sc.combo.warmAsync(db, sc.combo.sc_lon_m_rule);
+        _rows = await Svc.GetDropLoanAsync(_loadedFor);
+    }
+}

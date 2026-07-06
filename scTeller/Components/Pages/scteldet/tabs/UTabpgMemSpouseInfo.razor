@@ -1,0 +1,122 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+
+@* ── G1 Tab 1: ข้อมูลครอบครัว (legacy u_tabpg_mem_spouse_info) — read-only viewer ──
+   บิดา-มารดา (sc_mem_m_membership_registered) + คู่สมรส (sc_mem_m_member_spouse_info)
+   dumb component: re-query ตาม Model.MembershipNo (OnParametersSetAsync), format ผ่าน sc.*
+   read-only ใช้ DxTextBox Enabled="false" (มาตรฐานหน้าจอ — แทน span) *@
+
+@if (string.IsNullOrEmpty(Model.MembershipNo))
+{
+    <div class="nb-empty">— ยังไม่ได้เลือกสมาชิก —</div>
+}
+else
+{
+    <DxFormLayout CssClass="nb-tab-form">
+        <DxFormLayoutGroup Caption="บิดา-มารดา (สมาชิก)" ColSpanMd="12" Decoration="FormLayoutGroupDecoration.None">
+            <DxFormLayoutItem Caption="บิดา" ColSpanMd="6">
+                <DxTextBox Text="@_parent?.Father" Enabled="false" />
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="มารดา" ColSpanMd="6">
+                <DxTextBox Text="@_parent?.Mother" Enabled="false" />
+            </DxFormLayoutItem>
+        </DxFormLayoutGroup>
+
+        @if (_spouse is null)
+        {
+            <DxFormLayoutItem Caption="" ColSpanMd="12">
+                <div class="nb-empty">— ไม่มีข้อมูลคู่สมรส —</div>
+            </DxFormLayoutItem>
+        }
+        else
+        {
+            <DxFormLayoutGroup Caption="ข้อมูลคู่สมรส" ColSpanMd="12" Decoration="FormLayoutGroupDecoration.None">
+                <DxFormLayoutItem Caption="ทะเบียน" ColSpanMd="3">
+                    <DxTextBox Text="@_spouse.SpouseMemberNo" Enabled="false" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="คำนำหน้า" ColSpanMd="3">
+                    <ScCombo Combo="@sc.combo.sc_mem_m_ucf_prename" Value="@_spouse.PrenameCode" ReadOnly />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="ชื่อ" ColSpanMd="3">
+                    <DxTextBox Text="@_spouse.SpouseName" Enabled="false" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="สกุล" ColSpanMd="3">
+                    <DxTextBox Text="@_spouse.SpouseSurname" Enabled="false" />
+                </DxFormLayoutItem>
+
+                <DxFormLayoutItem Caption="บัตรประชาชน" ColSpanMd="4">
+                    <DxTextBox Text="@sc.mask.idCard(_spouse.IdCard)" Enabled="false" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="เลขภาษี" ColSpanMd="4">
+                    <DxTextBox Text="@_spouse.TaxId" Enabled="false" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="วันเกิด" ColSpanMd="4">
+                    <DxTextBox Text="@sc.value.toStringTH(_spouse.DateOfBirth)" Enabled="false" />
+                </DxFormLayoutItem>
+
+                <DxFormLayoutItem Caption="อาชีพ" ColSpanMd="4">
+                    <ScCombo Combo="@sc.combo.sc_mem_m_ucf_ocupation" Value="@_spouse.OccupationCode" ReadOnly />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="ตำแหน่ง" ColSpanMd="4">
+                    <ScCombo Combo="@sc.combo.sc_mem_m_ucf_position" Value="@_spouse.PositionCode" ReadOnly />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="เงินเดือน" ColSpanMd="2">
+                    <DxTextBox Text="@sc.value.toStringF(_spouse.SalaryAmount)" Enabled="false" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="เงินเดือนร่วมกู้" ColSpanMd="2">
+                    <DxTextBox Text="@sc.value.toStringF(_spouse.SalaryCalloan)" Enabled="false" />
+                </DxFormLayoutItem>
+            </DxFormLayoutGroup>
+
+            <DxFormLayoutGroup Caption="สถานที่ทำงาน (คู่สมรส)" ColSpanMd="12" Decoration="FormLayoutGroupDecoration.None">
+                <DxFormLayoutItem Caption="ชื่อสถานที่ทำงาน" ColSpanMd="6">
+                    <DxTextBox Text="@_spouse.Workname" Enabled="false" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="บ้านเลขที่" ColSpanMd="3">
+                    <DxTextBox Text="@_spouse.WorkAddress" Enabled="false" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="หมู่ที่" ColSpanMd="3">
+                    <DxTextBox Text="@_spouse.WorkMoo" Enabled="false" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="ซอย" ColSpanMd="6">
+                    <DxTextBox Text="@_spouse.WorkSoi" Enabled="false" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="ถนน" ColSpanMd="6">
+                    <DxTextBox Text="@_spouse.WorkRoad" Enabled="false" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="จังหวัด" ColSpanMd="4">
+                    <ScCombo Combo="@sc.combo.sc_mem_m_ucf_province" Value="@_spouse.WorkProvinceCode" ReadOnly />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="อำเภอ/เขต" ColSpanMd="4">
+                    <ScCombo Combo="@sc.combo.sc_mem_m_ucf_district" Value="@_spouse.WorkDistrictCode" ReadOnly />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="ตำบล/แขวง" ColSpanMd="4">
+                    <DxTextBox Text="@_spouse.WorkTambol" Enabled="false" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="รหัสไปรษณีย์" ColSpanMd="4">
+                    <DxTextBox Text="@_spouse.WorkPostcode" Enabled="false" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="เบอร์โทรศัพท์" ColSpanMd="8">
+                    <DxTextBox Text="@_spouse.WorkTelephone" Enabled="false" />
+                </DxFormLayoutItem>
+            </DxFormLayoutGroup>
+        }
+    </DxFormLayout>
+}
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private SpouseInfoDto? _spouse;
+    private ParentInfoDto? _parent;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _spouse = null; _parent = null; return; }
+        _spouse = await Svc.GetSpouseInfoAsync(_loadedFor);
+        _parent = await Svc.GetParentInfoAsync(_loadedFor);
+    }
+}

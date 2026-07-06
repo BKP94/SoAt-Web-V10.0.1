@@ -1,0 +1,65 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+
+@* ── G3 Tab: หลักประกัน (legacy u_tabpg_mem_detail_memcoll_detail) ──
+   grid หลักประกันของสัญญาเงินกู้ (nested query sc_lon_m_contract_coll ...) — read-only
+   สีแถว (legacy): member_status_code='3' (ผู้ค้ำพ้นสภาพ) → พื้นส้ม font ดำ *@
+
+@if (string.IsNullOrEmpty(Model.MembershipNo))
+{
+    <div class="nb-empty">— ยังไม่ได้เลือกสมาชิก —</div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn"
+            CustomizeElement="Customize">
+        <Columns>
+            <DxGridDataColumn Caption="ลำดับ" Name="seq" Width="60px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+                <FooterTemplate>@string.Format("รวม : {0} รายการ", _rows.Count)</FooterTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เลขที่สัญญา" FieldName="LoanContractNo" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="เงินต้นคงเหลือ" FieldName="PrincipalBalance" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((MemcollDetailDto)context.DataItem).PrincipalBalance)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ลำดับหลักประกัน" FieldName="ConOrder" Width="120px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.value.toStringF(((MemcollDetailDto)context.DataItem).ConOrder, sc.att.datatype.Integer)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="รายละเอียดหลักประกัน" FieldName="CollateralDesc" Width="360px" />
+            <DxGridDataColumn Caption="เงินเดือน" FieldName="SalaryAmount" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((MemcollDetailDto)context.DataItem).SalaryAmount)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ค้ำแล้ว" FieldName="UsedAmount" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((MemcollDetailDto)context.DataItem).UsedAmount)</CellDisplayTemplate>
+            </DxGridDataColumn>
+        </Columns>
+        <EmptyDataAreaTemplate>— ไม่มีข้อมูลหลักประกัน —</EmptyDataAreaTemplate>
+        <TotalSummary>
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Count" FooterColumnName="seq" />
+        </TotalSummary>
+    </DxGrid>
+}
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private List<MemcollDetailDto> _rows = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+        _rows = await Svc.GetMemcollDetailAsync(_loadedFor);
+    }
+
+    // legacy: member_status_code='3' → พื้นส้ม (rgb 255,99,66) font ดำ
+    private void Customize(GridCustomizeElementEventArgs e)
+    {
+        if (e.ElementType != GridElementType.DataRow) return;
+        if (e.Grid.GetDataItem(e.VisibleIndex) is not MemcollDetailDto r) return;
+        if (r.MemberStatusCode == "3") e.CssClass = "nb-row-coll3";
+    }
+}

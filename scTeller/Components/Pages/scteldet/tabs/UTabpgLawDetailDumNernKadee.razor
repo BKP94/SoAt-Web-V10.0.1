@@ -1,0 +1,46 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+
+@* ── popLaw sub 4: การดำเนินคดี (legacy u_tabpg_law_detail_dum_nern_kadee) — read-only ──
+   grid sc_law_tad_nenkadee_operate *@
+
+@if (string.IsNullOrEmpty(ProsecNo))
+{
+    <div class="nb-empty">— ไม่มีข้อมูล —</div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn">
+        <Columns>
+            <DxGridDataColumn Caption="ลำดับ" Name="seq" Width="70px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+                <FooterTemplate>@_rows.Count รายการ</FooterTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="วันที่ดำเนินการ" Width="120px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.value.toStringTH(((LawDumNernKadeeDto)context.DataItem).OperateDate)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="คำอธิบายและขบวนการ" FieldName="Description" />
+            <DxGridDataColumn Caption="หมายเหตุ" FieldName="Remark" Width="200px" />
+        </Columns>
+        <EmptyDataAreaTemplate>— ไม่มีรายการดำเนินคดี —</EmptyDataAreaTemplate>
+        <TotalSummary>
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Count" FooterColumnName="seq" />
+        </TotalSummary>
+    </DxGrid>
+}
+
+@code {
+    [Parameter] public string? ProsecNo { get; set; }
+
+    private string? _loadedFor;
+    private List<LawDumNernKadeeDto> _rows = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (ProsecNo == _loadedFor) return;
+        _loadedFor = ProsecNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+        _rows = await Svc.GetLawDumNernKadeeAsync(_loadedFor);
+    }
+}

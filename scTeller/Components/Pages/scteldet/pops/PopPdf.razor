@@ -1,0 +1,75 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+
+@* ── PopPdf — เปิดเอกสาร E-Document (เลียน legacy scteldet/pops/popPDF.ascx) ──
+   รับ key (membership_no / application_form_no / doc_type / page_no) → โหลด url เอกสารบน Shown
+     - filename ว่าง → "ไม่มีไฟล์เอกสาร"
+     - "DELETED"  → ข้อความแจ้งถูกลบ (legacy popEdocument)
+     - อื่น        → iframe src = UrlServerEdocument + path//filename?page=hsn#toolbar=0
+   dumb popup: โหลดเองผ่าน Svc, ไม่ persist อะไร *@
+
+<DxPopup Visible="Visible" VisibleChanged="OnVisibleChanged" HeaderText="@HeaderText"
+         Width="900px" Height="700px" ShowFooter="true" CloseOnEscape="true" Shown="OnShownAsync">
+    <BodyContentTemplate Context="pop">
+        @if (_pdf is null)
+        {
+            <div class="nb-empty">— ไม่มีไฟล์เอกสาร —</div>
+        }
+        else if (_pdf.IsDeleted)
+        {
+            <div class="nb-empty" style="color:#842029">@_pdf.DeletedMessage</div>
+        }
+        else
+        {
+            <iframe src="@_pdf.Url" style="width:100%;height:100%;border:0"></iframe>
+        }
+    </BodyContentTemplate>
+    <FooterContentTemplate>
+        <DxButton Text="ปิดหน้าจอ" RenderStyle="ButtonRenderStyle.Secondary" Click="Close" />
+    </FooterContentTemplate>
+</DxPopup>
+
+@code {
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public EventCallback<bool> VisibleChanged { get; set; }
+
+    [Parameter] public string? MembershipNo { get; set; }
+    [Parameter] public string? ApplicationFormNo { get; set; }
+    [Parameter] public string? DocType { get; set; }
+    [Parameter] public decimal PageNo { get; set; }
+    [Parameter] public string HeaderText { get; set; } = "รายละเอียดเอกสาร";
+
+    // แหล่งเอกสาร: "mem" = ทะเบียนสมาชิก (sc_edoc_mem) | "loancontract" = สัญญาเงินกู้ (sc_edoc_loan_contract)
+    //   กรณี loancontract → key เอกสารส่งผ่าน ApplicationFormNo (= loan_contract_no)
+    [Parameter] public string Source { get; set; } = "mem";
+
+    private EdocPdfResult? _pdf;
+
+    // เปิด popup ครั้งใด → โหลดเอกสารตาม key ปัจจุบัน (legacy page.ofPopEdocument → popPDF.popEdocument)
+    private async Task OnShownAsync()
+    {
+        _pdf = null;
+        if (Source == "loancontract")
+        {
+            if (string.IsNullOrEmpty(ApplicationFormNo)) return;
+            _pdf = await Svc.GetEdocLoanContractPdfAsync(ApplicationFormNo, DocType ?? "", PageNo);
+            return;
+        }
+        if (string.IsNullOrEmpty(MembershipNo)) return;
+        _pdf = await Svc.GetEdocMemPdfAsync(MembershipNo, ApplicationFormNo ?? "", DocType ?? "", PageNo);
+    }
+
+    private Task Close() => CloseInternal();
+
+    private async Task OnVisibleChanged(bool visible)
+    {
+        Visible = visible;
+        await VisibleChanged.InvokeAsync(visible);
+    }
+
+    private async Task CloseInternal()
+    {
+        Visible = false;
+        await VisibleChanged.InvokeAsync(false);
+    }
+}

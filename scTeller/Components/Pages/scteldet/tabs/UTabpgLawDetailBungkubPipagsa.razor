@@ -1,0 +1,63 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+
+@* ── popLaw sub 9: บังคับลูกหนี้ตามคำพิพากษา (legacy u_tabpg_law_detail_bungkub_pipagsa) — read-only ──
+   form sc_law_tad_nenkadee_head (ใช้ร่วม sub 5/7), ColCount=3 *@
+
+@if (_row is null)
+{
+    <div class="nb-empty">— ไม่มีข้อมูลการบังคับคดี —</div>
+}
+else
+{
+    <DxFormLayout CssClass="nb-tab-form">
+        <DxFormLayoutItem Caption="เลขที่คดีแดง" ColSpanMd="4">
+            <span class="nb-ro" style="text-align:center;">@_row.KadeeDang</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ขอให้ศาลออกบังคับคดี" ColSpanMd="4">
+            <span class="nb-ro" style="text-align:center;">@sc.value.toStringTH(_row.OutPagKupKadee)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ทนายความที่บังคับคดี" ColSpanMd="8">
+            <span class="nb-ro">@_row.LawyerBungKubKadee</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="นำหมายบังคับคดี" ColSpanMd="4">
+            <span class="nb-ro" style="text-align:center;">@sc.value.toStringTH(_row.NumMuyOutPagKup)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ตั้งเจ้าพนักงานบังคับคดี" ColSpanMd="4">
+            <span class="nb-ro" style="text-align:center;">@sc.value.toStringTH(_row.NameOfficerKadee)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="วันที่ออกหมายตั้งเจ้าพนักงานบังคับคดี" ColSpanMd="4">
+            <span class="nb-ro" style="text-align:center;">@sc.value.toStringTH(_row.OfficerKadeeDate)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="วันที่ตั้งเรื่องยึดทรัพย์" ColSpanMd="4">
+            <span class="nb-ro" style="text-align:center;">@sc.value.toStringTH(_row.DefYedZep)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="สำนักงานบังคับคดีจังหวัด" ColSpanMd="8">
+            <span class="nb-ro">@_row.BungKubKadeeJungwat</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ที่ตั้งสำนักงานบังคับคดี" ColSpanMd="8">
+            <span class="nb-ro">@_row.PleaceYed</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ค่าใช้จ่าย" ColSpanMd="4">
+            <span class="nb-ro nb-ro-num">@sc.value.toStringF(_row.CostYed)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="รายการทรัพย์สินที่ยึด" ColSpanMd="12">
+            <span class="nb-ro">@_row.ItemYed</span>
+        </DxFormLayoutItem>
+    </DxFormLayout>
+}
+
+@code {
+    [Parameter] public string? ProsecNo { get; set; }
+
+    private string? _loadedFor;
+    private LawKadeeHeadDto? _row;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (ProsecNo == _loadedFor) return;
+        _loadedFor = ProsecNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _row = null; return; }
+        _row = await Svc.GetLawKadeeHeadAsync(_loadedFor);
+    }
+}

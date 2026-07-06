@@ -1,0 +1,50 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+
+@* ── G7 Tab 11: ประวัติเปลี่ยนชื่อ-สกุล (legacy u_tabpg_mem_detail_namehistory) — viewer read-only ── *@
+
+@if (string.IsNullOrEmpty(Model.MembershipNo))
+{
+    <div class="nb-empty">— ยังไม่ได้เลือกสมาชิก —</div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn">
+        <Columns>
+            <DxGridDataColumn Caption="ลำดับ" Name="seq" Width="55px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+                <FooterTemplate>@_rows.Count รายการ</FooterTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="วันที่" Width="110px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.value.toStringTH(((NameHistoryDto)context.DataItem).OperateDate)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เลขที่อ้างอิง" FieldName="DocEdit" Width="130px" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="ชื่อ-สกุลก่อนเปลี่ยน" FieldName="CNamePre" Width="280px" />
+            <DxGridDataColumn Caption="ชื่อ-สกุลหลังเปลี่ยน" FieldName="CNameEdit" Width="280px" />
+            <DxGridDataColumn Caption="ผู้ทำรายการ" FieldName="EntryId" Width="110px" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="วันที่บันทึก" Width="110px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.value.toStringTH(((NameHistoryDto)context.DataItem).EntryDate)</CellDisplayTemplate>
+            </DxGridDataColumn>
+        </Columns>
+        <EmptyDataAreaTemplate>— ไม่มีประวัติการเปลี่ยนชื่อ-สกุล —</EmptyDataAreaTemplate>
+        <TotalSummary>
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Count" FooterColumnName="seq" />
+        </TotalSummary>
+    </DxGrid>
+}
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private List<NameHistoryDto> _rows = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+        _rows = await Svc.GetNameHistoryAsync(_loadedFor);
+    }
+}

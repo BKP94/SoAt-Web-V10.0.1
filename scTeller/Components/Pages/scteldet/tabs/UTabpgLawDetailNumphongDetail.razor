@@ -1,0 +1,84 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+
+@* ── popLaw sub 7: รายละเอียดการนำฟ้อง (legacy u_tabpg_law_detail_numphong_detail) — read-only ──
+   form sc_law_tad_nenkadee_head (ใช้ร่วม sub 5/9), ColCount=3 *@
+
+@if (_row is null)
+{
+    <div class="nb-empty">— ไม่มีข้อมูลการนำฟ้อง —</div>
+}
+else
+{
+    <DxFormLayout CssClass="nb-tab-form">
+        <DxFormLayoutItem Caption="เลขคดีดำ" ColSpanMd="4">
+            <span class="nb-ro" style="text-align:center;">@_row.KadeeDum</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ชื่อทนาย" ColSpanMd="8">
+            <span class="nb-ro">@_row.LayerName</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="เลขคดีแดง" ColSpanMd="4">
+            <span class="nb-ro" style="text-align:center;">@_row.KadeeDang</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ชื่อผู้รับมอบ" ColSpanMd="8">
+            <span class="nb-ro">@_row.TranName</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ชื่อศาล" ColSpanMd="4">
+            <span class="nb-ro">@_row.SalName</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ชื่อทนายจำเลย" ColSpanMd="8">
+            <span class="nb-ro">@_row.LayerNameJumley</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ความ" ColSpanMd="4">
+            <span class="nb-ro">@_row.KramType</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ชื่อโจทก์" ColSpanMd="12">
+            <span class="nb-ro">@_row.JodName</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="วันที่นำหมายครั้งที่ 1" ColSpanMd="4">
+            <span class="nb-ro" style="text-align:center;">@sc.value.toStringTH(_row.NumMuySt)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ผลการนำหมายครั้งที่ 1" ColSpanMd="8">
+            <span class="nb-ro">@_row.ResultNumMuySt</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="วันที่นำหมายครั้งที่ 2" ColSpanMd="4">
+            <span class="nb-ro" style="text-align:center;">@sc.value.toStringTH(_row.NumMuyNd)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ผลการนำหมายครั้งที่ 2" ColSpanMd="8">
+            <span class="nb-ro">@_row.ResultNumMuyNd</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ดำเนินการอื่นๆ" ColSpanMd="12">
+            <span class="nb-ro">@_row.OperateOther</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="วันที่ยื่นบัญชีระบุพยานและส่งเอกสาร" ColSpanMd="4">
+            <span class="nb-ro" style="text-align:center;">@sc.value.toStringTH(_row.DateDoc)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="นัดชี้สองสถานหรือนัดพร้อม" ColSpanMd="4">
+            <span class="nb-ro" style="text-align:center;">@sc.value.toStringTH(_row.NutSong)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ครบยื่นคำให้การ" ColSpanMd="4">
+            <span class="nb-ro" style="text-align:center;">@sc.value.toStringTH(_row.CompDocDate)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="หมายเหตุ 1" ColSpanMd="12">
+            <span class="nb-ro">@_row.RemarkSt</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="หมายเหตุ 2" ColSpanMd="12">
+            <span class="nb-ro">@_row.RemarkNd</span>
+        </DxFormLayoutItem>
+    </DxFormLayout>
+}
+
+@code {
+    [Parameter] public string? ProsecNo { get; set; }
+
+    private string? _loadedFor;
+    private LawKadeeHeadDto? _row;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (ProsecNo == _loadedFor) return;
+        _loadedFor = ProsecNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _row = null; return; }
+        _row = await Svc.GetLawKadeeHeadAsync(_loadedFor);
+    }
+}

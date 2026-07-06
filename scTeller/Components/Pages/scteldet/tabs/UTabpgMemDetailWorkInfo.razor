@@ -1,0 +1,116 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+
+@* ── G1 Tab 2: ข้อมูลการทำงาน (legacy u_tabpg_mem_detail_work_info) — read-only viewer ──
+   main work info + สถานที่ทำงาน (sc_mem_m_member_work_info, ORDER BY seq_no LIMIT 1)
+   read-only ใช้ DxTextBox Enabled="false" (มาตรฐานหน้าจอ — แทน span) *@
+
+@if (string.IsNullOrEmpty(Model.MembershipNo))
+{
+    <div class="nb-empty">— ยังไม่ได้เลือกสมาชิก —</div>
+}
+else if (_work is null || _addr is null)
+{
+    <div class="nb-empty">— ไม่มีข้อมูลการทำงาน —</div>
+}
+else
+{
+    <DxFormLayout CssClass="nb-tab-form">
+        <DxFormLayoutGroup Caption="ข้อมูลการทำงาน" ColSpanMd="12" Decoration="FormLayoutGroupDecoration.None">
+            <DxFormLayoutItem Caption="ตำแหน่ง" ColSpanMd="6">
+                <ScCombo Combo="@sc.combo.sc_mem_m_ucf_position" Value="@_work.PositionLong" ReadOnly />
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="กลุ่มตำแหน่ง" ColSpanMd="3">
+                <ScCombo Combo="@sc.combo.sc_mem_m_ucf_group_position" Value="@_work.GroupPosition" ReadOnly />
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="หน่วยงาน" ColSpanMd="3">
+                <ScCombo Combo="@sc.combo.sc_mem_m_ucf_member_group" Value="@_work.DepartmentCode" ReadOnly />
+            </DxFormLayoutItem>
+
+            <DxFormLayoutItem Caption="อาชีพ" ColSpanMd="4">
+                <ScCombo Combo="@sc.combo.sc_mem_m_ucf_ocupation" Value="@_work.OccupationCode" ReadOnly />
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="ระดับ" ColSpanMd="4">
+                <DxTextBox Text="@_work.LevelCode" Enabled="false" />
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="กลุ่มเก็บเงิน" ColSpanMd="4">
+                <DxTextBox Text="@_work.KeepingGroupNo" Enabled="false" />
+            </DxFormLayoutItem>
+
+            <DxFormLayoutItem Caption="เงินเดือน" ColSpanMd="3">
+                <DxTextBox Text="@sc.value.toStringF(_work.SalaryAmount)" Enabled="false" />
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="เงินเดือนจริง" ColSpanMd="3">
+                <DxTextBox Text="@sc.value.toStringF(_work.SalaryReal)" Enabled="false" />
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="เงินวิทยฐานะ" ColSpanMd="3">
+                <DxTextBox Text="@sc.value.toStringF(_work.AcademicSalary)" Enabled="false" />
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="ค่าตอบแทน" ColSpanMd="3">
+                <DxTextBox Text="@sc.value.toStringF(_work.RemunerationAmount)" Enabled="false" />
+            </DxFormLayoutItem>
+
+            <DxFormLayoutItem Caption="วันเริ่มงาน" ColSpanMd="4">
+                <DxTextBox Text="@sc.value.toStringTH(_work.WorkingDate)" Enabled="false" />
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="สถานะพนักงาน" ColSpanMd="4">
+                <DxTextBox Text="@_work.EmployeeStatus" Enabled="false" />
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="วันสิ้นสุดสัญญา" ColSpanMd="4">
+                <DxTextBox Text="@sc.value.toStringTH(_work.EndingcontractDate)" Enabled="false" />
+            </DxFormLayoutItem>
+
+            <DxFormLayoutItem Caption="สถานะเกษียณ" ColSpanMd="6">
+                <DxTextBox Text="@_work.RetireStatus" Enabled="false" />
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="วันเกษียณ" ColSpanMd="6">
+                <DxTextBox Text="@sc.value.toStringTH(_work.RetireDate)" Enabled="false" />
+            </DxFormLayoutItem>
+
+            <DxFormLayoutItem Caption="บ้านเลขที่" ColSpanMd="3">
+                <DxTextBox Text="@_addr.WorkAddress" Enabled="false" />
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="หมู่ที่" ColSpanMd="3">
+                <DxTextBox Text="@_addr.WorkMoo" Enabled="false" />
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="ซอย" ColSpanMd="3">
+                <DxTextBox Text="@_addr.WorkSoi" Enabled="false" />
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="ถนน" ColSpanMd="3">
+                <DxTextBox Text="@_addr.WorkRoad" Enabled="false" />
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="จังหวัด" ColSpanMd="4">
+                <ScCombo Combo="@sc.combo.sc_mem_m_ucf_province" Value="@_addr.WorkProvinceCode" ReadOnly />
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="อำเภอ/เขต" ColSpanMd="4">
+                <ScCombo Combo="@sc.combo.sc_mem_m_ucf_district" Value="@_addr.WorkDistrictCode" ReadOnly />
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="ตำบล/แขวง" ColSpanMd="4">
+                <DxTextBox Text="@_addr.WorkTambol" Enabled="false" />
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="รหัสไปรษณีย์" ColSpanMd="4">
+                <DxTextBox Text="@_addr.WorkPostcode" Enabled="false" />
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="เบอร์โทรศัพท์" ColSpanMd="8">
+                <DxTextBox Text="@_addr.WorkTelephone" Enabled="false" />
+            </DxFormLayoutItem>
+        </DxFormLayoutGroup>
+    </DxFormLayout>
+}
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private WorkMainDto? _work;
+    private WorkAddressDto? _addr;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _work = null; _addr = null; return; }
+        _work = await Svc.GetWorkMainAsync(_loadedFor);
+        _addr = await Svc.GetWorkAddressAsync(_loadedFor);
+    }
+}

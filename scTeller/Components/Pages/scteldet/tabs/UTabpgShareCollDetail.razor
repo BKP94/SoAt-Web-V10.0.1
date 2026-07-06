@@ -1,0 +1,62 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+@inject sc.dbFactory DbFactory
+
+@* ── popup popShareCollDetail sub-tab 1: รายละเอียดกองทุน (legacy u_tabpg_share_coll_detail) — read-only ──
+   FormLayout ColCount=3 (แต่ละช่อง ColSpanMd=4). close_status = combo fund_close_status;
+   paid_return_method = combo sc_fund_ucf_return_method; fund_loan_no = ประเภทกองทุน (fund_name text) *@
+
+@if (_row is null)
+{
+    <div class="nb-empty">— ไม่มีข้อมูลกองทุน —</div>
+}
+else
+{
+    <DxFormLayout CssClass="nb-tab-form">
+        <DxFormLayoutItem Caption="เลขที่สัญญา" ColSpanMd="4">
+            <span class="nb-ro" style="text-align:center;">@_row.LoanContractNo</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="วันที่เริ่ม" ColSpanMd="4">
+            <span class="nb-ro" style="text-align:center;">@sc.value.toStringTH(_row.OpenDay)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ประเภทกองทุน" ColSpanMd="4">
+            <span class="nb-ro">@_row.FundLoanNo</span>
+        </DxFormLayoutItem>
+
+        <DxFormLayoutItem Caption="วงเงินกู้" ColSpanMd="4">
+            <span class="nb-ro nb-ro-num">@sc.value.toStringF(_row.PricipalBalance)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ยอดกองทุน" ColSpanMd="4">
+            <span class="nb-ro nb-ro-num">@sc.value.toStringF(_row.TotalBalance)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="สถานะ" ColSpanMd="4">
+            <span class="nb-ro" style="text-align:center;">@sc.combo.text(sc.combo.fund_close_status, _row.CloseStatus)</span>
+        </DxFormLayoutItem>
+
+        <DxFormLayoutItem Caption="วิธีการคืน" ColSpanMd="4">
+            <span class="nb-ro">@sc.combo.text(sc.combo.sc_fund_ucf_return_method, _row.PaidReturnMethod)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="วันที่คืน" ColSpanMd="4">
+            <span class="nb-ro" style="text-align:center;">@sc.value.toStringTH(_row.ReturnDate)</span>
+        </DxFormLayoutItem>
+    </DxFormLayout>
+}
+
+@code {
+    [Parameter] public string? LoanContractNo { get; set; }
+
+    private string? _loadedFor;
+    private ShareCollDetailMainDto? _row;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (LoanContractNo == _loadedFor) return;
+        _loadedFor = LoanContractNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _row = null; return; }
+
+        await using (var db = DbFactory.create())
+            await sc.combo.warmAsync(db, sc.combo.fund_close_status, sc.combo.sc_fund_ucf_return_method);
+
+        _row = await Svc.GetShareCollMainAsync(_loadedFor);
+    }
+}

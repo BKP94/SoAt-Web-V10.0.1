@@ -1,0 +1,89 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+
+@* ── G6 Tab 5: อายัด (legacy u_tabpg_mem_detail_sequester) — viewer read-only ──
+   grid 21 คอลัมน์; enum เล็ก inline (sqter_status 0/1, money_type_id SZE/REV/180); checkbox ☑/☐ *@
+
+@if (string.IsNullOrEmpty(Model.MembershipNo))
+{
+    <div class="nb-empty">— ยังไม่ได้เลือกสมาชิก —</div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn">
+        <Columns>
+            <DxGridDataColumn Caption="ลำดับ" Name="seq" Width="55px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+                <FooterTemplate>@_rows.Count รายการ</FooterTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="สถานะ" Width="70px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@(((SequesterDto)context.DataItem).SqterStatus == "1" ? "ยกเลิก" : "ปกติ")</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="หุ้น" Width="50px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate><DxCheckBox Checked="@(((SequesterDto)context.DataItem).SqterShare == "1")" ReadOnly="true" /></CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ปันผล" Width="55px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate><DxCheckBox Checked="@(((SequesterDto)context.DataItem).SqterDiv == "1")" ReadOnly="true" /></CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เฉลี่ยคืน" Width="60px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate><DxCheckBox Checked="@(((SequesterDto)context.DataItem).SqterAver == "1")" ReadOnly="true" /></CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เงินอื่นๆ" Width="60px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate><DxCheckBox Checked="@(((SequesterDto)context.DataItem).SqterOther == "1")" ReadOnly="true" /></CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="อายัดโฉนด" Width="70px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate><DxCheckBox Checked="@(((SequesterDto)context.DataItem).DeedStatus == "1")" ReadOnly="true" /></CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="วันที่เริ่ม" Width="100px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.value.toStringTH(((SequesterDto)context.DataItem).BeginDate)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="วันที่ถอนอายัด" Width="110px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.value.toStringTH(((SequesterDto)context.DataItem).EndDate)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="กลุ่มการอายัด" Width="130px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@MoneyType(((SequesterDto)context.DataItem).MoneyTypeId)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="หน่วยงานที่นำส่งเงิน" FieldName="Department" Width="160px" />
+            <DxGridDataColumn Caption="ศาล" FieldName="Court" Width="140px" />
+            <DxGridDataColumn Caption="หมายเลขคดี" FieldName="NumberOfCase" Width="120px" />
+            <DxGridDataColumn Caption="โจทย์" FieldName="Plaintiff" Width="140px" />
+            <DxGridDataColumn Caption="จำเลย" FieldName="Defendant" Width="140px" />
+            <DxGridDataColumn Caption="ที่อยู่" FieldName="AddressDesc" Width="180px" />
+            <DxGridDataColumn Caption="รายละเอียด" FieldName="Remark" Width="180px" />
+            <DxGridDataColumn Caption="เงื่อนไข" FieldName="Condition" Width="140px" />
+            <DxGridDataColumn Caption="ค่าธรรมเนียม" Width="110px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((SequesterDto)context.DataItem).FeeAmount)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เลขเช็ค" FieldName="ChequeNo" Width="100px" />
+            <DxGridDataColumn Caption="หัวหน้าหน่วย" FieldName="PrenameGroup" Width="120px" TextAlignment="GridTextAlignment.Center" />
+        </Columns>
+        <EmptyDataAreaTemplate>— ไม่มีข้อมูลการอายัด —</EmptyDataAreaTemplate>
+        <TotalSummary>
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Count" FooterColumnName="seq" />
+        </TotalSummary>
+    </DxGrid>
+}
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private List<SequesterDto> _rows = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+        _rows = await Svc.GetSequesterAsync(_loadedFor);
+    }
+
+    private static string MoneyType(string? v) => v switch
+    {
+        "SZE" => "กรมบังคับคดี",
+        "REV" => "กรมสรรพากร",
+        "180" => "เจ้าหน้าที่อื่นๆ",
+        _ => v ?? ""
+    };
+}

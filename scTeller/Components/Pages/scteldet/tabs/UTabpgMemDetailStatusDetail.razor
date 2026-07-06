@@ -1,0 +1,54 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+
+@* ── G6 Tab 1: สถานะสมาชิก (legacy u_tabpg_mem_detail_status_detail) — viewer read-only ──
+   grid sc_mem_m_member_special; debtor_code='39' หรือ '๓๙' → ทั้งแถวสีแดง (เลียน HtmlRowPrepared) *@
+
+@if (string.IsNullOrEmpty(Model.MembershipNo))
+{
+    <div class="nb-empty">— ยังไม่ได้เลือกสมาชิก —</div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn"
+            CustomizeElement="OnCustomizeElement">
+        <Columns>
+            <DxGridDataColumn Caption="ลำดับ" Name="seq" Width="60px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+                <FooterTemplate>@_rows.Count รายการ</FooterTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="รหัส" FieldName="DebtorCode" Width="60px" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="รายละเอียดรหัส" FieldName="DebtorDesc" Width="400px" />
+            <DxGridDataColumn Caption="รายละเอียด" FieldName="DeptorDetail" />
+        </Columns>
+        <EmptyDataAreaTemplate>— ไม่มีข้อมูลสถานะสมาชิก —</EmptyDataAreaTemplate>
+        <TotalSummary>
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Count" FooterColumnName="seq" />
+        </TotalSummary>
+    </DxGrid>
+}
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private List<StatusDetailDto> _rows = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+        _rows = await Svc.GetStatusDetailAsync(_loadedFor);
+    }
+
+    // เลียน legacy: debtor_code = '39' หรือ '๓๙' → ทั้งแถวสีแดง
+    private void OnCustomizeElement(GridCustomizeElementEventArgs e)
+    {
+        if (e.ElementType != GridElementType.DataRow) return;
+        if (e.Grid.GetDataItem(e.VisibleIndex) is StatusDetailDto r
+            && (r.DebtorCode == "39" || r.DebtorCode == "๓๙"))
+            e.Style = "color:rgb(139,0,0);";
+    }
+}

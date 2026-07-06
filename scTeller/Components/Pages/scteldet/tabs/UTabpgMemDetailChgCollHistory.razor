@@ -1,0 +1,103 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+
+@* ── G7 Tab 1: ประวัติเปลี่ยนหลักประกัน (legacy u_tabpg_mem_detail_chg_coll_history) — viewer read-only ──
+   legacy: cell-merge CHANGE_DOC_NO/LOAN_CONTRACT_NO + สี OPERATE_TYPE (DL/CG/NW/NC)
+   Blazor idiom: merge = เว้นค่าซ้ำ (blank), สี = badge span ในเซลล์, legend อยู่ใต้ grid
+   FP_GET_THAIDATE ตัดออก (แสดง approve_date ผ่าน sc.value.toStringTH) *@
+
+@if (string.IsNullOrEmpty(Model.MembershipNo))
+{
+    <div class="nb-empty">— ยังไม่ได้เลือกสมาชิก —</div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn">
+        <Columns>
+            <DxGridDataColumn Caption="ลำดับ" Name="seq" Width="55px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+                <FooterTemplate>@_rows.Count รายการ</FooterTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เลขที่คำขอ" Width="120px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@DocNo(context.VisibleIndex)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เลขสัญญา" Width="120px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@ContractNo(context.VisibleIndex)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="วันที่อนุมัติ" Width="105px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.value.toStringTH(((CollChangeHistoryDto)context.DataItem).ApproveDate)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ประเภท" Width="70px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>
+                    @{ var ot = ((CollChangeHistoryDto)context.DataItem).OperateType; }
+                    <span style="display:inline-block;min-width:34px;padding:1px 6px;border-radius:3px;color:#fff;background:@OtColor(ot)">@ot</span>
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ผู้ค้ำเดิม-ทะเบียน" FieldName="OldCollateralRefno" Width="120px" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="ผู้ค้ำเดิม-ชื่อ" FieldName="OldCollateralDescription" Width="200px" />
+            <DxGridDataColumn Caption="ผู้ค้ำใหม่-ทะเบียน" FieldName="NewCollateralRefno" Width="120px" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="ผู้ค้ำใหม่-ชื่อ" FieldName="NewCollateralDescription" Width="200px" />
+            <DxGridDataColumn Caption="วงเงินหลักประกันใหม่" Width="130px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((CollChangeHistoryDto)context.DataItem).NewCollateralAmount)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ผู้ทำรายการ" FieldName="EntryId" Width="105px" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="วันที่บันทึก" Width="105px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.value.toStringTH(((CollChangeHistoryDto)context.DataItem).EntryDate)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ผู้อนุมัติ" FieldName="ApproveId" Width="105px" TextAlignment="GridTextAlignment.Center" />
+        </Columns>
+        <EmptyDataAreaTemplate>— ไม่มีประวัติการเปลี่ยนหลักประกัน —</EmptyDataAreaTemplate>
+        <TotalSummary>
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Count" FooterColumnName="seq" />
+        </TotalSummary>
+    </DxGrid>
+
+    @* legend สี OPERATE_TYPE *@
+    <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;font-size:.85rem">
+        <span><span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:#808080;vertical-align:middle"></span> NC = ไม่เปลี่ยนแปลง</span>
+        <span><span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:#daa520;vertical-align:middle"></span> CG = เปลี่ยนหลักประกัน</span>
+        <span><span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:#006400;vertical-align:middle"></span> NW = เพิ่มหลักประกันใหม่</span>
+        <span><span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:#8b0000;vertical-align:middle"></span> DL = ถอนหลักประกัน</span>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private List<CollChangeHistoryDto> _rows = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+        _rows = await Svc.GetCollChangeHistoryAsync(_loadedFor);
+    }
+
+    // merge: เว้นค่าเลขที่คำขอที่ซ้ำแถวก่อนหน้า
+    private string DocNo(int i)
+    {
+        var cur = _rows[i].ChangeDocNo;
+        if (i > 0 && _rows[i - 1].ChangeDocNo == cur) return "";
+        return cur ?? "";
+    }
+
+    // merge: เว้นเลขสัญญาเมื่ออยู่ในกลุ่มเลขที่คำขอเดียวกัน + สัญญาเดียวกัน
+    private string ContractNo(int i)
+    {
+        var cur = _rows[i].LoanContractNo;
+        if (i > 0 && _rows[i - 1].ChangeDocNo == _rows[i].ChangeDocNo
+                  && _rows[i - 1].LoanContractNo == cur) return "";
+        return cur ?? "";
+    }
+
+    private static string OtColor(string? ot) => (ot ?? "").Trim() switch
+    {
+        "DL" => "#8b0000",
+        "CG" => "#daa520",
+        "NW" => "#006400",
+        _    => "#808080",
+    };
+}

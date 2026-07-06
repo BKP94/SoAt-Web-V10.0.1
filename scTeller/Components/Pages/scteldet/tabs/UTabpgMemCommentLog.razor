@@ -1,0 +1,81 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+@inject sc.dbFactory DbFactory
+
+@* ── G6 Tab 3: บันทึกช่วยจำ (legacy u_tabpg_mem_comment_log) — viewer read-only ──
+   grid 2 band "งด" / "บันทึกข้อมูล"; memo_code combo sc_mem_m_ucf_memo2, entry_id combo si_security_user
+   entry_date = datetime → sc.value.toStringTH(x, true) *@
+
+@if (string.IsNullOrEmpty(Model.MembershipNo))
+{
+    <div class="nb-empty">— ยังไม่ได้เลือกสมาชิก —</div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn">
+        <Columns>
+            <DxGridDataColumn Caption="#" Name="seq" Width="40px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+                <FooterTemplate>@string.Format("{0:n0} รายการ", _rows.Count)</FooterTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="รหัส" Width="90px">
+                <CellDisplayTemplate>@sc.combo.text(sc.combo.sc_mem_m_ucf_memo2, ((CommentLogDto)context.DataItem).MemoCode)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="รายละเอียด" FieldName="MemoDetail" />
+            <DxGridBandColumn Caption="งด">
+                <Columns>
+                    <DxGridDataColumn Caption="ฉ" Width="34px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                        <CellDisplayTemplate><DxCheckBox Checked="@(((CommentLogDto)context.DataItem).DropEmer == "1")" ReadOnly="true" /></CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="ส" Width="34px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                        <CellDisplayTemplate><DxCheckBox Checked="@(((CommentLogDto)context.DataItem).DropNorm == "1")" ReadOnly="true" /></CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="พ" Width="34px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                        <CellDisplayTemplate><DxCheckBox Checked="@(((CommentLogDto)context.DataItem).DropSpec == "1")" ReadOnly="true" /></CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="ค้ำ" Width="34px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                        <CellDisplayTemplate><DxCheckBox Checked="@(((CommentLogDto)context.DataItem).DropColl == "1")" ReadOnly="true" /></CellDisplayTemplate>
+                    </DxGridDataColumn>
+                </Columns>
+            </DxGridBandColumn>
+            <DxGridDataColumn Caption="ปรับฯ" Width="45px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate><DxCheckBox Checked="@(((CommentLogDto)context.DataItem).LonRestruc == "1")" ReadOnly="true" /></CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridBandColumn Caption="บันทึกข้อมูล">
+                <Columns>
+                    <DxGridDataColumn Caption="วันที่บันทึก" Width="165px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                        <CellDisplayTemplate>@sc.value.toStringTH(((CommentLogDto)context.DataItem).EntryDate, true)</CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="ผู้บันทึก" Width="80px" AllowSort="false">
+                        <CellDisplayTemplate>@sc.combo.text(sc.combo.si_security_user, ((CommentLogDto)context.DataItem).EntryId)</CellDisplayTemplate>
+                    </DxGridDataColumn>
+                </Columns>
+            </DxGridBandColumn>
+        </Columns>
+        <EmptyDataAreaTemplate>— ไม่มีบันทึกช่วยจำ —</EmptyDataAreaTemplate>
+        <TotalSummary>
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Count" FooterColumnName="seq" />
+        </TotalSummary>
+    </DxGrid>
+}
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private List<CommentLogDto> _rows = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+
+        await using (var db = DbFactory.create())
+            await sc.combo.warmAsync(db, sc.combo.sc_mem_m_ucf_memo2, sc.combo.si_security_user);
+
+        _rows = await Svc.GetCommentLogAsync(_loadedFor);
+    }
+
+}

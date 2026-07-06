@@ -1,0 +1,78 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+
+@* ── G6 Tab 2: สถานะทางบริหาร (legacy u_tabpg_mem_admstatus) — viewer read-only ──
+   FormLayout ColCount=3; group "สถานะต่างๆ" checkbox read-only 7 ตัว + msg memo + 6 ช่อง resolved-text
+   (ช่อง resolved-text SQL nvl(subquery,'[ไม่ระบุ]') คืน desc มาแล้ว → แสดงตรง ไม่ warm combo) *@
+
+@if (_row is null)
+{
+    <div class="nb-empty">— ไม่มีข้อมูลสถานะทางบริหาร —</div>
+}
+else
+{
+    <DxFormLayout CssClass="nb-tab-form">
+        <DxFormLayoutGroup Caption="สถานะต่างๆ" ColSpanMd="12">
+            <DxFormLayoutItem ColSpanMd="2">
+                <DxCheckBox Checked="@(_row.DropLoanemerStatus == "1")" ReadOnly="true">งดกู้ ฉ. ทั้งหมด</DxCheckBox>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem ColSpanMd="2">
+                <DxCheckBox Checked="@(_row.DropLoannormalStatus == "1")" ReadOnly="true">งดกู้ ส. ทั้งหมด</DxCheckBox>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem ColSpanMd="2">
+                <DxCheckBox Checked="@(_row.DropLoanspecStatus == "1")" ReadOnly="true">งดกู้ พ. ทั้งหมด</DxCheckBox>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem ColSpanMd="2">
+                <DxCheckBox Checked="@(_row.CollactelralStatus == "1")" ReadOnly="true">งดค้ำประกัน</DxCheckBox>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem ColSpanMd="2">
+                <DxCheckBox Checked="@(_row.ForceKeeping == "1")" ReadOnly="true">เรียกเก็บหนี้เมื่อลาออก</DxCheckBox>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem ColSpanMd="2">
+                <DxCheckBox Checked="@(_row.CollResign == "1")" ReadOnly="true">หลักประกันบกพร่อง</DxCheckBox>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem ColSpanMd="2">
+                <DxCheckBox Checked="@(_row.InternalAuditor == "1")" ReadOnly="true">ผู้ตรวจสอบภายใน</DxCheckBox>
+            </DxFormLayoutItem>
+        </DxFormLayoutGroup>
+
+        <DxFormLayoutItem Caption="หมายเหตุ" ColSpanMd="12">
+            <DxTextBox Text="@_row.Msg" ReadOnly></DxTextBox>
+        </DxFormLayoutItem>
+
+        <DxFormLayoutItem Caption="สถานที่ส่งเอกสาร" ColSpanMd="4">
+            <ScCombo Combo="@sc.combo.sc_mem_m_ucf_doc_place" Value="@_row.DocPlaceStatus" ReadOnly />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="เกรดสมาชิก" ColSpanMd="4">
+            <ScCombo Combo="@sc.combo.sc_mem_m_ucf_group_position2" Value="@_row.OtherCode" ReadOnly />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="โนติส" ColSpanMd="4">
+            <ScCombo Combo="@sc.combo.sc_mem_m_ucf_debtor2" Value="@_row.DebtorCode" ReadOnly />
+        </DxFormLayoutItem>
+
+        <DxFormLayoutItem Caption="สถานะอื่นๆ" ColSpanMd="4">
+            <ScCombo Combo="@sc.combo.sc_mem_m_ucf_other_code2" Value="@_row.OtherStatus" ReadOnly />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="สถานะหุ้นหนี้" ColSpanMd="4">
+            <ScCombo Combo="@sc.combo.sc_mem_m_ucf_shareloan_status2" Value="@_row.ShareloanCode" ReadOnly />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="เป็นสมาชิกสอ.อื่น" ColSpanMd="4">
+            <ScCombo Combo="@sc.combo.sc_mem_m_ucf_othersaving2" Value="@_row.OtherSavingMember" ReadOnly />
+        </DxFormLayoutItem>
+    </DxFormLayout>
+}
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private AdmstatusDto? _row;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _row = null; return; }
+        _row = await Svc.GetAdmstatusAsync(_loadedFor);
+    }
+}

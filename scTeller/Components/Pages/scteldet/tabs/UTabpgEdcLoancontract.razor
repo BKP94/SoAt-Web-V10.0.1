@@ -1,0 +1,94 @@
+@using SoAt.Application.ScTeller
+@using scTeller.Components.Pages.scteldet.pops
+@inject IScteldetService Svc
+
+@* ── G8 Tab: สัญญาเงินกู้ E-Document (legacy u_tabpg_edc_loancontract) — viewer read-only ──
+   grid sc_edoc_loan_contract + ประเภท desc จาก sc_edoc_m_ucf_loan_contract (LEFT JOIN)
+   double-click แถว หรือ 🔍 → PopPdf (Source="loancontract") เปิดเอกสารสัญญา
+     - filename ว่าง → ไม่มีไฟล์ | "DELETED" → แถวแดง + popup แจ้งถูกลบ *@
+
+@if (string.IsNullOrEmpty(Model.MembershipNo))
+{
+    <div class="nb-empty">— ยังไม่ได้เลือกสมาชิก —</div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn"
+            CustomizeElement="Customize"
+            RowDoubleClick="OnRowDoubleClick">
+        <Columns>
+            <DxGridDataColumn Caption="ลำดับ" Name="seq" Width="60px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+                <FooterTemplate>@string.Format("รวม : {0} รายการ", _rows.Count)</FooterTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เลขที่สัญญา" FieldName="LoanContractNo" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="ประเภท" FieldName="DocTypeName" Width="200px" />
+            <DxGridDataColumn Caption="หมายเหตุ" FieldName="Remark" Width="320px" />
+            <DxGridDataColumn Caption="วันที่" Width="180px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.value.toStringTH(((EdocLoanContractDto)context.DataItem).EntryDate, true)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ผู้ทำ" FieldName="EntryId" Width="150px" />
+            <DxGridDataColumn Caption="หน้าที่" FieldName="PageNo" Width="75px" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="" Width="42px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>
+                    <button type="button" class="nb-linkbtn" title="รายละเอียดเอกสาร"
+                            @onclick="() => Open((EdocLoanContractDto)context.DataItem)">🔍</button>
+                </CellDisplayTemplate>
+            </DxGridDataColumn>
+        </Columns>
+        <EmptyDataAreaTemplate>— ไม่มีเอกสารสัญญาเงินกู้ —</EmptyDataAreaTemplate>
+        <TotalSummary>
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Count" FooterColumnName="seq" />
+        </TotalSummary>
+    </DxGrid>
+}
+
+<PopPdf @bind-Visible="_popVisible"
+        Source="loancontract"
+        ApplicationFormNo="@_sel?.LoanContractNo"
+        DocType="@_sel?.DocType"
+        PageNo="@(_sel?.PageNo ?? 0)"
+        HeaderText="@_popHeader" />
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private List<EdocLoanContractDto> _rows = new();
+
+    private bool _popVisible;
+    private string _popHeader = "รายละเอียดเอกสาร";
+    private EdocLoanContractDto? _sel;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+        _rows = await Svc.GetEdocLoanContractAsync(_loadedFor);
+    }
+
+    // legacy HtmlRowPrepared: FILENAME=="DELETED" → แถวแดง
+    private void Customize(GridCustomizeElementEventArgs e)
+    {
+        if (e.ElementType == GridElementType.DataRow
+            && e.Grid.GetDataItem(e.VisibleIndex) is EdocLoanContractDto r
+            && r.Filename == "DELETED")
+        {
+            e.Style = "background-color:#f8d7da;color:#842029;";
+        }
+    }
+
+    private void OnRowDoubleClick(GridRowClickEventArgs e)
+    {
+        if (e.Grid.GetDataItem(e.VisibleIndex) is EdocLoanContractDto r) Open(r);
+    }
+
+    private void Open(EdocLoanContractDto r)
+    {
+        _sel = r;
+        _popHeader = $"รายละเอียดเอกสาร — {r.LoanContractNo}";
+        _popVisible = true;
+    }
+}

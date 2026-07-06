@@ -1,0 +1,63 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+@inject sc.dbFactory DbFactory
+
+@* ── popLaw sub 1: ฝากเรียกเก็บ (legacy u_tabpg_law_detail_deposit_collection) — read-only ──
+   grid sc_law_tadnen_kadee_fee; insurance_type combo sc_mem_m_insure_rule2 (law_status='1') *@
+
+@if (string.IsNullOrEmpty(ProsecNo))
+{
+    <div class="nb-empty">— ไม่มีข้อมูล —</div>
+}
+else
+{
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn">
+        <Columns>
+            <DxGridDataColumn Caption="#" Name="seq" Width="40px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+                <FooterTemplate>@_rows.Count รายการ</FooterTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="ประเภท" Width="160px">
+                <CellDisplayTemplate>@sc.combo.text(sc.combo.sc_mem_m_insure_rule2, ((LawDepositCollectionDto)context.DataItem).InsuranceType)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="วันที่" Width="100px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.value.toStringTH(((LawDepositCollectionDto)context.DataItem).InsuranceDate)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="จำนวนเงิน" Width="120px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((LawDepositCollectionDto)context.DataItem).FeeAmount)</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="หมายเหตุ" FieldName="Remark" Width="170px" />
+            <DxGridDataColumn Caption="สถานะ" Width="70px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@(((LawDepositCollectionDto)context.DataItem).CancelStatus == "1" ? "ยกเลิก" : "ปกติ")</CellDisplayTemplate>
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="เลขอ้างอิง" FieldName="InsuranceNo" Width="100px" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="คงเหลือ" Width="120px" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((LawDepositCollectionDto)context.DataItem).Total)</CellDisplayTemplate>
+            </DxGridDataColumn>
+        </Columns>
+        <EmptyDataAreaTemplate>— ไม่มีรายการฝากเรียกเก็บ —</EmptyDataAreaTemplate>
+        <TotalSummary>
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Count" FooterColumnName="seq" />
+        </TotalSummary>
+    </DxGrid>
+}
+
+@code {
+    [Parameter] public string? ProsecNo { get; set; }
+
+    private string? _loadedFor;
+    private List<LawDepositCollectionDto> _rows = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (ProsecNo == _loadedFor) return;
+        _loadedFor = ProsecNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _rows = new(); return; }
+
+        await using (var db = DbFactory.create())
+            await sc.combo.warmAsync(db, sc.combo.sc_mem_m_insure_rule2);
+
+        _rows = await Svc.GetLawDepositCollectionAsync(_loadedFor);
+    }
+}

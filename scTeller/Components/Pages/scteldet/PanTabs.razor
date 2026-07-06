@@ -1,0 +1,98 @@
+@using System.Collections.Concurrent
+@using System.Reflection
+@using SoAt.Application.ScTeller
+
+@* ── PanTabs (scteldet) — DYNAMIC permission-driven loader ────────────────────────
+   เลียน legacy panTabs.ascx.cs: query si_security_apps (group i_level=4 / tab i_level=5)
+   → NavBar กลุ่ม + ASPxPageControl + LoadControl("~/scteldet/tabs/"+s_url+".ascx")
+   Blazor idiom:
+     - Model.Groups = metadata (โหลดที่ Page ผ่าน GetTabMetadataAsync)
+     - เลือกกลุ่ม → <DxTabs> ของแท็บในกลุ่มนั้น
+     - LoadControl → <DynamicComponent Type Parameters>
+     - Type ของแท็บ resolve จาก s_url ด้วย naming convention + reflection (ResolveType)
+       → ไม่มี map มือ, source of truth = si_security_apps.s_url (ถ้าไม่พบแสดง inline message)
+   แท็บเป็น dumb component: รับ Model (reference ร่วม) แล้ว re-query ตาม Model.MembershipNo
+   (combo ทุกช่องโหลดเองผ่าน <ScCombo> + sc.combo — ไม่ต้องส่ง lookup list ลงแท็บ) *@
+
+<div class="nb-tabs-wrap">
+
+    @if (Model.Groups.Count == 0)
+    {
+        <div class="nb-tabs-empty">— ยังไม่มีกลุ่มเมนู (รอ seed si_security_apps) —</div>
+    }
+    else
+    {
+        @* NavBar กลุ่ม (G1–G8) *@
+        <div class="nb-groupbar">
+            @foreach (var g in Model.Groups)
+            {
+                <button type="button"
+                        class="nb-group-btn @(g.GroupId == _selectedGroupId ? "nb-group-btn--active" : "")"
+                        @onclick="@(() => _selectedGroupId = g.GroupId)">
+                    @g.GroupText
+                </button>
+            }
+        </div>
+
+        @* แท็บของกลุ่มที่เลือก *@
+        @if (SelectedGroup is { Tabs.Count: > 0 })
+        {
+            <DxTabs CssClass="nb-tabs">
+                @foreach (var tab in SelectedGroup.Tabs)
+                {
+                    <DxTabPage Text="@tab.Text">
+                        <div class="nb-tabbody">
+                            @{ var tabType = ResolveType(tab.Url); }
+                            @if (tabType is null)
+                            {
+                                <div class="nb-empty">— ไม่พบ component ของแท็บนี้ (@tab.Url) —</div>
+                            }
+                            else
+                            {
+                                <DynamicComponent Type="tabType" Parameters="ParamsFor()" />
+                            }
+                        </div>
+                    </DxTabPage>
+                }
+            </DxTabs>
+        }
+        else
+        {
+            <div class="nb-tabs-empty">— กลุ่มนี้ไม่มีแท็บ —</div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private int _selectedGroupId;
+
+    private TabGroupDto? SelectedGroup =>
+        Model.Groups.FirstOrDefault(g => g.GroupId == _selectedGroupId) ?? Model.Groups.FirstOrDefault();
+
+    protected override void OnParametersSet()
+    {
+        // default = กลุ่มแรก (G1) เมื่อ metadata มาถึง
+        if (_selectedGroupId == 0 && Model.Groups.Count > 0)
+            _selectedGroupId = Model.Groups[0].GroupId;
+    }
+
+    // ── resolve s_url → Razor component type (แทน LoadControl ของ legacy) ──────────
+    // s_url ใน si_security_apps เก็บ "ชื่อ .razor ตรงๆ" (เช่น "UTabpgMemSpouseInfo")
+    // → ResolveType แค่ GetType จาก namespace _tabNs ไม่ต้องแปลงชื่อ
+    // → เพิ่มแท็บใหม่ = สร้าง .razor + seed row (s_url = ชื่อ component) เท่านั้น
+    private static readonly Assembly _asm = typeof(PanTabs).Assembly;
+    private const string _tabNs = "scTeller.Components.Pages.scteldet.tabs";
+    private static readonly ConcurrentDictionary<string, Type?> _typeCache = new();
+
+    private static Type? ResolveType(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return null;
+        return _typeCache.GetOrAdd(url, u => _asm.GetType($"{_tabNs}.{u}"));
+    }
+
+    // parameter ที่ส่งให้แต่ละแท็บ (reference ร่วม)
+    private Dictionary<string, object> ParamsFor()
+        => new() { ["Model"] = Model };
+}

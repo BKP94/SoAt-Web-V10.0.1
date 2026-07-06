@@ -1,0 +1,70 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+
+@* ── popLaw sub 5: การดำเนินการหลังพิพากษา (legacy u_tabpg_law_detail_pipagsa_detail) — read-only ──
+   form sc_law_tad_nenkadee_head (single row, ใช้ร่วมกับ sub 7/9), ColCount=2 *@
+
+@if (_row is null)
+{
+    <div class="nb-empty">— ไม่มีข้อมูลการพิพากษา —</div>
+}
+else
+{
+    <DxFormLayout CssClass="nb-tab-form">
+        <DxFormLayoutItem Caption="คำพิพากษา(ย่อ)" ColSpanMd="12">
+            <span class="nb-ro">@_row.KadeeResult</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="เลขที่คดีดำ" ColSpanMd="6">
+            <span class="nb-ro" style="text-align:center;">@_row.KadeeDum</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="เลขที่คดีแดง" ColSpanMd="6">
+            <span class="nb-ro" style="text-align:center;">@_row.KadeeDang</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="วันที่พิพากษา" ColSpanMd="6">
+            <span class="nb-ro" style="text-align:center;">@sc.value.toStringTH(_row.PipakSaDate)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="วันที่ทำยอมความ" ColSpanMd="6">
+            <span class="nb-ro" style="text-align:center;">@sc.value.toStringTH(_row.TumYumDate)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="วันที่แถลงขอคัดคำพิพากษา" ColSpanMd="6">
+            <span class="nb-ro" style="text-align:center;">@sc.value.toStringTH(_row.TalangKumPipaksaDate)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="" ColSpanMd="6"><span class="nb-ro"></span></DxFormLayoutItem>
+        <DxFormLayoutItem Caption="แถลงขอรับค่าธรรมเนียมศาลคืนเมื่อ" ColSpanMd="6">
+            <span class="nb-ro" style="text-align:center;">@sc.value.toStringTH(_row.TalangFeeDate)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="รับคืนเมื่อ" ColSpanMd="6">
+            <span class="nb-ro" style="text-align:center;">@sc.value.toStringTH(_row.NutRecTalang)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="แถลงขอรับเอกสารคืนเมื่อ" ColSpanMd="6">
+            <span class="nb-ro" style="text-align:center;">@sc.value.toStringTH(_row.TalangDocReturndate)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="รับคืนจากศาลเมื่อ" ColSpanMd="6">
+            <span class="nb-ro" style="text-align:center;">@sc.value.toStringTH(_row.RecTalangDocReturn)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ขอให้ศาลออกบังคับคดี" ColSpanMd="6">
+            <span class="nb-ro" style="text-align:center;">@sc.value.toStringTH(_row.OutPagKupKadee)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="นำหมายบังคับคดี" ColSpanMd="6">
+            <span class="nb-ro" style="text-align:center;">@sc.value.toStringTH(_row.NumMuyOutPagKup)</span>
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="ตั้งเจ้าพนักงานบังคับคดี" ColSpanMd="6">
+            <span class="nb-ro" style="text-align:center;">@sc.value.toStringTH(_row.NameOfficerKadee)</span>
+        </DxFormLayoutItem>
+    </DxFormLayout>
+}
+
+@code {
+    [Parameter] public string? ProsecNo { get; set; }
+
+    private string? _loadedFor;
+    private LawKadeeHeadDto? _row;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (ProsecNo == _loadedFor) return;
+        _loadedFor = ProsecNo;
+        if (string.IsNullOrEmpty(_loadedFor)) { _row = null; return; }
+        _row = await Svc.GetLawKadeeHeadAsync(_loadedFor);
+    }
+}

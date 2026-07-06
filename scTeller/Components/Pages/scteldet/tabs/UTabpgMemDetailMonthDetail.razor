@@ -1,0 +1,258 @@
+@using SoAt.Application.ScTeller
+@inject IScteldetService Svc
+@inject sc.dbFactory DbFactory
+
+@* ── G4 Tab: เรียกเก็บรายเดือน (legacy u_tabpg_mem_detail_month_detail) — viewer read-only ──
+   combo ปี (พ.ศ.) + ปุ่มเดือน 1-12 (DxButton); default = ปีล่าสุด + เดือนล่าสุดของปีนั้น
+   ส่วนบน = header ใบเสร็จ (dsReceiptNo, DxFormLayout) | ส่วนล่าง = รายละเอียดรายการ (dsDetMonthDetail)
+   สีตัวเลขต่อ band ทำที่ระดับ cell ผ่าน CustomizeElement (ไม่ใช้ span ครอบ)
+   header "เงินเก็บรับ (NET)" = pkb_labour.fp_get_keeping_amount(...,'NET') (migrate แล้ว) *@
+
+@if (string.IsNullOrEmpty(Model.MembershipNo))
+{
+    <div class="nb-empty">— ยังไม่ได้เลือกสมาชิก —</div>
+}
+else if (_years.Count == 0)
+{
+    <div class="nb-empty">— ไม่มีรายการเรียกเก็บรายเดือน —</div>
+}
+else
+{
+    <div class="nb-tab-yearbar">
+        <label class="nb-tab-yearbar-label">ปี</label>
+        <DxComboBox Data="_years" Value="_year"
+                    ValueChanged="@((int v) => OnYearChanged(v))"
+                    NullText="ระบุปี" Style="min-width:110px" />
+        <div class="nb-month-group">
+            @for (int m = 1; m <= 12; m++)
+            {
+                var mm = m;
+                <DxButton Text="@sc.combo.text(sc.combo.monthThShot, mm.ToString())"
+                          RenderStyle="@(mm == _month ? ButtonRenderStyle.Primary : ButtonRenderStyle.Secondary)"
+                          RenderStyleMode="@(mm == _month ? ButtonRenderStyleMode.Contained : ButtonRenderStyleMode.Outline)"
+                          Click="@(() => OnMonthChanged(mm))"
+                          CssClass="nb-month-dxbtn" />
+            }
+        </div>
+    </div>
+
+    @if (_head is not null)
+    {
+        <DxFormLayout>
+            <DxFormLayoutItem Caption="เลขที่ใบเสร็จ" ColSpanMd="3">
+                <DxTextBox @bind-Text="_head.ReceiptNo" ReadOnly></DxTextBox>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="วันที่รับเงิน" ColSpanMd="3">
+                <DxTextBox Text="@sc.value.toStringTH(_head.ReceiptDate)" ReadOnly></DxTextBox>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="สถานะใบเสร็จ" ColSpanMd="3">
+                <DxTextBox Text="@sc.combo.text(sc.combo.receipt_status, _head.ReceiptStatus)" ReadOnly></DxTextBox>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="หน่วย" ColSpanMd="3">
+                <DxTextBox @bind-Text="_head.MemberGroupNo" ReadOnly></DxTextBox>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="กลุ่มส่งหัก" ColSpanMd="3">
+                <DxTextBox @bind-Text="_head.AgentNo" ReadOnly></DxTextBox>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="ส่งหัก" ColSpanMd="3">
+                <DxTextBox Text="@sc.value.toStringF(_head.KepLimit)" ReadOnly CssClass="nb-txt-right"></DxTextBox>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="ชำระเพิ่ม" ColSpanMd="3">
+                <DxTextBox Text="@sc.value.toStringF(_head.KepCompute)" ReadOnly CssClass="nb-txt-right"></DxTextBox>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="ตัวแทนนำส่ง" ColSpanMd="3">
+                <DxTextBox Text="@sc.value.toStringF(_head.AmountFormFile)" ReadOnly CssClass="nb-txt-right"></DxTextBox>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="ชำระเอง" ColSpanMd="3">
+                <DxTextBox Text="@sc.value.toStringF(_head.AmountForm)" ReadOnly CssClass="nb-txt-right"></DxTextBox>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="หักจากเงินฝาก" ColSpanMd="3">
+                <DxTextBox Text="@sc.value.toStringF(_head.AmountFormDep)" ReadOnly CssClass="nb-txt-right"></DxTextBox>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="รวมได้รับชำระ" ColSpanMd="3">
+                <DxTextBox Text="@sc.value.toStringF(_head.KepMethodAmount)" ReadOnly CssClass="nb-txt-right"></DxTextBox>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="เงินรอจ่ายคืน" ColSpanMd="3">
+                <DxTextBox Text="@sc.value.toStringF(_head.TotalKeepNotinput)" ReadOnly CssClass="nb-txt-right"></DxTextBox>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="เงินเก็บรับ (NET)*" ColSpanMd="3">
+                <DxTextBox Text="@(_head.KeepingAmount.HasValue ? sc.value.toStringF(_head.KeepingAmount) : "—")" ReadOnly CssClass="nb-txt-right"></DxTextBox>
+            </DxFormLayoutItem>
+        </DxFormLayout>
+    }
+
+    <DxGrid Data="_rows" PageSize="0" ShowAllRows="true"
+            ColumnResizeMode="GridColumnResizeMode.NextColumn"
+            CustomizeElement="CustomizeCell">
+        <Columns>
+            <DxGridDataColumn Caption="ลำดับ" Name="seq" Width="55px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+                @* <FooterTemplate>@string.Format("รวม : {0} รายการ", _rows.Count)</FooterTemplate> *@
+            </DxGridDataColumn>
+            <DxGridDataColumn Caption="รหัส" FieldName="KeepingTypeCode" Width="70px" TextAlignment="GridTextAlignment.Center" />
+            <DxGridDataColumn Caption="รายการ" FieldName="KeepingTypeDesc" Width="220px" />
+            <DxGridDataColumn Caption="งวดที่" FieldName="Period" Width="70px" TextAlignment="GridTextAlignment.Center">
+                <CellDisplayTemplate>@sc.value.toStringF(((MonthDetailRowDto)context.DataItem).Period, sc.att.datatype.Integer)</CellDisplayTemplate>
+            </DxGridDataColumn>
+
+            <DxGridBandColumn Caption="เรียกเก็บ">
+                <Columns>
+                    <DxGridDataColumn Caption="เงินต้น" FieldName="PrincipalOfLoan" TextAlignment="GridTextAlignment.Right">
+                        <CellDisplayTemplate>@sc.value.toStringF(((MonthDetailRowDto)context.DataItem).PrincipalOfLoan)</CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="ดอกเบี้ย" FieldName="Interest" TextAlignment="GridTextAlignment.Right">
+                        <CellDisplayTemplate>@sc.value.toStringF(((MonthDetailRowDto)context.DataItem).Interest)</CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="รวม" FieldName="CMoneyAmount" TextAlignment="GridTextAlignment.Right">
+                        <CellDisplayTemplate>@sc.value.toStringF(((MonthDetailRowDto)context.DataItem).CMoneyAmount)</CellDisplayTemplate>
+                    </DxGridDataColumn>
+                </Columns>
+            </DxGridBandColumn>
+
+            <DxGridBandColumn Caption="เก็บได้">
+                <Columns>
+                    <DxGridDataColumn Caption="เงินต้น" FieldName="PrincipalNot" TextAlignment="GridTextAlignment.Right">
+                        <CellDisplayTemplate>@sc.value.toStringF(((MonthDetailRowDto)context.DataItem).PrincipalNot)</CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="ดอกเบี้ย" FieldName="InterestNot" TextAlignment="GridTextAlignment.Right">
+                        <CellDisplayTemplate>@sc.value.toStringF(((MonthDetailRowDto)context.DataItem).InterestNot)</CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="รวม" FieldName="CMoneyAmountNot" TextAlignment="GridTextAlignment.Right">
+                        <CellDisplayTemplate>@sc.value.toStringF(((MonthDetailRowDto)context.DataItem).CMoneyAmountNot)</CellDisplayTemplate>
+                    </DxGridDataColumn>
+                </Columns>
+            </DxGridBandColumn>
+
+            <DxGridBandColumn Caption="เก็บไม่ได้">
+                <Columns>
+                    <DxGridDataColumn Caption="เงินต้น" FieldName="UnkeepPrincipalOfLoan" TextAlignment="GridTextAlignment.Right">
+                        <CellDisplayTemplate>@sc.value.toStringF(((MonthDetailRowDto)context.DataItem).UnkeepPrincipalOfLoan)</CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="ดอกเบี้ย" FieldName="UnkeepInterest" TextAlignment="GridTextAlignment.Right">
+                        <CellDisplayTemplate>@sc.value.toStringF(((MonthDetailRowDto)context.DataItem).UnkeepInterest)</CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="รวม" FieldName="UnkeepMoneyAmount" TextAlignment="GridTextAlignment.Right">
+                        <CellDisplayTemplate>@sc.value.toStringF(((MonthDetailRowDto)context.DataItem).UnkeepMoneyAmount)</CellDisplayTemplate>
+                    </DxGridDataColumn>
+                </Columns>
+            </DxGridBandColumn>
+
+            <DxGridBandColumn Caption="เงินคืน">
+                <Columns>
+                    <DxGridDataColumn Caption="เงินต้น" FieldName="ReturnPrincipal" TextAlignment="GridTextAlignment.Right">
+                        <CellDisplayTemplate>@sc.value.toStringF(((MonthDetailRowDto)context.DataItem).ReturnPrincipal)</CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="ดอกเบี้ย" FieldName="ReturnInterest" TextAlignment="GridTextAlignment.Right">
+                        <CellDisplayTemplate>@sc.value.toStringF(((MonthDetailRowDto)context.DataItem).ReturnInterest)</CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="รวม" FieldName="MoneyReturn" TextAlignment="GridTextAlignment.Right">
+                        <CellDisplayTemplate>@sc.value.toStringF(((MonthDetailRowDto)context.DataItem).MoneyReturn)</CellDisplayTemplate>
+                    </DxGridDataColumn>
+                </Columns>
+            </DxGridBandColumn>
+
+            <DxGridBandColumn Caption="ตามมาชำระ">
+                <Columns>
+                    <DxGridDataColumn Caption="เงินต้น" FieldName="UkpaidAfterP" TextAlignment="GridTextAlignment.Right">
+                        <CellDisplayTemplate>@sc.value.toStringF(((MonthDetailRowDto)context.DataItem).UkpaidAfterP)</CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="ดอกเบี้ย" FieldName="UkpaidAfterI" TextAlignment="GridTextAlignment.Right">
+                        <CellDisplayTemplate>@sc.value.toStringF(((MonthDetailRowDto)context.DataItem).UkpaidAfterI)</CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="รวม" FieldName="UkpaidAfterA" TextAlignment="GridTextAlignment.Right">
+                        <CellDisplayTemplate>@sc.value.toStringF(((MonthDetailRowDto)context.DataItem).UkpaidAfterA)</CellDisplayTemplate>
+                    </DxGridDataColumn>
+                </Columns>
+            </DxGridBandColumn>
+
+            <DxGridDataColumn Caption="คงเหลือ" FieldName="CAmount" TextAlignment="GridTextAlignment.Right">
+                <CellDisplayTemplate>@sc.value.toStringF(((MonthDetailRowDto)context.DataItem).CAmount)</CellDisplayTemplate>
+            </DxGridDataColumn>
+        </Columns>
+        <EmptyDataAreaTemplate>— ไม่มีรายการ —</EmptyDataAreaTemplate>
+        <TotalSummary>
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Count" FooterColumnName="seq" />
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Sum" FieldName="PrincipalOfLoan" DisplayText="{0:n2}" />
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Sum" FieldName="Interest" DisplayText="{0:n2}" />
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Sum" FieldName="CMoneyAmount" DisplayText="{0:n2}" />
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Sum" FieldName="PrincipalNot" DisplayText="{0:n2}" />
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Sum" FieldName="InterestNot" DisplayText="{0:n2}" />
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Sum" FieldName="CMoneyAmountNot" DisplayText="{0:n2}" />
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Sum" FieldName="UnkeepMoneyAmount" DisplayText="{0:n2}" />
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Sum" FieldName="MoneyReturn" DisplayText="{0:n2}" />
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Sum" FieldName="UkpaidAfterA" DisplayText="{0:n2}" />
+        </TotalSummary>
+    </DxGrid>
+}
+
+@code {
+    [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
+
+    private string? _loadedFor;
+    private List<int> _years = new();
+    private int _year;
+    private int _month;
+    private MonthDetailHeadDto? _head;
+    private List<MonthDetailRowDto> _rows = new();
+
+    // สีตัวเลขต่อ band (legacy) — key = FieldName, value = css class ที่ระบายที่ cell
+    private static readonly Dictionary<string, string> _cellColor = new()
+    {
+        ["PrincipalOfLoan"] = "nb-c-blue",   ["Interest"] = "nb-c-blue",        ["CMoneyAmount"] = "nb-c-blue",
+        ["PrincipalNot"] = "nb-c-green",     ["InterestNot"] = "nb-c-green",    ["CMoneyAmountNot"] = "nb-c-green",
+        ["UnkeepPrincipalOfLoan"] = "nb-c-red", ["UnkeepInterest"] = "nb-c-red", ["UnkeepMoneyAmount"] = "nb-c-red",
+        ["ReturnPrincipal"] = "nb-c-purple", ["ReturnInterest"] = "nb-c-purple", ["MoneyReturn"] = "nb-c-purple",
+        ["UkpaidAfterP"] = "nb-c-green nb-bold", ["UkpaidAfterI"] = "nb-c-green nb-bold", ["UkpaidAfterA"] = "nb-c-green nb-bold",
+    };
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.MembershipNo == _loadedFor) return;
+        _loadedFor = Model.MembershipNo;
+        _years = new(); _rows = new(); _head = null; _year = 0; _month = 0;
+        if (string.IsNullOrEmpty(_loadedFor)) return;
+
+        await using (var db = DbFactory.create())
+        {
+            await sc.combo.warmAsync(db, sc.combo.monthThShot);
+            await sc.combo.warmAsync(db, sc.combo.receipt_status);
+        }
+
+        _years = await Svc.GetMonthDetailYearsAsync(_loadedFor);   // พ.ศ. เรียงมาก→น้อย
+        if (_years.Count == 0) return;
+
+        // default = ปีล่าสุด + เดือนล่าสุดของปีนั้น (legacy eDataBinding)
+        _year = _years[0];
+        _month = await Svc.GetMonthDetailLatestMonthAsync(_loadedFor, _year) ?? 0;
+        await LoadData();
+    }
+
+    private async Task OnYearChanged(int year)
+    {
+        _year = year;
+        _month = await Svc.GetMonthDetailLatestMonthAsync(_loadedFor!, _year) ?? 0;
+        await LoadData();
+    }
+
+    private async Task OnMonthChanged(int month)
+    {
+        _month = month;
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        if (_year <= 0 || _month <= 0) { _head = null; _rows = new(); return; }
+        _head = await Svc.GetMonthDetailHeadAsync(_loadedFor!, _year, _month);
+        _rows = await Svc.GetMonthDetailRowsAsync(_loadedFor!, _year, _month);
+    }
+
+    // ระบายสีตัวเลขตาม band ที่ระดับ cell (แทน span ครอบใน CellDisplayTemplate)
+    private void CustomizeCell(GridCustomizeElementEventArgs e)
+    {
+        if (e.ElementType != GridElementType.DataCell) return;
+        if (e.Column is DxGridDataColumn dc && dc.FieldName is { } fn
+            && _cellColor.TryGetValue(fn, out var cls))
+            e.CssClass = cls;
+    }
+}

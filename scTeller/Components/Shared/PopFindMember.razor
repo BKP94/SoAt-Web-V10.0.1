@@ -1,0 +1,205 @@
+@using SoAt.Application.Sc
+@inject IMemberFindService Svc
+@inject sc.dbFactory DbFactory
+
+@* ── PopFindMember — ค้นหาทะเบียนสมาชิก (shared popup, reuse ได้ทุกเมนู) ────────────
+   เลียน legacy sc/ctr/popFindMember.ascx: แผง filter 7 ช่อง + ตารางผลค้นหา
+   เลือกแถว (ปุ่มเลือก/ดับเบิลคลิก) → ยิง EventCallback OnSelected(membership_no) กลับ Page
+   dumb-ish component: ถือ filter + ผลลัพธ์ของตัวเอง, ไม่ persist อะไร
+   Format ทุกตัวจาก sc.* : บัตร sc.mask.idCard, combo สถานะ/เหตุพ้นสภาพ ผ่าน sc.combo.text *@
+
+<DxPopup Visible="Visible" VisibleChanged="OnVisibleChanged" HeaderText="ค้นหาทะเบียนสมาชิก"
+         Width="1200px" ShowFooter="true"
+         CloseOnEscape="true" Shown="OnShownAsync">
+    <BodyContentTemplate Context="popup">
+        @* ── แผงค้นหา ─────────────────────────────────────────────────────── *@
+        <div class="po-search">
+            <div class="po-search__head">
+                <span class="po-search__icon">🔍</span>
+                <span class="po-search__title">เงื่อนไขการค้นหา</span>
+            </div>
+            @* DevExpress: อัปเดตทุกคีย์ใช้ BindValueMode.OnInput (Enter หรือพิมพ์เสร็จค่อยค้นได้) *@
+            <div class="po-fields">
+                <label class="po-field">
+                    <span class="po-field__label">หน่วย</span>
+                    <DxTextBox @bind-Text="_filter.MemberGroup" NullText="เลขหน่วย / ชื่อหน่วย"
+                               BindValueMode="BindValueMode.OnInput" />
+                </label>
+                <label class="po-field">
+                    <span class="po-field__label">ทะเบียน</span>
+                    <DxTextBox @bind-Text="_filter.MembershipNo" NullText="ทะเบียนสมาชิก"
+                               BindValueMode="BindValueMode.OnInput" />
+                </label>
+                <label class="po-field">
+                    <span class="po-field__label">ชื่อ</span>
+                    <DxTextBox @bind-Text="_filter.MemberName" NullText="ชื่อสมาชิก"
+                               BindValueMode="BindValueMode.OnInput" />
+                </label>
+                <label class="po-field">
+                    <span class="po-field__label">สกุล</span>
+                    <DxTextBox @bind-Text="_filter.MemberSurname" NullText="นามสกุลสมาชิก"
+                               BindValueMode="BindValueMode.OnInput" />
+                </label>
+                <label class="po-field">
+                    <span class="po-field__label">รหัสพนักงาน</span>
+                    <DxTextBox @bind-Text="_filter.SalaryId" NullText="รหัสพนักงาน"
+                               BindValueMode="BindValueMode.OnInput" />
+                </label>
+                <label class="po-field">
+                    <span class="po-field__label">บัตร ปชช.</span>
+                    <DxTextBox @bind-Text="_filter.IdCard" NullText="เลขบัตรประชาชน"
+                               BindValueMode="BindValueMode.OnInput" />
+                </label>
+                <label class="po-field">
+                    <span class="po-field__label">สถานะ</span>
+                    <ScCombo Combo="@MemberStatusFilterCombo" @bind-Value="_filter.MemberStatus" NullText="สถานะ" />
+                </label>
+            </div>
+            <div class="po-actions">
+                <DxButton Text="ล้างเงื่อนไข" RenderStyle="ButtonRenderStyle.Secondary" Click="ClearAsync" />
+                <DxButton Text="ค้นหา" RenderStyle="ButtonRenderStyle.Primary" Click="SearchAsync" />
+            </div>
+        </div>
+
+        @* ── แถบสรุปผล ────────────────────────────────────────────────────── *@
+        @if (_searched)
+        {
+            <div class="po-resultbar">
+                <span class="po-resultbar__count">พบ <b>@_rows.Count</b> รายการ</span>
+                <span class="po-resultbar__hint">กดปุ่ม “เลือก” ที่แถวเพื่อยืนยัน</span>
+            </div>
+        }
+
+        @* ── ผลการค้นหา ───────────────────────────────────────────────────── *@
+        @if (_rows.Count == 0 && _searched)
+        {
+            <div class="po-empty">
+                <div class="po-empty__icon">📭</div>
+                <div class="po-empty__text">ไม่พบสมาชิกที่ตรงกับเงื่อนไข</div>
+                <div class="po-empty__hint">ลองปรับเงื่อนไขแล้วค้นหาอีกครั้ง</div>
+            </div>
+        }
+        else if (_rows.Count > 0)
+        {
+            <DxGrid Data="_rows" CssClass="po-grid" PageSize="10"
+                    ColumnResizeMode="GridColumnResizeMode.NextColumn"
+                    CustomizeElement="OnCustomizeElement">
+                <Columns>
+                    <DxGridDataColumn Caption="#" Width="56px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                        <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="ทะเบียน" FieldName="@nameof(MemberFindDto.MembershipNo)"
+                                      Width="100px" TextAlignment="GridTextAlignment.Center" />
+                    <DxGridDataColumn Caption="ชื่อ" FieldName="@nameof(MemberFindDto.MemberName)" />
+                    <DxGridDataColumn Caption="สกุล" FieldName="@nameof(MemberFindDto.MemberSurname)" />
+                    <DxGridDataColumn Caption="หน่วย" FieldName="@nameof(MemberFindDto.MemberGroup)" />
+                    <DxGridDataColumn Caption="รหัสพนักงาน" FieldName="@nameof(MemberFindDto.SalaryId)"
+                                      Width="110px" TextAlignment="GridTextAlignment.Center" />
+                    <DxGridDataColumn Caption="บัตร ปชช." Width="150px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                        <CellDisplayTemplate>
+                            @{ var r = (MemberFindDto)context.DataItem; }
+                            @sc.mask.idCard(r.IdCard)
+                        </CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="สถานะ" Width="90px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
+                        <CellDisplayTemplate>
+                            @{ var r = (MemberFindDto)context.DataItem; }
+                            @sc.combo.text(sc.combo.member_status_code, r.MemberStatusCode)
+                        </CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="เหตุผลพ้นสภาพ" Width="150px" AllowSort="false">
+                        <CellDisplayTemplate>
+                            @{ var r = (MemberFindDto)context.DataItem; }
+                            @sc.combo.text(sc.combo.sc_mem_m_ucf_resign_cause, r.ResignCode)
+                        </CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn Caption="" Width="80px" AllowSort="false">
+                        <CellDisplayTemplate>
+                            @{ var r = (MemberFindDto)context.DataItem; }
+                            <DxButton Text="เลือก" RenderStyle="ButtonRenderStyle.Primary"
+                                      CssClass="po-openbtn" Click="() => SelectAsync(r.MembershipNo)" />
+                        </CellDisplayTemplate>
+                    </DxGridDataColumn>
+                </Columns>
+            </DxGrid>
+        }
+        else
+        {
+            <div class="po-empty po-empty--idle">
+                <div class="po-empty__icon">🗂️</div>
+                <div class="po-empty__text">ระบุเงื่อนไขแล้วกด “ค้นหา”</div>
+            </div>
+        }
+    </BodyContentTemplate>
+    <FooterContentTemplate>
+        <DxButton Text="ปิดหน้าจอ" RenderStyle="ButtonRenderStyle.Secondary" Click="Close" />
+    </FooterContentTemplate>
+</DxPopup>
+
+@code {
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public EventCallback<bool> VisibleChanged { get; set; }
+
+    /// เลือกสมาชิกแล้ว — ส่ง membership_no กลับให้ Page ไปโหลดข้อมูล
+    [Parameter] public EventCallback<string> OnSelected { get; set; }
+
+    // filter สถานะ (legacy inline ListEditItems: 1=ทั้งหมด/0=ปกติ/3=พ้นสภาพ) — ไม่ใช่ combo DB
+    private const string MemberStatusFilterCombo = "1=ทั้งหมด/0=ปกติ/3=พ้นสภาพ";
+
+    private MemberFindFilter    _filter = new();
+    private List<MemberFindDto> _rows   = [];
+    private bool                _searched;
+
+    // warm cache combo สถานะ + เหตุผลพ้นสภาพ เพื่อให้ sc.combo.text() แปลง code→ข้อความแบบ sync ในตาราง
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = DbFactory.create();
+        await sc.combo.warmAsync(db, sc.combo.member_status_code, sc.combo.sc_mem_m_ucf_resign_cause);
+    }
+
+    // เปิด popup ครั้งใด → ค้นหาด้วย filter ปัจจุบัน (default = ทั้งหมด)
+    private Task OnShownAsync() => SearchAsync();
+
+    private async Task SearchAsync()
+    {
+        _rows = await Svc.FindAsync(_filter);
+        _searched = true;
+    }
+
+    // ล้างเงื่อนไข → ค้นหาใหม่ (แสดงทั้งหมด)
+    private async Task ClearAsync()
+    {
+        _filter = new();
+        await SearchAsync();
+    }
+
+    private async Task SelectAsync(string? membershipNo)
+    {
+        if (string.IsNullOrWhiteSpace(membershipNo)) return;
+        await CloseInternal();
+        await OnSelected.InvokeAsync(membershipNo);
+    }
+
+    private Task Close() => CloseInternal();
+
+    // X ที่หัว popup / Esc → DxPopup ยิง VisibleChanged เอง → propagate กลับ Page
+    private async Task OnVisibleChanged(bool visible)
+    {
+        Visible = visible;
+        await VisibleChanged.InvokeAsync(visible);
+    }
+
+    private async Task CloseInternal()
+    {
+        Visible = false;
+        await VisibleChanged.InvokeAsync(false);
+    }
+
+    // legacy gvDetail_HtmlRowPrepared: member_status_code='3' (พ้นสภาพ) → แถวสีแดง (eColorState.Declined)
+    private void OnCustomizeElement(GridCustomizeElementEventArgs e)
+    {
+        if (e.ElementType != GridElementType.DataRow) return;
+        if (e.Grid.GetDataItem(e.VisibleIndex) is not MemberFindDto r) return;
+        if (r.MemberStatusCode == "3") e.CssClass = "nb-row-request";
+    }
+}

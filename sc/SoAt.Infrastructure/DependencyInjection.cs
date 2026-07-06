@@ -30,6 +30,7 @@ public static class DependencyInjection
 
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IScAppService, ScAppService>();
+        services.AddScoped<IMemberFindService, MemberFindService>();
         services.AddScoped<IFinDailyService, FinDailyService>();
         services.AddScoped<ISctelnewbmaService, SctelnewbmaService>();
         services.AddScoped<IScteldetService, ScteldetService>();

@@ -26,7 +26,6 @@ else
         <Columns>
             <DxGridDataColumn Caption="#" Name="seq" Width="30px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
                 <CellDisplayTemplate>@(context.VisibleIndex + 1)</CellDisplayTemplate>
-                <FooterTemplate>@_rows.Count สัญญา</FooterTemplate>
             </DxGridDataColumn>
             <DxGridDataColumn Caption="" Width="55px" TextAlignment="GridTextAlignment.Center" AllowSort="false">
                 <CellDisplayTemplate>
@@ -77,7 +76,7 @@ else
         </Columns>
         <EmptyDataAreaTemplate>— ไม่มีข้อมูลเงินกู้ —</EmptyDataAreaTemplate>
         <TotalSummary>
-            <DxGridSummaryItem SummaryType="GridSummaryItemType.Count" FooterColumnName="seq" />
+            <DxGridSummaryItem SummaryType="GridSummaryItemType.Count" FooterColumnName="LoanContractNo" DisplayText="รวม {0} สัญญา" />
             <DxGridSummaryItem SummaryType="GridSummaryItemType.Sum" FieldName="PrincipalBalance" DisplayText="{0:n2}" />
             <DxGridSummaryItem SummaryType="GridSummaryItemType.Sum" FieldName="YearTotalInterest" DisplayText="{0:n2}" />
             <DxGridSummaryItem SummaryType="GridSummaryItemType.Sum" FieldName="InterestArrear" DisplayText="{0:n2}" />

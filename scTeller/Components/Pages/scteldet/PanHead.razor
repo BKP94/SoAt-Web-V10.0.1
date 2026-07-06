@@ -38,7 +38,7 @@
                                    CssClass="nb-head-searchbox"
                                    @bind-Text:after="@(() => InvokeSearch())">
                             <Buttons>
-                                <DxEditorButton Text="🔍" Tooltip="ค้นหา" Click="@InvokeSearch" />
+                                <DxEditorButton Text="🔍" Tooltip="ค้นหาทะเบียนสมาชิก" Click="@OpenFind" />
                                 <DxEditorButton Text="💳" Tooltip="อ่านบัตรประชาชน" Click="@(() => OnScanCard.InvokeAsync())" />
                             </Buttons>
                         </DxTextBox>
@@ -176,6 +176,10 @@
     </div>
 </div>
 
+@* ── popup ค้นหาทะเบียนสมาชิก (shared, reuse ได้ทุกเมนู) ──
+   เลือกสมาชิก → เติมเลขทะเบียนในช่องค้นหา แล้ว raise OnSearchMember ให้ Page โหลดข้อมูล *@
+<PopFindMember @bind-Visible="_findVisible" OnSelected="OnFindSelected" />
+
 @code {
     [Parameter, EditorRequired] public ScteldetModel Model { get; set; } = default!;
     /// รูปสมาชิก base64 (Page แปลงจาก byte[] ของ GetMemberPhotoAsync)
@@ -194,6 +198,7 @@
     private DxTextBox? _searchBox;
     private int _lastReset;
     private bool _focusAfterReset;
+    private bool _findVisible;   // popup ค้นหาทะเบียนสมาชิก
 
     private ScteldetHeaderDto? H => Model.Header;
 
@@ -227,5 +232,15 @@
     {
         if (!string.IsNullOrWhiteSpace(_searchNo))
             await OnSearchMember.InvokeAsync(_searchNo.Trim());
+    }
+
+    // 🔍 → เปิด popup ค้นหา (legacy: ปุ่มแว่นเปิด popFindMember)
+    private void OpenFind() => _findVisible = true;
+
+    // popup ส่ง membership_no กลับ → เติมช่องค้นหา แล้วโหลดข้อมูลผ่าน flow เดิม (OnSearchMember)
+    private async Task OnFindSelected(string membershipNo)
+    {
+        _searchNo = membershipNo;
+        await OnSearchMember.InvokeAsync(membershipNo);
     }
 }

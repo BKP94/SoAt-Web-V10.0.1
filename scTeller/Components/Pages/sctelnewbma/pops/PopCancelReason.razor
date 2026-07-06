@@ -1,5 +1,4 @@
 @using SoAt.Application.ScTeller
-@inject ISctelnewbmaService Svc
 
 @* ── PopCancelReason — ระบุเหตุผลก่อนยกเลิกใบสมัคร (เลียน legacy pops/popCancelReason.ascx) ──
    combo เหตุผล (sc_mem_m_ucf_cancel_newform) + ปุ่มยืนยัน/ยกเลิก
@@ -12,11 +11,8 @@
     <BodyContentTemplate Context="popup">
         <div class="nb-field">
             <label class="nb-label">เหตุผลการยกเลิก</label>
-            <DxComboBox Data="_reasons" TData="ComboItemDto" TValue="string"
-                        ValueFieldName="@nameof(ComboItemDto.Code)" TextFieldName="@nameof(ComboItemDto.Name)"
-                        @bind-Value="_reason" NullText="กรุณาระบุเหตุผลการยกเลิกใบสมัคร"
-                        ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                        CssClass="nb-input" />
+            <ScCombo Combo="@sc.combo.sc_mem_m_ucf_cancel_newform" @bind-Value="_reason"
+                     NullText="กรุณาระบุเหตุผลการยกเลิกใบสมัคร" CssClass="nb-input" />
         </div>
     </BodyContentTemplate>
     <FooterContentTemplate>
@@ -37,17 +33,14 @@
 
     [CascadingParameter] public ScMessage? Msg { get; set; }
 
-    private List<ComboItemDto> _reasons = [];
-    private string?            _reason;
-    private bool               _submitted;   // กันยิง OnDismiss ซ้ำตอน Closed หลังยืนยันสำเร็จ
+    private string? _reason;
+    private bool    _submitted;   // กันยิง OnDismiss ซ้ำตอน Closed หลังยืนยันสำเร็จ
 
-    // เปิด popup ครั้งใด → โหลด combo เหตุผล + ล้างค่าเดิม
-    private async Task OnShownAsync()
+    // เปิด popup ครั้งใด → ล้างค่าเดิม (combo เหตุผลโหลดเองผ่าน ScCombo)
+    private void OnShownAsync()
     {
         _submitted = false;
         _reason    = null;
-        if (_reasons.Count == 0)
-            _reasons = await Svc.GetCancelReasonsAsync();
     }
 
     private async Task SubmitAsync()

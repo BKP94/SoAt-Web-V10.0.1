@@ -4,7 +4,7 @@
 @* ── tab: ข้อมูลครอบครัว (legacy u_tabpg_newmem_spouse_info) ──────────────────────
    • บิดา-มารดา → เก็บที่ header (Form.Father / Form.Mother)
    • คู่สมรส     → sc_mem_m_app_spouse_info (Form.SpouseInfo) + สถานที่ทำงานคู่สมรส
-   ที่อยู่ที่ทำงานคู่สมรส cascade จังหวัด→อำเภอ→ตำบล (ใช้ lookups ชุดเดียวกับ PanHead)
+   ที่อยู่ที่ทำงานคู่สมรส cascade จังหวัด→อำเภอ→ตำบล (ScCombo โหลดเองผ่าน Args)
    dumb component — แก้ field ลงบน Form/SpouseInfo (reference ร่วม) ตรง *@
 
 <DxFormLayout>
@@ -23,9 +23,7 @@
                        TextChanged="OnSpouseMemberNoChanged" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="คำนำหน้า" ColSpanMd="3">
-            <DxComboBox Data="Lookups.Prenames" TData="ComboItemDto" TValue="string"
-                        ValueFieldName="@nameof(ComboItemDto.Code)" TextFieldName="@nameof(ComboItemDto.Name)"
-                        @bind-Value="Spouse.PrenameCode" NullText="— เลือก —" />
+            <ScCombo Combo="@sc.combo.sc_mem_m_ucf_prename" @bind-Value="Spouse.PrenameCode" NullText="— เลือก —" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="ชื่อ" ColSpanMd="3">
             <DxTextBox @bind-Text="Spouse.SpouseName" NullText="ชื่อ" />
@@ -46,14 +44,10 @@
         </DxFormLayoutItem>
 
         <DxFormLayoutItem Caption="อาชีพ" ColSpanMd="4">
-            <DxComboBox Data="Lookups.Occupations" TData="ComboItemDto" TValue="string"
-                        ValueFieldName="@nameof(ComboItemDto.Code)" TextFieldName="@nameof(ComboItemDto.Name)"
-                        @bind-Value="Spouse.OccupationCode" NullText="— เลือก —" />
+            <ScCombo Combo="@sc.combo.sc_mem_m_ucf_ocupation" @bind-Value="Spouse.OccupationCode" NullText="— เลือก —" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="ตำแหน่ง" ColSpanMd="4">
-            <DxComboBox Data="Lookups.Positions" TData="PositionDto" TValue="string"
-                        ValueFieldName="@nameof(PositionDto.Code)" TextFieldName="@nameof(PositionDto.Name)"
-                        @bind-Value="Spouse.PositionCode" NullText="— เลือก —" />
+            <ScCombo Combo="@sc.combo.sc_mem_m_ucf_position" @bind-Value="Spouse.PositionCode" NullText="— เลือก —" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="เงินเดือน" ColSpanMd="2">
             <ScInput Col="@sc.css.col.Decimal" @bind-Value="Spouse.SalaryAmount" />
@@ -80,21 +74,17 @@
             <DxTextBox @bind-Text="Spouse.WorkRoad" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="จังหวัด" ColSpanMd="4">
-            <DxComboBox Data="Lookups.Provinces" TData="ProvinceDto" TValue="string"
-                        ValueFieldName="@nameof(ProvinceDto.Code)" TextFieldName="@nameof(ProvinceDto.Name)"
-                        Value="Spouse.WorkProvinceCode" ValueChanged="@((string v) => OnProvinceChanged(v))"
-                        NullText="— เลือกจังหวัด —" />
+            <ScCombo Combo="@sc.combo.sc_mem_m_ucf_province" Value="@Spouse.WorkProvinceCode"
+                     ValueChanged="@(v => OnProvinceChanged(v))" NullText="— เลือกจังหวัด —" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="อำเภอ/เขต" ColSpanMd="4">
-            <DxComboBox Data="DistrictsOf(Spouse.WorkProvinceCode)" TData="DistrictDto" TValue="string"
-                        ValueFieldName="@nameof(DistrictDto.Code)" TextFieldName="@nameof(DistrictDto.Name)"
-                        Value="Spouse.WorkDistrictCode" ValueChanged="@((string v) => OnDistrictChanged(v))"
-                        NullText="— เลือกอำเภอ —" />
+            <ScCombo Combo="@sc.combo.sc_mem_m_ucf_district" Args="@(new object?[] { Spouse.WorkProvinceCode })"
+                     Value="@Spouse.WorkDistrictCode" ValueChanged="@(v => OnDistrictChanged(v))"
+                     NullText="— เลือกอำเภอ —" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="ตำบล/แขวง" ColSpanMd="4">
-            <DxComboBox Data="SubdistrictsOf(Spouse.WorkDistrictCode)" TData="SubdistrictDto" TValue="string"
-                        ValueFieldName="@nameof(SubdistrictDto.Code)" TextFieldName="@nameof(SubdistrictDto.Name)"
-                        @bind-Value="Spouse.WorkTambol" NullText="— เลือกตำบล —" />
+            <ScCombo Combo="@sc.combo.sc_mem_m_ucf_subdistrict" Args="@(new object?[] { Spouse.WorkDistrictCode })"
+                     @bind-Value="Spouse.WorkTambol" NullText="— เลือกตำบล —" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="รหัสไปรษณีย์" ColSpanMd="4">
             <DxTextBox @bind-Text="Spouse.WorkPostcode" />
@@ -107,7 +97,6 @@
 
 @code {
     [Parameter, EditorRequired] public ApplicationFormDto Form { get; set; } = default!;
-    [Parameter, EditorRequired] public SctelnewbmaLookupsDto Lookups { get; set; } = default!;
 
     // กล่องข้อความกลาง (cascade จาก Page) — เลียน sc.notify/sc.message ของ legacy
     [CascadingParameter] public ScMessage? Msg { get; set; }
@@ -152,30 +141,21 @@
         _idCardOld    = v;
     }
 
-    // ── address cascade (ที่ทำงานคู่สมรส) ─────────────────────────────────────────
-    private IEnumerable<DistrictDto> DistrictsOf(string? provinceCode) =>
-        string.IsNullOrEmpty(provinceCode)
-            ? Enumerable.Empty<DistrictDto>()
-            : Lookups.Districts.Where(d => d.ProvinceCode == provinceCode);
-
-    private IEnumerable<SubdistrictDto> SubdistrictsOf(string? districtCode) =>
-        string.IsNullOrEmpty(districtCode)
-            ? Enumerable.Empty<SubdistrictDto>()
-            : Lookups.Subdistricts.Where(s => s.DistrictCode == districtCode);
-
-    private void OnProvinceChanged(string value)
+    // ── address cascade (ที่ทำงานคู่สมรส) — ScCombo โหลดเองผ่าน Args ────────────────
+    private void OnProvinceChanged(string? value)
     {
         Spouse.WorkProvinceCode = value;
         Spouse.WorkDistrictCode = null;   // reset ลูกหลานเมื่อเปลี่ยนจังหวัด
         Spouse.WorkTambol       = null;
     }
 
-    private void OnDistrictChanged(string value)
+    private async Task OnDistrictChanged(string? value)
     {
         Spouse.WorkDistrictCode = value;
         Spouse.WorkTambol       = null;
-        var d = Lookups.Districts.FirstOrDefault(x => x.Code == value);
-        if (d?.PostCode is { Length: > 0 } pc && string.IsNullOrWhiteSpace(Spouse.WorkPostcode))
+        // auto-fill รหัสไปรษณีย์จากอำเภอ (legacy change_district_code)
+        var pc = await Svc.GetDistrictPostCodeAsync(value ?? "");
+        if (!string.IsNullOrEmpty(pc) && string.IsNullOrWhiteSpace(Spouse.WorkPostcode))
             Spouse.WorkPostcode = pc;
     }
 }

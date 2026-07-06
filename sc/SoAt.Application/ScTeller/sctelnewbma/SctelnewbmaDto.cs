@@ -9,25 +9,6 @@ namespace SoAt.Application.ScTeller;
 /// </summary>
 public record ComboItemDto(string Code, string? Name);
 
-// ── Lookup DTOs (สำหรับ dropdown) ─────────────────────────────────────────────
-
-public record MemberTypeDto(string Code, string? Desc, decimal? MaximunShare, string? NotSalary, string? MprocApart);
-public record MemberGroupDto(string No, string? Name, string? MemTypeDefault, string? NotSal, string? IngoreDropshrRule);
-public record ElectionGroupDto(string Code, string? Name, string? Zone);
-public record NationalityDto(string Code, string? Description);
-public record BloodDto(string Code, string? Desc);
-public record ProvinceDto(string Code, string? Name);
-public record DistrictDto(string Code, string? Name, string? ProvinceCode, string? PostCode);
-public record SubdistrictDto(string Code, string? Name, string? DistrictCode);
-public record ApplicationTypeDto(string Code, string? Name, decimal? Fee, string? MemTypeCode);
-public record ConcernDto(string Code, string? RelatedNa);
-public record GroupPositionDto(string Code, string? Description, int? SortOrder);
-public record PositionDto(string Code, string? Name, int? SortOrder);
-public record CoopConfigDto(string CoopNo, double? CountResign, string? AutoApproveNewmem, string? MemTypeOngroup);  // count_resign = double precision ใน PG → ต้อง double? ไม่งั้น Dapper materialize ไม่ได้
-public record BankBranchDto(string Code, string? Name, string? BankId);   // cascade by BankId (เหมือน Districts ← Province)
-public record SalaryLevelDto(int Code, string? Name);                       // sc_mem_m_ucf_salary_level (ระดับ)
-public record SalaryRateDto(decimal Code, string? Name, int? LevelCode);    // sc_mem_m_ucf_salary_rate (ขั้น, cascade ← LevelCode)
-
 // ── value-change results (Group B) ────────────────────────────────────────────
 /// <summary>ผล lookup คำนำหน้า → เพศ + สถานภาพสมรส (legacy change_prename_code)</summary>
 public record PrenameDefaultDto(string? Sex, string? MarriageStatus);
@@ -59,33 +40,6 @@ public record SpouseLookupDto(string? SpouseMemberNo, string? PrenameCode, strin
 
 /// <summary>1 แถวรายชื่อ ปปง. (legacy popValidateAML grid: sc_mem_m_member_aml)</summary>
 public record AmlMatchDto(int? SeqNo, DateTime? AmlDate, string? AmlFullname, string? AmlId, string? AmlBirth, string? AmlBookno, string? AmlRemark);
-
-public class SctelnewbmaLookupsDto
-{
-    public List<ComboItemDto>       Prenames         { get; set; } = [];   // sc.combo.sc_mem_m_ucf_prename
-    public List<ComboItemDto>       Sexes            { get; set; } = [];   // sc.combo.sex
-    public List<MemberTypeDto>      MemberTypes      { get; set; } = [];
-    public List<MemberGroupDto>     MemberGroups     { get; set; } = [];
-    public List<ElectionGroupDto>   ElectionGroups   { get; set; } = [];
-    public List<NationalityDto>     Nationalities    { get; set; } = [];
-    public List<ComboItemDto>       MarriageStatuses { get; set; } = [];   // sc.combo.sc_mem_m_ucf_marriage_status
-    public List<BloodDto>           Bloods           { get; set; } = [];
-    public List<ProvinceDto>        Provinces        { get; set; } = [];
-    public List<DistrictDto>        Districts        { get; set; } = [];
-    public List<SubdistrictDto>     Subdistricts     { get; set; } = [];
-    public List<ApplicationTypeDto> ApplicationTypes { get; set; } = [];
-    public List<ConcernDto>         Concerns         { get; set; } = [];
-    public List<GroupPositionDto>   GroupPositions   { get; set; } = [];
-    public List<PositionDto>        Positions        { get; set; } = [];
-    public List<SalaryLevelDto>     SalaryLevels     { get; set; } = [];   // ระดับเงินเดือน (work_info)
-    public List<SalaryRateDto>      SalaryRates      { get; set; } = [];   // ขั้นเงินเดือน (cascade ← LevelCode)
-    public CoopConfigDto?           CoopConfig       { get; set; }
-    // ── tabs: bankinfo / spouse / share-receive ──────────────────────────────
-    public List<ComboItemDto>       Banks            { get; set; } = [];   // sc.combo.sc_acc_m_ucf_bank
-    public List<BankBranchDto>      BankBranches     { get; set; } = [];   // sc_acc_m_ucf_bank_branch (cascade ← Banks)
-    public List<ComboItemDto>       Occupations      { get; set; } = [];   // sc.combo.sc_mem_m_ucf_ocupation
-    public List<ComboItemDto>       OtherSavings     { get; set; } = [];   // sc.combo.sc_mem_m_ucf_othersaving
-}
 
 // ── Application Form DTOs ─────────────────────────────────────────────────────
 

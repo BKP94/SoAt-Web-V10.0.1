@@ -8,10 +8,8 @@
 <DxFormLayout>
     <DxFormLayoutGroup Caption="ข้อมูลการรับโอน" ColSpanMd="12">
         <DxFormLayoutItem Caption="โอนมาจาก (ที่เดิม)" ColSpanMd="12">
-            <DxComboBox Data="Lookups.OtherSavings" TData="ComboItemDto" TValue="string"
-                        ValueFieldName="@nameof(ComboItemDto.Code)" TextFieldName="@nameof(ComboItemDto.Name)"
-                        @bind-Value="Own.OtherSaving" NullText="— เลือกสหกรณ์/หน่วยงานเดิม —"
-                        ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
+            <ScCombo Combo="@sc.combo.sc_mem_m_ucf_othersaving" @bind-Value="Own.OtherSaving"
+                     NullText="— เลือกสหกรณ์/หน่วยงานเดิม —" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="จำนวนเดือน (ย้อนหลัง)" ColSpanMd="6">
             @* legacy of_cal_first_date: กรอกจำนวนเดือน → คำนวณวันที่เป็นสมาชิก = วันนี้ − n เดือน *@
@@ -32,7 +30,6 @@
 
 @code {
     [Parameter, EditorRequired] public ApplicationFormDto Form { get; set; } = default!;
-    [Parameter, EditorRequired] public SctelnewbmaLookupsDto Lookups { get; set; } = default!;
 
     // alias ของ Form.OwnInfo (Page รับประกันไม่ null ผ่าน EnsureSubObjects)
     private AppOwnInfoDto Own => Form.OwnInfo!;

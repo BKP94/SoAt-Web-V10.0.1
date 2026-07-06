@@ -488,7 +488,7 @@ namespace sc
         /// • "#table|pk_col|desc_col[|type|filter]"   → SELECT pk AS code, desc AS name FROM table WHERE filter
         /// • "select ... as item_code, ... as item_desc from ..."  → SQL (item_code/item_desc → code/name)
         /// </summary>
-        public async Task<List<sc.ComboItem>> getComboAsync(string comboValue)
+        public async Task<List<sc.ComboItem>> getComboAsync(string comboValue, params object?[] args)
         {
             if (string.IsNullOrWhiteSpace(comboValue)) return [];
 
@@ -520,16 +520,72 @@ namespace sc
                 var filter = parts.Length >= 5 && !string.IsNullOrWhiteSpace(parts[4])
                     ? $" WHERE {parts[4]}" : "";
                 var sql = $"SELECT {pkCol} AS code, {dscCol} AS name FROM {table}{filter} ORDER BY {pkCol}";
-                return await getListAsync<sc.ComboItem>(sql);
+                sql = dropUnsatisfiedCascade(sql, args);
+                return await getComboRowsAsync(sql, args);
             }
 
             // Format 3: Direct SQL (item_code/item_desc → code/name aliases)
+            //   รองรับ cascade: {0}/{1} + /*WHERE*/ ถูกแทนใน getSqlParams (เลียน legacy sqlArgs/sqlWhere)
             {
                 var sql = comboValue
                     .Replace("as item_code", "as code", StringComparison.OrdinalIgnoreCase)
                     .Replace("as item_desc", "as name",  StringComparison.OrdinalIgnoreCase);
-                return await getListAsync<sc.ComboItem>(sql);
+                sql = dropUnsatisfiedCascade(sql, args);
+                return await getComboRowsAsync(sql, args);
             }
+        }
+
+        /// <summary>
+        /// Materialize combo rows (code/name) แบบ tolerant — ไม่ผูกชนิดผ่าน Dapper record constructor
+        /// (ComboItem(string,string) จะพังถ้า code column เป็น smallint/numeric เช่น sc_mem_m_ucf_salary_level.level_code)
+        /// → query แบบ dynamic แล้วแปลงทุกค่าผ่าน sc.value.toString → code เป็นชนิดใดก็รองรับหมด
+        /// </summary>
+        private async Task<List<sc.ComboItem>> getComboRowsAsync(string sql, params object?[] args)
+        {
+            if (!await ofConnectionOpenAsync()) return [];
+            _counter++;
+            var logCode = $"[Combo-{_counter}]";
+            var (finalSql, dp) = getSqlParams(sql, args);
+            sc.log.addLine(logCode + " > " + finalSql);
+            try
+            {
+                var rows = await _conn!.QueryAsync(finalSql, dp, _trans);
+                var result = new List<sc.ComboItem>();
+                foreach (var row in rows)
+                {
+                    var d = (IDictionary<string, object>)row;
+                    d.TryGetValue("code", out var c);
+                    d.TryGetValue("name", out var n);
+                    result.Add(new sc.ComboItem(sc.value.toString(c), sc.value.toString(n)));
+                }
+                sc.log.addLine(logCode + " = " + result.Count + " rows.");
+                return result;
+            }
+            catch (Exception ex) { sc.log.addLine(logCode + " FAIL " + ex.Message); throw; }
+        }
+
+        // ─── Cascade strip ────────────────────────────────────────────────────────
+        // const cascade (เช่น "...|province_code={0}") เก็บ clause {n} ไว้ในตัวเดียว
+        // → ถ้าส่ง arg[n] มา = กรองตาม parent (cascade); ถ้าไม่ส่ง/ว่าง = ตัด clause ทิ้ง
+        //   (โหมด read-only resolve เรียก const เปล่าได้ list เต็มไปทำ map code→desc)
+        // หนึ่ง const รองรับทั้ง 2 โหมด ตามที่ออกแบบ (ไม่ต้องสร้าง const ใหม่ต่อ filter)
+        private static readonly System.Text.RegularExpressions.Regex _cascadeClause =
+            new(@"\s+(?:WHERE|AND)\s+[\w"".]+\s*=\s*\{(\d+)\}",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase
+              | System.Text.RegularExpressions.RegexOptions.Compiled);
+
+        private static string dropUnsatisfiedCascade(string sql, object?[] args)
+        {
+            if (string.IsNullOrEmpty(sql) || !sql.Contains('{')) return sql;
+            return _cascadeClause.Replace(sql, m =>
+            {
+                var idx = int.Parse(m.Groups[1].Value);
+                var hasArg = args is not null
+                          && idx < args.Length
+                          && args[idx] is not null
+                          && !(args[idx] is string s && s.Length == 0);
+                return hasArg ? m.Value : string.Empty;   // มี arg = คง clause / ไม่มี = ตัดทิ้ง
+            });
         }
 
         // ─── Async WRITE: SQL-based ───────────────────────────────────────────────

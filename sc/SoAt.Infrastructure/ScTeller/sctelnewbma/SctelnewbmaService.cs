@@ -4,102 +4,6 @@ namespace SoAt.Infrastructure.ScTeller;
 
 public class SctelnewbmaService(sc.dbFactory dbFactory, sc.save save) : ISctelnewbmaService
 {
-    // ── Lookups ───────────────────────────────────────────────────────────────
-
-    public async Task<SctelnewbmaLookupsDto> GetLookupsAsync()
-    {
-        await using var scDb = dbFactory.create();
-
-        var prenameItems        = await scDb.getComboAsync(sc.combo.sc_mem_m_ucf_prename);
-        var sexItems            = await scDb.getComboAsync(sc.combo.sex);
-        var marriageStatusItems = await scDb.getComboAsync(sc.combo.sc_mem_m_ucf_marriage_status);
-        // tabs (PanTabs): บัญชีธนาคาร / คู่สมรส / รับโอน
-        var bankItems           = await scDb.getComboAsync(sc.combo.sc_acc_m_ucf_bank);
-        var occupationItems     = await scDb.getComboAsync(sc.combo.sc_mem_m_ucf_ocupation);
-        var otherSavingItems    = await scDb.getComboAsync(sc.combo.sc_mem_m_ucf_othersaving);
-
-        var memberTypes = await scDb.getListAsync<MemberTypeDto>(
-            "SELECT mem_type_code AS code, mem_type_desc AS desc, maximun_share, not_salary, mproc_apart FROM sc_mem_m_ucf_member_type ORDER BY mem_type_code");
-
-        var memberGroups = await scDb.getListAsync<MemberGroupDto>(
-            "SELECT member_group_no AS no, member_group_name AS name, mem_type_default, not_sal, ingore_dropshr_rule FROM sc_mem_m_ucf_member_group ORDER BY member_group_no");
-
-        var electionGroups = await scDb.getListAsync<ElectionGroupDto>(
-            "SELECT election_group AS code, election_group_name AS name, election_zone AS zone FROM sc_mem_m_ucf_election_group ORDER BY election_group");
-
-        var nationalities = await scDb.getListAsync<NationalityDto>(
-            "SELECT nationality_code AS code, nationality_description AS description FROM sc_mem_m_ucf_nationality ORDER BY nationality_code");
-
-        var bloods = await scDb.getListAsync<BloodDto>(
-            "SELECT blood_code AS code, blood_desc AS desc FROM sc_mem_m_ucf_blood ORDER BY blood_code");
-
-        var provinces = await scDb.getListAsync<ProvinceDto>(
-            "SELECT province_code AS code, province_name AS name FROM sc_mem_m_ucf_province ORDER BY province_code");
-
-        var districts = await scDb.getListAsync<DistrictDto>(
-            "SELECT district_code AS code, district_name AS name, province_code, post_code FROM sc_mem_m_ucf_district ORDER BY district_code");
-
-        var subdistricts = await scDb.getListAsync<SubdistrictDto>(
-            "SELECT subdistrict_code AS code, subdistrict_name AS name, district_code FROM sc_mem_m_ucf_subdistrict ORDER BY subdistrict_code");
-
-        var applicationTypes = await scDb.getListAsync<ApplicationTypeDto>(
-            "SELECT appl_type_code AS code, appl_type_name AS name, application_fee AS fee, NULL::varchar AS mem_type_code FROM sc_mem_m_ucf_application_type WHERE appl_type_code <> '0' ORDER BY appl_type_code");
-
-        var concerns = await scDb.getListAsync<ConcernDto>(
-            "SELECT conceern_code AS code, related_na FROM sc_mem_m_ucf_concern ORDER BY sort_order");
-
-        var groupPositions = await scDb.getListAsync<GroupPositionDto>(
-            "SELECT group_position AS code, description, sort_order FROM sc_mem_m_ucf_group_position ORDER BY sort_order");
-
-        var positions = await scDb.getListAsync<PositionDto>(
-            "SELECT position_code AS code, position_name AS name, sort_order FROM sc_mem_m_ucf_position ORDER BY sort_order");
-
-        // ระดับ/ขั้น เงินเดือน (work_info) — โหลดทั้งหมดพร้อม level_code เพื่อ cascade ฝั่ง client (เหมือน Districts ← Province)
-        var salaryLevels = await scDb.getListAsync<SalaryLevelDto>(
-            "SELECT level_code::int AS code, level_name AS name FROM sc_mem_m_ucf_salary_level ORDER BY level_code");
-
-        var salaryRates = await scDb.getListAsync<SalaryRateDto>(
-            @"SELECT salary_rate_code AS code,
-                     (CASE WHEN salary_rate_code > 0
-                           THEN 'ขั้น '||rpad(salary_rate_code::text,6,' ')||'['||lpad(to_char(salary_amount,'9,999,999.99'),14,' ')||']'
-                      END) AS name,
-                     level_code::int AS levelcode
-              FROM sc_mem_m_ucf_salary_rate ORDER BY level_code, salary_rate_code");
-
-        // สาขาธนาคาร — โหลดทั้งหมดพร้อม bank_id เพื่อ cascade ฝั่ง client (เหมือน Districts ← Province)
-        var bankBranches = await scDb.getListAsync<BankBranchDto>(
-            "SELECT bank_branch_id AS code, bank_name AS name, bank_id FROM sc_acc_m_ucf_bank_branch ORDER BY bank_id, bank_branch_id");
-
-        var coop = await scDb.getOneAsync<CoopConfigDto>(
-            "SELECT coop_registered_no AS coop_no, count_resign, auto_approve_newmem, mem_type_ongroup FROM sc_cnt_m_coop LIMIT 1");
-
-        return new SctelnewbmaLookupsDto
-        {
-            Prenames         = prenameItems.Select(x => new ComboItemDto(x.Code, x.Name)).ToList(),
-            Sexes            = sexItems.Select(x => new ComboItemDto(x.Code, x.Name)).ToList(),
-            MemberTypes      = memberTypes,
-            MemberGroups     = memberGroups,
-            ElectionGroups   = electionGroups,
-            Nationalities    = nationalities,
-            MarriageStatuses = marriageStatusItems.Select(x => new ComboItemDto(x.Code, x.Name)).ToList(),
-            Bloods           = bloods,
-            Provinces        = provinces,
-            Districts        = districts,
-            Subdistricts     = subdistricts,
-            ApplicationTypes = applicationTypes,
-            Concerns         = concerns,
-            GroupPositions   = groupPositions,
-            Positions        = positions,
-            SalaryLevels     = salaryLevels,
-            SalaryRates      = salaryRates,
-            CoopConfig       = coop,
-            Banks            = bankItems.Select(x => new ComboItemDto(x.Code, x.Name)).ToList(),
-            BankBranches     = bankBranches,
-            Occupations      = occupationItems.Select(x => new ComboItemDto(x.Code, x.Name)).ToList(),
-            OtherSavings     = otherSavingItems.Select(x => new ComboItemDto(x.Code, x.Name)).ToList(),
-        };
-    }
-
     // ── Get Application ───────────────────────────────────────────────────────
 
     public async Task<ApplicationFormDto?> GetApplicationAsync(string applicationFormNo)
@@ -329,20 +233,6 @@ WHERE 1 = 1");
         return await scDb.getListAsync<ApplicationSummaryDto>(sql.ToString(), args.ToArray());
     }
 
-    public async Task<List<ComboItemDto>> GetApplicationStatusesAsync()
-    {
-        await using var scDb = dbFactory.create();
-        var items = await scDb.getComboAsync(sc.combo.application_form_status);
-        return items.Select(x => new ComboItemDto(x.Code, x.Name)).ToList();
-    }
-
-    public async Task<List<ComboItemDto>> GetCancelReasonsAsync()
-    {
-        await using var scDb = dbFactory.create();
-        var items = await scDb.getComboAsync(sc.combo.sc_mem_m_ucf_cancel_newform);
-        return items.Select(x => new ComboItemDto(x.Code, x.Name)).ToList();
-    }
-
     // ── value-change lookups (Group B) ─────────────────────────────────────────
 
     // คำนำหน้า → เพศ + สถานภาพสมรส (legacy change_prename_code: query sc_mem_m_ucf_prename)
@@ -369,6 +259,15 @@ WHERE 1 = 1");
         await using var scDb = dbFactory.create();
         return sc.value.toString(await scDb.getValueAsync(
             "SELECT pka_lon_reqsrv.fp_calc_agetext(pka_lon_reqsrv.fp_calc_install_m_live({0}))", dateOfBirth));
+    }
+
+    // อำเภอ → รหัสไปรษณีย์ default (legacy change_district_code: เติม post_code ให้ที่อยู่)
+    public async Task<string?> GetDistrictPostCodeAsync(string districtCode)
+    {
+        if (string.IsNullOrWhiteSpace(districtCode)) return null;
+        await using var scDb = dbFactory.create();
+        return sc.value.toString(await scDb.getValueAsync(
+            "SELECT post_code FROM sc_mem_m_ucf_district WHERE district_code = {0}", districtCode));
     }
 
     // ── value-change validation (Group C) ──────────────────────────────────────

@@ -2,22 +2,22 @@
    ปุ่ม raise EventCallback กลับให้ Page จัดการ logic (Page ถือ model) *@
 
 <div class="op-item">
-    <button type="button" class="op-btn" title="เพิ่มใหม่" disabled="@Busy" @onclick="OnNew">📄</button>
+    <button type="button" class="op-btn" title="เพิ่มใหม่" disabled="@Busy" @onclick="OnNew"><i class="bi bi-file-earmark-plus"></i></button>
     <span class="op-btn-label">เพิ่มใหม่</span>
 </div>
 
 <div class="op-item">
-    <button type="button" class="op-btn" title="เปิด / ค้นหา" disabled="@Busy" @onclick="OnOpen">📂</button>
+    <button type="button" class="op-btn" title="เปิด / ค้นหา" disabled="@Busy" @onclick="OnOpen"><i class="bi bi-folder2-open"></i></button>
     <span class="op-btn-label">เปิด</span>
 </div>
 
 <div class="op-item">
-    <button type="button" class="op-btn" title="บันทึก" disabled="@Busy" @onclick="OnSave">💾</button>
+    <button type="button" class="op-btn" title="บันทึก" disabled="@Busy" @onclick="OnSave"><i class="bi bi-floppy"></i></button>
     <span class="op-btn-label">บันทึก</span>
 </div>
 
 <div class="op-item">
-    <button type="button" class="op-btn op-btn--danger" title="ยกเลิก" disabled="@Busy" @onclick="OnCancel">✖</button>
+    <button type="button" class="op-btn op-btn--danger" title="ยกเลิก" disabled="@Busy" @onclick="OnCancel"><i class="bi bi-x-lg"></i></button>
     <span class="op-btn-label">ยกเลิก</span>
 </div>
 

@@ -1,5 +1,6 @@
 @using SoAt.Application.ScTeller
 @inject ISctelnewbmaService Svc
+@inject sc.dbFactory DbFactory
 
 @* ── PopOpen — ค้นหา/เปิดใบสมัครที่บันทึกไว้ (เลียน legacy sctelnewbma/pops/popOpen.ascx) ──
    DxPopup: แถบ filter (เลขใบสมัคร/ชื่อ/สกุล/หน่วย/สถานะ) + ตารางผลค้นหา
@@ -43,10 +44,8 @@
                 </label>
                 <label class="po-field">
                     <span class="po-field__label">สถานะใบสมัคร</span>
-                    <DxComboBox Data="_statuses" TData="ComboItemDto" TValue="string"
-                                ValueFieldName="@nameof(ComboItemDto.Code)" TextFieldName="@nameof(ComboItemDto.Name)"
-                                @bind-Value="_filter.ApproveStatus" NullText="ทุกสถานะ"
-                                ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
+                    <ScCombo Combo="@sc.combo.application_form_status" @bind-Value="_filter.ApproveStatus"
+                             NullText="ทุกสถานะ" />
                 </label>
             </div>
             <div class="po-actions">
@@ -125,11 +124,14 @@
 
     private ApplicationSearchFilter        _filter   = new();
     private List<ApplicationSummaryDto>     _rows     = [];
-    private List<ComboItemDto>              _statuses = [];
     private bool                            _searched;
 
-    protected override async Task OnInitializedAsync() =>
-        _statuses = await Svc.GetApplicationStatusesAsync();
+    // warm cache สถานะใบสมัคร (key=value) เพื่อให้ StatusText() แปลง code→ข้อความได้แบบ sync
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = DbFactory.create();
+        await sc.combo.warmAsync(db, sc.combo.application_form_status);
+    }
 
     // เปิด popup ครั้งใด → โหลดรายการล่าสุด (filter ปัจจุบัน)
     private Task OnShownAsync() => SearchAsync();
@@ -170,9 +172,9 @@
         await VisibleChanged.InvokeAsync(false);
     }
 
-    // แปลง code สถานะ → ข้อความ (จาก sc.combo.application_form_status ที่โหลดไว้)
+    // แปลง code สถานะ → ข้อความ ผ่าน resolver กลาง (warm ไว้แล้วใน OnInitializedAsync)
     private string StatusText(string? code) =>
-        _statuses.FirstOrDefault(s => s.Code == code)?.Name ?? code ?? "";
+        sc.combo.text(sc.combo.application_form_status, code);
 
     // สีของ badge ตามสถานะ: 2=รออนุมัติ(amber) 1=อนุมัติ(green) 0=ไม่อนุมัติ(gray) 3=ยกเลิก(red)
     private string StatusBadgeClass(string? code) => "po-badge " + code switch

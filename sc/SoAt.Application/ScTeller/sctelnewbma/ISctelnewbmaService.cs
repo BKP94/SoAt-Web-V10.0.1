@@ -2,9 +2,6 @@ namespace SoAt.Application.ScTeller;
 
 public interface ISctelnewbmaService
 {
-    /// <summary>ดึง dropdown data ทั้งหมดสำหรับหน้าสมัครสมาชิก</summary>
-    Task<SctelnewbmaLookupsDto> GetLookupsAsync();
-
     /// <summary>ดึงใบสมัครตาม application_form_no</summary>
     Task<ApplicationFormDto?> GetApplicationAsync(string applicationFormNo);
 
@@ -23,12 +20,6 @@ public interface ISctelnewbmaService
     /// <summary>ค้นหาใบสมัครที่บันทึกไว้ (popOpen) ตามเงื่อนไข filter</summary>
     Task<List<ApplicationSummaryDto>> SearchApplicationsAsync(ApplicationSearchFilter filter);
 
-    /// <summary>รายการสถานะใบสมัคร (สำหรับ dropdown filter + แปลง code→ข้อความในตาราง)</summary>
-    Task<List<ComboItemDto>> GetApplicationStatusesAsync();
-
-    /// <summary>รายการเหตุผลการยกเลิกใบสมัคร (dropdown popup ยกเลิก — sc_mem_m_ucf_cancel_newform)</summary>
-    Task<List<ComboItemDto>> GetCancelReasonsAsync();
-
     // ── value-change lookups (Group B) ─────────────────────────────────────────
 
     /// <summary>คำนำหน้า → ค่า default เพศ + สถานภาพสมรส (legacy change_prename_code)</summary>
@@ -39,6 +30,9 @@ public interface ISctelnewbmaService
 
     /// <summary>วันเกิด → ข้อความอายุ (legacy change_date_of_birth, pka_lon_reqsrv.fp_calc_agetext)</summary>
     Task<string?> CalcAgeTextAsync(DateTime dateOfBirth);
+
+    /// <summary>อำเภอ → รหัสไปรษณีย์ default (legacy change_district_code auto-fill post_code)</summary>
+    Task<string?> GetDistrictPostCodeAsync(string districtCode);
 
     // ── value-change validation (Group C) ──────────────────────────────────────
 

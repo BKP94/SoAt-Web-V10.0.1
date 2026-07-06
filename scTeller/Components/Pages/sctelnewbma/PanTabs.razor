@@ -7,29 +7,29 @@
      • บัญชีธนาคาร          → UTabpgNewmemBankinfo
      • ข้อมูลครอบครัว        → UTabpgNewmemSpouseInfo
      • ข้อมูลการส่งหุ้น/โอน   → UTabpgNewmemShareReceive
-   PanTabs เป็นแค่ตัวจัด tab — ส่ง Form/Lookups (reference ร่วม) ลงแต่ละ tab ตรง *@
+   PanTabs เป็นแค่ตัวจัด tab — ส่ง Form (reference ร่วม) ลงแต่ละ tab ตรง
+   (combo lookups โหลดเองในแต่ละ <ScCombo> ผ่าน sc.combo — ไม่ต้องส่ง list ลงมา) *@
 
 <DxTabs CssClass="nb-tabs">
     <DxTabPage Text="บัญชีธนาคาร">
         <div class="nb-tabbody">
-            <UTabpgNewmemBankinfo Form="Form" Lookups="Lookups" />
+            <UTabpgNewmemBankinfo Form="Form" />
         </div>
     </DxTabPage>
 
     <DxTabPage Text="ข้อมูลครอบครัว">
         <div class="nb-tabbody">
-            <UTabpgNewmemSpouseInfo Form="Form" Lookups="Lookups" />
+            <UTabpgNewmemSpouseInfo Form="Form" />
         </div>
     </DxTabPage>
 
     <DxTabPage Text="ข้อมูลการส่งหุ้น/โอน">
         <div class="nb-tabbody">
-            <UTabpgNewmemShareReceive Form="Form" Lookups="Lookups" />
+            <UTabpgNewmemShareReceive Form="Form" />
         </div>
     </DxTabPage>
 </DxTabs>
 
 @code {
     [Parameter, EditorRequired] public ApplicationFormDto Form { get; set; } = default!;
-    [Parameter, EditorRequired] public SctelnewbmaLookupsDto Lookups { get; set; } = default!;
 }

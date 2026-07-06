@@ -6,10 +6,12 @@
 @using scTeller.Components.Pages.sctelnewbma.pops
 @inject ISctelnewbmaService Svc
 @inject NavigationManager Nav
+@inject sc.dbFactory DbFactory
 
 @* ── sctelnewbma — หน้าสมัครสมาชิก ────────────────────────────────────────────────
    โครงมาตรฐาน (PageRegions): Header + Tabs + Operate (ไม่มี Detail)
-   Index ถือ model (_form/_lookups) แล้วส่งลง child component ผ่าน [Parameter]
+   Index ถือ model (_form) แล้วส่งลง child component ผ่าน [Parameter]
+   (combo lookups โหลดเองในแต่ละ <ScCombo> ผ่าน sc.combo — Page ไม่ต้องเตรียม list)
    Operate raise EventCallback กลับมาให้ Index จัดการ (New/Open/Save/Cancel) *@
 
 <PageTitle>สมัครสมาชิก — scTeller</PageTitle>
@@ -22,7 +24,7 @@
     <a class="nb-back" href=".">← กลับหน้าหลัก</a>
 </div>
 
-@if (_lookups is null)
+@if (!_loaded)
 {
     <div class="nb-loading">กำลังโหลดข้อมูล…</div>
 }
@@ -35,10 +37,10 @@ else
     <CascadingValue Value="_aml" IsFixed="false">
         <PageRegions>
             <HeaderContent>
-                <PanHead Form="_form" Lookups="_lookups" />
+                <PanHead Form="_form" />
             </HeaderContent>
             <TabsContent>
-                <PanTabs Form="_form" Lookups="_lookups" />
+                <PanTabs Form="_form" />
             </TabsContent>
             <OperateContent>
                 <PanOperate Busy="_saving" OnNew="NewForm_Click" OnOpen="Open" OnSave="Save" OnCancel="Cancel" />
@@ -64,13 +66,12 @@ else
 
     private bool IsEdit => !string.IsNullOrWhiteSpace(ApplicationFormNo);
 
-    private SctelnewbmaLookupsDto? _lookups;
     private ApplicationFormDto _form = NewForm();
 
+    private bool   _loaded;        // โหลดข้อมูลหน้าเสร็จ (gate การ render region)
     private bool   _saving;
     private bool   _openVisible;   // popup ค้นหา/เปิดใบสมัคร (PopOpen)
     private bool   _cancelVisible; // popup ระบุเหตุผลยกเลิก (PopCancelReason)
-    private List<ComboItemDto> _statuses = [];   // map approve_status code → ข้อความ (J36)
     private ScMessage _msg = default!;   // กล่องข้อความ modal กลางจอ
     private ScLoading _loading = default!;   // overlay loading กลางจอ ระหว่างประมวลผล
     private PopValidateAML _aml = default!;   // popup รายชื่อ ปปง.
@@ -81,8 +82,9 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        _lookups  = await Svc.GetLookupsAsync();
-        _statuses = await Svc.GetApplicationStatusesAsync();   // ใช้แปลง code สถานะ → ข้อความ (J36)
+        // warm สถานะใบสมัคร (key=value) ผ่าน resolver กลาง → StatusText() แปลง code→ข้อความ (J36)
+        await using (var db = DbFactory.create())
+            await sc.combo.warmAsync(db, sc.combo.application_form_status);
 
         if (AuthState is not null)
         {
@@ -104,6 +106,8 @@ else
                 EnsureSubObjects(_form);
             }
         }
+
+        _loaded = true;
     }
 
     // error ตอนโหลด → แสดงเป็น modal หลัง render แรก (modal ต้องมี component พร้อมก่อน)
@@ -217,9 +221,9 @@ else
     private async Task OnCancelDismiss() =>
         await _msg.Error(sc.msg.C("ยกเลิกใบสมัครสมาชิก ,ไม่สำเร็จ"));
 
-    // แปลง code สถานะ → ข้อความ (จาก sc.combo.application_form_status)
+    // แปลง code สถานะ → ข้อความ ผ่าน resolver กลาง (warm ไว้แล้วใน OnInitializedAsync)
     private string StatusText(string? code) =>
-        _statuses.FirstOrDefault(s => s.Code == code)?.Name ?? code ?? "";
+        sc.combo.text(sc.combo.application_form_status, code);
 
     // ── validation ────────────────────────────────────────────────────────────────
     private bool Validate(out string error)

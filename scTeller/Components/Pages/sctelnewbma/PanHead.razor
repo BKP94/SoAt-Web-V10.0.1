@@ -4,7 +4,8 @@
 
 @* ── PanHead (Header region) ของ sctelnewbma ─────────────────────────────────────
    ข้อมูลหลักของผู้สมัครทั้งหมด (ส่วนตัว / ที่อยู่ / งาน / หุ้น / ผู้รับผล / รูป)
-   เป็น dumb component — Page ถือ model แล้วส่ง Form + Lookups ลงมา ([Parameter])
+   เป็น dumb component — Page ถือ model แล้วส่ง Form ลงมา ([Parameter])
+   (combo lookups โหลดเองในแต่ละ <ScCombo> ผ่าน sc.combo — ไม่รับ list จาก Page)
    field logic (cascading จังหวัด, เพิ่ม/ลบแถว, อัปโหลดรูป) แก้ลงบน Form ตรง (reference)
    format/value ทุกตัวมาจาก sc.* (mask/value) ตาม Coding Guideline *@
 
@@ -14,32 +15,24 @@
             <DxDateEdit @bind-Date="Form.ApplyDate" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="ประเภทการสมัคร" ColSpanMd="4">
-            <DxComboBox Data="Lookups.ApplicationTypes" TData="ApplicationTypeDto" TValue="string"
-                        ValueFieldName="@nameof(ApplicationTypeDto.Code)" TextFieldName="@nameof(ApplicationTypeDto.Name)"
-                        @bind-Value="Form.ApplTypeCode" NullText="— เลือก —" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
+            <ScCombo Combo="@sc.combo.sc_mem_m_ucf_application_type" @bind-Value="Form.ApplTypeCode" NullText="— เลือก —" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="ประเภทสมาชิก" ColSpanMd="4">
-            <DxComboBox Data="Lookups.MemberTypes" TData="MemberTypeDto" TValue="string"
-                        ValueFieldName="@nameof(MemberTypeDto.Code)" TextFieldName="@nameof(MemberTypeDto.Desc)"
-                        @bind-Value="Form.MemType" NullText="— เลือก —" />
+            <ScCombo Combo="@sc.combo.sc_mem_m_ucf_member_type" @bind-Value="Form.MemType" NullText="— เลือก —" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="กลุ่มสมาชิก" ColSpanMd="4">
-            <DxComboBox Data="Lookups.MemberGroups" TData="MemberGroupDto" TValue="string"
-                        ValueFieldName="@nameof(MemberGroupDto.No)" TextFieldName="@nameof(MemberGroupDto.Name)"
-                        Value="Form.MemberGroupNo" ValueChanged="@((string v) => OnMemberGroupChanged(v))" NullText="— เลือก —" />
+            <ScCombo Combo="@sc.combo.sc_mem_m_ucf_member_group" Value="@Form.MemberGroupNo"
+                     ValueChanged="@(v => OnMemberGroupChanged(v))" NullText="— เลือก —" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="กลุ่มเลือกตั้ง" ColSpanMd="4">
-            <DxComboBox Data="Lookups.ElectionGroups" TData="ElectionGroupDto" TValue="string"
-                        ValueFieldName="@nameof(ElectionGroupDto.Code)" TextFieldName="@nameof(ElectionGroupDto.Name)"
-                        @bind-Value="Form.ElectionGroup" NullText="— เลือก —" />
+            <ScCombo Combo="@sc.combo.sc_mem_m_ucf_election_group" @bind-Value="Form.ElectionGroup" NullText="— เลือก —" />
         </DxFormLayoutItem>
     </DxFormLayoutGroup>
 
     <DxFormLayoutGroup Caption="ชื่อ-สกุล (ไทย)" ColSpanMd="12">
         <DxFormLayoutItem Caption="คำนำหน้า" ColSpanMd="4">
-            <DxComboBox Data="Lookups.Prenames" TData="ComboItemDto" TValue="string"
-                        ValueFieldName="@nameof(ComboItemDto.Code)" TextFieldName="@nameof(ComboItemDto.Name)"
-                        Value="Form.PrenameCode" ValueChanged="@((string v) => OnPrenameChanged(v))" NullText="— เลือก —" />
+            <ScCombo Combo="@sc.combo.sc_mem_m_ucf_prename" Value="@Form.PrenameCode"
+                     ValueChanged="@(v => OnPrenameChanged(v))" NullText="— เลือก —" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="ชื่อ" ColSpanMd="4">
             <DxTextBox Text="@Form.MemberName" TextChanged="@(async (string v) => { Form.MemberName = v; await OnNameChanged(); })" NullText="ชื่อ" />
@@ -73,24 +66,17 @@
             <DxTextBox Text="@Form.AgeText" ReadOnly="true" NullText="—" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="เพศ" ColSpanMd="4">
-            <DxComboBox Data="Lookups.Sexes" TData="ComboItemDto" TValue="string"
-                        ValueFieldName="@nameof(ComboItemDto.Code)" TextFieldName="@nameof(ComboItemDto.Name)"
-                        @bind-Value="Form.Sex" NullText="— เลือก —" />
+            <ScCombo Combo="@sc.combo.sex" @bind-Value="Form.Sex" NullText="— เลือก —" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="สถานภาพสมรส" ColSpanMd="4">
-            <DxComboBox Data="Lookups.MarriageStatuses" TData="ComboItemDto" TValue="string"
-                        ValueFieldName="@nameof(ComboItemDto.Code)" TextFieldName="@nameof(ComboItemDto.Name)"
-                        @bind-Value="Form.MarriageStatus" NullText="— เลือก —" />
+            <ScCombo Combo="@sc.combo.sc_mem_m_ucf_marriage_status" @bind-Value="Form.MarriageStatus" NullText="— เลือก —" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="สัญชาติ" ColSpanMd="4">
-            <DxComboBox Data="Lookups.Nationalities" TData="NationalityDto" TValue="string"
-                        ValueFieldName="@nameof(NationalityDto.Code)" TextFieldName="@nameof(NationalityDto.Description)"
-                        Value="Form.NationalityCode" ValueChanged="@((string v) => OnNationalityChanged(v))" NullText="— เลือก —" />
+            <ScCombo Combo="@sc.combo.sc_mem_m_ucf_nationality" Value="@Form.NationalityCode"
+                     ValueChanged="@(v => OnNationalityChanged(v))" NullText="— เลือก —" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="กรุ๊ปเลือด" ColSpanMd="4">
-            <DxComboBox Data="Lookups.Bloods" TData="BloodDto" TValue="string"
-                        ValueFieldName="@nameof(BloodDto.Code)" TextFieldName="@nameof(BloodDto.Desc)"
-                        @bind-Value="Form.BloodCode" NullText="— เลือก —" />
+            <ScCombo Combo="@sc.combo.sc_mem_m_ucf_blood" @bind-Value="Form.BloodCode" NullText="— เลือก —" />
         </DxFormLayoutItem>
     </DxFormLayoutGroup>
 
@@ -137,9 +123,8 @@
             <DxTextBox @bind-Text="Work.SalaryId" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="ประเภทงาน" ColSpanMd="4">
-            <DxComboBox Data="Lookups.GroupPositions" TData="GroupPositionDto" TValue="string"
-                        ValueFieldName="@nameof(GroupPositionDto.Code)" TextFieldName="@nameof(GroupPositionDto.Description)"
-                        Value="Work.GroupPosition" ValueChanged="@((string v) => Work.GroupPosition = v)" NullText="— เลือก —" />
+            <ScCombo Combo="@sc.combo.sc_mem_m_ucf_group_position" Value="@Work.GroupPosition"
+                     ValueChanged="@(v => Work.GroupPosition = v)" NullText="— เลือก —" />
         </DxFormLayoutItem>
         @* ตำแหน่งอื่นๆ — โชว์เฉพาะประเภทงาน = "00" (legacy change_group_position: GROUP_OTHER visibility) *@
         @if (Work.GroupPosition == "00")
@@ -152,14 +137,13 @@
             <DxTextBox @bind-Text="Work.PositionLong" NullText="ชื่อตำแหน่งเต็ม" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="ระดับ" ColSpanMd="4">
-            <DxComboBox Data="Lookups.SalaryLevels" TData="SalaryLevelDto" TValue="int?"
-                        ValueFieldName="@nameof(SalaryLevelDto.Code)" TextFieldName="@nameof(SalaryLevelDto.Name)"
-                        Value="Work.LevelCode" ValueChanged="@((int? v) => OnLevelChanged(v))" NullText="— ระดับ —" />
+            <ScCombo Combo="@sc.combo.sc_mem_m_ucf_salary_level" Value="@(Work.LevelCode?.ToString())"
+                     ValueChanged="@(v => OnLevelChanged(v))" NullText="— ระดับ —" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="ขั้น" ColSpanMd="4">
-            <DxComboBox Data="SalaryRatesOf(Work.LevelCode)" TData="SalaryRateDto" TValue="decimal?"
-                        ValueFieldName="@nameof(SalaryRateDto.Code)" TextFieldName="@nameof(SalaryRateDto.Name)"
-                        @bind-Value="Work.SalaryRateCode" NullText="— ขั้น —" />
+            <ScCombo Combo="@sc.combo.sc_mem_m_ucf_salary_rate" Args="@(new object?[] { Work.LevelCode })"
+                     Value="@(Work.SalaryRateCode?.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture))"
+                     ValueChanged="@(v => OnSalaryRateChanged(v))" NullText="— ขั้น —" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="เงินเดือน" ColSpanMd="4">
             <ScInput Col="@sc.css.col.Decimal" Value="Work.SalaryAmount" TValue="decimal?"
@@ -223,9 +207,7 @@ else
                 <tr>
                     <td class="nb-seq">@row.SeqNo</td>
                     <td>
-                        <DxComboBox Data="Lookups.Prenames" TData="ComboItemDto" TValue="string"
-                                    ValueFieldName="@nameof(ComboItemDto.Code)" TextFieldName="@nameof(ComboItemDto.Name)"
-                                    @bind-Value="row.PrenameCode" NullText="—" />
+                        <ScCombo Combo="@sc.combo.sc_mem_m_ucf_prename" @bind-Value="row.PrenameCode" NullText="—" />
                     </td>
                     <td><DxTextBox @bind-Text="row.GainName" /></td>
                     <td><DxTextBox @bind-Text="row.GainSurname" /></td>
@@ -234,9 +216,7 @@ else
                                  ValueChanged="@(async (string v) => await OnGainIdCardChanged(row, v))" />
                     </td>
                     <td>
-                        <DxComboBox Data="Lookups.Concerns" TData="ConcernDto" TValue="string"
-                                    ValueFieldName="@nameof(ConcernDto.Code)" TextFieldName="@nameof(ConcernDto.RelatedNa)"
-                                    @bind-Value="row.ConcernCode" NullText="—" />
+                        <ScCombo Combo="@sc.combo.sc_mem_m_ucf_concern" @bind-Value="row.ConcernCode" NullText="—" />
                     </td>
                     <td>
                         @* พิมพ์ 50 = 50% ตรงๆ (DxSpinEdit ไม่ fill-from-right) — โชว์ "50.00 %" ผ่าน sc.mask *@
@@ -286,9 +266,7 @@ else
                     </td>
                     <td><DxTextBox @bind-Text="row.MemberName" NullText="ชื่อ-สกุล" /></td>
                     <td>
-                        <DxComboBox Data="Lookups.Concerns" TData="ConcernDto" TValue="string"
-                                    ValueFieldName="@nameof(ConcernDto.Code)" TextFieldName="@nameof(ConcernDto.RelatedNa)"
-                                    @bind-Value="row.ConcernCode" NullText="—" />
+                        <ScCombo Combo="@sc.combo.sc_mem_m_ucf_concern" @bind-Value="row.ConcernCode" NullText="—" />
                     </td>
                     <td><DxButton Text="ลบ" RenderStyle="ButtonRenderStyle.Danger" Click="() => RemoveRefer(row)" /></td>
                 </tr>
@@ -360,21 +338,17 @@ else
             <DxTextBox @bind-Text="a.Road" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="จังหวัด" ColSpanMd="4">
-            <DxComboBox Data="Lookups.Provinces" TData="ProvinceDto" TValue="string"
-                        ValueFieldName="@nameof(ProvinceDto.Code)" TextFieldName="@nameof(ProvinceDto.Name)"
-                        Value="a.ProvinceCode" ValueChanged="@((string v) => OnProvinceChanged(a, v))"
-                        NullText="— เลือกจังหวัด —" />
+            <ScCombo Combo="@sc.combo.sc_mem_m_ucf_province" Value="@a.ProvinceCode"
+                     ValueChanged="@(v => OnProvinceChanged(a, v))" NullText="— เลือกจังหวัด —" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="อำเภอ/เขต" ColSpanMd="4">
-            <DxComboBox Data="DistrictsOf(a.ProvinceCode)" TData="DistrictDto" TValue="string"
-                        ValueFieldName="@nameof(DistrictDto.Code)" TextFieldName="@nameof(DistrictDto.Name)"
-                        Value="a.DistrictCode" ValueChanged="@((string v) => OnDistrictChanged(a, v))"
-                        NullText="— เลือกอำเภอ —" />
+            <ScCombo Combo="@sc.combo.sc_mem_m_ucf_district" Args="@(new object?[] { a.ProvinceCode })"
+                     Value="@a.DistrictCode" ValueChanged="@(v => OnDistrictChanged(a, v))"
+                     NullText="— เลือกอำเภอ —" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="ตำบล/แขวง" ColSpanMd="4">
-            <DxComboBox Data="SubdistrictsOf(a.DistrictCode)" TData="SubdistrictDto" TValue="string"
-                        ValueFieldName="@nameof(SubdistrictDto.Code)" TextFieldName="@nameof(SubdistrictDto.Name)"
-                        @bind-Value="a.Tambol" NullText="— เลือกตำบล —" />
+            <ScCombo Combo="@sc.combo.sc_mem_m_ucf_subdistrict" Args="@(new object?[] { a.DistrictCode })"
+                     @bind-Value="a.Tambol" NullText="— เลือกตำบล —" />
         </DxFormLayoutItem>
         <DxFormLayoutItem Caption="รหัสไปรษณีย์" ColSpanMd="4">
             <DxTextBox @bind-Text="a.Postcode" />
@@ -387,7 +361,6 @@ else
 
 @code {
     [Parameter, EditorRequired] public ApplicationFormDto Form { get; set; } = default!;
-    [Parameter, EditorRequired] public SctelnewbmaLookupsDto Lookups { get; set; } = default!;
 
     // กล่องข้อความกลาง (cascade จาก Page) — เลียน sc.message/sc.notify ของ legacy
     [CascadingParameter] public ScMessage? Msg { get; set; }
@@ -398,7 +371,7 @@ else
     private AppWorkInfoDto Work => Form.WorkInfo!;
 
     // ── value-change: คำนำหน้า → เพศ + สถานภาพสมรส (legacy change_prename_code) ──────
-    private async Task OnPrenameChanged(string value)
+    private async Task OnPrenameChanged(string? value)
     {
         Form.PrenameCode = value;
         var d = await Svc.GetPrenameDefaultAsync(value ?? "");
@@ -407,7 +380,7 @@ else
     }
 
     // ── value-change: กลุ่มสมาชิก → กลุ่มช่วยเลือกตั้ง (legacy change_member_group_no) ──
-    private async Task OnMemberGroupChanged(string value)
+    private async Task OnMemberGroupChanged(string? value)
     {
         Form.MemberGroupNo = value;
         Form.ElectionGroup = await Svc.GetElectionHelpGroupAsync(value ?? "");
@@ -471,7 +444,7 @@ else
     }
 
     // เปลี่ยนสัญชาติ → re-validate เลขบัตร (legacy change_nationality_code)
-    private async Task OnNationalityChanged(string v)
+    private async Task OnNationalityChanged(string? v)
     {
         Form.NationalityCode = v;
         await OnHumIdChanged(Form.HumId);
@@ -568,16 +541,18 @@ else
     }
 
     // ── value-change: ระดับเงินเดือน → reset ขั้น (legacy change_level_code) ──────────
-    private IEnumerable<SalaryRateDto> SalaryRatesOf(int? levelCode) =>
-        levelCode is null
-            ? Enumerable.Empty<SalaryRateDto>()
-            : Lookups.SalaryRates.Where(r => r.LevelCode == levelCode);
-
-    private void OnLevelChanged(int? v)
+    // ScCombo เป็น string → แปลงกลับเป็น int? ที่ขอบ (level_code = smallint ใน PG)
+    private void OnLevelChanged(string? v)
     {
-        Work.LevelCode      = v;
-        Work.SalaryRateCode = null;   // เปลี่ยนระดับ → ล้างขั้น
+        Work.LevelCode      = string.IsNullOrEmpty(v) ? null : sc.value.toInteger(v);
+        Work.SalaryRateCode = null;   // เปลี่ยนระดับ → ล้างขั้น (cascade Args เปลี่ยน → ScCombo โหลดขั้นใหม่)
     }
+
+    // ── value-change: ขั้น → เก็บเป็น decimal? (salary_rate_code = numeric(3,1)) ──────
+    private void OnSalaryRateChanged(string? v) =>
+        Work.SalaryRateCode = string.IsNullOrEmpty(v)
+            ? null
+            : decimal.Parse(v, System.Globalization.CultureInfo.InvariantCulture);
 
     // ── value-change: หุ้น(หน่วย) → ส่งหุ้นรายเดือน (legacy change_share_monthly_hoon) ──
     private int? ShareHoon => Form.ShareMonthly is decimal s ? (int)(s / 10) : null;
@@ -600,17 +575,6 @@ else
 
     private decimal GainPercentTotal => Form.RecrieveGains.Sum(g => g.GainPercent ?? 0m);
 
-    // ── address cascading ───────────────────────────────────────────────────────
-    private IEnumerable<DistrictDto> DistrictsOf(string? provinceCode) =>
-        string.IsNullOrEmpty(provinceCode)
-            ? Enumerable.Empty<DistrictDto>()
-            : Lookups.Districts.Where(d => d.ProvinceCode == provinceCode);
-
-    private IEnumerable<SubdistrictDto> SubdistrictsOf(string? districtCode) =>
-        string.IsNullOrEmpty(districtCode)
-            ? Enumerable.Empty<SubdistrictDto>()
-            : Lookups.Subdistricts.Where(s => s.DistrictCode == districtCode);
-
     // ── คัดลอกที่อยู่ข้ามชุด (ปัจจุบัน ↔ ทะเบียนบ้าน ↔ ที่ทำงาน) ───────────────────
     // copy ทุก field ยกเว้น AddressType (คงประเภทของช่องปลายทาง)
     private void CopyAddress(AppAddressDto from, AppAddressDto to)
@@ -627,21 +591,20 @@ else
         to.Telephone    = from.Telephone;
     }
 
-    private void OnProvinceChanged(AppAddressDto a, string value)
+    private void OnProvinceChanged(AppAddressDto a, string? value)
     {
         a.ProvinceCode = value;
         a.DistrictCode = null;   // reset ลูกหลานเมื่อเปลี่ยนจังหวัด
         a.Tambol       = null;
     }
 
-    private void OnDistrictChanged(AppAddressDto a, string value)
+    private async Task OnDistrictChanged(AppAddressDto a, string? value)
     {
         a.DistrictCode = value;
         a.Tambol       = null;
-        // auto-fill รหัสไปรษณีย์จากอำเภอ (ถ้ายังว่าง)
-        var d = Lookups.Districts.FirstOrDefault(x => x.Code == value);
-        if (d?.PostCode is { Length: > 0 } pc && string.IsNullOrWhiteSpace(a.Postcode))
-            a.Postcode = pc;
+        // auto-fill รหัสไปรษณีย์จากอำเภอ (ถ้ายังว่าง) — legacy change_district_code
+        var pc = await Svc.GetDistrictPostCodeAsync(value ?? "");
+        a.Postcode = pc;
     }
 
     // ── beneficiaries (gain) ────────────────────────────────────────────────────

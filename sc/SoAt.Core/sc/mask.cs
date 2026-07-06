@@ -25,5 +25,14 @@ namespace sc
         /// เก็บค่า "รวมตัวคั่น" (เช่น 1-2345-67890-12-3 = 17 ตัว ล้น varchar(15))</summary>
         public static string? ofDigits(string? s) =>
             string.IsNullOrEmpty(s) ? s : new string(s.Where(char.IsDigit).ToArray());
+
+        /// <summary>จัดรูปเลขบัตร ปชช. 13 หลัก → "9-9999-99999-99-9" สำหรับ "แสดงผล" (read-only).
+        /// คู่กับ const <see cref="maskIdCard"/> ที่ใช้กับ editor. ถ้าไม่ใช่ 13 หลัก คืนค่าเดิม</summary>
+        public static string idCard(string? s)
+        {
+            var d = ofDigits(s);
+            if (string.IsNullOrEmpty(d) || d.Length != 13) return s ?? string.Empty;
+            return $"{d[..1]}-{d.Substring(1, 4)}-{d.Substring(5, 5)}-{d.Substring(10, 2)}-{d[12..]}";
+        }
     }
 }

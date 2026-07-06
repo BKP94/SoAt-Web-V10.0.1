@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+
 namespace sc
 {
     /// <summary>Generic code+name pair — return type ของ sc.db.getComboAsync</summary>
@@ -10,11 +12,68 @@ namespace sc
 
         public static string getQuery(string comboName)
         {
-            try
+            // bare-name (ชื่อ const) → คืนค่า descriptor ; ไม่ใช่ชื่อ field (เป็น descriptor #/select/key=value อยู่แล้ว)
+            //   → GetField คืน null → คืน "" ให้ itemsAsync ใช้ค่าเดิม. ไม่โยน NRE (กัน first-chance เด้งทุก combo)
+            return typeof(combo).GetField(comboName)?.GetValue(null)?.ToString() ?? string.Empty;
+        }
+
+        // ─── Read-only display resolver (legacy css="combo-xxx" auto-bind equivalent) ──
+        //   ใช้กับช่อง read-only ที่เก็บ "code" แต่ต้องโชว์ "คำอธิบาย" (เช่น ประเภท/สถานะ/ตำแหน่ง)
+        //   legacy: LayoutItem CssClass="combo-<name>" + global JS เติม desc ให้เอง
+        //   Blazor idiom: component กลาง <ScCombo ReadOnly> (SoAt.Blazor) + sc.combo.text(comboQuery, code)
+        //   → โหลด code→desc เข้า cache กลางเองครั้งแรก แล้ว reuse ทุกที่ — UI ไม่แตะ DTO/Service
+        //   ⚠️ cache เป็น static ทั้ง process → ใช้เฉพาะ combo config ที่ไม่ผูก session/param
+        //      (m_ucf_*) เท่านั้น — ห้ามใช้กับ combo ที่มี {0}
+        private static readonly ConcurrentDictionary<string, IReadOnlyDictionary<string, string>> _textCache = new();
+
+        /// <summary>โหลด combo (code→desc) เข้า cache กลาง — idempotent (โหลดซ้ำ key เดิม = ข้าม).
+        /// ส่ง descriptor const ตรงๆ เช่น warmAsync(scDb, sc.combo.sc_mem_m_ucf_member_type, ...)</summary>
+        public static async System.Threading.Tasks.Task warmAsync(db database, params string[] comboQueries)
+        {
+            foreach (var q in comboQueries)
             {
-                return (typeof(combo).GetField(comboName)!.GetValue(null) ?? string.Empty).ToString()!;
+                if (string.IsNullOrEmpty(q) || _textCache.ContainsKey(q)) continue;
+                var list = await database.getComboAsync(q);
+                var map = new Dictionary<string, string>(StringComparer.Ordinal);
+                foreach (var it in list) map[it.Code] = it.Name;
+                _textCache[q] = map;
             }
-            catch { return string.Empty; }
+        }
+
+        /// <summary>code → คำอธิบาย (ต้อง warmAsync(comboQuery) มาก่อน).
+        /// code ว่าง → "" ; ไม่พบใน cache → คืน code เดิม (กันจอว่างถ้ายังไม่ warm)</summary>
+        public static string text(string comboQuery, string? code)
+        {
+            if (string.IsNullOrEmpty(code)) return "";
+            return _textCache.TryGetValue(comboQuery, out var map) && map.TryGetValue(code, out var desc)
+                ? desc : code;
+        }
+
+        // ─── Central combo loader (ทุก combo เดินเส้นเดียวกัน — แก้ได้/แก้ไม่ได้) ──────────
+        //   จุดเดียวที่ component กลาง <ScCombo> เรียก. คืน list ของ ComboItem(Code,Name)
+        //   รองรับ 3 รูปแบบ (เลียน legacy db.getComboQuery + value.sqlWhere/sqlArgs):
+        //     1. descriptor const   เช่น sc.combo.sc_mem_m_ucf_member_group (หรือชื่อ bare → getQuery)
+        //     2. raw select         column ชื่อ item_code / item_desc
+        //     3. key=value          เช่น "M=ชาย/F=หญิง"
+        //   cascade/change: ส่ง args → แทน {0}/{1} + /*WHERE*/ ใน getSqlParams (db ชั้นล่าง)
+        //   ⚠️ cache เฉพาะตอน args ว่าง (combo config) — combo ผูก param/session (มี args) ไม่ cache
+        private static readonly ConcurrentDictionary<string, IReadOnlyList<ComboItem>> _itemsCache = new();
+
+        public static async System.Threading.Tasks.Task<IReadOnlyList<ComboItem>> itemsAsync(
+            db database, string combo, params object?[] args)
+        {
+            if (string.IsNullOrWhiteSpace(combo)) return System.Array.Empty<ComboItem>();
+
+            // bare-name → resolve เป็น descriptor value (string ที่เป็น #/select/key=value อยู่แล้ว → getQuery คืนว่าง → คงเดิม)
+            var resolved = getQuery(combo);
+            var query = string.IsNullOrEmpty(resolved) ? combo : resolved;
+
+            var cacheable = args == null || args.Length == 0;
+            if (cacheable && _itemsCache.TryGetValue(query, out var cached)) return cached;
+
+            var list = await database.getComboAsync(query, args ?? System.Array.Empty<object?>());
+            if (cacheable) _itemsCache[query] = list;
+            return list;
         }
 
         // ─── Month / static lists ─────────────────────────────────────────────────
@@ -36,6 +95,7 @@ namespace sc
         public const string cancel_status = "0=ปกติ/1=ยกเลิก";
         public const string fund_close_status = "0=ปกติ/C=ปิดแล้ว/1=ปิดสัญญา";
         public const string coll_status = "0=ค้ำอยู่/1=หลุดค้ำ";
+        public const string coll_current = "W=รออนุมัติ/P=รอตัดจ่าย/T=รับภาระหนี้/F=หลุดค้ำ/A=ค้ำอยู่";
         public const string contract_status = "0=ปกติ/1=พ้นสภาพ";
         public const string decrease_status = "0=ได้ลดหย่อน/1=ไม่ได้ลดหย่อน";
         public const string deposit_close_status = "0=ปกติ/C=ปิดบัญชี";
@@ -58,6 +118,9 @@ namespace sc
         public const string secure_status = "A=Active/D=Disable/E=Enable/I=Invisible";
         public const string loan_status = "0=ปกติ/1=ห้ามกู้/2=เตือน";
         public const string coll_loan_status = "0=ปกติ/1=ห้ามค้ำ/2=เตือน";
+        // permit_changed: ป้ายชื่อสิทธิ์ — legacy u_tabpg_mem_detail_permit_changed ฝัง ListEditItem 16 ตัวใน .ascx
+        //   (คนละแหล่งกับ chg_memo_status ที่ใช้ getcoltext column comment — ข้อความจึงต่างกัน คงตาม legacy)
+        public const string permit_changed = "drop_loanemer_status=งดกู้ ฉ. ทั้งหมด/drop_loannormal_status=งดกู้ ส. ทั้งหมด/drop_loanspec_status=งดกู้ พ. ทั้งหมด/collactelral_status=งดค้ำประกัน/receipt_forward=ขอใบเสร็จล่วงหน้า/force_keeping=เรียกเก็บหนี้เมื่อลาออก/adj_payroll=แต่งสลิปเงินเดือน/att_loan_permit=ถูกลดทอนสิทธิกู้/app_status=ไม่มีใบสมัคร/receipt_send_home=ส่งใบเสร็จที่บ้าน/represent_status=ผู้แทน/committee_status=กรรมการ/official_status=เจ้าหน้าที่/agent_status=ตัวแทนหักเงิน/inspector_status=ผู้ตรวจสอบกิจการ/coll_resign=หลักประกันบกพร่อง";
         public const string rec_rep_status = "2=รอจ่าย/1=จ่ายแล้ว/0=ไม่จ่าย";
         public const string create_loan_status = "2=รอตั้งหนี้/1=ตั้งหนี้แล้ว/0=ไม่ตั้งหนี้";
         public const string mem_type_control = "01=สมาชิกสามัญ/02=สมาชิกสมทบ";
@@ -248,16 +311,16 @@ money_type_id||' - '||money_type_name as item_desc
 from sc_com_m_ucf_money_type
 where payment_status = '1'
 order by sort_order";
-        public const string sc_com_m_ucf_money_type_dividen = "#sc_com_m_ucf_money_type|money_type_id|money_type_name|1|dividen_status=1";
+        public const string sc_com_m_ucf_money_type_dividen = "#sc_com_m_ucf_money_type|money_type_id|money_type_name|1|dividen_status='1'";
         public const string sc_com_m_ucf_money_type_method_div = @"select money_type_id as item_code,
 money_type_id||' - '||money_type_name as item_desc
 from sc_com_m_ucf_money_type
 where payment_status = '1'
 and   dividen_status='1'
 order by sort_order";
-        public const string sc_com_m_ucf_money_type_dividen2     = "select money_type_id as item_code,money_type_id||' - '||money_type_name as item_desc from sc_com_m_ucf_money_type where dividen_status=1 order by sort_order, money_type_id";
-        public const string sc_com_m_ucf_money_type_dividen_fix2 = "select money_type_id as item_code,money_type_id||' - '||money_type_name as item_desc from sc_com_m_ucf_money_type where dividen_status=1 and money_type_id in ('CSH','CHQ','TRB','TRD','STB') order by sort_order";
-        public const string sc_com_m_ucf_money_type_share_withdraw_able = "#sc_com_m_ucf_money_type|money_type_id|money_type_name|2|share_withdraw_able=1";
+        public const string sc_com_m_ucf_money_type_dividen2     = "select money_type_id as item_code,money_type_id||' - '||money_type_name as item_desc from sc_com_m_ucf_money_type where dividen_status='1' order by sort_order, money_type_id";
+        public const string sc_com_m_ucf_money_type_dividen_fix2 = "select money_type_id as item_code,money_type_id||' - '||money_type_name as item_desc from sc_com_m_ucf_money_type where dividen_status='1' and money_type_id in ('CSH','CHQ','TRB','TRD','STB') order by sort_order";
+        public const string sc_com_m_ucf_money_type_share_withdraw_able = "#sc_com_m_ucf_money_type|money_type_id|money_type_name|2|share_withdraw_able='1'";
         public const string sc_com_m_ucf_receipt_item_type = "#sc_com_m_ucf_receipt_item_type|item_type_id|item_type_name";
         public const string sc_com_m_ucf_money_type_sccoor = @"select money_type_id as item_code,
 money_type_id||' - '||money_type_name as item_desc
@@ -266,6 +329,8 @@ where crem_status = '1'
 order by sort_order";
         public const string sc_com_m_ucf_money_type_welfare = "#sc_com_m_ucf_money_type|money_type_id|money_type_name|2|welfare_active=1";
         public const string sc_com_m_ucf_money_type_new = "table=sc_com_m_ucf_money_type|key=money_type_id|value=money_type_name";
+        // scteldet G5 tab credit — รหัสข้อมูลเครดิตสมาชิก (code → "code-desc")
+        public const string sc_mem_m_ucf_credit_management = @"select credit_code as item_code,credit_code||' - '||credit_desc as item_desc from sc_mem_m_ucf_credit_management order by credit_code";
         public const string sc_com_m_file_sys_config_new = "table=sc_com_m_file_sys_config|key=file_sys|value=file_desc";
         public const string sc_com_m_file_sys_config_new2 = @"select file_sys as item_code, file_sys||' - '||file_desc as item_desc
 from sc_com_m_file_sys_config
@@ -395,7 +460,7 @@ order by sort_order";
         public const string sc_mem_m_ucf_crem_paid2   = "#sc_mem_m_ucf_crem_paid|paid_type|paid_name|2";
         public const string sc_mem_m_ucf_debtor       = "#sc_mem_m_ucf_debtor|debtor_code|debtor_desc";
         public const string sc_mem_m_ucf_debtor2      = @"select debtor_code as item_code, debtor_code||' - '||debtor_desc as item_desc from sc_mem_m_ucf_debtor order by sort_order";
-        public const string sc_mem_m_ucf_district     = "#sc_mem_m_ucf_district|district_code|district_name";
+        public const string sc_mem_m_ucf_district     = "#sc_mem_m_ucf_district|district_code|district_name|1|province_code={0}";
         public const string sc_mem_m_ucf_district2    = "#sc_mem_m_ucf_district|district_code|district_name|2";
         public const string sc_mem_m_ucf_doc_place    = "#sc_mem_m_ucf_doc_place|item_code|doc_place";
         public const string sc_mem_m_ucf_edu_level    = @"select edu_code as item_code,edu_name as item_desc from sc_mem_m_ucf_edu_level order by edu_code";
@@ -456,11 +521,10 @@ order by member_group_control";
         public const string sc_mem_m_ucf_resign_cause2 = "#sc_mem_m_ucf_resign_cause|resign_cause_code|resign_cause_name|2";
         public const string sc_mem_m_ucf_salary_level  = "#sc_mem_m_ucf_salary_level|level_code|level_name";
         public const string sc_mem_m_ucf_salary_level2 = @"select level_code as item_code,level_name as item_desc from sc_mem_m_ucf_salary_level order by item_code";
-        public const string sc_mem_m_ucf_salary_rate   = @"select salary_rate_code as item_code,
+        public const string sc_mem_m_ucf_salary_rate   = @"select salary_rate_code::text as item_code,
   (case when salary_rate_code > 0 then 'ขั้น '||rpad(salary_rate_code::text,6,' ')||'['||lpad(to_char(salary_amount,'9,999,999.99'),14,' ')||']' else null end) as item_desc
 from sc_mem_m_ucf_salary_rate
-where 1 = 1
-/*WHERE*/
+where 1 = 1 and level_code = {0}
 order by level_code, salary_rate_code";
         public const string sc_mem_m_ucf_share_item_type  = "#sc_mem_m_ucf_share_item_type|item_type|item_type_description";
         public const string sc_mem_m_ucf_share_item_type2 = "#sc_mem_m_ucf_share_item_type|item_type|item_type_description|2";
@@ -475,7 +539,7 @@ order by sc_mem_m_ucf_member_status.member_status_code";
         public const string sc_mem_m_ucf_revenue_type  = "#sc_mem_m_ucf_revenue_type|revenue_type_code|revenue_type_description";
         public const string sc_mem_m_ucf_revenue_type2 = "#sc_mem_m_ucf_revenue_type|revenue_type_code|revenue_type_description||2";
         public const string sc_mem_m_ucf_coop_control  = "#sc_mem_m_ucf_coop_control|control_id|control_desc";
-        public const string sc_mem_m_ucf_subdistrict   = "#sc_mem_m_ucf_subdistrict|subdistrict_code|subdistrict_name";
+        public const string sc_mem_m_ucf_subdistrict   = "#sc_mem_m_ucf_subdistrict|subdistrict_code|subdistrict_name|1|district_code={0}";
         public const string sc_mem_m_ucf_memo           = "#sc_mem_m_ucf_memo|memo_code|memo_desc";
         public const string sc_mem_m_ucf_memo2          = "#sc_mem_m_ucf_memo|memo_code|memo_desc|2";
         public const string sc_mem_m_ucf_groupmajor2    = "#sc_mem_m_ucf_groupmajor|MEMBER_GROUP_MAJOR|GROUP_MAJOR_NAME|2";
@@ -608,6 +672,7 @@ where SC_KEP_M_UCF_PROCESS.invisible_status = '1'
 order by SC_KEP_M_UCF_PROCESS.PROC_CODE";
         public const string sc_kep_m_ucf_reason_return  = "#sc_kep_m_ucf_reason_return|reason_return_code|reason_return_name";
         public const string sc_kep_m_ucf_reason_return2 = "#sc_kep_m_ucf_reason_return|reason_return_code|reason_return_name|2";
+        public const string kep_ppm_status = "0=ไม่ปลด/1=ปลด";   // สถานะปลดยอดเรียกเก็บ (scteldet monthly_return)
 
         // ─── HR ───────────────────────────────────────────────────────────────────
 

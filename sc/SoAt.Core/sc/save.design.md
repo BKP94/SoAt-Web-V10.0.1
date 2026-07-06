@@ -114,7 +114,7 @@ private async Task Save()
     finally { _saving = false; }
 }
 ```
-> `CreateApplicationAsync` + `UpdateApplicationAsync` + helper insert ทั้งหมด (~350 บรรทัด) → **ลบทิ้ง**. service เหลือเฉพาะ `GetLookupsAsync` / `GetApplicationAsync` / `GenApplicationFormNoAsync` + business hook จริง.
+> `CreateApplicationAsync` + `UpdateApplicationAsync` + helper insert ทั้งหมด (~350 บรรทัด) → **ลบทิ้ง**. service เหลือเฉพาะ `GetApplicationAsync` / `GenApplicationFormNoAsync` + business hook จริง (combo ไม่ต้อง preload ที่ service แล้ว — `<ScCombo>` + `sc.combo` โหลดเอง, `GetLookupsAsync` ถูกลบทั้ง sctelnewbma/scteldet).
 
 ---
 

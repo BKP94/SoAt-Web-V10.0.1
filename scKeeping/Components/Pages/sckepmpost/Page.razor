@@ -1,0 +1,10 @@
+@* ── sckepmpost — ประมวลผลผ่านรายการ (route) ─────────────────────────────────────────
+   legacy: scKeeping/sckepmpost/page.aspx → isMpost = true
+   render composite กลาง Sckepmpm ด้วย IsMpost="true" (share pageForm เดียวกับ sckepmproc) *@
+@page "/sckepmpost"
+@rendermode InteractiveServer
+@using scKeeping.Components.Pages.sckepmpm
+
+<PageTitle>ประมวลผลผ่านรายการ</PageTitle>
+
+<Sckepmpm IsMpost="true" />

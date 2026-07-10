@@ -1,0 +1,100 @@
+@using DevExpress.Blazor
+
+@* ── ScMessage — กล่องข้อความ modal กลางจอ (เลียน legacy sc.message) ──────────────────
+   ครบโหมดตาม legacy: Info / Success / Error / Alert / Confirm
+   host ในหน้าด้วย @ref แล้วเรียกแบบ imperative (เหมือน sc.message.ofError ใน legacy):
+       <ScMessage @ref="_msg" />
+       await _msg.Error("...");                 // กดตกลงปิด
+       if (await _msg.Confirm("ยืนยัน?")) { ... } // คืน true/false
+   ข้อความรองรับ HTML/ขึ้นบรรทัดใหม่ (\n → <br/>) ตาม legacy
+   ห้าม override DevExpress chrome — แตะแค่ layout (.sc-msg-* ใน app.css) *@
+
+<DxPopup Visible="_visible" VisibleChanged="OnVisibleChanged"
+         HeaderText="@_header" ShowFooter="true" ShowCloseButton="false"
+         CloseOnEscape="true" Width="440px"
+         CssClass="@($"sc-msg sc-msg--{_mode.ToString().ToLowerInvariant()}")">
+    <BodyContentTemplate>
+        <div class="sc-msg-body">
+            <span class="sc-msg-icon">@IconOf(_mode)</span>
+            <div class="sc-msg-text">@((MarkupString)_html)</div>
+        </div>
+    </BodyContentTemplate>
+    <FooterContentTemplate>
+        @if (_mode == ScMsgMode.Confirm)
+        {
+            <DxButton Text="ยกเลิก" RenderStyle="ButtonRenderStyle.Secondary"
+                      RenderStyleMode="ButtonRenderStyleMode.Outline" Click="() => Resolve(false)" />
+            <DxButton Text="ตกลง" RenderStyle="ButtonRenderStyle.Primary" Click="() => Resolve(true)" />
+        }
+        else
+        {
+            <DxButton Text="ตกลง" RenderStyle="ButtonRenderStyle.Primary" Click="() => Resolve(true)" />
+        }
+    </FooterContentTemplate>
+</DxPopup>
+
+@code {
+    public enum ScMsgMode { Info, Success, Error, Alert, Confirm }
+
+    private bool       _visible;
+    private ScMsgMode  _mode = ScMsgMode.Info;
+    private string     _html   = "";
+    private string     _header = "";
+    private TaskCompletionSource<bool>? _tcs;
+
+    // ── convenience (ชื่อ of* ตรง legacy sc.message) ─────────────────────────────
+    public Task<bool> Info   (string msg, string? header = null) => ShowAsync(ScMsgMode.Info,    msg, header);
+    public Task<bool> Success(string msg, string? header = null) => ShowAsync(ScMsgMode.Success, msg, header);
+    public Task<bool> Error  (string msg, string? header = null) => ShowAsync(ScMsgMode.Error,   msg, header);
+    public Task<bool> Alert  (string msg, string? header = null) => ShowAsync(ScMsgMode.Alert,   msg, header);
+    public Task<bool> Confirm(string msg, string? header = null) => ShowAsync(ScMsgMode.Confirm, msg, header);
+
+    /// แสดงกล่องข้อความ — คืน true เมื่อกด "ตกลง", false เมื่อกด "ยกเลิก"/ESC
+    public Task<bool> ShowAsync(ScMsgMode mode, string msg, string? header = null)
+    {
+        _tcs?.TrySetResult(false);   // มีกล่องค้างอยู่ → ปิดอันเดิมก่อน
+        _mode   = mode;
+        _html   = FormatHtml(msg);
+        _header = string.IsNullOrWhiteSpace(header) ? DefaultHeader(mode) : header!;
+        _tcs    = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        _visible = true;
+        StateHasChanged();
+        return _tcs.Task;
+    }
+
+    private void OnVisibleChanged(bool v)
+    {
+        _visible = v;
+        if (!v) Resolve(false);   // ปิดจากภายนอก (ESC/คลิกพื้นหลัง)
+    }
+
+    private void Resolve(bool result)
+    {
+        var tcs = _tcs;
+        _tcs = null;
+        _visible = false;
+        tcs?.TrySetResult(result);
+    }
+
+    // ขึ้นบรรทัดใหม่ → <br/> (ข้อความเป็น app-controlled เหมือน legacy ที่ใส่ HTML ได้)
+    private static string FormatHtml(string msg) =>
+        (msg ?? "").Replace("\r\n", "\n").Replace("\n", "<br/>");
+
+    private static string DefaultHeader(ScMsgMode m) => m switch
+    {
+        ScMsgMode.Success => "สำเร็จ",
+        ScMsgMode.Error   => "ผิดพลาด",
+        ScMsgMode.Alert   => "แจ้งเตือน",
+        ScMsgMode.Confirm => "ยืนยัน",
+        _                 => "ข้อมูล",
+    };
+
+    private static string IconOf(ScMsgMode m) => m switch
+    {
+        ScMsgMode.Success => "✔",
+        ScMsgMode.Error   => "✕",
+        ScMsgMode.Alert   => "⚠",
+        ScMsgMode.Confirm => "❓",
+        _                 => "ℹ",
+    };
+}

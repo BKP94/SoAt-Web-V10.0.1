@@ -31,6 +31,7 @@ namespace sc
         private readonly string _connectionString;
         private readonly string? _loginId;
         private readonly string? _loginBr;
+        private readonly string? _loginPc;
         private readonly ILogger? _logger;
         private int _counter;
 
@@ -38,13 +39,31 @@ namespace sc
         private static readonly ConcurrentDictionary<string, List<string>> _columnCache = new();
 
         // ─── Static init ─────────────────────────────────────────────────────────
-        static db() => DefaultTypeMap.MatchNamesWithUnderscores = true;
+        static db()
+        {
+            DefaultTypeMap.MatchNamesWithUnderscores = true;
+            // Dapper เวอร์ชันนี้ไม่รู้จัก DateOnly (throw "cannot be used as a parameter value")
+            // → ลง type handler ให้ bind เป็น NpgsqlDbType.Date ตรง signature PG `date`
+            //   (mproc proc ประกาศ adt_rec/adt_cal เป็น date; ส่ง DateTime = timestamp → 42883)
+            SqlMapper.AddTypeHandler(new DateOnlyTypeHandler());
+        }
 
-        public db(string connectionString, string? loginId = null, string? loginBr = null, ILogger? logger = null)
+        private sealed class DateOnlyTypeHandler : SqlMapper.TypeHandler<DateOnly>
+        {
+            public override void SetValue(IDbDataParameter parameter, DateOnly value)
+            {
+                parameter.Value = value;
+                if (parameter is NpgsqlParameter np) np.NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Date;
+            }
+            public override DateOnly Parse(object value) => DateOnly.FromDateTime((DateTime)value);
+        }
+
+        public db(string connectionString, string? loginId = null, string? loginBr = null, string? loginPc = null, ILogger? logger = null)
         {
             _connectionString = connectionString;
             _loginId = loginId;
             _loginBr = loginBr;
+            _loginPc = loginPc;
             _logger = logger ?? (sc.log._isActive ? null : null);
         }
 
@@ -65,6 +84,9 @@ namespace sc
                         cmd.ExecuteNonQuery();
                 if (!string.IsNullOrWhiteSpace(_loginBr))
                     using (var cmd = new NpgsqlCommand($"SET LOCAL app.login_br = '{_loginBr}'", _conn, _trans))
+                        cmd.ExecuteNonQuery();
+                if (!string.IsNullOrWhiteSpace(_loginPc))
+                    using (var cmd = new NpgsqlCommand($"SET LOCAL app.login_pc = '{_loginPc}'", _conn, _trans))
                         cmd.ExecuteNonQuery();
 
                 _dbState = dbExecuteState.None;
@@ -137,6 +159,11 @@ namespace sc
                 {
                     await using var cmd2 = new NpgsqlCommand($"SET LOCAL app.login_br = '{_loginBr}'", _conn, _trans);
                     await cmd2.ExecuteNonQueryAsync();
+                }
+                if (!string.IsNullOrWhiteSpace(_loginPc))
+                {
+                    await using var cmd3 = new NpgsqlCommand($"SET LOCAL app.login_pc = '{_loginPc}'", _conn, _trans);
+                    await cmd3.ExecuteNonQueryAsync();
                 }
 
                 _dbState = dbExecuteState.None;
@@ -353,8 +380,11 @@ namespace sc
 
             // สร้าง CALL proc(@param0, @param1, ...)
             var sql = spName;
-            if (!sql.Contains('(') && args != null && args.Length > 0)
-                sql += "(" + string.Join(",", Enumerable.Range(0, args.Length).Select(i => $"{{{i}}}")) + ")";
+            // PG procedure/function ต้องมีวงเล็บเสมอ แม้ไม่มี argument (zero-arg → "()")
+            if (!sql.Contains('('))
+                sql += "(" + (args is { Length: > 0 }
+                    ? string.Join(",", Enumerable.Range(0, args.Length).Select(i => $"{{{i}}}"))
+                    : "") + ")";
 
             var (finalSql, dp) = getSqlParams(sql, args);
             // PostgreSQL ใช้ CALL สำหรับ procedure, SELECT สำหรับ function
@@ -378,8 +408,11 @@ namespace sc
         {
             if (string.IsNullOrWhiteSpace(fnName)) throw new Exception("C811:Invalid Function Name");
             var sql = fnName;
-            if (!sql.Contains('(') && args != null && args.Length > 0)
-                sql += "(" + string.Join(",", Enumerable.Range(0, args.Length).Select(i => $"{{{i}}}")) + ")";
+            // PG procedure/function ต้องมีวงเล็บเสมอ แม้ไม่มี argument (zero-arg → "()")
+            if (!sql.Contains('('))
+                sql += "(" + (args is { Length: > 0 }
+                    ? string.Join(",", Enumerable.Range(0, args.Length).Select(i => $"{{{i}}}"))
+                    : "") + ")";
 
             // PostgreSQL: SELECT func() — ไม่ต้องมี FROM DUAL
             if (!sql.TrimStart().StartsWith("select", StringComparison.OrdinalIgnoreCase))
@@ -646,8 +679,11 @@ namespace sc
             _counter++;
             var logCode = $"[Procedure-{_counter}]";
             var sql = spName;
-            if (!sql.Contains('(') && args != null && args.Length > 0)
-                sql += "(" + string.Join(",", Enumerable.Range(0, args.Length).Select(i => $"{{{i}}}")) + ")";
+            // PG procedure CALL ต้องมีวงเล็บเสมอ แม้ไม่มี argument (zero-arg → "()")
+            if (!sql.Contains('('))
+                sql += "(" + (args is { Length: > 0 }
+                    ? string.Join(",", Enumerable.Range(0, args.Length).Select(i => $"{{{i}}}"))
+                    : "") + ")";
             var (finalSql, dp) = getSqlParams(sql, args ?? []);
             if (!finalSql.TrimStart().StartsWith("SELECT", StringComparison.OrdinalIgnoreCase)
              && !finalSql.TrimStart().StartsWith("CALL", StringComparison.OrdinalIgnoreCase))
@@ -666,8 +702,11 @@ namespace sc
         {
             if (string.IsNullOrWhiteSpace(fnName)) throw new Exception("C811:Invalid Function Name");
             var sql = fnName;
-            if (!sql.Contains('(') && args != null && args.Length > 0)
-                sql += "(" + string.Join(",", Enumerable.Range(0, args.Length).Select(i => $"{{{i}}}")) + ")";
+            // PG procedure/function ต้องมีวงเล็บเสมอ แม้ไม่มี argument (zero-arg → "()")
+            if (!sql.Contains('('))
+                sql += "(" + (args is { Length: > 0 }
+                    ? string.Join(",", Enumerable.Range(0, args.Length).Select(i => $"{{{i}}}"))
+                    : "") + ")";
             if (!sql.TrimStart().StartsWith("select", StringComparison.OrdinalIgnoreCase))
                 sql = "SELECT " + sql;
             return await getValueAsync(sql, args ?? []);
@@ -780,8 +819,11 @@ namespace sc
         private (string, DynamicParameters) buildFunctionSelect(string fnName, object?[] args)
         {
             var sql = fnName;
-            if (!sql.Contains('(') && args != null && args.Length > 0)
-                sql += "(" + string.Join(",", Enumerable.Range(0, args.Length).Select(i => $"{{{i}}}")) + ")";
+            // PG procedure/function ต้องมีวงเล็บเสมอ แม้ไม่มี argument (zero-arg → "()")
+            if (!sql.Contains('('))
+                sql += "(" + (args is { Length: > 0 }
+                    ? string.Join(",", Enumerable.Range(0, args.Length).Select(i => $"{{{i}}}"))
+                    : "") + ")";
             if (!sql.TrimStart().StartsWith("select", StringComparison.OrdinalIgnoreCase))
                 sql = "SELECT " + sql;
             return getSqlParams(sql, args ?? []);

@@ -1,0 +1,10 @@
+@* ── sckepmproc — ประมวลผลเรียกเก็บ (route) ───────────────────────────────────────────
+   legacy: scKeeping/sckepmproc/page.aspx → isMpost = false
+   render composite กลาง Sckepmpm ด้วย IsMpost="false" (เหมือน legacy ที่ 2 หน้า share pageForm) *@
+@page "/sckepmproc"
+@rendermode InteractiveServer
+@using scKeeping.Components.Pages.sckepmpm
+
+<PageTitle>ประมวลผลเรียกเก็บ</PageTitle>
+
+<Sckepmpm IsMpost="false" />

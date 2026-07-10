@@ -1,0 +1,25 @@
+@* ── PanOperate — แถบปุ่ม Operate (แนวตั้ง ขวาของหน้า) — New + Process ────────────────
+   legacy: panOperate.ascx (2 หน้าใช้คนละไฟล์ แต่ปุ่มเหมือนกัน ต่างที่ tooltip/label)
+   ยิง EventCallback กลับให้ Sckepmpm จัดการ (child ไม่ persist เอง) *@
+
+<div class="op-item">
+    <button type="button" class="op-btn" title="เริ่มใหม่" disabled="@Busy" @onclick="OnNew"><i class="bi bi-file-earmark-plus"></i></button>
+    <span class="op-btn-label">เริ่มใหม่</span>
+</div>
+
+<div class="op-item">
+    <button type="button" class="op-btn" title="@ProcTitle" disabled="@Busy" @onclick="OnProcess"><i class="bi bi-gear-wide-connected"></i></button>
+    <span class="op-btn-label">@ProcLabel</span>
+</div>
+
+@code {
+    /// true = หน้า mpost (ผ่านรายการ) / false = mproc (เรียกเก็บ)
+    [Parameter] public bool IsMpost { get; set; }
+    [Parameter] public bool Busy { get; set; }
+
+    [Parameter] public EventCallback OnNew     { get; set; }
+    [Parameter] public EventCallback OnProcess { get; set; }
+
+    private string ProcLabel => IsMpost ? "ผ่านรายการ" : "ประมวลผล";
+    private string ProcTitle => IsMpost ? "ประมวลผลผ่านรายการ" : "ประมวลผลเรียกเก็บ";
+}

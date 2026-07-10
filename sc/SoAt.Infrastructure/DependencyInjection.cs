@@ -3,10 +3,12 @@ using Microsoft.Extensions.DependencyInjection;
 using SoAt.Application.Auth;
 using SoAt.Application.Fin;
 using SoAt.Application.Sc;
+using SoAt.Application.ScKeeping;
 using SoAt.Application.ScTeller;
 using SoAt.Infrastructure.Auth;
 using SoAt.Infrastructure.Fin;
 using SoAt.Infrastructure.Sc;
+using SoAt.Infrastructure.ScKeeping;
 using SoAt.Infrastructure.ScTeller;
 
 namespace SoAt.Infrastructure;
@@ -34,6 +36,7 @@ public static class DependencyInjection
         services.AddScoped<IFinDailyService, FinDailyService>();
         services.AddScoped<ISctelnewbmaService, SctelnewbmaService>();
         services.AddScoped<IScteldetService, ScteldetService>();
+        services.AddScoped<ISckepmpmProcessService, SckepmpmProcessService>();
 
         return services;
     }

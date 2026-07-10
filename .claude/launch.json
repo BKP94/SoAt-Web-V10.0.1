@@ -24,6 +24,14 @@
       "env": { "ASPNETCORE_ENVIRONMENT": "Development" },
       "port": 5360,
       "autoPort": false
+    },
+    {
+      "name": "scKeeping",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "scKeeping", "--no-launch-profile", "--urls", "http://localhost:5310"],
+      "env": { "ASPNETCORE_ENVIRONMENT": "Development" },
+      "port": 5310,
+      "autoPort": false
     }
   ]
 }

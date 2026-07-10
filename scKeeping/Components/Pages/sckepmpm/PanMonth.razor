@@ -1,0 +1,193 @@
+@* ── PanMonth — ประจำเดือน + รูปแบบการประมวลผล (dumb component) ──────────────────────
+   legacy: panMonth.ascx(.cs) — ofNew / ofChangeMonthly / change_receipt_date / of_get_member_name
+   แก้ field ลงบน Form (reference ร่วม), ยิงคำนวณวันที่ผ่าน SckepmpmDates (guard Phase 3)
+   วันที่ทั้งหมด display เป็น พ.ศ. ผ่าน sc.value.toStringTH / เก็บ ค.ศ. (DateTime?) ผ่าน sc.value.toDate
+     · วันที่ใบเสร็จ (receipt_date) = แก้ได้  → recompute วันที่คิดดอก (mproc)
+     · วันที่คิดดอก (calint_date, mproc) / วันที่ผ่านรายการ (post_date, mpost) = read-only
+   รูปแบบ (proc_mode) A/G/M/K:
+     · K → combo กลุ่มประมวลผล (sc_mem_m_ucf_coop_control)
+     · G → combo หน่วยสมาชิก + กลุ่มย่อย (sc_mem_m_ucf_member_group2 ทั้งคู่ — ตรง legacy)
+     · M → กรอกรหัสสมาชิก → scCoop.ofParse + getFullName (แสดงชื่อ) *@
+
+@using sc
+@inject sc.dbFactory DbFactory
+
+<DxFormLayout>
+    <DxFormLayoutGroup Caption="ประจำเดือน" ColSpanMd="12" Expandable="false">
+        <DxFormLayoutItem Caption="ปี (พ.ศ.)" ColSpanMd="4">
+            <ScInput TValue="int?" Value="Form.receive_year" ValueChanged="OnYearChanged"
+                     Col="@sc.css.col.Year" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="เดือน" ColSpanMd="4">
+            <DxComboBox Data="_months" Value="Form.receive_month" ValueChanged="OnMonthChanged"
+                        ValueFieldName="@nameof(MonthItem.No)" TextFieldName="@nameof(MonthItem.Name)"
+                        TData="MonthItem" TValue="int?" NullText="กรุณาเลือก" />
+        </DxFormLayoutItem>
+        @if (IsMpost)
+        {
+            <DxFormLayoutItem Caption="วันที่ผ่านรายการ" ColSpanMd="4">
+                <span class="nb-ro">@Th(Form.post_date)</span>
+            </DxFormLayoutItem>
+        }
+        <DxFormLayoutItem Caption="วันที่ใบเสร็จ" ColSpanMd="4">
+            <ScInput TValue="string" Value="ReceiptText" ValueChanged="OnReceiptChanged"
+                     NullText="วว/ดด/ปปปป (พ.ศ.)" />
+        </DxFormLayoutItem>
+        @if (!IsMpost)
+        {
+            <DxFormLayoutItem Caption="วันที่คิดดอก" ColSpanMd="4">
+                <span class="nb-ro">@Th(Form.calint_date)</span>
+            </DxFormLayoutItem>
+        }
+    </DxFormLayoutGroup>
+
+    <DxFormLayoutGroup Caption="รูปแบบการประมวลผล" ColSpanMd="12" Expandable="false">
+        <DxFormLayoutItem Caption="รูปแบบ" ColSpanMd="4">
+            <ScCombo Combo="@ModeCombo" Value="Form.proc_mode" ValueChanged="OnModeChanged"
+                     NullText="กรุณาเลือก" />
+        </DxFormLayoutItem>
+
+        @* K = กลุ่มประมวลผล *@
+        @if (Form.proc_mode == "K")
+        {
+            <DxFormLayoutItem Caption=" " ColSpanMd="4">
+                <ScCombo Combo="@sc.combo.sc_mem_m_ucf_coop_control" @bind-Value="Form.proc_value_1"
+                         NullText="กลุ่มประมวลผล" />
+            </DxFormLayoutItem>
+        }
+
+        @* G = ตามหน่วยสมาชิก (หน่วย + กลุ่มย่อย ใช้ member_group2 ทั้งคู่ ตาม legacy) *@
+        @if (Form.proc_mode == "G")
+        {
+            <DxFormLayoutItem Caption=" " ColSpanMd="4">
+                <ScCombo Combo="@sc.combo.sc_mem_m_ucf_member_group2" @bind-Value="Form.proc_value_1"
+                         NullText="หน่วยสมาชิก" />
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption=" " ColSpanMd="4">
+                <ScCombo Combo="@sc.combo.sc_mem_m_ucf_member_group2" @bind-Value="Form.proc_value_2"
+                         NullText="กลุ่มย่อย" />
+            </DxFormLayoutItem>
+        }
+
+        @* M = ตามรหัสสมาชิก (กรอกเลข → ค้นชื่อ) *@
+        @if (Form.proc_mode == "M")
+        {
+            <DxFormLayoutItem Caption=" " ColSpanMd="4">
+                <ScInput TValue="string" Value="Form.proc_value_1" ValueChanged="OnMemberChanged"
+                         NullText="รหัสสมาชิก" />
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="ชื่อสมาชิก" ColSpanMd="8">
+                <span class="nb-ro">@(string.IsNullOrWhiteSpace(Form.member_name) ? "—" : Form.member_name)</span>
+            </DxFormLayoutItem>
+        }
+    </DxFormLayoutGroup>
+</DxFormLayout>
+
+@code {
+    [Parameter, EditorRequired] public SckepmpmForm Form { get; set; } = default!;
+    [Parameter] public bool IsMpost { get; set; }
+
+    // ScMessage cascade จาก composite — แจ้ง "ไม่พบทะเบียนสมาชิก" ตอนค้น (M)
+    [CascadingParameter] public ScMessage? Msg { get; set; }
+
+    // proc_mode static (ตรง legacy panMonth.ascx: A/G/M/K) — สร้างใน @code เลี่ยง '<' ใน attribute
+    private const string ModeCombo = "A=<ทั้งหมด>/G=ตามหน่วยสมาชิก/M=ตามรหัสสมาชิก/K=ตามกลุ่มประมวลผล";
+
+    // วันที่ใบเสร็จ = พร็อกซี string (พ.ศ. display) ↔ Form.receipt_date (ค.ศ. store)
+    private string? ReceiptText => sc.value.toStringTH(Form.receipt_date);
+
+    private static string Th(DateTime? d)
+    {
+        var s = sc.value.toStringTH(d);
+        return string.IsNullOrEmpty(s) ? "—" : s;
+    }
+
+    // ── เปลี่ยนปี/เดือน → คำนวณวันที่ใหม่ (legacy change_receive_* → ofChangeMonthly) ──
+    private async Task OnYearChanged(int? v)
+    {
+        Form.receive_year = v;
+        await RecomputeMonthlyAsync();
+    }
+
+    private async Task OnMonthChanged(int? v)
+    {
+        Form.receive_month = v;
+        await RecomputeMonthlyAsync();
+    }
+
+    private async Task RecomputeMonthlyAsync()
+    {
+        var year  = (Form.receive_year ?? 543) - 543;   // พ.ศ. → ค.ศ.
+        var month = Form.receive_month ?? 0;
+        if (year <= 0 || month <= 0) return;
+
+        await using var db = DbFactory.create();
+        Form.receipt_date = await SckepmpmDates.WorkingReceiptAsync(db, year, month);
+        Form.calint_date  = await SckepmpmDates.WorkingCalintAsync(db, year, month);
+        if (IsMpost) Form.post_date = Form.calint_date;   // legacy: cp_post_date = cp_calint_date
+    }
+
+    // ── แก้วันที่ใบเสร็จ → คิดวันคิดดอกใหม่ (mproc เท่านั้น — legacy change_receipt_date) ──
+    private async Task OnReceiptChanged(string? v)
+    {
+        Form.receipt_date = sc.value.toDate(v) as DateTime?;
+        if (!IsMpost && Form.receipt_date.HasValue)
+        {
+            await using var db = DbFactory.create();
+            Form.calint_date = await SckepmpmDates.WorkingCalintByDateAsync(db, Form.receipt_date.Value);
+        }
+    }
+
+    // ── เปลี่ยนรูปแบบ → ล้างค่า proc_value/ชื่อสมาชิก (legacy change_proc_mode) ──
+    private void OnModeChanged(string? v)
+    {
+        Form.proc_mode    = v;
+        Form.proc_value_1 = null;
+        Form.proc_value_2 = null;
+        Form.member_name  = null;
+    }
+
+    // ── กรอกรหัสสมาชิก → ค้นชื่อ (legacy of_get_member_name: scCoop.ofParse + getFullName) ──
+    private async Task OnMemberChanged(string? v)
+    {
+        Form.proc_value_1 = v;
+        Form.member_name  = null;
+        if (string.IsNullOrWhiteSpace(v)) return;
+
+        try
+        {
+            await using var db = DbFactory.create();
+            var coop   = new sc.scCoop(db);
+            var memno  = coop.ofParse(v);          // เติม 0 หน้า + throw E43 ถ้าไม่พบ
+            Form.proc_value_1 = memno;
+            Form.member_name  = coop.getFullName(memno);
+            // NOTE (deferred): legacy ยังดึง calint/receipt เดิมของงวด (cp_kep_date) มาโชว์ client-side
+            //   — เป็นข้อมูลประกอบ ไม่กระทบ engine → เติมภายหลังถ้าต้องการ
+        }
+        catch (Exception ex)
+        {
+            Form.member_name = null;
+            if (Msg is not null) await Msg.Error(CleanMsg(ex.Message));
+        }
+    }
+
+    // "E43:ไม่พบทะเบียนสมาชิก ,000123" → "ไม่พบทะเบียนสมาชิก"
+    private static string CleanMsg(string m)
+    {
+        var t = m ?? "";
+        var colon = t.IndexOf(':');
+        if (colon is >= 0 and <= 5) t = t[(colon + 1)..];
+        var comma = t.LastIndexOf(',');
+        if (comma >= 0) t = t[..comma];
+        return t.Trim();
+    }
+
+    private static readonly MonthItem[] _months =
+    {
+        new(1,"มกราคม"), new(2,"กุมภาพันธ์"), new(3,"มีนาคม"), new(4,"เมษายน"),
+        new(5,"พฤษภาคม"), new(6,"มิถุนายน"), new(7,"กรกฎาคม"), new(8,"สิงหาคม"),
+        new(9,"กันยายน"), new(10,"ตุลาคม"), new(11,"พฤศจิกายน"), new(12,"ธันวาคม"),
+    };
+
+    public sealed record MonthItem(int No, string Name);
+}

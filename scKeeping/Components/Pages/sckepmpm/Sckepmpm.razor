@@ -1,0 +1,268 @@
+@* ── Sckepmpm — composite กลางของ 2 หน้า (ประมวลผลเรียกเก็บ / ผ่านรายการ) ────────────
+   legacy: pageForm.ascx โหลด panMonth + panItem + panOperate ร่วมกัน แล้วแยกพฤติกรรม
+   ด้วย isMpost = Request.Url.Contains("/sckepmpost/")  →  ที่นี่ใช้ [Parameter] IsMpost
+   Sckepmpm = เจ้าของ model + lookups + ScMessage/ScLoading ตัวเดียว, ส่งลง child เป็น reference ร่วม
+   (child = dumb component). PanOperate ยิง EventCallback กลับให้ที่นี่จัดการ
+   ⚠️ Phase 1: โหลด UI + default จริงจาก DB แล้ว — ปุ่มประมวลผลยัง stub (engine ทำ Phase 2/3) *@
+
+@using sc
+@using System.Security.Claims
+@using SoAt.Application.ScKeeping
+@inject sc.dbFactory DbFactory
+@inject ISckepmpmProcessService Svc
+
+<div class="nb-titlebar">
+    <div>
+        <h1 class="nb-title">@Title</h1>
+        <div class="nb-sub">@Subtitle</div>
+    </div>
+</div>
+
+@if (!_loaded)
+{
+    <div class="nb-loading">กำลังโหลดข้อมูล…</div>
+}
+else
+{
+    @* cascade ScMessage ลง child (PanMonth ใช้แจ้ง "ไม่พบทะเบียนสมาชิก" ตอน lookup) *@
+    <CascadingValue Value="_msg" IsFixed="false">
+        <PageRegions>
+            <HeaderContent>
+                <PanMonth Form="_form" IsMpost="IsMpost" />
+            </HeaderContent>
+            <DetailContent>
+                <PanItem Form="_form" Lookups="_lookups" IsMpost="IsMpost" />
+            </DetailContent>
+            <OperateContent>
+                <PanOperate IsMpost="IsMpost" Busy="_busy"
+                            OnNew="OnNew" OnProcess="OnProcess" />
+            </OperateContent>
+        </PageRegions>
+    </CascadingValue>
+}
+
+<ScMessage @ref="_msg" />
+<ScLoading @ref="_loading" />
+
+@code {
+    /// true = หน้า "ผ่านรายการ" (sckepmpost) / false = "เรียกเก็บ" (sckepmproc)
+    [Parameter] public bool IsMpost { get; set; }
+
+    [CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
+
+    private readonly SckepmpmForm    _form    = new();
+    private readonly SckepmpmLookups _lookups = new();
+    private ScMessage? _msg;
+    private ScLoading? _loading;
+    private bool _busy;
+    private bool _loaded;
+
+    private string _userId   = "";
+    private string _branchId = "";
+
+    private string Title    => IsMpost ? "ประมวลผลผ่านรายการ" : "ประมวลผลเรียกเก็บ";
+    private string Subtitle => IsMpost
+        ? "ผ่านรายการเรียกเก็บประจำเดือนเข้าบัญชีสมาชิก"
+        : "ประมวลผลเรียกเก็บประจำเดือน (หุ้น/หนี้/ฝาก/ค่าธรรมเนียม/ประกัน)";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // ผู้ทำรายการ (audit + session vars) — ClaimTypes.NameIdentifier = login_id (ไม่ใช่ Identity.Name ที่ยาวเกิน)
+        if (AuthState is not null)
+        {
+            var user = (await AuthState).User;
+            _userId   = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
+            _branchId = user.FindFirst("branch_id")?.Value ?? "";
+        }
+
+        await LoadItemsAsync();     // keep_method + gvItem (คงที่ต่อหน้า)
+        await LoadDefaultsAsync();  // ปี/เดือน/วันที่ + reset proc (เลียน panMonth.ofNew)
+        _loaded = true;
+    }
+
+    // _msg ถูก assign ผ่าน @ref หลัง render แรก → re-render ครั้งเดียวให้ cascade ส่ง instance ถึง child
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender) StateHasChanged();
+    }
+
+    // ── โหลด keep_method + รายการประมวลผล (legacy panItem.ofNew) ────────────────────
+    private async Task LoadItemsAsync()
+    {
+        await using var db = DbFactory.create();
+
+        // วิธีเรียกเก็บ: sc_lon_m_ucf_install_method (active_status='1' order sort_order)
+        _lookups.KeepMethods = await db.getComboAsync(
+            "select item_type as item_code, item_desc as item_desc from sc_lon_m_ucf_install_method where active_status = '1' order by sort_order");
+        // legacy: มีวิธีเดียว → ล็อก + auto-select
+        _lookups.KeepMethodLocked = _lookups.KeepMethods.Count == 1;
+        _form.keep_method = _lookups.KeepMethodLocked ? _lookups.KeepMethods[0].Code : null;
+
+        // gvItem: dsMproc / dsMpost over sc_kep_m_ucf_process
+        //   decode(proc_code,'REP',1,0) → case ... (REP อยู่ท้ายใน mproc), (col='1') → bool selected
+        var sql = IsMpost
+            ? @"select proc_code, proc_detail, (month_post_default = '1') as selected
+                from sc_kep_m_ucf_process
+                where month_post = '1'
+                order by (case when order_no > 0 then order_no else 0 end), proc_code"
+            : @"select proc_code, proc_detail, (month_proc_default = '1') as selected
+                from sc_kep_m_ucf_process
+                where month_proc = '1'
+                order by case when proc_code = 'REP' then 1 else 0 end,
+                         (case when order_no > 0 then order_no else 0 end), proc_code";
+        _form.Items = await db.getListAsync<ProcItem>(sql);
+
+        // default → ติ๊กเลือก (legacy: loop SelectRow เมื่อ SELECTED)
+        _form.SelectedItems = _form.Items.Where(i => i.selected).ToList();
+    }
+
+    // ── default ปี/เดือน/วันที่ (legacy panMonth.ofNew) ─────────────────────────────
+    private async Task LoadDefaultsAsync()
+    {
+        await using var db = DbFactory.create();
+
+        // ปี/เดือน = งวดล่าสุด (max receipt_date ใน sc_kep_m_monthly_process)
+        var recDate = sc.value.toDate(await db.getValueAsync(
+            "select max(receipt_date) from sc_kep_m_monthly_process")) as DateTime?;
+        if (recDate.HasValue)
+        {
+            _form.receive_year  = recDate.Value.Year + 543;   // แสดง พ.ศ.
+            _form.receive_month = recDate.Value.Month;
+        }
+        else
+        {
+            _form.receive_year  = null;
+            _form.receive_month = null;
+        }
+
+        var year  = (_form.receive_year ?? 543) - 543;        // เก็บเป็น ค.ศ.
+        var month = _form.receive_month ?? 0;
+
+        _form.receipt_date = await SckepmpmDates.WorkingReceiptAsync(db, year, month);
+        _form.calint_date  = await SckepmpmDates.WorkingCalintAsync(db, year, month);
+
+        _form.proc_mode    = null;
+        _form.proc_value_1 = null;
+        _form.proc_value_2 = null;
+        _form.member_name  = null;
+
+        if (IsMpost && recDate.HasValue)
+        {
+            // วันที่ผ่านรายการ = receipt_date ของงวดใน sc_kep_m_monthly_process
+            _form.post_date = sc.value.toDate(await db.getValueAsync(
+                "select receipt_date from sc_kep_m_monthly_process where receive_year = {0} and receive_month = {1}",
+                year, month)) as DateTime?;
+        }
+        else
+        {
+            _form.post_date = null;
+        }
+    }
+
+    // ── New: โหลด default ใหม่ + ติ๊ก default rows ใหม่ (legacy CallbackPage NEW → ofNew) ──
+    private async Task OnNew()
+    {
+        await LoadDefaultsAsync();
+        _form.keep_method   = _lookups.KeepMethodLocked ? _lookups.KeepMethods[0].Code : null;
+        _form.SelectedItems = _form.Items.Where(i => i.selected).ToList();
+        StateHasChanged();
+    }
+
+    // ── Process: port ตรงจาก legacy page.js ofProc (validate → compose proc_value → confirm → run) ──
+    //   engine (orchestration) = ISckepmpmProcessService.ProcessAsync (Phase 2) เรียก PL (Phase 3)
+    //   หมายเหตุ: legacy J-prefix (JavaScript) → เปลี่ยนเป็น C-prefix (sc.msg.C) ตามกฎ project (Blazor ไม่มี JS layer)
+    private async Task OnProcess()
+    {
+        if (_msg is null || _loading is null || _busy) return;
+
+        var procMode = _form.proc_mode ?? "";
+        var v1 = (_form.proc_value_1 ?? "").Trim();
+        var v2 = (_form.proc_value_2 ?? "").Trim();
+
+        // ── validate (page.js ofProc) ────────────────────────────────────────────────
+        if (procMode.Length == 0)
+        {
+            await _msg.Error(sc.msg.C("กรุณาระบุ [รูปแบบการประมวลผล]"));
+            return;
+        }
+        if (procMode != "A" && v1.Length == 0)
+        {
+            await _msg.Error(sc.msg.C("กรุณาระบุ [ ค่าที่ต้องใช้ประมวลผล ]"));
+            return;
+        }
+        if (procMode == "G" && v2.Length == 0)
+        {
+            await _msg.Error(sc.msg.C("กรุณาระบุ [ ค่าที่ต้องใช้ประมวลผล ]"));
+            return;
+        }
+
+        // ── compose proc_value (G = v1-v2 พร้อม fallback ข้างเดียว, อื่นๆ = v1) ─────────
+        string procValue;
+        if (procMode == "G")
+        {
+            if (v1.Length > 0 && v2.Length > 0) procValue = v1 + "-" + v2;
+            else if (v1.Length > 0)             procValue = v1;
+            else if (v2.Length > 0)             procValue = v2;
+            else                                procValue = "";
+        }
+        else
+        {
+            procValue = v1;
+        }
+
+        // ── รายการที่ติ๊กเลือก (เรียงตามลำดับใน gvItem — เหมือน GetSelectedKeysOnPage) ───
+        var selectedCodes = new HashSet<string>(_form.SelectedItems.Select(i => i.proc_code));
+        var procSelected  = _form.Items.Where(i => selectedCodes.Contains(i.proc_code))
+                                       .Select(i => i.proc_code).ToList();
+
+        // mpost: ต้องเลือกอย่างน้อย 1 รายการ (legacy J66)
+        if (IsMpost && procSelected.Count == 0)
+        {
+            await _msg.Error(sc.msg.C("กรุณาเลือกรายการที่จะประมวลผล"));
+            return;
+        }
+
+        // ── ยืนยัน (ข้อความตรง page.js) ───────────────────────────────────────────────
+        var confirmMsg = IsMpost
+            ? $"เริ่มประมวลผล [ประมวลผลผ่านรายการ] วันที่ผ่านรายการ : {sc.value.toStringTH(_form.post_date)} ใช่หรือไม่ ?"
+            : $"เริ่มประมวลผล [ประมวลผลเรียกเก็บ] ประจำงวด : {_form.receive_month}/{_form.receive_year} ใช่หรือไม่ ?";
+
+        if (!await _msg.Confirm(confirmMsg)) return;
+
+        // ── build request (ปี พ.ศ.→ค.ศ. ก่อนส่ง engine) ───────────────────────────────
+        var req = new SckepmpmProcessRequest
+        {
+            IsMpost        = IsMpost,
+            ReceiveYear    = (_form.receive_year ?? 543) - 543,   // ค.ศ.
+            ReceiveMonth   = _form.receive_month ?? 0,
+            ReceiptDate    = _form.receipt_date.GetValueOrDefault(),
+            CalintDate     = _form.calint_date.GetValueOrDefault(),
+            PostDate       = _form.post_date.GetValueOrDefault(),
+            ProcMode       = procMode,
+            ProcValue      = procValue,
+            KeepMethod     = _form.keep_method,
+            ProcSelected   = procSelected,
+            AllKeepMethods = _lookups.KeepMethods.Select(k => k.Code).ToList(),
+        };
+
+        // ── run (จับเวลาแบบ legacy → แสดง [usedTime] ท้ายข้อความสำเร็จ) ─────────────────
+        _busy = true;
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        try
+        {
+            await _loading.RunAsync(() => Svc.ProcessAsync(req, _userId, _branchId), "กำลังประมวลผล…");
+            sw.Stop();
+            var used = $"{(int)sw.Elapsed.TotalMinutes:00}:{sw.Elapsed.Seconds:00}";
+            await _msg.Success($"ประมวลผลข้อมูลเสร็จสมบูรณ์ [{used}]");
+        }
+        catch (Exception ex)
+        {
+            sc.log.addLine($"[sckepmpm] process error: {ex}");
+            await _msg.Error(ex.Message);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

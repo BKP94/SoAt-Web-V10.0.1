@@ -1,0 +1,40 @@
+@* ── PageRegions ─────────────────────────────────────────────────────────────────
+   Layout มาตรฐานของทุกเมนู (ตาม wireframe):
+     ┌─────────────────────────┬──────────┐
+     │ Header                   │          │
+     ├─────────────────────────┤ Operate  │
+     │ Detail                   │ (แนวตั้ง) │
+     ├─────────────────────────┤          │
+     │ Tabs                     │          │
+     └─────────────────────────┴──────────┘
+   ส่งเฉพาะ region ที่ต้องการ — region ไหนไม่ส่งจะไม่ render (เช่น sctelnewbma ไม่มี Detail)
+   *@
+
+<div class="pr-grid @(OperateContent is null ? "pr-grid--no-operate" : null)">
+    <div class="pr-main">
+        @if (HeaderContent is not null)
+        {
+            <section class="pr-region pr-header">@HeaderContent</section>
+        }
+        @if (DetailContent is not null)
+        {
+            <section class="pr-region pr-detail">@DetailContent</section>
+        }
+        @if (TabsContent is not null)
+        {
+            <section class="pr-region pr-tabs">@TabsContent</section>
+        }
+    </div>
+
+    @if (OperateContent is not null)
+    {
+        <aside class="pr-operate">@OperateContent</aside>
+    }
+</div>
+
+@code {
+    [Parameter] public RenderFragment? HeaderContent  { get; set; }
+    [Parameter] public RenderFragment? DetailContent  { get; set; }
+    [Parameter] public RenderFragment? TabsContent     { get; set; }
+    [Parameter] public RenderFragment? OperateContent { get; set; }
+}

@@ -75,9 +75,9 @@
     // module นี้ (folder/namespace ตรง legacy)
     private const string AppName = "scKeeping";
 
-    // route ที่ migrate เสร็จแล้ว — นอกเหนือจากนี้ขึ้นเมนูแต่ disabled (ยังไม่ migrate หน้าใด → มีแค่ "/")
+    // route ที่ migrate เสร็จแล้ว — นอกเหนือจากนี้ขึ้นเมนูแต่ disabled
     private static readonly HashSet<string> _implemented =
-        new(StringComparer.OrdinalIgnoreCase) { "/" };
+        new(StringComparer.OrdinalIgnoreCase) { "/", "/sckepmproc", "/sckepmpost" };
 
     private List<ScMenuItemDto> _top = [];
     private Dictionary<int, List<ScMenuItemDto>> _childrenByGroup = [];   // groupIndex → children

@@ -62,7 +62,10 @@ builder.Services.AddCascadingAuthenticationState();
 var app = builder.Build();
 
 // โ”€โ”€ Init sc core library โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
-sc.log.init(app.Services.GetRequiredService<ILoggerFactory>());
+// file sink: logs\scKeeping-{yyyyMMdd}.txt ที่ root solution (ตาม legacy sc\log.cs เขียน {pathSolution}\logs)
+sc.log.init(app.Services.GetRequiredService<ILoggerFactory>(),
+    builder.Environment.ApplicationName,
+    Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath, "..", "logs")));
 sc.app.init(builder.Configuration);
 
 // โ”€โ”€ HTTP pipeline โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€

@@ -24,6 +24,38 @@ namespace sc
         /// <remarks>loginPc = client_pc (รหัสเครื่อง) → current_setting('app.login_pc') ใช้แยก scope
         /// sc_kep_m_monthly_mtarget ตอนประมวลผลส่งหัก (pka_com_function.fp_login_pc)</remarks>
         public db create(string? loginId = null, string? loginBr = null, string? loginPc = null)
-            => new db(_connectionString, loginId, loginBr, loginPc);
+        {
+            // log file gate ตาม legacy sc\log.cs setActive():
+            //   select programmer from si_security_user where user_id = ... → เขียน log เฉพาะ programmer
+            sc.log.setUserActive(isProgrammer(loginId));
+            return new db(_connectionString, loginId, loginBr, loginPc);
+        }
+
+        // cache ผล programmer ต่อ user (query ครั้งแรกครั้งเดียว) — ไม่ cache ตอน query fail
+        // เพื่อให้ DB กลับมาแล้วตรวจใหม่ได้ ไม่ติด false ค้าง
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, bool> _programmerCache = new();
+
+        private bool isProgrammer(string? loginId)
+        {
+            if (string.IsNullOrWhiteSpace(loginId)) return false;
+            if (_programmerCache.TryGetValue(loginId, out var cached)) return cached;
+
+            try
+            {
+                using var conn = new Npgsql.NpgsqlConnection(_connectionString);
+                conn.Open();
+                using var cmd = new Npgsql.NpgsqlCommand(
+                    "select programmer from si_security_user where user_id = @id", conn);
+                cmd.Parameters.AddWithValue("id", loginId);
+                var flag = sc.value.toBoolean(cmd.ExecuteScalar());
+                _programmerCache.TryAdd(loginId, flag);
+                return flag;
+            }
+            catch
+            {
+                // DB ยังไม่พร้อม → ปิด log ไว้ก่อน (ไม่ cache) — อย่าให้ create ล้มเพราะ log gate
+                return false;
+            }
+        }
     }
 }

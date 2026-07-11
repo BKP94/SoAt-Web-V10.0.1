@@ -78,8 +78,10 @@ public class SckepmpmProcessService(sc.dbFactory dbFactory) : ISckepmpmProcessSe
 
             await db.ofConnectionCloseAsync("Sckepmpm-Run");   // commit
         }
-        catch
+        catch (Exception ex)
         {
+            // log full exception ตรงนี้ (in-flow ของ programmer gate — AsyncLocal ไม่ไหลกลับถึง catch ฝั่ง razor)
+            sc.log.addLine($"[sckepmpm] run error: {ex}");
             // pkProcedureAsync ไม่ set _dbState=Failure เอง → บังคับ rollback กันงานค้าง commit บางส่วน
             await db.ofConnectionCloseAsync("Sckepmpm-Run-Error", onError: true);
             throw;

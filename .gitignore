@@ -26,3 +26,6 @@ Thumbs.db
 
 # SQL migrations (apply เข้า PG จริง แต่ไม่ track — PG = source of truth)
 sql/
+
+# Runtime logs (sc.log file sink — ไฟล์ log ตอนรัน ไม่ track)
+logs/

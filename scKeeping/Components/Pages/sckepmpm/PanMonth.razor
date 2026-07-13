@@ -13,30 +13,31 @@
 @inject sc.dbFactory DbFactory
 
 <DxFormLayout>
+    @* จัดคู่ 2 คอลัมน์ตามจอ legacy: ปี|วันที่ใบเสร็จ / เดือน|วันที่คิดดอก (mpost: เดือน|วันที่ผ่านรายการ) *@
     <DxFormLayoutGroup Caption="ประจำเดือน" ColSpanMd="12" Expandable="false">
-        <DxFormLayoutItem Caption="ปี (พ.ศ.)" ColSpanMd="4">
+        <DxFormLayoutItem Caption="ปี" ColSpanMd="6">
             <ScInput TValue="int?" Value="Form.receive_year" ValueChanged="OnYearChanged"
                      Col="@sc.css.col.Year" />
         </DxFormLayoutItem>
-        <DxFormLayoutItem Caption="เดือน" ColSpanMd="4">
+        <DxFormLayoutItem Caption="วันที่ใบเสร็จ" ColSpanMd="6">
+            <ScInput TValue="string" Value="ReceiptText" ValueChanged="OnReceiptChanged"
+                     NullText="วว/ดด/ปปปป (พ.ศ.)" />
+        </DxFormLayoutItem>
+        <DxFormLayoutItem Caption="เดือน" ColSpanMd="6">
             <DxComboBox Data="_months" Value="Form.receive_month" ValueChanged="OnMonthChanged"
                         ValueFieldName="@nameof(MonthItem.No)" TextFieldName="@nameof(MonthItem.Name)"
                         TData="MonthItem" TValue="int?" NullText="กรุณาเลือก" />
         </DxFormLayoutItem>
         @if (IsMpost)
         {
-            <DxFormLayoutItem Caption="วันที่ผ่านรายการ" ColSpanMd="4">
-                <span class="nb-ro">@Th(Form.post_date)</span>
+            <DxFormLayoutItem Caption="วันที่ผ่านรายการ" ColSpanMd="6">
+                <DxTextBox Text="@Th(Form.post_date)" Enabled="false" />
             </DxFormLayoutItem>
         }
-        <DxFormLayoutItem Caption="วันที่ใบเสร็จ" ColSpanMd="4">
-            <ScInput TValue="string" Value="ReceiptText" ValueChanged="OnReceiptChanged"
-                     NullText="วว/ดด/ปปปป (พ.ศ.)" />
-        </DxFormLayoutItem>
-        @if (!IsMpost)
+        else
         {
-            <DxFormLayoutItem Caption="วันที่คิดดอก" ColSpanMd="4">
-                <span class="nb-ro">@Th(Form.calint_date)</span>
+            <DxFormLayoutItem Caption="วันที่คิดดอก" ColSpanMd="6">
+                <DxTextBox Text="@Th(Form.calint_date)" Enabled="false" />
             </DxFormLayoutItem>
         }
     </DxFormLayoutGroup>
@@ -47,10 +48,18 @@
                      NullText="กรุณาเลือก" />
         </DxFormLayoutItem>
 
+        @* ยังไม่เลือกโหมด (หรือ A=ทั้งหมด ไม่ต้องระบุค่า) → คงกล่อง combo ว่าง (ล็อก) ตามจอ legacy *@
+        @if (Form.proc_mode is not ("K" or "G" or "M"))
+        {
+            <DxFormLayoutItem Caption=" " ColSpanMd="8">
+                <DxComboBox Data="_noneItems" TData="string" TValue="string" Enabled="false" />
+            </DxFormLayoutItem>
+        }
+
         @* K = กลุ่มประมวลผล *@
         @if (Form.proc_mode == "K")
         {
-            <DxFormLayoutItem Caption=" " ColSpanMd="4">
+            <DxFormLayoutItem Caption=" " ColSpanMd="8">
                 <ScCombo Combo="@sc.combo.sc_mem_m_ucf_coop_control" @bind-Value="Form.proc_value_1"
                          NullText="กลุ่มประมวลผล" />
             </DxFormLayoutItem>
@@ -77,7 +86,8 @@
                          NullText="รหัสสมาชิก" />
             </DxFormLayoutItem>
             <DxFormLayoutItem Caption="ชื่อสมาชิก" ColSpanMd="8">
-                <span class="nb-ro">@(string.IsNullOrWhiteSpace(Form.member_name) ? "—" : Form.member_name)</span>
+                <DxTextBox @bind-Text="Form.member_name" ReadOnly></DxTextBox>
+                @* <span class="nb-ro">@(string.IsNullOrWhiteSpace(Form.member_name) ? "—" : Form.member_name)</span> *@
             </DxFormLayoutItem>
         }
     </DxFormLayoutGroup>
@@ -92,6 +102,9 @@
 
     // proc_mode static (ตรง legacy panMonth.ascx: A/G/M/K) — สร้างใน @code เลี่ยง '<' ใน attribute
     private const string ModeCombo = "A=<ทั้งหมด>/G=ตามหน่วยสมาชิก/M=ตามรหัสสมาชิก/K=ตามกลุ่มประมวลผล";
+
+    // list ว่างของ combo ล็อกคู่ "รูปแบบ" (คงโครง 2 ช่องเสมอตามจอ legacy)
+    private static readonly string[] _noneItems = System.Array.Empty<string>();
 
     // วันที่ใบเสร็จ = พร็อกซี string (พ.ศ. display) ↔ Form.receipt_date (ค.ศ. store)
     private string? ReceiptText => sc.value.toStringTH(Form.receipt_date);

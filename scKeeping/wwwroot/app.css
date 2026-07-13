@@ -444,6 +444,21 @@ a.home-card:hover {
     .po-fields { grid-template-columns: 1fr 1fr; }
 }
 
+/* ── sckepmpm — 2 คอลัมน์ (ซ้าย: วิธีเรียกเก็บ+รายการประมวลผล / ขวา: ประจำเดือน+รูปแบบ) ── */
+.km-cols {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    gap: 18px;
+    align-items: start;
+}
+@media (max-width: 900px) { .km-cols { grid-template-columns: 1fr; } }
+
+/* checklist รายการประมวลผล — ไม่โชว์หัวคอลัมน์ (ตามจอ legacy: checkbox + ข้อความล้วน)
+   DxGrid 26.1 ไม่มี property ซ่อน column header → ซ่อน thead (layout ล้วน) */
+.ki-grid thead { display: none; }
+/* แถว REP ที่ล็อกไว้ (mproc) — ตัวหนังสือเทา บอกว่าแก้ไม่ได้ */
+.ki-row-locked td { color: #9ca3af; }
+
 /* ── numeric (ScInput col-*) ชิดขวาเหมือน legacy ───────────────── */
 .col-integer input, .col-integer2 input,
 .col-decimal input, .col-decimal2 input, .col-decimal3 input,

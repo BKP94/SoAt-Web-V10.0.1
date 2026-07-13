@@ -6,7 +6,7 @@
        (re-implement: OnSelectionChanged ล็อก REP ให้คงสถานะ default) *@
 
 <div class="ki-item">
-    <DxFormLayout>
+    <DxFormLayout style="padding-bottom:5px">
         <DxFormLayoutItem Caption="วิธีเรียกเก็บ" ColSpanMd="12">
             <DxComboBox Data="Lookups.KeepMethods" @bind-Value="Form.keep_method"
                         TData="sc.ComboItem" TValue="string"
@@ -17,6 +17,7 @@
         </DxFormLayoutItem>
     </DxFormLayout>
 
+    @* checklist ไม่โชว์หัวคอลัมน์ (.ki-grid ซ่อน thead ใน app.css — DxGrid ไม่มี property ซ่อน header) *@
     <DxGrid Data="Form.Items"
             KeyFieldName="@nameof(ProcItem.proc_code)"
             SelectionMode="GridSelectionMode.Multiple"
@@ -24,6 +25,7 @@
             SelectedDataItemsChanged="OnSelectionChanged"
             ShowAllRows="true"
             ShowGroupPanel="false"
+            CustomizeElement="OnCustomizeElement"
             CssClass="ki-grid">
         <Columns>
             <DxGridSelectionColumn Width="44px" />
@@ -38,11 +40,19 @@
 </div>
 
 @code {
-    [Parameter, EditorRequired] public SckepmpmForm     Form    { get; set; } = default!;
-    [Parameter, EditorRequired] public SckepmpmLookups  Lookups { get; set; } = default!;
+    [Parameter, EditorRequired] public SckepmpmForm Form { get; set; } = default!;
+    [Parameter, EditorRequired] public SckepmpmLookups Lookups { get; set; } = default!;
     [Parameter] public bool IsMpost { get; set; }
 
     private const string AllText = "<ทั้งหมด>";
+
+    // mproc: แถว REP ถูกล็อก (ผู้ใช้แก้ไม่ได้) → แต้มสีเทาให้เห็นว่า disabled (เลียน legacy ปิด checkbox)
+    private void OnCustomizeElement(GridCustomizeElementEventArgs e)
+    {
+        if (!IsMpost && e.ElementType == GridElementType.DataRow
+            && e.Grid.GetDataItem(e.VisibleIndex) is ProcItem { proc_code: "REP" })
+            e.CssClass = "ki-row-locked";
+    }
 
     private void OnSelectionChanged(IReadOnlyList<object> selected)
     {

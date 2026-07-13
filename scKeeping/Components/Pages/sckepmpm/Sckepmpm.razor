@@ -28,11 +28,12 @@ else
     <CascadingValue Value="_msg" IsFixed="false">
         <PageRegions>
             <HeaderContent>
-                <PanMonth Form="_form" IsMpost="IsMpost" />
+                @* จัด 2 คอลัมน์ตามจอ legacy: ซ้าย = วิธีเรียกเก็บ+รายการประมวลผล / ขวา = ประจำเดือน+รูปแบบ *@
+                <div class="km-cols">
+                    <PanItem Form="_form" Lookups="_lookups" IsMpost="IsMpost" />
+                    <PanMonth Form="_form" IsMpost="IsMpost" />
+                </div>
             </HeaderContent>
-            <DetailContent>
-                <PanItem Form="_form" Lookups="_lookups" IsMpost="IsMpost" />
-            </DetailContent>
             <OperateContent>
                 <PanOperate IsMpost="IsMpost" Busy="_busy"
                             OnNew="OnNew" OnProcess="OnProcess" />

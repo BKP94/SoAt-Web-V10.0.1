@@ -23,7 +23,7 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 // ── Shared cookie auth (ข้าม app ได้: scCenter + module — ดู CLAUDE.md) ──
 //   key ring ใช้ร่วมกันทุก app + cookie ชื่อเดียว → module อ่าน cookie ที่ scCenter เซ็นได้
-//   IIS: แต่ละ app pool = คนละ identity → %LOCALAPPDATA% คนละ path → key ring แตก
+//   IIS: แต่ละ app pool = คนละ identity → %LOCALAPPDATA% คนละ path → key ring ᵡ
 //   ตั้ง "DataProtection:KeyRingPath" (appsettings.Production.json) ให้ทุก app ชี้ path กลางเดียวกัน
 var keysDir = builder.Configuration["DataProtection:KeyRingPath"];
 if (string.IsNullOrEmpty(keysDir))
@@ -65,7 +65,10 @@ builder.Services.AddAntiforgery(o =>
 var app = builder.Build();
 
 // ── Init sc core library ────────────────────────────────────────
-sc.log.init(app.Services.GetRequiredService<ILoggerFactory>());
+// file sink: logs\scCenter-{yyyyMMdd}.txt ที่ root solution (ตาม legacy sc\log.cs เขียน {pathSolution}\logs)
+sc.log.init(app.Services.GetRequiredService<ILoggerFactory>(),
+    builder.Environment.ApplicationName,
+    Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath, "..", "logs")));
 sc.app.init(builder.Configuration);
 
 // ── Database ────────────────────────────────────────────────────
@@ -91,7 +94,7 @@ app.MapRazorComponents<App>()
 
 // ── Login endpoint (cookie sign-in) ─────────────────────────────
 //   ที่เดียวที่ทำ authenticate + SignInAsync — ใช้โดย login overlay ที่
-//   landing (Home). ต้อง POST แบบ form (antiforgery token).
+//   landing (Home). ต้อง POST Ẻ form (antiforgery token).
 app.MapPost("/auth/login", async (
     HttpContext http,
     IAuthService auth,

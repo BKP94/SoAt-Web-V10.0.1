@@ -9,19 +9,19 @@ using scAtm.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// โ”€โ”€ Blazor Server โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
+// ── Blazor Server ───────────────────────────────────────────────
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-// โ”€โ”€ DevExpress Blazor (theme link เธญเธขเธนเนเธ—เธตเน App.razor, เธเนเธฒเธเธฒเธ appsettings "DevExpress:Theme") โ”€โ”€
-//   25.2 เนเธเน Bootstrap 5 เน€เธเนเธ default เธ•เธฑเธงเน€เธ”เธตเธขเธง (BootstrapVersion option เธ–เธนเธ deprecated เนเธฅเนเธง)
+// ── DevExpress Blazor (theme link อยู่ที่ App.razor, ค่าจาก appsettings "DevExpress:Theme") ──
+//   25.2 ใช้ Bootstrap 5 เป็น default ตัวเดียว (BootstrapVersion option ถูก deprecated แล้ว)
 builder.Services.AddDevExpressBlazor();
 
-// โ”€โ”€ Backend services (sc.dbFactory, AppDbContext, application services) โ”€โ”€
-//   module เนเธกเนเธฃเธฑเธ deployers โ€” scCenter เน€เธเนเธเธเธ deploy DB
+// ── Backend services (sc.dbFactory, AppDbContext, application services) ──
+//   module ไม่รัน deployers — scCenter เป็นคน deploy DB
 builder.Services.AddInfrastructure(builder.Configuration);
 
-// โ”€โ”€ Shared cookie auth โ€” เธญเนเธฒเธ cookie เธ—เธตเน scCenter เน€เธเนเธ (key ring เน€เธ”เธตเธขเธงเธเธฑเธ) โ”€โ”€
+// ── Shared cookie auth — อ่าน cookie ที่ scCenter เซ็น (key ring เดียวกัน) ──
 var keysDir = builder.Configuration["DataProtection:KeyRingPath"];
 if (string.IsNullOrEmpty(keysDir))
     keysDir = Path.Combine(
@@ -41,7 +41,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.ExpireTimeSpan    = TimeSpan.FromHours(cookieHours);
         options.SlidingExpiration = true;
 
-        // เธขเธฑเธเนเธกเน login โ’ เน€เธ”เนเธเนเธเธซเธเนเธฒ login เธเธญเธ scCenter เธเธฃเนเธญเธก returnUrl เธเธฅเธฑเธเธกเธฒ module
+        // ยังไม่ login → เด้งไปหน้า login ของ scCenter พร้อม returnUrl กลับมา module
         options.Events.OnRedirectToLogin = ctx =>
         {
             var returnUrl = ctx.Request.GetEncodedUrl();
@@ -50,7 +50,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         };
     });
 
-// เธ—เธฑเนเธ module เธ•เนเธญเธ login เธเนเธญเธ (fallback policy)
+// ทั้ง module ต้อง login ก่อน (fallback policy)
 builder.Services.AddAuthorization(options =>
 {
     options.FallbackPolicy = new AuthorizationPolicyBuilder()
@@ -61,11 +61,14 @@ builder.Services.AddCascadingAuthenticationState();
 
 var app = builder.Build();
 
-// โ”€โ”€ Init sc core library โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
-sc.log.init(app.Services.GetRequiredService<ILoggerFactory>());
+// ── Init sc core library ────────────────────────────────────────
+// file sink: logs\scAtm-{yyyyMMdd}.txt ที่ root solution (ตาม legacy sc\log.cs เขียน {pathSolution}\logs)
+sc.log.init(app.Services.GetRequiredService<ILoggerFactory>(),
+    builder.Environment.ApplicationName,
+    Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath, "..", "logs")));
 sc.app.init(builder.Configuration);
 
-// โ”€โ”€ HTTP pipeline โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€
+// ── HTTP pipeline ───────────────────────────────────────────────
 // Sub-path hosting: IIS sub-application sets PathBase automatically.
 // "PathBase" config is for testing sub-path outside IIS (dev/YARP); empty = root.
 var pathBase = builder.Configuration["PathBase"];
@@ -88,7 +91,7 @@ app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
-// โ”€โ”€ Logout endpoint (cookie sign-out โ€” เนเธเน key ring เธฃเนเธงเธก) โ”€โ”€โ”€โ”€โ”€โ”€โ”€
+// ── Logout endpoint (cookie sign-out — ใช้ key ring ร่วม) ───────
 app.MapPost("/logout", async (HttpContext http) =>
 {
     await http.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);

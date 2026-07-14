@@ -37,6 +37,27 @@
                     <i class="bi bi-search" aria-hidden="true"></i>
                     <DxTextBox NullText="ค้นหาระบบที่คุณต้องการ..." />
                 </div>
+
+                <div class="pt-status" aria-label="ข้อมูลการใช้งานระบบ">
+                    <div class="pt-status-item">
+                        <i class="bi bi-person-circle" aria-hidden="true"></i>
+                        <span class="pt-status-label">ผู้ใช้งาน</span>
+                        <strong>@UserName</strong>
+                        <span class="pt-status-separator" aria-hidden="true">·</span>
+                        <span class="pt-status-label">สาขา</span>
+                        <strong>@BranchId</strong>
+                    </div>
+                    <div class="pt-status-item">
+                        <i class="bi bi-calendar3" aria-hidden="true"></i>
+                        <span class="pt-status-label">วันที่การเงิน</span>
+                        <strong>@(_info?.FinanceDate ?? "—")</strong>
+                    </div>
+                    <div class="pt-status-item">
+                        <i class="bi bi-database" aria-hidden="true"></i>
+                        <span class="pt-status-label">ฐานข้อมูล</span>
+                        <strong>@SysName</strong>
+                    </div>
+                </div>
             </div>
 
             <div class="pt-hero-art pt-hero-art--right" aria-hidden="true">

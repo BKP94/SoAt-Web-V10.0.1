@@ -153,8 +153,11 @@
 }
 
 .pt-status-item strong {
+    min-width: 0;
+    overflow: hidden;
     color: var(--pt-ink);
     font-weight: 500;
+    text-overflow: ellipsis;
 }
 
 .pt-status-label {
@@ -416,6 +419,16 @@
 
     .pt-hero-art--left img { right: -5.5rem; }
     .pt-hero-art--right img { left: -5.5rem; }
+}
+
+@media (min-width: 821px) and (max-width: 1080px) {
+    .pt-status {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .pt-status-item:first-child {
+        grid-column: 1 / -1;
+    }
 }
 
 @media (max-width: 820px) {

@@ -32,10 +32,14 @@
                 <h1>ศูนย์รวมทุกระบบงาน</h1>
                 <p>เข้าถึงทุกระบบงานได้อย่างง่ายดาย ครบจบในที่เดียว</p>
 
-                @* Presentation-only: Claude Code จะผูก state และ filter logic ภายหลัง *@
+                @* ค้นหาระบบ — กรองแบบ realtime ทั้ง grid หลัก + ปักหมุด (ทำงานร่วมกับปุ่มหมวดหมู่) *@
                 <div class="pt-search">
                     <i class="bi bi-search" aria-hidden="true"></i>
-                    <DxTextBox NullText="ค้นหาระบบที่คุณต้องการ..." />
+                    <DxTextBox @bind-Text="SearchText"
+                               BindValueMode="BindValueMode.OnInput"
+                               InputDelay="200"
+                               ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                               NullText="ค้นหาระบบที่คุณต้องการ..." />
                 </div>
 
                 <div class="pt-status" aria-label="ข้อมูลการใช้งานระบบ">
@@ -73,12 +77,12 @@
     else
     {
         @* ── Pinned ───────────────────────────────────────── *@
-        @if (_favApps.Count > 0)
+        @if (_favFiltered.Count > 0)
         {
             <section class="pt-section pt-section--pinned">
                 <h2 class="pt-h2"><span class="pt-h2-ic">★</span> ปักหมุด</h2>
                 <div class="pt-grid">
-                    @foreach (var app in _favApps) { @Card(app) }
+                    @foreach (var app in _favFiltered) { @Card(app) }
                 </div>
             </section>
         }
@@ -121,7 +125,11 @@
             </div>
             @if (!Filtered.Any())
             {
-                <div class="pt-empty">ไม่มีระบบงานในหมวดนี้</div>
+                <div class="pt-empty">
+                    @(string.IsNullOrWhiteSpace(SearchText)
+                        ? "ไม่มีระบบงานในหมวดนี้"
+                        : $"ไม่พบระบบที่ตรงกับ \"{SearchText.Trim()}\"")
+                </div>
             }
         </section>
     }
@@ -281,6 +289,7 @@
     private List<string>  _categories = new();
     private Dictionary<string, string> _catMap = new(StringComparer.OrdinalIgnoreCase);
     private string? SelectedCat;
+    private string? SearchText;
 
     private List<string> _favs   = new();
     private List<string> _recent = new();
@@ -311,7 +320,19 @@
     }
 
     private IEnumerable<ScAppDto> Filtered =>
-        SelectedCat is null ? _apps! : _apps!.Where(a => CatOf(a.AppName) == SelectedCat);
+        _apps!.Where(a => (SelectedCat is null || CatOf(a.AppName) == SelectedCat) && MatchesSearch(a));
+
+    // ค้นจากชื่อ app (scXxx), ชื่อไทย, ชื่ออังกฤษ — ไม่สน case
+    private bool MatchesSearch(ScAppDto a)
+    {
+        if (string.IsNullOrWhiteSpace(SearchText)) return true;
+        var t = SearchText.Trim();
+        return a.AppName.Contains(t, StringComparison.OrdinalIgnoreCase)
+            || a.AppTextThai.Contains(t, StringComparison.OrdinalIgnoreCase)
+            || a.AppTextEnglish.Contains(t, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private List<ScAppDto> _favFiltered => _favApps.Where(MatchesSearch).ToList();
 
     private List<ScAppDto> _favApps =>
         _favs.Select(n => _apps!.FirstOrDefault(a => string.Equals(a.AppName, n, StringComparison.OrdinalIgnoreCase)))

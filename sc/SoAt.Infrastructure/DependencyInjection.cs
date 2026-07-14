@@ -24,11 +24,22 @@ public static class DependencyInjection
         // schema sc_* + si_security_* คุมที่ pgAdmin ทั้งหมด — ไม่มี EF Core/AppDbContext แล้ว
         //   query+CRUD ทุกอย่างผ่าน sc.db (Npgsql/Dapper ตรง)
 
-        // sc.dbFactory — singleton, ทุก service ใช้ create() เพื่อสร้าง sc.db ต่อ request
-        services.AddSingleton<sc.dbFactory>(_ => new sc.dbFactory(connectionString));
+        // sc.appUser — ambient current-user ต่อ circuit (แทน legacy sc.app.loginUser Session var)
+        //   เซ็ตค่าจาก cookie claims โดย AppUserCircuitHandler ก่อนทุก inbound activity
+        services.AddScoped<sc.appUser>();
+
+        // sc.dbFactory — Scoped (เดิม Singleton): inject scoped sc.appUser เพื่อ fallback loginId/loginBr
+        //   ให้ create() ที่ไม่ส่ง user (read service ~150 จุด) → programmer log gate + SET LOCAL ทำงานครบ
+        //   cache programmer เป็น static ใน dbFactory → ไม่เสีย perf จากการเปลี่ยน lifetime
+        services.AddScoped<sc.dbFactory>(sp =>
+            new sc.dbFactory(connectionString, sp.GetRequiredService<sc.appUser>()));
 
         // sc.save — central save engine (annotate DTO ด้วย [SaveTable]/[SaveKey]/... แล้วเรียก ofSaveAsync)
-        services.AddSingleton<sc.save>();
+        //   Scoped ตาม dbFactory (inject dbFactory ที่เป็น scoped แล้ว — เลี่ยง captive dependency); _plans เป็น static
+        services.AddScoped<sc.save>();
+
+        // ambient current-user hook — เซ็ต sc.appUser จาก claims ต่อ circuit (module ทุกตัวได้ผ่าน AddInfrastructure)
+        services.AddScoped<Microsoft.AspNetCore.Components.Server.Circuits.CircuitHandler, AppUserCircuitHandler>();
 
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IScAppService, ScAppService>();

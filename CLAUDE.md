@@ -67,7 +67,7 @@ await conn.ExecuteAsync("SET LOCAL app.login_br = @br", new { br = branchId });
 ### .NET Core API — `sc` namespace (`SoAt.Core/sc/`) เป็น primary library
 ต้องการ utility ใดๆ ดูใน `sc/` ก่อน ถ้าไม่มีให้เพิ่มในไฟล์ที่เหมาะสม (db→`db.cs`, format→`value.cs`, security→`secure.cs`)
 ไฟล์: `db`, `dbFactory`, `value`, `secure`, `log`, `app`, `util`, `mask`, `combo`, `json`, `xml`, `file`, `att`, `scCoop`, `service`, `css`, `ora`
-- **`sc.dbFactory`** = Singleton — `dbFactory.create(userId, branchId)` ต่อ request
+- **`sc.dbFactory`** = **Scoped** (เดิม Singleton — เปลี่ยน 2026-07-13 เพื่อ inject scoped `sc.appUser`) — `dbFactory.create(userId, branchId)` ต่อ request; ถ้า **ไม่ส่ง user** จะ fallback เป็น **ambient current-user ต่อ circuit** (`sc.appUser` เซ็ตจาก cookie claims โดย `AppUserCircuitHandler`) — เลียน legacy `sc.app.loginUser` (Session var) → programmer log gate + `SET LOCAL app.login_*` ทำงานกับ query ทุกชนิดโดยไม่ต้อง threading userId ผ่าน ~150 signature. `sc.save` เปลี่ยนเป็น Scoped ตามด้วย (inject dbFactory); cache ทั้งสอง (`_programmerCache`/`_plans`) เป็น `static` → ไม่เสีย perf
 - **`sc.db`** — query/CRUD ทั้งหมด, auto-set session vars, `pkFunctionAsync`, `dbInsertAsync<T>` (reflection)
 - **`sc.db.getComboAsync(comboValue)`** — dropdown ทุกตัวที่ต้องการแค่ code+name:
   - `"M=ชาย/F=หญิง"` → static key=value

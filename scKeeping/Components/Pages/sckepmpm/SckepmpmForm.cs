@@ -73,7 +73,8 @@ public static class SckepmpmDates
     {
         try
         {
-            return sc.value.toDate(await db.getValueAsync(fn, args)) as DateTime?;
+            //return sc.value.toDate(await db.getValueAsync(fn, args)) as DateTime?;
+            return sc.value.toDate(await db.pkFunctionAsync(fn, args)) as DateTime?;
         }
         catch (Exception ex)
         {

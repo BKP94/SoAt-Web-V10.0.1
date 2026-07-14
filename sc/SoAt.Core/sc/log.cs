@@ -67,7 +67,7 @@ namespace sc
 
             var pathFile = _pathFile;
             if (_userActive.Value == true && !string.IsNullOrWhiteSpace(pathFile))
-                sc.file.streamWriter(pathFile, _time + lineText);
+                writeFile(pathFile!, _time + lineText);
         }
         public static void addLineNest(string lineText, Stopwatch? _ = null)
         {
@@ -76,7 +76,37 @@ namespace sc
 
             var pathFile = _pathFile;
             if (_userActive.Value == true && !string.IsNullOrWhiteSpace(pathFile))
-                sc.file.streamWriter(pathFile, _time + "[NEST] " + lineText);
+                writeFile(pathFile!, _time + "[NEST] " + lineText);
+        }
+
+        // ── File sink writer ────────────────────────────────────────────────────
+        // เดิมเรียก sc.file.streamWriter = เปิด+ปิดไฟล์ใหม่ทุกบรรทัด (open/close syscall +
+        // Directory.Exists + retry Thread.Sleep(1000)) → ระหว่าง batch หนัก (mproc query แสนครั้ง)
+        // programmer log กลายเป็นคอขวด I/O ทำให้ประมวลผลช้ากว่า legacy หลายเท่า.
+        // แก้: เปิด StreamWriter ค้างไว้ครั้งเดียวต่อไฟล์ (AutoFlush ยังคง durability),
+        // lock กัน concurrent (Blazor Server หลาย circuit/threadpool). 1 process = 1 ไฟล์ (pathFile คงที่หลัง init)
+        private static readonly object _fileLock = new();
+        private static StreamWriter? _fileWriter;
+        private static string? _fileWriterPath;
+
+        static void writeFile(string pathFile, string text)
+        {
+            try
+            {
+                lock (_fileLock)
+                {
+                    if (_fileWriter == null || _fileWriterPath != pathFile)
+                    {
+                        _fileWriter?.Dispose();
+                        var dir = Path.GetDirectoryName(pathFile)!;
+                        if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+                        _fileWriter = new StreamWriter(pathFile, append: true) { AutoFlush = true };
+                        _fileWriterPath = pathFile;
+                    }
+                    _fileWriter.WriteLine(text);
+                }
+            }
+            catch { /* log ห้ามล้มงานหลัก */ }
         }
     }
 }

@@ -10,6 +10,11 @@
     <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="23.26.200" />
   </ItemGroup>
 
+  <!-- CircuitHandler + AuthenticationStateProvider (AppUserCircuitHandler เซ็ต ambient sc.appUser ต่อ circuit) -->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>

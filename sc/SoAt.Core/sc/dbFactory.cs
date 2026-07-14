@@ -4,16 +4,20 @@ namespace sc
 {
     /// <summary>
     /// sc.dbFactory — สร้าง sc.db instance พร้อม connection string
-    /// Register เป็น Singleton ใน DI
-    /// Usage: dbFactory.create(userId, branchId)
+    /// Register เป็น Scoped ใน DI (เดิม Singleton — เปลี่ยนเพราะต้อง inject scoped sc.appUser
+    ///   เพื่อ fallback loginId/loginBr เป็น ambient current-user; cache programmer เป็น static
+    ///   อยู่แล้วจึงไม่เสีย perf จากการเปลี่ยน lifetime)
+    /// Usage: dbFactory.create(userId, branchId) — ถ้าไม่ส่ง จะดึงจาก sc.appUser (ambient) ให้อัตโนมัติ
     /// </summary>
     public class dbFactory
     {
         private readonly string _connectionString;
+        private readonly appUser? _user;
 
-        public dbFactory(string connectionString)
+        public dbFactory(string connectionString, appUser? user = null)
         {
             _connectionString = connectionString;
+            _user = user;
         }
 
         /// <summary>ชื่อ database ของ PG (Database= ใน connection string จาก appsettings.json)</summary>
@@ -25,6 +29,12 @@ namespace sc
         /// sc_kep_m_monthly_mtarget ตอนประมวลผลส่งหัก (pka_com_function.fp_login_pc)</remarks>
         public db create(string? loginId = null, string? loginBr = null, string? loginPc = null)
         {
+            // ไม่ส่ง user มา → ใช้ ambient current-user ต่อ circuit (sc.appUser จาก cookie claims)
+            //   เลียน legacy ที่อ่าน sc.app.loginUser ได้ทุกที่โดยไม่ต้อง threading userId ผ่าน signature
+            loginId ??= _user?.Id;
+            loginBr ??= _user?.Br;
+            loginPc ??= _user?.Pc;
+
             // log file gate ตาม legacy sc\log.cs setActive():
             //   select programmer from si_security_user where user_id = ... → เขียน log เฉพาะ programmer
             sc.log.setUserActive(isProgrammer(loginId));

@@ -5,8 +5,9 @@ namespace SoAt.Infrastructure.ScKeeping;
 /// <summary>
 /// port ตรงจาก legacy scKeeping/sckepmpm/pageForm.ascx.cs.
 ///
-/// lib ใหม่ไม่มี sc.db.cmdExecuteCommand / LooperByFunction / LooperAtLast → เขียน loop เป็น C# ตรง:
-///   count = toInteger(await db.pkFunctionAsync(countFn, ...));  for i=1..count await db.pkProcedureAsync(sp, ...)
+/// legacy sc.db.cmdExecuteCommand.LooperByFunction → port เป็น sc.db.looperByFunctionAsync
+///   (นับ count จาก countFn ครั้งเดียว → ยิง sp N รอบผ่าน NpgsqlBatch batch 1000 = เทียบ Oracle ArrayBindCount,
+///    log ครั้งเดียวต่อ looper ไม่ใช่ต่อแถว). LoopAsync ในไฟล์นี้เป็น thin wrapper เรียก db method
 ///   · mproc: ไม่มี LooperAtLast → args เดิมทุกรอบ (SP เดินเคอร์เซอร์ผ่าน temp table เอง)
 ///   · mpost: LooperAtLast=true → append index i เป็น arg สุดท้ายทุกรอบ
 ///
@@ -225,28 +226,13 @@ public class SckepmpmProcessService(sc.dbFactory dbFactory) : ISckepmpmProcessSe
         await db.pkProcedureAsync("pka_kep_mpost.sp_mpost_clear_instance()");
     }
 
-    // ── LooperByFunction: นับด้วย countFn แล้ววน sp ตามจำนวน (แทน sc.db.cmdExecuteCommand ของ legacy) ──
+    // ── LooperByFunction: delegate ไป sc.db.looperByFunctionAsync (port legacy cmdExecuteCommand.LooperByFunction) ──
     //   appendIndex=true → LooperAtLast: ต่อ index i เป็น arg สุดท้ายทุกรอบ; false → args เดิมทุกรอบ
-    private static async Task LoopAsync(
+    //   lib ยิง N รอบผ่าน NpgsqlBatch (batch 1000 = round-trip น้อย + log ครั้งเดียว) แทน Oracle ArrayBindCount
+    private static Task LoopAsync(
         sc.db db, string countFn, object?[] countArgs,
         bool appendIndex, string sp, object?[] spArgs)
-    {
-        int count = sc.value.toInteger(await db.pkFunctionAsync(countFn, countArgs));
-        for (int i = 1; i <= count; i++)
-        {
-            if (appendIndex)
-            {
-                var args = new object?[spArgs.Length + 1];
-                System.Array.Copy(spArgs, args, spArgs.Length);
-                args[spArgs.Length] = i;
-                await db.pkProcedureAsync(sp, args);
-            }
-            else
-            {
-                await db.pkProcedureAsync(sp, spArgs);
-            }
-        }
-    }
+        => db.looperByFunctionAsync(countFn, countArgs, sp, spArgs, looperAtLast: appendIndex);
 
     // ── guard: engine PL ยังไม่ครบ (Phase 3) → แจ้งข้อความชัดเจน แทน error "function does not exist" ดิบ ──
     private async Task EnsureEngineReadyAsync(string userId, string branchId)

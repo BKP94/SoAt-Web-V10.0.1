@@ -208,6 +208,11 @@ namespace sc
         {
             if (s == null || s is DBNull) return null;
             if (s is DateTime dt) return dt;
+            // Npgsql map PG date → DateOnly, timestamptz → DateTimeOffset — แปลงตรง (เลี่ยง string ที่พึ่ง CurrentCulture)
+            //   ⚠️ ถ้าตกไป toString(DateOnly) จะใช้ CurrentCulture → th-TH ได้ 31/5/2569 (parse ผ่าน) แต่ en-US ได้ 5/31/2026 (fail)
+            //   = สาเหตุ receipt_date/calint_date ว่างเฉพาะ IIS (app pool en-US) แต่ VS (th-TH) ปกติ
+            if (s is DateOnly od) return od.ToDateTime(TimeOnly.MinValue);
+            if (s is DateTimeOffset dto) return dto.DateTime;
             var str = toString(s).Trim();
             if (string.IsNullOrWhiteSpace(str)) return null;
 
@@ -275,6 +280,9 @@ namespace sc
             if (s == null || s is DBNull) return "null";
             if (s is bool b) return b ? "1" : "0";
             if (s is DateTime dt) return $"'{dt:yyyy-MM-dd HH:mm:ss}'";
+            // Npgsql map PG date → DateOnly, timestamptz → DateTimeOffset — จัด ISO ตรง (เลี่ยง ToString() ที่พึ่ง CurrentCulture → IIS en-US)
+            if (s is DateOnly od) return $"'{od:yyyy-MM-dd}'";
+            if (s is DateTimeOffset dto) return $"'{dto.DateTime:yyyy-MM-dd HH:mm:ss}'";
             if (isNumeric(s)) return s.ToString()!;
             return $"'{s.ToString()!.Replace("'", "''")}'";
         }

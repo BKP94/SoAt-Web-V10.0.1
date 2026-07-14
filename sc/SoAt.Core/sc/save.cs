@@ -98,7 +98,7 @@ namespace sc
 
     // ─── Engine ─────────────────────────────────────────────────────────────────
 
-    /// <summary>Register: services.AddSingleton&lt;sc.save&gt;()</summary>
+    /// <summary>Register: services.AddScoped&lt;sc.save&gt;() (Scoped ตาม dbFactory ที่ inject; _plans เป็น static)</summary>
     public sealed class save(dbFactory dbFactory)
     {
         private static readonly ConcurrentDictionary<Type, SavePlan> _plans = new();

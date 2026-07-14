@@ -223,6 +223,19 @@ namespace sc
             return getSqlParams(sql, args);
         }
 
+        // ── log display: แทน {i} ใน sql template ด้วยค่า object จริง (เห็นค่าที่ส่ง DB ตรง ไม่ใช่ @paramN) ──
+        //   ใช้กับทุก log line ของ db (Scalar/Reader/Procedure/Combo) — ฝั่ง execute ยัง bind ผ่าน @param ปกติ (กัน injection)
+        //   asProcedure=true → เติม "CALL " นำหน้าเหมือน finalSql ที่ execute จริง
+        static string logSqlDisplay(string braceSql, object?[]? args, bool asProcedure)
+        {
+            var s = sc.value.sqlArgs(braceSql, args ?? []);
+            if (asProcedure
+             && !s.TrimStart().StartsWith("SELECT", StringComparison.OrdinalIgnoreCase)
+             && !s.TrimStart().StartsWith("CALL", StringComparison.OrdinalIgnoreCase))
+                s = "CALL " + s;
+            return s;
+        }
+
         // ─── isQuery ─────────────────────────────────────────────────────────────
 
         public static bool isQuery(string? sql)
@@ -253,7 +266,7 @@ namespace sc
             _counter++;
             var logCode = $"[Scalar-{_counter}]";
             var (finalSql, dp) = isQuery(sql) ? getSqlParams(sql, args) : buildFunctionSelect(sql, args);
-            sc.log.addLine(logCode + " > " + finalSql);
+            sc.log.addLine(logCode + " > " + logSqlDisplay(sql, args, asProcedure: false));
             try
             {
                 var rc = _conn!.ExecuteScalar(finalSql, dp, _trans);
@@ -284,7 +297,7 @@ namespace sc
             _counter++;
             var logCode = $"[Reader-{_counter}]";
             var (finalSql, dp) = getSqlParams(sql, args);
-            sc.log.addLine(logCode + " > " + finalSql);
+            sc.log.addLine(logCode + " > " + logSqlDisplay(sql, args, asProcedure: false));
             try
             {
                 var rows = _conn!.Query(finalSql, dp, _trans);
@@ -392,7 +405,7 @@ namespace sc
              && !finalSql.TrimStart().StartsWith("CALL", StringComparison.OrdinalIgnoreCase))
                 finalSql = "CALL " + finalSql;
 
-            sc.log.addLine(logCode + " > " + finalSql);
+            sc.log.addLine(logCode + " > " + logSqlDisplay(sql, args, asProcedure: true));
             try
             {
                 _conn!.Execute(finalSql, dp, _trans);
@@ -472,7 +485,7 @@ namespace sc
             _counter++;
             var logCode = $"[Scalar-{_counter}]";
             var (finalSql, dp) = isQuery(sql) ? getSqlParams(sql, args) : buildFunctionSelect(sql, args);
-            sc.log.addLine(logCode + " > " + finalSql);
+            sc.log.addLine(logCode + " > " + logSqlDisplay(sql, args, asProcedure: false));
             try
             {
                 var rc = await _conn!.ExecuteScalarAsync(finalSql, dp, _trans);
@@ -488,7 +501,7 @@ namespace sc
             _counter++;
             var logCode = $"[Reader-{_counter}]";
             var (finalSql, dp) = getSqlParams(sql, args);
-            sc.log.addLine(logCode + " > " + finalSql);
+            sc.log.addLine(logCode + " > " + logSqlDisplay(sql, args, asProcedure: false));
             try
             {
                 var rows = await _conn!.QueryAsync<T>(finalSql, dp, _trans);
@@ -505,7 +518,7 @@ namespace sc
             _counter++;
             var logCode = $"[Reader-{_counter}]";
             var (finalSql, dp) = getSqlParams(sql, args);
-            sc.log.addLine(logCode + " > " + finalSql);
+            sc.log.addLine(logCode + " > " + logSqlDisplay(sql, args, asProcedure: false));
             try
             {
                 var result = await _conn!.QuerySingleOrDefaultAsync<T>(finalSql, dp, _trans);
@@ -579,7 +592,7 @@ namespace sc
             _counter++;
             var logCode = $"[Combo-{_counter}]";
             var (finalSql, dp) = getSqlParams(sql, args);
-            sc.log.addLine(logCode + " > " + finalSql);
+            sc.log.addLine(logCode + " > " + logSqlDisplay(sql, args, asProcedure: false));
             try
             {
                 var rows = await _conn!.QueryAsync(finalSql, dp, _trans);
@@ -672,6 +685,12 @@ namespace sc
 
         // ─── Async pkProcedure / pkFunction ──────────────────────────────────────
 
+        /// <summary>
+        /// commandTimeout=0 — procedure เป็น server-side batch op รันยาวได้จริง (เหตุผลเดียวกับ looperByFunctionAsync):
+        ///   legacy OracleCommand default CommandTimeout=0 (ไม่จำกัด) แต่ Npgsql/Dapper default 30 วิ
+        ///   → ตัด proc ใหญ่กลางคัน (เคสจริง 2026-07-13: sp_stmain_save insert ~140k แถว 30s+ โดนตัด
+        ///   ทั้ง transaction 100 นาที rollback; sp_stmain_prepare 17s / sp_stcode_prepare 23s ก็จ่อเส้นอยู่)
+        /// </summary>
         public async Task pkProcedureAsync(string spName, params object?[] args)
         {
             if (string.IsNullOrWhiteSpace(spName)) throw new Exception("C768:Invalid Procedure Name");
@@ -688,10 +707,10 @@ namespace sc
             if (!finalSql.TrimStart().StartsWith("SELECT", StringComparison.OrdinalIgnoreCase)
              && !finalSql.TrimStart().StartsWith("CALL", StringComparison.OrdinalIgnoreCase))
                 finalSql = "CALL " + finalSql;
-            sc.log.addLine(logCode + " > " + finalSql);
+            sc.log.addLine(logCode + " > " + logSqlDisplay(sql, args, asProcedure: true));
             try
             {
-                await _conn!.ExecuteAsync(finalSql, dp, _trans);
+                await _conn!.ExecuteAsync(new CommandDefinition(finalSql, dp, _trans, commandTimeout: 0));
                 _dbState = dbExecuteState.Execute;
                 sc.log.addLine(logCode + " = done.");
             }
@@ -710,6 +729,73 @@ namespace sc
             if (!sql.TrimStart().StartsWith("select", StringComparison.OrdinalIgnoreCase))
                 sql = "SELECT " + sql;
             return await getValueAsync(sql, args ?? []);
+        }
+
+        // ─── looperByFunction (port legacy sc.db cmdExecuteCommand.LooperByFunction) ──
+        /// <summary>
+        /// เลียน legacy LooperByFunction: นับจำนวนรอบจาก countFn ครั้งเดียว แล้วยิง spName ตามจำนวน
+        /// — legacy ใช้ Oracle ArrayBindCount batch 1000 แถว/round-trip + log ระดับ command ครั้งเดียว.
+        /// PG/Npgsql เทียบด้วย NpgsqlBatch (pipeline หลาย CALL ใน round-trip เดียว) batch ละ batchSize.
+        ///
+        /// ⚠️ เดิม service unroll loop มาวน pkProcedureAsync ทีละแถวใน C# → N round-trip + N คู่ log
+        ///    (ไฟล์ log โตต่อแถว, ช้ากว่า legacy หลายเท่า). ตัวนี้คืน behavior legacy: 1 looper = 1 log
+        ///
+        /// looperAtLast=true → ต่อ index i (1-based) เป็น arg สุดท้ายทุกรอบ (legacy LooperAtLast);
+        /// false → args เดิมทุกรอบ (SP เดินเคอร์เซอร์/temp table เอง)
+        /// SP ต้องไม่ COMMIT/ROLLBACK ภายใน (รันในทรานแซกชันเดียวที่ค้างอยู่ — temp table session state รอด)
+        ///
+        /// commandTimeout=0 (default) = ไม่จำกัดเวลา — bulk looper เป็น server-side batch op ที่รันยาวได้จริง
+        ///   (เลียน Oracle ArrayBindCount ที่ client แค่รอ server ทำเสร็จ). default Npgsql 30 วิ จะตัด bulk รอบใหญ่
+        ///   (เช่น SHR 28k แถว ~10 นาที) กลางคัน → ต้อง override ที่ระดับ looper ไม่ใช่ปล่อย default
+        /// </summary>
+        public async Task looperByFunctionAsync(
+            string countFn, object?[] countArgs,
+            string spName, object?[] spArgs, bool looperAtLast, int batchSize = 1000,
+            int commandTimeout = 0)
+        {
+            if (string.IsNullOrWhiteSpace(spName)) throw new Exception("C768:Invalid Procedure Name");
+            if (!await ofConnectionOpenAsync()) return;
+
+            // 1) นับจำนวนรอบ (เหมือน legacy pkFunction(LooperByFunction)) — log เป็น [Scalar-N] ตามปกติ 1 ครั้ง
+            int count = sc.value.toInteger(await pkFunctionAsync(countFn, countArgs));
+            if (count <= 0) return;
+
+            _counter++;
+            var logCode = $"[Looper-{_counter}]";
+
+            // 2) สร้าง CALL template ครั้งเดียว: CALL sp(@p0,@p1,...) — จำนวน param = spArgs (+1 ถ้า looperAtLast)
+            int argN = spArgs.Length + (looperAtLast ? 1 : 0);
+            var placeholders = string.Join(",", Enumerable.Range(0, argN).Select(k => $"@p{k}"));
+            var callText = $"CALL {spName}({placeholders})";
+
+            // log แทนค่า object จริงเข้า param ก่อน addLine (เห็นค่าที่ส่ง SP ตรง เหมือน legacy log ค่า pk จริง — ไม่ใช่ @pN)
+            var logVals = spArgs.Select(a => sc.value.dbValueT(a)).ToList();
+            if (looperAtLast) logVals.Add("#i");   // arg สุดท้าย = running index 1..count
+            sc.log.addLine($"{logCode} > CALL {spName}({string.Join(",", logVals)})  ×{count}");
+
+            try
+            {
+                int done = 0;
+                while (done < count)
+                {
+                    int take = Math.Min(batchSize, count - done);
+                    await using var batch = new NpgsqlBatch(_conn, _trans) { Timeout = commandTimeout };
+                    for (int j = 0; j < take; j++)
+                    {
+                        var bc = new NpgsqlBatchCommand(callText);
+                        for (int k = 0; k < spArgs.Length; k++)
+                            bc.Parameters.AddWithValue($"p{k}", spArgs[k] ?? (object)DBNull.Value);
+                        if (looperAtLast)
+                            bc.Parameters.AddWithValue($"p{spArgs.Length}", done + j + 1);   // index 1-based
+                        batch.BatchCommands.Add(bc);
+                    }
+                    await batch.ExecuteNonQueryAsync();
+                    done += take;
+                }
+                _dbState = dbExecuteState.Execute;
+                sc.log.addLine($"{logCode} = done. ({count} loops)");
+            }
+            catch (Exception ex) { sc.log.addLine($"{logCode} FAIL " + ex.Message); _dbState = dbExecuteState.Failure; throw; }
         }
 
         // ─── Internal execute (Sync) ──────────────────────────────────────────────

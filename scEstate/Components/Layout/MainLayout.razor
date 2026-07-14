@@ -3,16 +3,24 @@
 @inject SoAt.Application.Sc.IScAppService ScApps
 
 <div class="app-shell">
-    @* CSS-only collapse: label ใน topbar/sidebar toggle checkbox นี้ (ไม่ต้องใช้ JS) *@
+    @* CSS-only mobile drawer: desktop แสดง sidebar ค้าง, mobile ใช้ checkbox นี้เปิด/ปิด *@
     <input type="checkbox" id="tel-nav-toggle" class="tel-nav-toggle" />
 
     <aside class="app-sidebar">
         <div class="sidebar-brand">
             <a class="brand-link" href="@ScCenterUrl" title="กลับ SoAt Center">
                 <span class="brand-mark">SA</span>
-                <span class="brand-name">SoAt</span>
+                <span class="brand-copy">
+                    <span class="brand-name">SoAt</span>
+                    <span class="brand-caption">COOPERATIVE SOLUTION</span>
+                </span>
             </a>
-            <label for="tel-nav-toggle" class="sidebar-collapse" title="ย่อ/ขยายเมนู">«</label>
+        </div>
+
+        <div class="sidebar-context">
+            <span class="sidebar-context-kicker">WORKSPACE</span>
+            <strong>ระบบทรัพย์สิน</strong>
+            <span>ระบบงาน scEstate</span>
         </div>
 
         @* เมนูหลัก (vertical) — แสดงเมื่อ login แล้ว, โหลดจาก si_security_apps *@
@@ -25,14 +33,22 @@
         </AuthorizeView>
 
         <div class="sidebar-foot">
-            <span class="sidebar-module">ระบบทรัพย์สิน</span>
+            <span class="sidebar-foot-mark" aria-hidden="true"></span>
+            <span class="sidebar-module">SoAt Solution</span>
         </div>
     </aside>
 
+    <label for="tel-nav-toggle" class="app-sidebar-scrim" aria-label="ปิดเมนู"></label>
+
     <div class="app-body">
         <header class="app-topbar">
-            <label for="tel-nav-toggle" class="topbar-burger" title="เมนู">☰</label>
-            <span class="app-module">scEstate</span>
+            <label for="tel-nav-toggle" class="topbar-burger" title="เปิดหรือปิดเมนู" aria-label="เปิดหรือปิดเมนู">
+                <i class="bi bi-list" aria-hidden="true"></i>
+            </label>
+            <span class="app-module">
+                <span class="app-module-kicker">ระบบงาน</span>
+                <strong>scEstate</strong>
+            </span>
 
             <div class="app-topbar-spacer"></div>
 
@@ -41,12 +57,18 @@
                     @* สถานะระบบ (เหมือน scCenter): วันที่การเงิน + ฐานข้อมูล — วางข้างชื่อผู้ใช้ *@
                     <div class="app-status">
                         <span class="app-status-item">
-                            <span class="app-status-k">วันที่การเงิน</span>
-                            <span class="app-status-v">@(_info?.FinanceDate ?? "—")</span>
+                            <i class="bi bi-calendar3" aria-hidden="true"></i>
+                            <span class="app-status-copy">
+                                <span class="app-status-k">วันที่การเงิน</span>
+                                <span class="app-status-v">@(_info?.FinanceDate ?? "—")</span>
+                            </span>
                         </span>
                         <span class="app-status-item">
-                            <span class="app-status-k">ฐานข้อมูล</span>
-                            <span class="app-status-v">@(string.IsNullOrEmpty(_info?.SysName) ? "—" : _info!.SysName)</span>
+                            <i class="bi bi-database" aria-hidden="true"></i>
+                            <span class="app-status-copy">
+                                <span class="app-status-k">ฐานข้อมูล</span>
+                                <span class="app-status-v">@(string.IsNullOrEmpty(_info?.SysName) ? "—" : _info!.SysName)</span>
+                            </span>
                         </span>
                     </div>
                     <div class="app-userbox">

@@ -3,33 +3,52 @@
    เลียน legacy panOperate.ascx: New / ScanID / Signature / Memo / PrintTab
    Signature/Memo/PrintTab/ScanID = stub รอบนี้ (ผูกระบบจริงภายหลัง) *@
 
-<div class="op-item">
-    @* <button type="button" class="op-btn" title="เพิ่มใหม่ / ล้างหน้า" disabled="@Busy" @onclick="OnNew"><i class="bi bi-file-earmark-plus"></i></button> *@
-    <DxButton RenderStyle="ButtonRenderStyle.Link" title="เพิ่มใหม่ / ล้างหน้า"
-              disabled="@Busy" @onclick="OnNew" CssClass="op-btn"
-              IconCssClass="@sc.icon.FileEarmarkPlus">
-    </DxButton>
-    <span class="op-btn-label">เพิ่มใหม่</span>
-</div>
+<div class="op-orbit-toolbar" role="toolbar" aria-label="เครื่องมือสมาชิก">
+    <span class="op-orbit-heading">เครื่องมือ</span>
 
-<div class="op-item">
-    <button type="button" class="op-btn" title="อ่านบัตรประชาชน" disabled="@Busy" @onclick="OnScanCard"><i class="bi bi-credit-card-2-front"></i></button>
-    <span class="op-btn-label">อ่านบัตร</span>
-</div>
+    <div class="op-orbit-item op-orbit-item--primary">
+        <DxButton RenderStyle="ButtonRenderStyle.Primary"
+                  title="เพิ่มใหม่ / ล้างหน้า" aria-label="เพิ่มใหม่ / ล้างหน้า"
+                  disabled="@Busy" @onclick="OnNew" CssClass="op-orbit-btn"
+                  IconCssClass="@sc.icon.FileEarmarkPlus" />
+        <span class="op-orbit-label">เพิ่มใหม่</span>
+    </div>
 
-<div class="op-item">
-    <button type="button" class="op-btn" title="ลายเซ็น" disabled="@Busy" @onclick="OnSignature"><i class="bi bi-vector-pen"></i></button>
-    <span class="op-btn-label">ลายเซ็น</span>
-</div>
+    <div class="op-orbit-item">
+        <DxButton RenderStyle="ButtonRenderStyle.Secondary"
+                  RenderStyleMode="ButtonRenderStyleMode.Outline"
+                  title="อ่านบัตรประชาชน" aria-label="อ่านบัตรประชาชน"
+                  disabled="@Busy" @onclick="OnScanCard" CssClass="op-orbit-btn"
+                  IconCssClass="bi bi-credit-card-2-front" />
+        <span class="op-orbit-label">อ่านบัตร</span>
+    </div>
 
-<div class="op-item">
-    <button type="button" class="op-btn" title="บันทึกข้อความ (Memo)" disabled="@Busy" @onclick="OnMemo"><i class="bi bi-journal-text"></i></button>
-    <span class="op-btn-label">Memo</span>
-</div>
+    <div class="op-orbit-item">
+        <DxButton RenderStyle="ButtonRenderStyle.Secondary"
+                  RenderStyleMode="ButtonRenderStyleMode.Outline"
+                  title="แสดงลายเซ็น" aria-label="แสดงลายเซ็น"
+                  disabled="@Busy" @onclick="OnSignature" CssClass="op-orbit-btn"
+                  IconCssClass="bi bi-vector-pen" />
+        <span class="op-orbit-label">ลายเซ็น</span>
+    </div>
 
-<div class="op-item">
-    <button type="button" class="op-btn" title="พิมพ์แท็บปัจจุบัน" disabled="@Busy" @onclick="OnPrintTab"><i class="bi bi-printer"></i></button>
-    <span class="op-btn-label">พิมพ์</span>
+    <div class="op-orbit-item">
+        <DxButton RenderStyle="ButtonRenderStyle.Secondary"
+                  RenderStyleMode="ButtonRenderStyleMode.Outline"
+                  title="บันทึกข้อความ (Memo)" aria-label="บันทึกข้อความ Memo"
+                  disabled="@Busy" @onclick="OnMemo" CssClass="op-orbit-btn"
+                  IconCssClass="bi bi-journal-text" />
+        <span class="op-orbit-label">Memo</span>
+    </div>
+
+    <div class="op-orbit-item">
+        <DxButton RenderStyle="ButtonRenderStyle.Secondary"
+                  RenderStyleMode="ButtonRenderStyleMode.Outline"
+                  title="พิมพ์แท็บปัจจุบัน" aria-label="พิมพ์แท็บปัจจุบัน"
+                  disabled="@Busy" @onclick="OnPrintTab" CssClass="op-orbit-btn"
+                  IconCssClass="bi bi-printer" />
+        <span class="op-orbit-label">พิมพ์</span>
+    </div>
 </div>
 
 @code {

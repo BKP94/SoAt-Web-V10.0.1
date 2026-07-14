@@ -15,6 +15,7 @@
 
 @if (_top.Count > 0)
 {
+    <div class="nav-section-label">เมนูหลัก</div>
     <ul class="nav-list">
         @foreach (var top in _top)
         {
@@ -45,9 +46,10 @@
             {
                 @* level-2 ที่เป็นหัว group — flyout: hover หัว group แล้วเมนูย่อยลอยออกขวา *@
                 <li class="nav-group @(IsGroupActive(top) ? "nav-group--active" : null)">
-                    <div class="nav-link nav-group-head">
+                    <div class="nav-link nav-group-head" tabindex="0" role="button" aria-haspopup="true">
                         <span class="nav-dot"></span>
                         <span class="nav-text">@top.LabelTh</span>
+                        <i class="nav-caret bi bi-chevron-right" aria-hidden="true"></i>
                     </div>
                     <ul class="nav-sublist">
                         @foreach (var child in ChildrenOf(top))

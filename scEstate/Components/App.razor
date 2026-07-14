@@ -13,7 +13,14 @@
     <link rel="stylesheet" href="fonts/prompt.css" />
     <!-- Bootstrap Icons (self-host, intranet-friendly) — ใช้ class bi bi-* ได้ทุกที่ (inline / DevExpress IconCssClass) -->
     <link rel="stylesheet" href="icons/bootstrap-icons.min.css" />
-    <link rel="stylesheet" href="_content/DevExpress.Blazor.Themes/@(Config["DevExpress:Theme"] ?? "office-white").bs5.min.css" />
+    @if (string.Equals(Config["DevExpress:Theme"], "fluent", StringComparison.OrdinalIgnoreCase))
+    {
+        @DxResourceManager.RegisterTheme(Themes.Fluent)
+    }
+    else
+    {
+        <link rel="stylesheet" href="_content/DevExpress.Blazor.Themes/@(Config["DevExpress:Theme"] ?? "office-white").bs5.min.css" />
+    }
     <ResourcePreloader />
     <link rel="stylesheet" href="@Assets["app.css"]" />
     <link rel="stylesheet" href="@Assets["scEstate.styles.css"]" />

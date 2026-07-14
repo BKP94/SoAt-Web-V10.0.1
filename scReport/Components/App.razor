@@ -13,7 +13,14 @@
     <link rel="stylesheet" href="fonts/prompt.css" />
     <!-- Bootstrap Icons (self-host, intranet-friendly) — ใช้ class bi bi-* ได้ทุกที่ (inline / DevExpress IconCssClass) -->
     <link rel="stylesheet" href="icons/bootstrap-icons.min.css" />
-    <link rel="stylesheet" href="_content/DevExpress.Blazor.Themes/@(Config["DevExpress:Theme"] ?? "office-white").bs5.min.css" />
+    @if (string.Equals(Config["DevExpress:Theme"], "fluent", StringComparison.OrdinalIgnoreCase))
+    {
+        @DxResourceManager.RegisterTheme(Themes.Fluent)
+    }
+    else
+    {
+        <link rel="stylesheet" href="_content/DevExpress.Blazor.Themes/@(Config["DevExpress:Theme"] ?? "office-white").bs5.min.css" />
+    }
     @* DevExpress Reporting native viewer — CSS ที่ให้ icon toolbar (dxd-icon-*); ไม่งั้นปุ่มขนาด 0px มองไม่เห็น *@
     <link rel="stylesheet" href="_content/DevExpress.Blazor.Reporting.Viewer/css/dx-blazor-reporting-components.bs5.css" />
     <ResourcePreloader />

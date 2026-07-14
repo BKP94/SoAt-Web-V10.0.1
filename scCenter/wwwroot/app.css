@@ -8,6 +8,7 @@
    ตั้ง --bs-body-font-family ด้วย → DevExpress (Bootstrap 5) component ใช้ Prompt ตาม */
 :root {
     --bs-body-font-family: "Prompt", "Segoe UI", Tahoma, sans-serif;
+    --dxds-font-family-sans-serif: "Prompt", sans-serif;
 }
 
 html, body {
@@ -56,155 +57,649 @@ html, body {
 }
 .module-card.placeholder { color: #9aa0a6; }
 
-/* ── Login (modern) ─────────────────────────────────────────────
-   login เป็น popup เท่านั้น (overlay ที่ landing) — native HTML inputs
-   ไม่ใช่ DevExpress component จึง style ได้อิสระ ไม่กระทบ theme
-   การ์ด popup (.lg-pop) = แบรนด์ (ซ้าย) + ฟอร์ม (ขวา) — ดู .lg-pop ด้านล่าง
-   ──────────────────────────────────────────────────────────────── */
+/* ── Login popup ────────────────────────────────────────────────
+   form ยังคงเป็น native POST เพื่อส่ง antiforgery token และ field name เดิม
+   ส่วนนี้เป็น presentation-only และใช้ asset ชุดเดียวกับหน้า launcher
+   ─────────────────────────────────────────────────────────────── */
+.lg-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+}
+
+.lg-overlay.is-open {
+    display: flex;
+    animation: lg-fade .2s ease;
+}
+
+.lg-overlay-back {
+    position: absolute;
+    inset: 0;
+    background: rgba(12, 29, 58, .58);
+    backdrop-filter: blur(10px) saturate(.8);
+}
+
+.lg-pop {
+    position: relative;
+    width: min(980px, 100%);
+    min-height: 600px;
+    display: grid;
+    grid-template-columns: .92fr 1.08fr;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, .86);
+    border-radius: 28px;
+    background: #fff;
+    box-shadow: 0 34px 90px rgba(7, 25, 59, .3);
+    animation: lg-pop-in .28s cubic-bezier(.2, .8, .3, 1);
+}
 
 /* แผงแบรนด์ */
 .lg-brand {
-    position: relative; padding: 2.75rem 2.25rem; color: #fff;
-    display: flex; flex-direction: column;
-    background: linear-gradient(160deg, #1f3a5f 0%, #2a4d7a 60%, #34619a 100%);
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+    padding: 2.35rem 2.5rem 2rem;
+    color: #112b55;
+    background:
+        radial-gradient(circle at 12% 5%, rgba(94, 193, 255, .34), transparent 33%),
+        radial-gradient(circle at 95% 80%, rgba(118, 102, 255, .22), transparent 34%),
+        linear-gradient(145deg, #eef8ff 0%, #eef3ff 50%, #f5f1ff 100%);
 }
+
+.lg-brand::before,
 .lg-brand::after {
-    content: ""; position: absolute; inset: 0;
-    background: radial-gradient(420px 220px at 90% 10%, rgba(255,255,255,.12), transparent 60%);
+    content: "";
+    position: absolute;
+    z-index: -1;
+    border-radius: 50%;
     pointer-events: none;
 }
-.lg-brand-mark {
-    width: 64px; height: 64px; border-radius: 16px;
-    background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.25);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.5rem; font-weight: 800; letter-spacing: .5px; margin-bottom: 1.75rem;
+
+.lg-brand::before {
+    top: -110px;
+    right: -80px;
+    width: 250px;
+    height: 250px;
+    border: 34px solid rgba(255, 255, 255, .42);
 }
-.lg-brand-title { margin: 0 0 .75rem; font-size: 1.6rem; font-weight: 700; line-height: 1.3; }
-.lg-brand-text  { margin: 0; opacity: .85; font-size: .95rem; line-height: 1.7; }
-.lg-brand-foot  { margin-top: auto; padding-top: 2rem; font-size: .8rem; opacity: .6; }
+
+.lg-brand::after {
+    bottom: -130px;
+    left: -90px;
+    width: 290px;
+    height: 290px;
+    background: rgba(255, 255, 255, .28);
+}
+
+.lg-brand-head {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+    min-height: 58px;
+}
+
+.lg-brand-logo {
+    width: 145px;
+    height: 58px;
+    object-fit: contain;
+    object-position: left center;
+}
+
+.lg-brand-head > span {
+    padding-left: .8rem;
+    border-left: 1px solid rgba(67, 104, 173, .22);
+    color: #5272ad;
+    font-size: .63rem;
+    font-weight: 600;
+    line-height: 1.45;
+    letter-spacing: .08em;
+}
+
+.lg-brand-copy {
+    position: relative;
+    z-index: 2;
+    max-width: 350px;
+    margin-top: 3.2rem;
+}
+
+.lg-brand-chip {
+    width: fit-content;
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    margin-bottom: 1rem;
+    padding: .45rem .75rem;
+    border: 1px solid rgba(76, 123, 223, .16);
+    border-radius: 999px;
+    color: #4672cd;
+    background: rgba(255, 255, 255, .58);
+    font-size: .73rem;
+    font-weight: 600;
+    letter-spacing: .02em;
+    box-shadow: 0 8px 24px rgba(65, 111, 199, .08);
+    backdrop-filter: blur(8px);
+}
+
+.lg-brand-copy h2 {
+    margin: 0;
+    color: #102954;
+    font-size: clamp(2rem, 3vw, 2.55rem);
+    font-weight: 700;
+    line-height: 1.22;
+    letter-spacing: -.035em;
+}
+
+.lg-brand-copy h2 span {
+    color: #4b76e6;
+}
+
+.lg-brand-copy p {
+    margin: 1rem 0 0;
+    color: #7185aa;
+    font-size: .9rem;
+    line-height: 1.8;
+}
+
+.lg-brand-benefits {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .65rem 1rem;
+    margin-top: 1.25rem;
+    color: #49658f;
+    font-size: .76rem;
+    font-weight: 500;
+}
+
+.lg-brand-benefits span {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+}
+
+.lg-brand-benefits i {
+    color: #4f7cec;
+}
+
+.lg-brand-art {
+    position: absolute;
+    z-index: 1;
+    right: -2.75rem;
+    bottom: 2.9rem;
+    width: 70%;
+    max-width: 325px;
+    opacity: .56;
+    pointer-events: none;
+    filter: drop-shadow(0 20px 24px rgba(65, 88, 193, .17));
+}
+
+.lg-brand-art img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.lg-brand-foot {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: auto;
+    padding-top: 2rem;
+    color: #7890b7;
+    font-size: .68rem;
+}
+
+.lg-brand-status {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    color: #4d6d9f;
+    font-weight: 500;
+}
+
+.lg-brand-status > i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #39b980;
+    box-shadow: 0 0 0 4px rgba(57, 185, 128, .12);
+}
 
 /* แผงฟอร์ม */
-.lg-form  { padding: 2.75rem 2.5rem; }
-.lg-title { margin: 0; color: #1f3a5f; font-size: 1.6rem; font-weight: 700; }
-.lg-sub   { margin: .35rem 0 1.75rem; color: #8a93a3; font-size: .9rem; }
+.lg-form {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+    padding: 3.25rem 4rem;
+    background: linear-gradient(180deg, #fff 0%, #fdfdff 100%);
+}
 
-.lg-fld { margin-bottom: 1.1rem; }
+.lg-form-head {
+    margin-bottom: 1.75rem;
+}
+
+.lg-form-kicker {
+    display: block;
+    margin-bottom: .45rem;
+    color: #4d78e5;
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .04em;
+}
+
+.lg-title {
+    margin: 0;
+    color: #102750;
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -.02em;
+}
+
+.lg-sub {
+    margin: .45rem 0 0;
+    color: #8594af;
+    font-size: .86rem;
+    line-height: 1.65;
+}
+
+.lg-form-fields {
+    width: 100%;
+}
+
+.lg-fld {
+    margin-bottom: 1rem;
+}
+
 .lg-fld > label {
-    display: block; font-size: .82rem; font-weight: 600; color: #46505f; margin-bottom: .4rem;
+    display: block;
+    margin-bottom: .45rem;
+    color: #334b70;
+    font-size: .78rem;
+    font-weight: 600;
 }
 
-/* กล่อง input + icon นำหน้า */
-.lg-input { position: relative; }
-.lg-input::before {
-    content: ""; position: absolute; left: .9rem; top: 50%; transform: translateY(-50%);
-    width: 18px; height: 18px; opacity: .45;
-    background-repeat: no-repeat; background-position: center; background-size: contain;
+.lg-input {
+    position: relative;
 }
-.lg-input--user::before   { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231f3a5f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E"); }
-.lg-input--lock::before   { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231f3a5f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='11' width='18' height='11' rx='2'/%3E%3Cpath d='M7 11V7a5 5 0 0 1 10 0v4'/%3E%3C/svg%3E"); }
-.lg-input--branch::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231f3a5f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 21h18'/%3E%3Cpath d='M5 21V7l7-4 7 4v14'/%3E%3Cpath d='M9 9h.01M9 13h.01M9 17h.01M15 9h.01M15 13h.01M15 17h.01'/%3E%3C/svg%3E"); }
+
+.lg-input > i {
+    position: absolute;
+    z-index: 1;
+    top: 50%;
+    left: 1rem;
+    transform: translateY(-50%);
+    color: #88a0c4;
+    font-size: 1.05rem;
+    pointer-events: none;
+    transition: color .18s ease;
+}
 
 .lg-input input,
 .lg-input select {
-    width: 100%; padding: .7rem .9rem .7rem 2.6rem;
-    border: 1px solid #d7dce4; border-radius: 10px; background: #f8fafc;
-    font-family: inherit; font-size: .95rem; color: #1f2a3a;
-    transition: border-color .15s, box-shadow .15s, background .15s;
+    width: 100%;
+    height: 54px;
+    padding: 0 2.8rem;
+    border: 1px solid #dfe6f2;
+    border-radius: 14px;
+    outline: none;
+    color: #1d3459;
+    background-color: #f8faff;
+    font-family: inherit;
+    font-size: .9rem;
+    transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
 }
-.lg-input select { appearance: none; cursor: pointer;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a93a3' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-    background-repeat: no-repeat; background-position: right .9rem center; background-size: 16px;
+
+.lg-input select {
+    appearance: none;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2388a0c4' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 16px;
 }
+
+.lg-input--branch select option {
+    color: #1d3459;
+    background-color: #fff;
+    font-family: "Prompt", sans-serif;
+}
+
+.lg-input--branch select option:checked {
+    color: #fff;
+    background: #4d78e5 linear-gradient(135deg, #4d78e5, #6d63ef);
+}
+
+/*
+ * Login must keep a native select so branchId is included in the regular
+ * form POST. Modern Chromium exposes the picker for presentation-only styling.
+ */
+@supports (appearance: base-select) {
+    .lg-input--branch select,
+    .lg-input--branch select::picker(select) {
+        appearance: base-select;
+    }
+
+    .lg-input--branch select {
+        align-items: center;
+        padding-right: 1rem;
+        background-image: none;
+    }
+
+    .lg-input--branch select::picker-icon {
+        width: .55rem;
+        height: .55rem;
+        margin-left: auto;
+        border-right: 1.5px solid #88a0c4;
+        border-bottom: 1.5px solid #88a0c4;
+        content: "";
+        transform: rotate(45deg) translateY(-2px);
+        transition: transform .18s ease, border-color .18s ease;
+    }
+
+    .lg-input--branch select:open::picker-icon {
+        border-color: #4d78e5;
+        transform: rotate(225deg) translate(-2px, -2px);
+    }
+
+    .lg-input--branch select::picker(select) {
+        margin-top: .55rem;
+        padding: .4rem;
+        border: 1px solid #dfe6f2;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, .98);
+        box-shadow: 0 18px 48px rgba(31, 57, 101, .18);
+    }
+
+    .lg-input--branch select option {
+        display: flex;
+        align-items: center;
+        min-height: 44px;
+        padding: .7rem .85rem;
+        border-radius: 10px;
+        color: #334b70;
+        background: transparent;
+        font-size: .88rem;
+        cursor: pointer;
+        transition: color .15s ease, background-color .15s ease;
+    }
+
+    .lg-input--branch select option:first-child {
+        color: #8797b2;
+    }
+
+    .lg-input--branch select option:hover,
+    .lg-input--branch select option:focus {
+        color: #284c9b;
+        background: #eef4ff;
+    }
+
+    .lg-input--branch select option:checked {
+        color: #fff;
+        background: linear-gradient(135deg, #4d78e5, #6d63ef);
+    }
+
+    .lg-input--branch select option::checkmark {
+        order: 1;
+        margin-left: auto;
+        color: currentColor;
+        font-weight: 700;
+    }
+}
+
+.lg-input input::placeholder {
+    color: #a8b4c8;
+}
+
 .lg-input input:focus,
 .lg-input select:focus {
-    outline: none; border-color: #2a4d7a; background: #fff;
-    box-shadow: 0 0 0 3px rgba(42,77,122,.15);
+    border-color: #6f92ee;
+    background-color: #fff;
+    box-shadow: 0 0 0 4px rgba(77, 120, 229, .11);
 }
-.lg-input input::placeholder { color: #aab2bf; }
 
-.lg-row { display: flex; justify-content: flex-end; margin: -.2rem 0 1.25rem; }
-/* เป็น <button> (เปิด modal) — reset ให้ดูเหมือนลิงก์ */
-.lg-forgot {
-    font-size: .85rem; color: #2a4d7a; font-weight: 600;
-    background: none; border: none; padding: 0; cursor: pointer; font-family: inherit;
+.lg-input:focus-within > i {
+    color: #4d78e5;
 }
-.lg-forgot:hover { text-decoration: underline; }
+
+.lg-row {
+    display: flex;
+    justify-content: flex-end;
+    margin: -.1rem 0 1.15rem;
+}
+
+.lg-forgot {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .2rem 0;
+    border: none;
+    color: #426bc7;
+    background: transparent;
+    font-family: inherit;
+    font-size: .78rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.lg-forgot:hover {
+    color: #244fae;
+}
 
 .lg-btn {
-    display: block; width: 100%; padding: .8rem; border: none; border-radius: 10px;
-    background: linear-gradient(135deg, #1f3a5f, #2a4d7a); color: #fff;
-    font-family: inherit; font-size: 1rem; font-weight: 600; cursor: pointer; text-align: center;
-    text-decoration: none; transition: filter .15s, transform .05s, box-shadow .15s;
-    box-shadow: 0 8px 20px rgba(31,58,95,.28);
+    width: 100%;
+    min-height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .7rem;
+    padding: .8rem 1.1rem;
+    border: none;
+    border-radius: 14px;
+    color: #fff;
+    background: linear-gradient(135deg, #3f70e8 0%, #5b7ff0 55%, #706ef1 100%);
+    box-shadow: 0 14px 30px rgba(65, 107, 219, .27);
+    font-family: inherit;
+    font-size: .9rem;
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform .16s ease, box-shadow .16s ease, filter .16s ease;
 }
-.lg-btn:hover  { filter: brightness(1.08); }
-.lg-btn:active { transform: translateY(1px); }
+
+.lg-btn:hover {
+    filter: saturate(1.08) brightness(1.03);
+    transform: translateY(-1px);
+    box-shadow: 0 17px 34px rgba(65, 107, 219, .32);
+}
+
+.lg-btn:active {
+    transform: translateY(0);
+}
+
+.lg-secure-note {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .4rem;
+    margin: 1rem 0 0;
+    color: #9aa7ba;
+    font-size: .67rem;
+}
+
+.lg-secure-note i {
+    color: #6f8ecb;
+}
 
 .lg-error {
-    background: #fde8e8; color: #c0392b; padding: .6rem .8rem;
-    border: 1px solid #f5c6c6; border-radius: 10px; font-size: .85rem; margin-bottom: 1.1rem;
+    margin-bottom: 1rem;
+    padding: .7rem .85rem;
+    border: 1px solid #ffd0d0;
+    border-radius: 12px;
+    color: #b83c3c;
+    background: #fff2f2;
+    font-size: .78rem;
 }
-.lg-form .validation-message { color: #e50000; font-size: .8rem; margin-top: .3rem; }
 
-/* ── Modal "ลืมรหัสผ่าน" (toggle ด้วย class .is-open จาก Blazor) — z สูงกว่า login overlay (2000) ── */
-.lg-modal {
-    position: fixed; inset: 0; display: none;
-    align-items: center; justify-content: center; padding: 1.5rem; z-index: 2100;
+.lg-form .validation-message {
+    margin-top: .3rem;
+    color: #c03e3e;
+    font-size: .75rem;
 }
-.lg-modal.is-open { display: flex; animation: lg-fade .15s ease; }
-.lg-btn--ghost, .lg-modal-back { cursor: pointer; }
-.lg-modal-back { position: absolute; inset: 0; background: rgba(8,18,38,.6); backdrop-filter: blur(2px); }
-.lg-modal-card {
-    position: relative; width: 100%; max-width: 400px; background: #fff;
-    border-radius: 16px; padding: 2rem; text-align: center;
-    box-shadow: 0 24px 60px rgba(8,18,38,.5);
-}
+
 .lg-modal-x {
-    position: absolute; top: .85rem; right: .85rem;
-    width: 32px; height: 32px; padding: 0; border: none; border-radius: 8px;
-    background: transparent; color: #8a93a3; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: background .15s, color .15s;
+    position: absolute;
+    top: 1.15rem;
+    right: 1.15rem;
+    z-index: 4;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 1px solid rgba(111, 136, 178, .14);
+    border-radius: 11px;
+    color: #7990b3;
+    background: rgba(255, 255, 255, .72);
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    transition: color .16s ease, background-color .16s ease, transform .16s ease;
 }
-.lg-modal-x svg { width: 13px; height: 13px; }
-.lg-modal-x:hover { background: rgba(138,147,163,.16); color: #46505f; }
-.lg-modal-icon {
-    width: 56px; height: 56px; margin: 0 auto 1rem; border-radius: 50%;
-    background: #eef3fb; display: flex; align-items: center; justify-content: center; font-size: 1.6rem;
-}
-.lg-modal-card h3 { margin: 0 0 .6rem; color: #1f3a5f; font-size: 1.25rem; }
-.lg-modal-card p  { margin: 0 0 1.25rem; color: #6b7585; font-size: .92rem; line-height: 1.7; }
-.lg-modal-contact { list-style: none; margin: 0 0 1.5rem; padding: 0; }
-.lg-modal-contact li {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: .65rem .9rem; border-radius: 10px; background: #f8fafc; margin-bottom: .5rem;
-}
-.lg-modal-contact span    { color: #8a93a3; font-size: .85rem; }
-.lg-modal-contact strong  { color: #1f3a5f; font-size: .92rem; }
-.lg-btn--ghost {
-    background: #eef3fb; color: #1f3a5f; box-shadow: none;
-}
-.lg-btn--ghost:hover { filter: none; background: #e2eaf6; }
 
-/* ── Login overlay popup (เด้งทับ landing — toggle ด้วย class .is-open จาก Blazor) ── */
-.lg-overlay {
-    position: fixed; inset: 0; z-index: 2000;
-    display: none; align-items: center; justify-content: center; padding: 1.5rem;
+.lg-modal-x svg {
+    width: 13px;
+    height: 13px;
 }
-.lg-overlay.is-open { display: flex; animation: lg-fade .15s ease; }
-.lg-overlay-back { position: absolute; inset: 0; background: rgba(8,18,38,.6); backdrop-filter: blur(3px); }
-/* การ์ด popup = โครงเดียวกับ .lg-card (แบรนด์ซ้าย + ฟอร์มขวา) */
-.lg-pop {
-    position: relative; width: 100%; max-width: 860px;
-    display: grid; grid-template-columns: 1fr 1fr;
-    background: #fff; border-radius: 18px; overflow: hidden;
-    box-shadow: 0 24px 60px rgba(8,18,38,.5);
-    animation: lg-pop-in .18s cubic-bezier(.2,.8,.3,1);
+
+.lg-modal-x:hover {
+    color: #2e4c78;
+    background: #fff;
+    transform: rotate(4deg);
 }
-/* ปุ่มปิด ลอยเหนือแผงฟอร์ม (ตำแหน่ง/สไตล์ใช้จาก .lg-modal-x) */
-.lg-pop .lg-modal-x { z-index: 1; }
-@keyframes lg-fade   { from { opacity: 0; } to { opacity: 1; } }
-@keyframes lg-pop-in { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: none; } }
+
+/* Modal ลืมรหัสผ่าน */
+.lg-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 2100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+}
+
+.lg-modal.is-open {
+    display: flex;
+    animation: lg-fade .18s ease;
+}
+
+.lg-modal-back {
+    position: absolute;
+    inset: 0;
+    background: rgba(12, 29, 58, .64);
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+}
+
+.lg-modal-card {
+    position: relative;
+    width: 100%;
+    max-width: 420px;
+    padding: 2.25rem;
+    border: 1px solid rgba(255, 255, 255, .8);
+    border-radius: 24px;
+    background: #fff;
+    box-shadow: 0 28px 70px rgba(7, 25, 59, .34);
+    text-align: center;
+}
+
+.lg-modal-icon {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    border-radius: 18px;
+    background: linear-gradient(145deg, #edf5ff, #f1efff);
+    font-size: 1.6rem;
+}
+
+.lg-modal-card h3 {
+    margin: 0 0 .6rem;
+    color: #17325d;
+    font-size: 1.25rem;
+}
+
+.lg-modal-card p {
+    margin: 0 0 1.25rem;
+    color: #7888a4;
+    font-size: .86rem;
+    line-height: 1.75;
+}
+
+.lg-modal-contact {
+    list-style: none;
+    margin: 0 0 1.5rem;
+    padding: 0;
+}
+
+.lg-modal-contact li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: .5rem;
+    padding: .75rem .9rem;
+    border: 1px solid #edf0f7;
+    border-radius: 12px;
+    background: #f9fbff;
+}
+
+.lg-modal-contact span {
+    color: #8794aa;
+    font-size: .78rem;
+}
+
+.lg-modal-contact strong {
+    color: #2c4a78;
+    font-size: .82rem;
+}
+
+.lg-btn--ghost {
+    color: #345baf;
+    background: #edf3ff;
+    box-shadow: none;
+}
+
+.lg-btn--ghost:hover {
+    background: #e5edff;
+    box-shadow: none;
+    filter: none;
+}
+
+@keyframes lg-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes lg-pop-in {
+    from { opacity: 0; transform: translateY(18px) scale(.98); }
+    to { opacity: 1; transform: none; }
+}
 
 /* ปุ่มการ์ดระบบ (ยังไม่ login) ให้ดูเหมือน <a> การ์ดเดิม (reset ค่า default ของ button) */
 button.pt-card-link {
@@ -212,11 +707,58 @@ button.pt-card-link {
     cursor: pointer; text-align: inherit;
 }
 
-/* responsive — ซ่อนแผงแบรนด์บนจอเล็ก */
-@media (max-width: 720px) {
-    .lg-pop { grid-template-columns: 1fr; max-width: 420px; }
-    .lg-brand { display: none; }
-    .lg-form  { padding: 2.25rem 1.75rem; }
+@media (max-width: 900px) {
+    .lg-pop { grid-template-columns: .82fr 1.18fr; }
+    .lg-brand { padding-inline: 2rem; }
+    .lg-brand-copy { margin-top: 2.5rem; }
+    .lg-form { padding-inline: 3rem; }
+}
+
+@media (max-width: 760px) {
+    .lg-overlay { padding: .8rem; }
+    .lg-pop {
+        width: 100%;
+        max-width: 500px;
+        min-height: 0;
+        max-height: calc(100dvh - 1.6rem);
+        grid-template-columns: 1fr;
+        overflow-y: auto;
+        border-radius: 22px;
+    }
+    .lg-brand {
+        min-height: 112px;
+        padding: 1.25rem 1.75rem;
+    }
+    .lg-brand-head { min-height: 48px; }
+    .lg-brand-logo { width: 125px; height: 48px; }
+    .lg-brand-copy,
+    .lg-brand-art,
+    .lg-brand-foot { display: none; }
+    .lg-form { padding: 2rem 2rem 2.25rem; }
+    .lg-form-head { margin-bottom: 1.35rem; }
+    .lg-title { font-size: 1.7rem; }
+}
+
+@media (max-width: 480px) {
+    .lg-overlay { align-items: flex-start; padding: 0; }
+    .lg-pop {
+        max-width: none;
+        min-height: 100dvh;
+        max-height: none;
+        border: 0;
+        border-radius: 0;
+    }
+    .lg-brand { min-height: 96px; padding: 1rem 1.25rem; }
+    .lg-brand-head > span { display: none; }
+    .lg-form { justify-content: flex-start; padding: 1.75rem 1.25rem 2rem; }
+    .lg-modal-x { top: 1rem; right: 1rem; }
+    .lg-modal-card { padding: 2rem 1.25rem 1.5rem; border-radius: 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .lg-overlay.is-open,
+    .lg-pop,
+    .lg-modal.is-open { animation: none; }
 }
 
 h1:focus {
@@ -276,3 +818,41 @@ h1:focus {
 /* ── DxGrid: caption ของ header center ทุกคอลัมน์/ทุกกริด (global default) ──
    แก้เฉพาะ justify-content (layout ล้วน) — data cell ยัง align ตาม TextAlignment เดิม */
 .dxbl-grid-header-content { justify-content: center !important; text-align: center; }
+
+/* scCenter launcher: layout-only helpers for DevExpress child components.
+   ต้องอยู่ global เพราะ scoped CSS ส่งไม่ถึง markup ภายใน DxTextBox/DxButton */
+.pt-search .dxbl-text-edit {
+    --dxbl-text-edit-border-radius: 999px;
+    --dxbl-text-edit-border-radius-s: 999px;
+    --dxbl-text-edit-border-radius-m: 999px;
+    --dxbl-text-edit-border-radius-l: 999px;
+    --dxbl-text-edit-border-color: #e3e9f4;
+    --dxbl-text-edit-border-hovered-color: #9ab7f1;
+    --dxbl-text-edit-focus-border-color: #5d88ed;
+    --dxbl-text-edit-box-shadow: 0 12px 30px rgba(51, 91, 169, .10);
+    width: 100%;
+    border: 1px solid #e3e9f4;
+    box-shadow: 0 12px 30px rgba(51, 91, 169, .10);
+}
+.pt-search .dxbl-text-edit:focus-within {
+    border-color: #5d88ed;
+    box-shadow: 0 0 0 3px rgba(93, 136, 237, .12), 0 12px 30px rgba(51, 91, 169, .10);
+}
+.pt-search .dxbl-text-edit-input { min-height: 54px; padding-left: 2.8rem; }
+.pt-category-item .dxbl-btn {
+    --dxbl-btn-border-radius: 12px;
+    --dxbl-btn-box-shadow: 0 5px 16px rgba(51, 91, 169, .06);
+    --dxbl-btn-primary-bg: #4778e8;
+    --dxbl-btn-primary-border-color: #4778e8;
+    --dxbl-btn-primary-hover-bg: #3868d8;
+    --dxbl-btn-primary-hover-border-color: #3868d8;
+    --dxbl-btn-primary-active-bg: #315fc9;
+    --dxbl-btn-primary-active-border-color: #315fc9;
+    --dxbl-btn-light-bg: rgba(255, 255, 255, .86);
+    --dxbl-btn-light-border-color: #e3e9f4;
+    --dxbl-btn-light-hover-bg: #f3f7ff;
+    --dxbl-btn-light-hover-border-color: #aec4f2;
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+}

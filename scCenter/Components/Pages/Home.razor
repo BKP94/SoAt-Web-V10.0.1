@@ -16,16 +16,32 @@
 
 <div class="portal">
 
-    @* ── Hero ──────────────────────────────────────────────── *@
-    <header class="pt-hero">
-        <img class="pt-logo" src="ImgMenu/soat_1.png" alt="SO-AT Solution" />
-        <h1 class="pt-greet">@Greeting</h1>
-        <p class="pt-sub">ระบบบริหารงานสหกรณ์ออมทรัพย์ · เลือกระบบงานที่ต้องการ</p>
+    @* ── Header + hero ─────────────────────────────────────── *@
+    <header class="pt-header">
+        <div class="pt-header-inner">
+            <img class="pt-logo" src="ImgMenu/Logo_SoAt.png" alt="SO-AT Solution" />
+        </div>
 
-        <div class="pt-chips">
-            <span class="pt-chip"><span class="pt-chip-k">ผู้ใช้งาน</span> @UserName · สาขา @BranchId</span>
-            <span class="pt-chip"><span class="pt-chip-k">วันที่การเงิน</span> @(_info?.FinanceDate ?? "—")</span>
-            <span class="pt-chip"><span class="pt-chip-k">ฐานข้อมูล</span> @SysName</span>
+        <div class="pt-hero">
+            <div class="pt-hero-art pt-hero-art--left" aria-hidden="true">
+                <img src="ImgMenu/Image_1.png" alt="" />
+            </div>
+
+            <div class="pt-hero-content">
+                <div class="pt-kicker">SO-AT SOLUTION CENTER</div>
+                <h1>ศูนย์รวมทุกระบบงาน</h1>
+                <p>เข้าถึงทุกระบบงานได้อย่างง่ายดาย ครบจบในที่เดียว</p>
+
+                @* Presentation-only: Claude Code จะผูก state และ filter logic ภายหลัง *@
+                <div class="pt-search">
+                    <i class="bi bi-search" aria-hidden="true"></i>
+                    <DxTextBox NullText="ค้นหาระบบที่คุณต้องการ..." />
+                </div>
+            </div>
+
+            <div class="pt-hero-art pt-hero-art--right" aria-hidden="true">
+                <img src="ImgMenu/Image_2.png" alt="" />
+            </div>
         </div>
     </header>
 
@@ -38,7 +54,7 @@
         @* ── Pinned ───────────────────────────────────────── *@
         @if (_favApps.Count > 0)
         {
-            <section class="pt-section">
+            <section class="pt-section pt-section--pinned">
                 <h2 class="pt-h2"><span class="pt-h2-ic">★</span> ปักหมุด</h2>
                 <div class="pt-grid">
                     @foreach (var app in _favApps) { @Card(app) }
@@ -46,30 +62,36 @@
             </section>
         }
 
-        @* ── Recent ───────────────────────────────────────── *@
-        @if (_recentApps.Count > 0)
-        {
-            <section class="pt-section">
-                <h2 class="pt-h2"><span class="pt-h2-ic">🕘</span> ใช้ล่าสุด</h2>
-                <div class="pt-grid">
-                    @foreach (var app in _recentApps) { @Card(app) }
+        @* ── Category buttons ──────────────────────────────── *@
+        <section class="pt-categories" aria-labelledby="category-title">
+            <h2 id="category-title">หมวดหมู่ระบบ</h2>
+            <nav class="pt-category-grid" aria-label="หมวดหมู่ระบบ">
+                <div class="pt-category-item">
+                    <DxButton Text="ทั้งหมด"
+                              IconCssClass="bi bi-grid"
+                              RenderStyle="@(SelectedCat is null ? ButtonRenderStyle.Primary : ButtonRenderStyle.Light)"
+                              RenderStyleMode="ButtonRenderStyleMode.Contained"
+                              Click="() => SelectedCat = null" />
                 </div>
-            </section>
-        }
-
-        @* ── Category pills ───────────────────────────────── *@
-        <nav class="pt-pills">
-            <button class="pt-pill @(SelectedCat is null ? "on" : "")" @onclick="() => SelectedCat = null">
-                ทั้งหมด <span class="pt-pill-n">@_apps.Count</span>
-            </button>
             @foreach (var c in _categories)
             {
-                var n = _apps.Count(a => CatOf(a.AppName) == c);
-                <button class="pt-pill @(SelectedCat == c ? "on" : "")" @onclick="() => SelectedCat = c">
-                    @c <span class="pt-pill-n">@n</span>
-                </button>
+                    <div class="pt-category-item">
+                        <DxButton Text="@c"
+                                  IconCssClass="@(c switch
+                                  {
+                                      "ผู้ดูแลระบบ" => "bi bi-shield-check",
+                                      "สมาชิก & สวัสดิการ" => "bi bi-people",
+                                      "หน้าเคาน์เตอร์" => "bi bi-gear",
+                                      "หลังบ้าน & รายงาน" => "bi bi-bar-chart",
+                                      _ => "bi bi-grid"
+                                  })"
+                                  RenderStyle="@(SelectedCat == c ? ButtonRenderStyle.Primary : ButtonRenderStyle.Light)"
+                                  RenderStyleMode="ButtonRenderStyleMode.Contained"
+                                  Click="() => SelectedCat = c" />
+                    </div>
             }
-        </nav>
+            </nav>
+        </section>
 
         @* ── Main grid ────────────────────────────────────── *@
         <section class="pt-section">
@@ -88,29 +110,57 @@
    form เป็น native POST ไป /auth/login (full page) — antiforgery token มาจาก
    prerender ผ่าน PersistentComponentState (Home เป็น interactive จึงเรียก
    AntiforgeryToken component ตรงๆ ไม่ได้) *@
-<div class="lg-overlay @(_showLogin ? "is-open" : "")">
+<div class="lg-overlay @(_showLogin ? "is-open" : "")"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="login-dialog-title">
     <div class="lg-overlay-back" @onclick="CloseLogin"></div>
     <div class="lg-pop">
         <button type="button" class="lg-modal-x" @onclick="CloseLogin" aria-label="ปิด">
-            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M4.08859 4.21569L4.14645 4.14645C4.32001 3.97288 4.58944 3.9536 4.78431 4.08859L4.85355 4.14645L10 9.293L15.1464 4.14645C15.32 3.97288 15.5894 3.9536 15.7843 4.08859L15.8536 4.14645C16.0271 4.32001 16.0464 4.58944 15.9114 4.78431L15.8536 4.85355L10.707 10L15.8536 15.1464C16.0271 15.32 16.0464 15.5894 15.9114 15.7843L15.8536 15.8536C15.68 16.0271 15.4106 16.0464 15.2157 15.9114L15.1464 15.8536L10 10.707L4.85355 15.8536C4.67999 16.0271 4.41056 16.0464 4.21569 15.9114L4.14645 15.8536C3.97288 15.68 3.9536 15.4106 4.08859 15.2157L4.14645 15.1464L9.293 10L4.14645 4.85355C3.97288 4.67999 3.9536 4.41056 4.08859 4.21569Z"/></svg>
+            <i class="bi bi-x-lg" aria-hidden="true"></i>
         </button>
 
         @* ── แผงแบรนด์ (ซ้าย) ─────────────────────────────── *@
         <aside class="lg-brand">
-            <div class="lg-brand-mark">SoAt</div>
-            <h2 class="lg-brand-title">ระบบสหกรณ์ออมทรัพย์</h2>
-            <p class="lg-brand-text">บริหารจัดการเงินฝาก เงินกู้ และสมาชิกภาพ<br />อย่างปลอดภัยในระบบเดียว</p>
-            <div class="lg-brand-foot">© @DateTime.Now.Year SoAt Cooperative</div>
+            <div class="lg-brand-head">
+                <img class="lg-brand-logo" src="ImgMenu/Logo_SoAt.png" alt="SO-AT Solution" />
+                <span>SO-AT SOLUTION CENTER</span>
+            </div>
+
+            <div class="lg-brand-copy">
+                <div class="lg-brand-chip">
+                    <i class="bi bi-shield-check" aria-hidden="true"></i>
+                    Secure workspace
+                </div>
+                <h2>ทุกระบบงาน<br /><span>เริ่มต้นที่นี่</span></h2>
+                <p>เชื่อมต่อระบบบริหารงานสหกรณ์ทั้งหมด<br />ด้วยบัญชีเดียวอย่างปลอดภัย</p>
+                <div class="lg-brand-benefits" aria-label="จุดเด่นของระบบ">
+                    <span><i class="bi bi-check-circle-fill" aria-hidden="true"></i> เข้าใช้งานง่าย</span>
+                    <span><i class="bi bi-check-circle-fill" aria-hidden="true"></i> ข้อมูลปลอดภัย</span>
+                </div>
+            </div>
+
+            <div class="lg-brand-art" aria-hidden="true">
+                <img src="ImgMenu/Image_2.png" alt="" />
+            </div>
+
+            <div class="lg-brand-foot">
+                <span class="lg-brand-status"><i aria-hidden="true"></i> ระบบพร้อมใช้งาน</span>
+                <span>© @DateTime.Now.Year SoAt Cooperative</span>
+            </div>
         </aside>
 
         @* ── แผงฟอร์ม (ขวา) ──────────────────────────────── *@
         <section class="lg-form">
-            <h1 class="lg-title">เข้าสู่ระบบ</h1>
-            <p class="lg-sub">
-                @(string.IsNullOrEmpty(_loginAppText) ? "กรุณากรอกข้อมูลเพื่อเข้าใช้งาน" : $"เพื่อเข้าใช้งาน{_loginAppText}")
-            </p>
+            <div class="lg-form-head">
+                <span class="lg-form-kicker">เข้าสู่ระบบส่วนกลาง</span>
+                <h1 id="login-dialog-title" class="lg-title">ยินดีต้อนรับ</h1>
+                <p class="lg-sub">
+                    @(string.IsNullOrEmpty(_loginAppText) ? "กรอกข้อมูลของคุณเพื่อเข้าใช้งานระบบ" : $"เข้าสู่ระบบเพื่อใช้งาน{_loginAppText}")
+                </p>
+            </div>
 
-            <form method="post" action="/auth/login">
+            <form class="lg-form-fields" method="post" action="/auth/login">
                 <input type="hidden" name="__RequestVerificationToken" value="@_afToken" />
                 <input type="hidden" name="returnUrl" value="@_loginTarget" />
 
@@ -122,6 +172,7 @@
                 <div class="lg-fld">
                     <label for="ov-user">ชื่อผู้ใช้</label>
                     <div class="lg-input lg-input--user">
+                        <i class="bi bi-person" aria-hidden="true"></i>
                         <input id="ov-user" name="userId" autocomplete="username"
                                placeholder="รหัสผู้ใช้งาน" required />
                     </div>
@@ -130,6 +181,7 @@
                 <div class="lg-fld">
                     <label for="ov-pass">รหัสผ่าน</label>
                     <div class="lg-input lg-input--lock">
+                        <i class="bi bi-lock" aria-hidden="true"></i>
                         <input id="ov-pass" name="password" type="password"
                                autocomplete="current-password" placeholder="••••••••" required />
                     </div>
@@ -138,6 +190,7 @@
                 <div class="lg-fld">
                     <label for="ov-branch">สาขา</label>
                     <div class="lg-input lg-input--branch">
+                        <i class="bi bi-building" aria-hidden="true"></i>
                         <select id="ov-branch" name="branchId" required>
                             <option value="">— เลือกสาขา —</option>
                             @foreach (var b in _branches)
@@ -149,10 +202,21 @@
                 </div>
 
                 <div class="lg-row">
-                    <button type="button" class="lg-forgot" @onclick="() => _showForgot = true">ลืมรหัสผ่าน?</button>
+                    <button type="button" class="lg-forgot" @onclick="() => _showForgot = true">
+                        <i class="bi bi-question-circle" aria-hidden="true"></i>
+                        ลืมรหัสผ่าน?
+                    </button>
                 </div>
 
-                <button type="submit" class="lg-btn">เข้าสู่ระบบ</button>
+                <button type="submit" class="lg-btn">
+                    <span>เข้าสู่ระบบ</span>
+                    <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                </button>
+
+                <p class="lg-secure-note">
+                    <i class="bi bi-shield-lock" aria-hidden="true"></i>
+                    ข้อมูลการเข้าสู่ระบบได้รับการปกป้องอย่างปลอดภัย
+                </p>
             </form>
         </section>
     </div>

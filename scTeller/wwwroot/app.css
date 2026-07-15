@@ -460,33 +460,16 @@ a.home-card:hover {
     .home-card { transition: none; }
 }
 
-/* ── Operate bar buttons (ใช้ได้ทุก Operate.razor) ────────────── */
-.op-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-.op-btn {
-    width: 54px; height: 54px; border-radius: 50%;
-    border: none; cursor: pointer;
-    display: grid; place-items: center;
-    font-size: 1.4rem; line-height: 1;
-    background: var(--navy-700, #284b78); color: #fff;
-    box-shadow: 0 2px 6px rgba(16, 33, 60, .18);
-    transition: transform .12s ease, box-shadow .12s ease, background .12s ease, opacity .12s ease;
-}
-.op-btn:hover { transform: translateY(-2px); box-shadow: 0 7px 16px rgba(16, 33, 60, .24); }
-.op-btn:active { transform: translateY(0); box-shadow: 0 2px 6px rgba(16, 33, 60, .18); }
-.op-btn:disabled { opacity: .45; cursor: default; transform: none; box-shadow: none; }
-.op-btn--danger { background: #e5484d; }
-.op-btn-label { font-size: .7rem; color: var(--ink-muted, #6b7787); }
-
-/* PanOperate orbit — ปุ่มวงกลม + ลวดลายประกอบ (สี/focus ใช้จาก DevExpress theme) */
+/* PanOperate orbit — ปุ่มวงกลมไล่สีตาม visual direction ที่เจ้าของโปรเจคเลือก */
 .op-orbit-toolbar {
     position: relative;
     isolation: isolate;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 7px;
+    gap: 8px;
     width: 100%;
-    padding: 5px 4px 7px;
+    padding: 6px 4px 8px;
     overflow: hidden;
     border-radius: 18px;
 }
@@ -495,25 +478,11 @@ a.home-card:hover {
     position: absolute;
     inset: 0;
     z-index: -2;
-    background: radial-gradient(circle, rgba(63, 118, 232, .16) 1px, transparent 1.5px);
-    background-size: 13px 13px;
+    background:
+        radial-gradient(circle at 18% 8%, rgba(76, 126, 245, .12), transparent 31%),
+        radial-gradient(circle at 84% 48%, rgba(124, 58, 237, .09), transparent 34%);
     content: "";
-    opacity: .48;
-    pointer-events: none;
-    -webkit-mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, .5) 60%, transparent 100%);
-    mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, .5) 60%, transparent 100%);
-}
-
-.op-orbit-toolbar::after {
-    position: absolute;
-    top: 28%;
-    right: -38px;
-    z-index: -1;
-    width: 82px;
-    height: 82px;
-    border: 1px solid rgba(63, 118, 232, .12);
-    border-radius: 50%;
-    content: "";
+    opacity: .8;
     pointer-events: none;
 }
 
@@ -529,53 +498,61 @@ a.home-card:hover {
 .op-orbit-item {
     position: relative;
     display: flex;
-    min-height: 76px;
+    min-height: 78px;
     flex-direction: column;
     align-items: center;
     gap: 4px;
-    transition: transform .16s ease;
+    transition: transform .18s ease;
 }
 
 .op-orbit-item::before {
     position: absolute;
-    top: -4px;
-    width: 66px;
-    height: 66px;
-    border: 1px solid rgba(63, 118, 232, .12);
+    top: 10px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(63, 118, 232, .08) 0 48%, transparent 49%);
+    background: rgba(83, 67, 225, .34);
+    filter: blur(13px);
     content: "";
+    opacity: .58;
     pointer-events: none;
+    transform: translateY(5px) scale(.92);
+    transition: opacity .18s ease, transform .18s ease;
 }
 
 .op-orbit-item--primary::before {
-    border-color: rgba(63, 118, 232, .24);
-    background: radial-gradient(circle, rgba(63, 118, 232, .14) 0 48%, transparent 49%);
+    opacity: .74;
 }
 
-.op-orbit-item:hover { transform: translateY(-2px); }
+.op-orbit-item:hover { transform: translateY(-3px); }
+.op-orbit-item:hover::before { opacity: .82; transform: translateY(7px) scale(1.06); }
 
-.op-orbit-btn {
+.op-btn {
     position: relative;
     z-index: 1;
-    display: grid;
-    place-items: center;
-    flex: 0 0 56px;
-    width: 56px;
-    height: 56px;
-    min-width: 56px;
-    min-height: 56px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 58px;
+    width: 58px;
+    height: 58px;
+    min-width: 58px;
+    min-height: 58px;
     padding: 0;
     border-radius: 50%;
-    /* gradient น้ำเงิน→ม่วง ทับสี theme (user สั่ง 2026-07-14 — ยกเว้นจากกฎห้าม override สี DX เฉพาะปุ่ม operate)
-       ปุ่มยกเลิก/ลบ ให้เติม CssClass "op-orbit-btn--danger" = ชมพู→ส้ม */
-    background-image: linear-gradient(135deg, #2f6fed 0%, #7a3cf0 100%);
-    box-shadow: 0 6px 16px rgba(88, 80, 240, .30);
-    transition: box-shadow .16s ease, filter .16s ease;
+    /* สีปุ่มเป็นข้อยกเว้นที่เจ้าของโปรเจคระบุโดยตรง: น้ำเงิน→ม่วง และ Cancel ชมพู→แดง */
+    background-color: #5b4cf0;
+    background-image:
+        radial-gradient(circle at 28% 20%, rgba(255, 255, 255, .34), transparent 34%),
+        linear-gradient(135deg, #1769ff 0%, #5b4cf0 52%, #842ee8 100%);
+    box-shadow:
+        0 10px 20px -5px rgba(79, 70, 229, .58),
+        inset 0 1px 0 rgba(255, 255, 255, .28);
+    transition: box-shadow .18s ease, filter .18s ease, transform .18s ease;
 }
 
 /* double class = specificity 0,2,0 — ชนะ outline theme (.dxbl-btn-secondary.dxbl-btn-outline) */
-.op-orbit-btn.op-orbit-btn {
+.op-btn.op-btn {
     --dxbl-btn-color: #fff;
     --dxbl-btn-hover-color: #fff;
     --dxbl-btn-active-color: #fff;
@@ -588,33 +565,59 @@ a.home-card:hover {
     color: #fff;
 }
 
-.op-orbit-btn:hover:not(:disabled) {
-    box-shadow: 0 10px 22px rgba(88, 80, 240, .40);
-    filter: brightness(1.07);
+.op-btn:hover:not(:disabled) {
+    box-shadow:
+        0 14px 26px -5px rgba(79, 70, 229, .68),
+        inset 0 1px 0 rgba(255, 255, 255, .34);
+    filter: saturate(1.08) brightness(1.06);
 }
 
-.op-orbit-btn:active:not(:disabled) {
-    box-shadow: 0 4px 10px rgba(88, 80, 240, .28);
-    filter: brightness(.97);
+.op-btn:active:not(:disabled) {
+    box-shadow:
+        0 6px 13px -4px rgba(79, 70, 229, .5),
+        inset 0 1px 0 rgba(255, 255, 255, .22);
+    filter: brightness(.96);
+    transform: scale(.96);
 }
 
-.op-orbit-btn:disabled {
+.op-btn:disabled {
     box-shadow: none;
     opacity: .45;
 }
 
-.op-orbit-btn--danger {
-    background-image: linear-gradient(135deg, #ff1a6c 0%, #ff6a45 100%);
-    box-shadow: 0 6px 16px rgba(255, 61, 110, .32);
+.op-btn--cancel,
+.op-btn--danger {
+    background-color: #ff1f5a;
+    background-image:
+        radial-gradient(circle at 28% 20%, rgba(255, 255, 255, .3), transparent 34%),
+        linear-gradient(135deg, #ff006e 0%, #ff1f5a 48%, #ff6254 100%);
+    box-shadow:
+        0 10px 20px -5px rgba(255, 31, 90, .58),
+        inset 0 1px 0 rgba(255, 255, 255, .26);
 }
 
-.op-orbit-btn--danger:hover:not(:disabled) { box-shadow: 0 10px 22px rgba(255, 61, 110, .42); }
-.op-orbit-btn--danger:active:not(:disabled) { box-shadow: 0 4px 10px rgba(255, 61, 110, .30); }
+.op-btn--cancel:hover:not(:disabled),
+.op-btn--danger:hover:not(:disabled) {
+    box-shadow:
+        0 14px 26px -5px rgba(255, 31, 90, .68),
+        inset 0 1px 0 rgba(255, 255, 255, .32);
+}
 
-.op-orbit-btn .dxbl-image {
+.op-btn--cancel:active:not(:disabled),
+.op-btn--danger:active:not(:disabled) {
+    box-shadow:
+        0 6px 13px -4px rgba(255, 31, 90, .5),
+        inset 0 1px 0 rgba(255, 255, 255, .2);
+}
+
+.op-btn .dxbl-image {
+    display: block;
+    width: 1em;
+    height: 1em;
     margin: 0;
-    font-size: 1.42rem;
+    font-size: 1.48rem;
     line-height: 1;
+    text-align: center;
 }
 
 .op-orbit-label {
@@ -632,13 +635,13 @@ a.home-card:hover {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .op-orbit-item { transition: none; }
+    .op-orbit-item,
+    .op-orbit-item::before,
+    .op-btn { transition: none; }
 }
 
-/* ── Bootstrap Icons — ขนาดมาตรฐาน (bi เป็น font → คุมขนาดด้วย font-size) ──
-   icon ทั่วไป 16px | icon ในปุ่ม Operate 32px. โหลดหลัง theme → ชนะ DevExpress ที่ specificity เท่ากัน */
+/* ── Bootstrap Icons — ขนาดมาตรฐาน (bi เป็น font) ── */
 .bi { font-size: 16px; }
-.op-btn .bi { font-size: 32px; }
 
 /* ── DxGrid: caption ของ header center ทุกคอลัมน์/ทุกกริด (global default) ──
    DevExpress ดัน caption ตาม TextAlignment ผ่าน justify-content ของ .dxbl-grid-header-content

@@ -2,14 +2,25 @@
    legacy: panOperate.ascx (2 หน้าใช้คนละไฟล์ แต่ปุ่มเหมือนกัน ต่างที่ tooltip/label)
    ยิง EventCallback กลับให้ Sckepmpm จัดการ (child ไม่ persist เอง) *@
 
-<div class="op-item">
-    <button type="button" class="op-btn" title="เริ่มใหม่" disabled="@Busy" @onclick="OnNew"><i class="bi bi-file-earmark-plus"></i></button>
-    <span class="op-btn-label">เริ่มใหม่</span>
-</div>
+<div class="op-orbit-toolbar" role="toolbar" aria-label="เครื่องมือประมวลผล">
+    <span class="op-orbit-heading">เครื่องมือ</span>
 
-<div class="op-item">
-    <button type="button" class="op-btn" title="@ProcTitle" disabled="@Busy" @onclick="OnProcess"><i class="bi bi-gear-wide-connected"></i></button>
-    <span class="op-btn-label">@ProcLabel</span>
+    <div class="op-orbit-item op-orbit-item--primary">
+        <DxButton RenderStyle="ButtonRenderStyle.Primary"
+                  title="เริ่มใหม่" aria-label="เริ่มใหม่"
+                  disabled="@Busy" @onclick="OnNew" CssClass="op-btn"
+                  IconCssClass="bi bi-file-earmark-plus" />
+        <span class="op-orbit-label">เริ่มใหม่</span>
+    </div>
+
+    <div class="op-orbit-item">
+        <DxButton RenderStyle="ButtonRenderStyle.Secondary"
+                  RenderStyleMode="ButtonRenderStyleMode.Outline"
+                  title="@ProcTitle" aria-label="@ProcTitle"
+                  disabled="@Busy" @onclick="OnProcess" CssClass="op-btn"
+                  IconCssClass="bi bi-gear-wide-connected" />
+        <span class="op-orbit-label">@ProcLabel</span>
+    </div>
 </div>
 
 @code {

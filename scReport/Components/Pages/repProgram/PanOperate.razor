@@ -2,9 +2,16 @@
    เลียน legacy panOperate ของ repProgram: ปุ่มบันทึก (ofSave)
    ปุ่ม raise EventCallback กลับให้ Page จัดการ (Page ถือ model + guard C30) *@
 
-<div class="op-item">
-    <button type="button" class="op-btn" title="บันทึกไฟล์รายงาน" @onclick="OnSave">💾</button>
-    <span class="op-btn-label">บันทึก</span>
+<div class="op-orbit-toolbar" role="toolbar" aria-label="เครื่องมือไฟล์รายงาน">
+    <span class="op-orbit-heading">เครื่องมือ</span>
+
+    <div class="op-orbit-item op-orbit-item--primary">
+        <DxButton RenderStyle="ButtonRenderStyle.Primary"
+                  title="บันทึกไฟล์รายงาน" aria-label="บันทึกไฟล์รายงาน"
+                  @onclick="OnSave" CssClass="op-btn"
+                  IconCssClass="bi bi-floppy" />
+        <span class="op-orbit-label">บันทึก</span>
+    </div>
 </div>
 
 @code {

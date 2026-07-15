@@ -460,27 +460,183 @@ a.home-card:hover {
     .home-card { transition: none; }
 }
 
-/* ── Operate bar buttons (ใช้ได้ทุก Operate.razor) ────────────── */
-.op-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-.op-btn {
-    width: 54px; height: 54px; border-radius: 50%;
-    border: none; cursor: pointer;
-    display: grid; place-items: center;
-    font-size: 1.4rem; line-height: 1;
-    background: var(--navy-700, #284b78); color: #fff;
-    box-shadow: 0 2px 6px rgba(16, 33, 60, .18);
-    transition: transform .12s ease, box-shadow .12s ease, background .12s ease, opacity .12s ease;
+/* PanOperate — ปุ่มวงกลมไล่สีที่ใช้ร่วมกันทุกหน้าของโมดูล */
+.op-orbit-toolbar {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 6px 4px 8px;
+    overflow: hidden;
+    border-radius: 18px;
 }
-.op-btn:hover { transform: translateY(-2px); box-shadow: 0 7px 16px rgba(16, 33, 60, .24); }
-.op-btn:active { transform: translateY(0); box-shadow: 0 2px 6px rgba(16, 33, 60, .18); }
-.op-btn:disabled { opacity: .45; cursor: default; transform: none; box-shadow: none; }
-.op-btn--danger { background: #e5484d; }
-.op-btn-label { font-size: .7rem; color: var(--ink-muted, #6b7787); }
 
-/* ── Bootstrap Icons — ขนาดมาตรฐาน (bi เป็น font → คุมขนาดด้วย font-size) ──
-   icon ทั่วไป 16px | icon ในปุ่ม Operate 32px. โหลดหลัง theme → ชนะ DevExpress ที่ specificity เท่ากัน */
+.op-orbit-toolbar::before {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    background:
+        radial-gradient(circle at 18% 8%, rgba(76, 126, 245, .12), transparent 31%),
+        radial-gradient(circle at 84% 48%, rgba(124, 58, 237, .09), transparent 34%);
+    content: "";
+    opacity: .8;
+    pointer-events: none;
+}
+
+.op-orbit-heading {
+    padding-bottom: 2px;
+    color: var(--ink-muted, #6b7787);
+    font-size: .62rem;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-align: center;
+}
+
+.op-orbit-item {
+    position: relative;
+    display: flex;
+    min-height: 78px;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    transition: transform .18s ease;
+}
+
+.op-orbit-item::before {
+    position: absolute;
+    top: 10px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(83, 67, 225, .34);
+    filter: blur(13px);
+    content: "";
+    opacity: .58;
+    pointer-events: none;
+    transform: translateY(5px) scale(.92);
+    transition: opacity .18s ease, transform .18s ease;
+}
+
+.op-orbit-item--primary::before { opacity: .74; }
+.op-orbit-item:hover { transform: translateY(-3px); }
+.op-orbit-item:hover::before { opacity: .82; transform: translateY(7px) scale(1.06); }
+
+.op-btn {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 58px;
+    width: 58px;
+    height: 58px;
+    min-width: 58px;
+    min-height: 58px;
+    padding: 0;
+    border-radius: 50%;
+    background-color: #5b4cf0;
+    background-image:
+        radial-gradient(circle at 28% 20%, rgba(255, 255, 255, .34), transparent 34%),
+        linear-gradient(135deg, #1769ff 0%, #5b4cf0 52%, #842ee8 100%);
+    box-shadow:
+        0 10px 20px -5px rgba(79, 70, 229, .58),
+        inset 0 1px 0 rgba(255, 255, 255, .28);
+    transition: box-shadow .18s ease, filter .18s ease, transform .18s ease;
+}
+
+.op-btn.op-btn {
+    --dxbl-btn-color: #fff;
+    --dxbl-btn-hover-color: #fff;
+    --dxbl-btn-active-color: #fff;
+    --dxbl-btn-disabled-color: #fff;
+    --dxbl-btn-border-color: transparent;
+    --dxbl-btn-hover-border-color: transparent;
+    --dxbl-btn-active-border-color: transparent;
+    --dxbl-btn-disabled-border-color: transparent;
+    border-color: transparent;
+    color: #fff;
+}
+
+.op-btn:hover:not(:disabled) {
+    box-shadow:
+        0 14px 26px -5px rgba(79, 70, 229, .68),
+        inset 0 1px 0 rgba(255, 255, 255, .34);
+    filter: saturate(1.08) brightness(1.06);
+}
+
+.op-btn:active:not(:disabled) {
+    box-shadow:
+        0 6px 13px -4px rgba(79, 70, 229, .5),
+        inset 0 1px 0 rgba(255, 255, 255, .22);
+    filter: brightness(.96);
+    transform: scale(.96);
+}
+
+.op-btn:disabled {
+    box-shadow: none;
+    opacity: .45;
+}
+
+.op-btn--cancel,
+.op-btn--danger {
+    background-color: #ff1f5a;
+    background-image:
+        radial-gradient(circle at 28% 20%, rgba(255, 255, 255, .3), transparent 34%),
+        linear-gradient(135deg, #ff006e 0%, #ff1f5a 48%, #ff6254 100%);
+    box-shadow:
+        0 10px 20px -5px rgba(255, 31, 90, .58),
+        inset 0 1px 0 rgba(255, 255, 255, .26);
+}
+
+.op-btn--cancel:hover:not(:disabled),
+.op-btn--danger:hover:not(:disabled) {
+    box-shadow:
+        0 14px 26px -5px rgba(255, 31, 90, .68),
+        inset 0 1px 0 rgba(255, 255, 255, .32);
+}
+
+.op-btn--cancel:active:not(:disabled),
+.op-btn--danger:active:not(:disabled) {
+    box-shadow:
+        0 6px 13px -4px rgba(255, 31, 90, .5),
+        inset 0 1px 0 rgba(255, 255, 255, .2);
+}
+
+.op-btn .dxbl-image {
+    display: block;
+    width: 1em;
+    height: 1em;
+    margin: 0;
+    font-size: 1.48rem;
+    line-height: 1;
+    text-align: center;
+}
+
+.op-orbit-label {
+    position: relative;
+    z-index: 1;
+    max-width: 78px;
+    overflow: hidden;
+    color: var(--ink, #1f2733);
+    font-size: .68rem;
+    font-weight: 500;
+    line-height: 1.2;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .op-orbit-item,
+    .op-orbit-item::before,
+    .op-btn { transition: none; }
+}
+
+/* ── Bootstrap Icons — ขนาดมาตรฐาน (bi เป็น font) ── */
 .bi { font-size: 16px; }
-.op-btn .bi { font-size: 32px; }
 
 /* ── DxGrid: caption ของ header center ทุกคอลัมน์/ทุกกริด (global default) ──
    DevExpress ดัน caption ตาม TextAlignment ผ่าน justify-content ของ .dxbl-grid-header-content

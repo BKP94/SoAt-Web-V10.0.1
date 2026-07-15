@@ -3,27 +3,43 @@
    (btProgram/btCategory = admin นอกสโคป Step 7)
    ปุ่ม raise EventCallback กลับให้ Page จัดการ (Page ถือ selection) *@
 
-<div class="op-item">
-    <button type="button" class="op-btn" title="เปิดรายงาน"
-            disabled="@(!CanOpen)" @onclick="OnOpen">📂</button>
-    <span class="op-btn-label">เปิดรายงาน</span>
-</div>
+<div class="op-orbit-toolbar" role="toolbar" aria-label="เครื่องมือรายงาน">
+    <span class="op-orbit-heading">เครื่องมือ</span>
 
-<div class="op-item">
-    <button type="button" class="op-btn" title="ค้นหารายงาน" @onclick="OnFind">🔍</button>
-    <span class="op-btn-label">ค้นหา</span>
-</div>
+    <div class="op-orbit-item op-orbit-item--primary">
+        <DxButton RenderStyle="ButtonRenderStyle.Primary"
+                  title="เปิดรายงาน" aria-label="เปิดรายงาน"
+                  disabled="@(!CanOpen)" @onclick="OnOpen" CssClass="op-btn"
+                  IconCssClass="bi bi-folder2-open" />
+        <span class="op-orbit-label">เปิดรายงาน</span>
+    </div>
 
-<div class="op-item">
-    <button type="button" class="op-btn" title="จัดการไฟล์รายงาน (เปิดแท็บใหม่)"
-            disabled="@(!CanManage)" @onclick="OnManage">🛠️</button>
-    <span class="op-btn-label">จัดการรายงาน</span>
-</div>
+    <div class="op-orbit-item">
+        <DxButton RenderStyle="ButtonRenderStyle.Secondary"
+                  RenderStyleMode="ButtonRenderStyleMode.Outline"
+                  title="ค้นหารายงาน" aria-label="ค้นหารายงาน"
+                  @onclick="OnFind" CssClass="op-btn"
+                  IconCssClass="bi bi-search" />
+        <span class="op-orbit-label">ค้นหา</span>
+    </div>
 
-<div class="op-item">
-    <button type="button" class="op-btn" title="เพิ่ม/แก้ไขกลุ่มรายงาน (เปิดแท็บใหม่)"
-            disabled="@(!CanCategory)" @onclick="OnCategory">🗂️</button>
-    <span class="op-btn-label">จัดการกลุ่ม</span>
+    <div class="op-orbit-item">
+        <DxButton RenderStyle="ButtonRenderStyle.Secondary"
+                  RenderStyleMode="ButtonRenderStyleMode.Outline"
+                  title="จัดการไฟล์รายงาน (เปิดแท็บใหม่)" aria-label="จัดการไฟล์รายงาน"
+                  disabled="@(!CanManage)" @onclick="OnManage" CssClass="op-btn"
+                  IconCssClass="bi bi-tools" />
+        <span class="op-orbit-label">จัดการรายงาน</span>
+    </div>
+
+    <div class="op-orbit-item">
+        <DxButton RenderStyle="ButtonRenderStyle.Secondary"
+                  RenderStyleMode="ButtonRenderStyleMode.Outline"
+                  title="เพิ่ม/แก้ไขกลุ่มรายงาน (เปิดแท็บใหม่)" aria-label="เพิ่มหรือแก้ไขกลุ่มรายงาน"
+                  disabled="@(!CanCategory)" @onclick="OnCategory" CssClass="op-btn"
+                  IconCssClass="bi bi-folder-plus" />
+        <span class="op-orbit-label">จัดการกลุ่ม</span>
+    </div>
 </div>
 
 @code {

@@ -56,8 +56,12 @@
                 </label>
             </div>
             <div class="po-actions">
-                <DxButton Text="ล้างเงื่อนไข" RenderStyle="ButtonRenderStyle.Secondary" Click="ClearAsync" />
-                <DxButton Text="ค้นหา" RenderStyle="ButtonRenderStyle.Primary" Click="SearchAsync" />
+                <DxButton Text="ล้างเงื่อนไข" RenderStyle="ButtonRenderStyle.Primary"
+                          IconCssClass="bi bi-arrow-counterclockwise" CssClass="soat-btn"
+                          Click="ClearAsync" />
+                <DxButton Text="ค้นหา" RenderStyle="ButtonRenderStyle.Primary"
+                          IconCssClass="bi bi-search" CssClass="soat-btn"
+                          Click="SearchAsync" />
             </div>
         </div>
 
@@ -117,7 +121,8 @@
                         <CellDisplayTemplate>
                             @{ var r = (MemberFindDto)context.DataItem; }
                             <DxButton Text="เลือก" RenderStyle="ButtonRenderStyle.Primary"
-                                      CssClass="po-openbtn" Click="() => SelectAsync(r.MembershipNo)" />
+                                      IconCssClass="bi bi-check2" CssClass="soat-btn po-openbtn"
+                                      Click="() => SelectAsync(r.MembershipNo)" />
                         </CellDisplayTemplate>
                     </DxGridDataColumn>
                 </Columns>
@@ -132,7 +137,9 @@
         }
     </BodyContentTemplate>
     <FooterContentTemplate>
-        <DxButton Text="ปิดหน้าจอ" RenderStyle="ButtonRenderStyle.Secondary" Click="Close" />
+        <DxButton Text="ปิดหน้าจอ" RenderStyle="ButtonRenderStyle.Danger"
+                  IconCssClass="bi bi-x-lg" CssClass="soat-btn soat-btn--danger"
+                  Click="Close" />
     </FooterContentTemplate>
 </DxPopup>
 

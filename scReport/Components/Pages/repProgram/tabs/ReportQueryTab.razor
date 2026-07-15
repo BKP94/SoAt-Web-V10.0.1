@@ -12,7 +12,8 @@
 <div class="rp-qsec">
     <div class="nb-grid-head">
         <h3 class="nb-h3">Sub Query</h3>
-        <DxButton Text="+ เพิ่มแถว" RenderStyle="ButtonRenderStyle.Primary" Click="AddSub" />
+        <DxButton Text="+ เพิ่มแถว" RenderStyle="ButtonRenderStyle.Primary"
+                  CssClass="soat-btn" Click="AddSub" />
     </div>
     @if (Model.Subs.Count == 0)
     {
@@ -40,7 +41,9 @@
                 <DxGridDataColumn Caption="" Width="56px" AllowSort="false">
                     <CellDisplayTemplate>
                         @{ var r = (RepSubRow)context.DataItem; }
-                        <DxButton Text="ลบ" RenderStyle="ButtonRenderStyle.Danger" Click="() => RemoveSub(r)" />
+                        <DxButton Text="ลบ" RenderStyle="ButtonRenderStyle.Danger"
+                                  CssClass="soat-btn soat-btn--danger soat-btn--compact"
+                                  Click="() => RemoveSub(r)" />
                     </CellDisplayTemplate>
                 </DxGridDataColumn>
             </Columns>
@@ -51,7 +54,8 @@
 <div class="rp-qsec">
     <div class="nb-grid-head">
         <h3 class="nb-h3">Combo Query</h3>
-        <DxButton Text="+ เพิ่มแถว" RenderStyle="ButtonRenderStyle.Primary" Click="AddCombo" />
+        <DxButton Text="+ เพิ่มแถว" RenderStyle="ButtonRenderStyle.Primary"
+                  CssClass="soat-btn" Click="AddCombo" />
     </div>
     @if (Model.Combos.Count == 0)
     {
@@ -79,7 +83,9 @@
                 <DxGridDataColumn Caption="" Width="56px" AllowSort="false">
                     <CellDisplayTemplate>
                         @{ var r = (RepComboRow)context.DataItem; }
-                        <DxButton Text="ลบ" RenderStyle="ButtonRenderStyle.Danger" Click="() => RemoveCombo(r)" />
+                        <DxButton Text="ลบ" RenderStyle="ButtonRenderStyle.Danger"
+                                  CssClass="soat-btn soat-btn--danger soat-btn--compact"
+                                  Click="() => RemoveCombo(r)" />
                     </CellDisplayTemplate>
                 </DxGridDataColumn>
             </Columns>

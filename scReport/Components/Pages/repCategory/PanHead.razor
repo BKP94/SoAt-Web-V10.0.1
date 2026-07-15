@@ -10,7 +10,8 @@
     <div class="rc-grid-box">
         <div class="nb-grid-head">
             <h3 class="nb-h3">กลุ่มรายงาน</h3>
-            <DxButton Text="+ เพิ่มกลุ่ม" RenderStyle="ButtonRenderStyle.Primary" Click="AddCat" />
+            <DxButton Text="+ เพิ่มกลุ่ม" RenderStyle="ButtonRenderStyle.Primary"
+                      CssClass="soat-btn" Click="AddCat" />
         </div>
 
         @if (Model.Cats.Count == 0)
@@ -51,7 +52,9 @@
                     <DxGridDataColumn Caption="" Width="56px" AllowSort="false">
                         <CellDisplayTemplate>
                             @{ var r = (CatRow)context.DataItem; }
-                            <DxButton Text="ลบ" RenderStyle="ButtonRenderStyle.Danger" Click="() => RemoveCat(r)" />
+                            <DxButton Text="ลบ" RenderStyle="ButtonRenderStyle.Danger"
+                                      CssClass="soat-btn soat-btn--danger soat-btn--compact"
+                                      Click="() => RemoveCat(r)" />
                         </CellDisplayTemplate>
                     </DxGridDataColumn>
                 </Columns>
@@ -64,7 +67,7 @@
         <div class="nb-grid-head">
             <h3 class="nb-h3">ข้อรายงาน @(Model.SelectedCatId is { } c ? $"(กลุ่ม {c})" : "")</h3>
             <DxButton Text="+ เพิ่มข้อ" RenderStyle="ButtonRenderStyle.Primary"
-                      Enabled="@(Model.SelectedCatId is not null)" Click="AddRep" />
+                      CssClass="soat-btn" Enabled="@(Model.SelectedCatId is not null)" Click="AddRep" />
         </div>
 
         @if (Model.SelectedCatId is null)
@@ -115,7 +118,9 @@
                     <DxGridDataColumn Caption="" Width="56px" AllowSort="false">
                         <CellDisplayTemplate>
                             @{ var r = (RepRow)context.DataItem; }
-                            <DxButton Text="ลบ" RenderStyle="ButtonRenderStyle.Danger" Click="() => RemoveRep(r)" />
+                            <DxButton Text="ลบ" RenderStyle="ButtonRenderStyle.Danger"
+                                      CssClass="soat-btn soat-btn--danger soat-btn--compact"
+                                      Click="() => RemoveRep(r)" />
                         </CellDisplayTemplate>
                     </DxGridDataColumn>
                 </Columns>

@@ -18,7 +18,7 @@
             <div class="nb-grid-head">
                 <h3 class="nb-h3">Arguments</h3>
                 <DxButton Text="+ เพิ่มแถว" RenderStyle="ButtonRenderStyle.Primary"
-                          Enabled="@(_available.Count > 0)" Click="AddRow" />
+                          CssClass="soat-btn" Enabled="@(_available.Count > 0)" Click="AddRow" />
             </div>
 
             @if (_available.Count == 0)
@@ -47,7 +47,9 @@
                         <DxGridDataColumn Caption="" Width="56px" AllowSort="false">
                             <CellDisplayTemplate Context="cell">
                                 @{ var r = (ArgRow)cell.DataItem; }
-                                <DxButton Text="ลบ" RenderStyle="ButtonRenderStyle.Danger" Click="() => RemoveRow(r)" />
+                                <DxButton Text="ลบ" RenderStyle="ButtonRenderStyle.Danger"
+                                          CssClass="soat-btn soat-btn--danger soat-btn--compact"
+                                          Click="() => RemoveRow(r)" />
                             </CellDisplayTemplate>
                         </DxGridDataColumn>
                     </Columns>
@@ -66,9 +68,12 @@
         </div>
     </BodyContentTemplate>
     <FooterContentTemplate>
-        <DxButton Text="ตกลง" RenderStyle="ButtonRenderStyle.Primary" Click="OnConfirmClick" />
-        <DxButton Text="ล้าง" RenderStyle="ButtonRenderStyle.Secondary" Click="OnClearClick" />
-        <DxButton Text="ยกเลิก" RenderStyle="ButtonRenderStyle.Secondary" Click="() => SetVisible(false)" />
+        <DxButton Text="ตกลง" RenderStyle="ButtonRenderStyle.Primary"
+                  CssClass="soat-btn" Click="OnConfirmClick" />
+        <DxButton Text="ล้าง" RenderStyle="ButtonRenderStyle.Secondary"
+                  CssClass="soat-btn" Click="OnClearClick" />
+        <DxButton Text="ยกเลิก" RenderStyle="ButtonRenderStyle.Danger"
+                  CssClass="soat-btn soat-btn--danger" Click="() => SetVisible(false)" />
     </FooterContentTemplate>
 </DxPopup>
 

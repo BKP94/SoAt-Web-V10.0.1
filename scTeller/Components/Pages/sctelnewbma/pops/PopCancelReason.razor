@@ -16,8 +16,10 @@
         </div>
     </BodyContentTemplate>
     <FooterContentTemplate>
-        <DxButton Text="ยืนยัน" RenderStyle="ButtonRenderStyle.Primary" Click="SubmitAsync" />
-        <DxButton Text="ยกเลิก" RenderStyle="ButtonRenderStyle.Secondary" Click="Close" />
+        <DxButton Text="ยืนยัน" RenderStyle="ButtonRenderStyle.Primary"
+                  CssClass="soat-btn" Click="SubmitAsync" />
+        <DxButton Text="ยกเลิก" RenderStyle="ButtonRenderStyle.Danger"
+                  CssClass="soat-btn soat-btn--danger" Click="Close" />
     </FooterContentTemplate>
 </DxPopup>
 

@@ -39,8 +39,10 @@
         }
     </BodyContentTemplate>
     <FooterContentTemplate>
-        <DxButton Text="ย้าย" RenderStyle="ButtonRenderStyle.Primary" Click="OnSaveClick" />
-        <DxButton Text="ยกเลิก" RenderStyle="ButtonRenderStyle.Secondary" Click="() => SetVisible(false)" />
+        <DxButton Text="ย้าย" RenderStyle="ButtonRenderStyle.Primary"
+                  CssClass="soat-btn" Click="OnSaveClick" />
+        <DxButton Text="ยกเลิก" RenderStyle="ButtonRenderStyle.Danger"
+                  CssClass="soat-btn soat-btn--danger" Click="() => SetVisible(false)" />
     </FooterContentTemplate>
 </DxPopup>
 

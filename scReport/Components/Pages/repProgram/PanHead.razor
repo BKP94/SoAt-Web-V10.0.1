@@ -15,7 +15,8 @@
         <label class="nb-label">Procedure</label>
         <div class="rp-field-with-btn">
             <DxTextBox @bind-Text="Model.Procedure" NullText="(ไม่ใช้ procedure)" CssClass="rp-grow" />
-            <DxButton Text="สร้าง" RenderStyle="ButtonRenderStyle.Secondary" Click="() => _procVisible = true" />
+            <DxButton Text="สร้าง" RenderStyle="ButtonRenderStyle.Secondary"
+                      CssClass="soat-btn" Click="() => _procVisible = true" />
         </div>
     </div>
     <div class="nb-field">
@@ -26,7 +27,8 @@
 
 <div class="nb-grid-head">
     <h3 class="nb-h3">Arguments</h3>
-    <DxButton Text="+ เพิ่มแถว" RenderStyle="ButtonRenderStyle.Primary" Click="AddArg" />
+    <DxButton Text="+ เพิ่มแถว" RenderStyle="ButtonRenderStyle.Primary"
+              CssClass="soat-btn" Click="AddArg" />
 </div>
 
 @if (Model.Args.Count == 0)
@@ -51,14 +53,17 @@ else
                     @{ var r = (RepArgRow)context.DataItem; }
                     <div class="rp-field-with-btn">
                         <DxTextBox @bind-Text="r.Attr" NullText="name=&quot;value&quot; ..." CssClass="rp-grow" />
-                        <DxButton Text="แก้" RenderStyle="ButtonRenderStyle.Secondary" Click="() => OpenAttr(r)" />
+                        <DxButton Text="แก้" RenderStyle="ButtonRenderStyle.Secondary"
+                                  CssClass="soat-btn soat-btn--compact" Click="() => OpenAttr(r)" />
                     </div>
                 </CellDisplayTemplate>
             </DxGridDataColumn>
             <DxGridDataColumn Caption="" Width="56px" AllowSort="false">
                 <CellDisplayTemplate>
                     @{ var r = (RepArgRow)context.DataItem; }
-                    <DxButton Text="ลบ" RenderStyle="ButtonRenderStyle.Danger" Click="() => RemoveArg(r)" />
+                    <DxButton Text="ลบ" RenderStyle="ButtonRenderStyle.Danger"
+                              CssClass="soat-btn soat-btn--danger soat-btn--compact"
+                              Click="() => RemoveArg(r)" />
                 </CellDisplayTemplate>
             </DxGridDataColumn>
         </Columns>

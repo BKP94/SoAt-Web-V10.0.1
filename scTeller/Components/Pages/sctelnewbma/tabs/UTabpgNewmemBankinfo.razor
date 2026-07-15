@@ -8,7 +8,8 @@
 
 <div class="nb-grid-head">
     <h3 class="nb-h3">บัญชีธนาคารสำหรับรับโอน / หักเงิน</h3>
-    <DxButton Text="+ เพิ่มแถว" RenderStyle="ButtonRenderStyle.Primary" Click="AddRow" />
+    <DxButton Text="+ เพิ่มแถว" RenderStyle="ButtonRenderStyle.Primary"
+              CssClass="soat-btn" Click="AddRow" />
 </div>
 
 @if (Form.BankAccounts.Count == 0)
@@ -99,7 +100,9 @@ else
             <DxGridDataColumn Caption="" Width="56px" AllowSort="false">
                 <CellDisplayTemplate>
                     @{ var r = (AppBankAccountDto)context.DataItem; }
-                    <DxButton Text="ลบ" RenderStyle="ButtonRenderStyle.Danger" Click="() => RemoveRow(r)" />
+                    <DxButton Text="ลบ" RenderStyle="ButtonRenderStyle.Danger"
+                              CssClass="soat-btn soat-btn--danger soat-btn--compact"
+                              Click="() => RemoveRow(r)" />
                 </CellDisplayTemplate>
             </DxGridDataColumn>
         </Columns>

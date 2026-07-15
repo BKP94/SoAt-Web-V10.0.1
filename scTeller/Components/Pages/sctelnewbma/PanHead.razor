@@ -179,7 +179,8 @@
 @* ── ผู้รับผลประโยชน์ ─────────────────────────────────────────────────────────── *@
 <div class="nb-grid-head" style="margin-top:24px">
     <h3 class="nb-h3">รายชื่อผู้รับผลประโยชน์</h3>
-    <DxButton Text="+ เพิ่มรายชื่อ" RenderStyle="ButtonRenderStyle.Primary" Click="AddGain" />
+    <DxButton Text="+ เพิ่มรายชื่อ" RenderStyle="ButtonRenderStyle.Primary"
+              CssClass="soat-btn" Click="AddGain" />
 </div>
 @if (Form.RecrieveGains.Count == 0)
 {
@@ -223,7 +224,11 @@ else
                         <DxSpinEdit @bind-Value="row.GainPercent" DisplayFormat="@sc.mask.maskPercent2"
                                     ShowSpinButtons="false" MinValue="0m" CssClass="col-decimal" />
                     </td>
-                    <td><DxButton Text="ลบ" RenderStyle="ButtonRenderStyle.Danger" Click="() => RemoveGain(row)" /></td>
+                    <td>
+                        <DxButton Text="ลบ" RenderStyle="ButtonRenderStyle.Danger"
+                                  CssClass="soat-btn soat-btn--danger soat-btn--compact"
+                                  Click="() => RemoveGain(row)" />
+                    </td>
                 </tr>
             }
         </tbody>
@@ -236,7 +241,8 @@ else
 @* ── สมาชิกอ้างอิง ────────────────────────────────────────────────────────────── *@
 <div class="nb-grid-head" style="margin-top:24px">
     <h3 class="nb-h3">สมาชิกผู้อ้างอิง</h3>
-    <DxButton Text="+ เพิ่มรายชื่อ" RenderStyle="ButtonRenderStyle.Primary" Click="AddRefer" />
+    <DxButton Text="+ เพิ่มรายชื่อ" RenderStyle="ButtonRenderStyle.Primary"
+              CssClass="soat-btn" Click="AddRefer" />
 </div>
 @if (Form.MemberRefers.Count == 0)
 {
@@ -268,7 +274,11 @@ else
                     <td>
                         <ScCombo Combo="@sc.combo.sc_mem_m_ucf_concern" @bind-Value="row.ConcernCode" NullText="—" />
                     </td>
-                    <td><DxButton Text="ลบ" RenderStyle="ButtonRenderStyle.Danger" Click="() => RemoveRefer(row)" /></td>
+                    <td>
+                        <DxButton Text="ลบ" RenderStyle="ButtonRenderStyle.Danger"
+                                  CssClass="soat-btn soat-btn--danger soat-btn--compact"
+                                  Click="() => RemoveRefer(row)" />
+                    </td>
                 </tr>
             }
         </tbody>
@@ -317,6 +327,7 @@ else
                         var from = s.src;
                         <DxButton Text="@($"คัดลอก {s.label}")" RenderStyle="ButtonRenderStyle.Secondary"
                                   RenderStyleMode="ButtonRenderStyleMode.Outline" SizeMode="SizeMode.Small"
+                                  CssClass="soat-btn soat-btn--compact"
                                   Click="@(() => CopyAddress(from, a))" />
                     }
                 </div>

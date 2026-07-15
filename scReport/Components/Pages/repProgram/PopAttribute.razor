@@ -143,8 +143,10 @@
         }
     </BodyContentTemplate>
     <FooterContentTemplate>
-        <DxButton Text="ตกลง" RenderStyle="ButtonRenderStyle.Primary" Click="OnConfirmClick" />
-        <DxButton Text="ยกเลิก" RenderStyle="ButtonRenderStyle.Secondary" Click="() => SetVisible(false)" />
+        <DxButton Text="ตกลง" RenderStyle="ButtonRenderStyle.Primary"
+                  CssClass="soat-btn" Click="OnConfirmClick" />
+        <DxButton Text="ยกเลิก" RenderStyle="ButtonRenderStyle.Danger"
+                  CssClass="soat-btn soat-btn--danger" Click="() => SetVisible(false)" />
     </FooterContentTemplate>
 </DxPopup>
 

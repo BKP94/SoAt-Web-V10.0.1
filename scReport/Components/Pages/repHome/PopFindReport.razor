@@ -11,7 +11,8 @@
         <div class="rh-find-bar">
             <DxTextBox @bind-Text="_keyword" NullText="พิมพ์ชื่อรายงาน หรือ vs_path…"
                        CssClass="rh-find-input" />
-            <DxButton Text="ค้นหา" RenderStyle="ButtonRenderStyle.Primary" Click="Search" />
+            <DxButton Text="ค้นหา" RenderStyle="ButtonRenderStyle.Primary"
+                      CssClass="soat-btn" Click="Search" />
         </div>
 
         @if (_error is not null)
@@ -47,8 +48,10 @@
     </BodyContentTemplate>
     <FooterContentTemplate>
         <DxButton Text="เปิดรายงาน" RenderStyle="ButtonRenderStyle.Primary"
-                  Enabled="@(_selected is { } r && r.HasReport)" Click="OpenSelected" />
-        <DxButton Text="ปิด" RenderStyle="ButtonRenderStyle.Secondary" Click="() => SetVisible(false)" />
+                  CssClass="soat-btn" Enabled="@(_selected is { } r && r.HasReport)"
+                  Click="OpenSelected" />
+        <DxButton Text="ปิด" RenderStyle="ButtonRenderStyle.Danger"
+                  CssClass="soat-btn soat-btn--danger" Click="() => SetVisible(false)" />
     </FooterContentTemplate>
 </DxPopup>
 

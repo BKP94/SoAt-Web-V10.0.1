@@ -8,7 +8,8 @@
 <div class="rp-qsec">
     <div class="nb-grid-head">
         <h3 class="nb-h3">นิยามคอลัมน์ MIS</h3>
-        <DxButton Text="+ เพิ่มคอลัมน์" RenderStyle="ButtonRenderStyle.Primary" Click="AddColumn" />
+        <DxButton Text="+ เพิ่มคอลัมน์" RenderStyle="ButtonRenderStyle.Primary"
+                  CssClass="soat-btn" Click="AddColumn" />
     </div>
     @if (Model.MisColumns.Count == 0)
     {
@@ -49,7 +50,9 @@
                 <DxGridDataColumn Caption="" Width="56px" AllowSort="false">
                     <CellDisplayTemplate>
                         @{ var c = (RepMisColumn)context.DataItem; }
-                        <DxButton Text="ลบ" RenderStyle="ButtonRenderStyle.Danger" Click="() => RemoveColumn(c)" />
+                        <DxButton Text="ลบ" RenderStyle="ButtonRenderStyle.Danger"
+                                  CssClass="soat-btn soat-btn--danger soat-btn--compact"
+                                  Click="() => RemoveColumn(c)" />
                     </CellDisplayTemplate>
                 </DxGridDataColumn>
             </Columns>
@@ -61,7 +64,7 @@
     <div class="nb-grid-head">
         <h3 class="nb-h3">ค่าเริ่มต้น (Default Values)</h3>
         <DxButton Text="+ เพิ่มแถว" RenderStyle="ButtonRenderStyle.Primary"
-                  Enabled="@(Model.MisColumns.Count > 0)" Click="AddRow" />
+                  CssClass="soat-btn" Enabled="@(Model.MisColumns.Count > 0)" Click="AddRow" />
     </div>
     @if (Model.MisColumns.Count == 0)
     {
@@ -92,7 +95,9 @@
                 <DxGridDataColumn Caption="" Width="56px" AllowSort="false">
                     <CellDisplayTemplate>
                         @{ var r = (RepMisRow)context.DataItem; }
-                        <DxButton Text="ลบ" RenderStyle="ButtonRenderStyle.Danger" Click="() => RemoveRow(r)" />
+                        <DxButton Text="ลบ" RenderStyle="ButtonRenderStyle.Danger"
+                                  CssClass="soat-btn soat-btn--danger soat-btn--compact"
+                                  Click="() => RemoveRow(r)" />
                     </CellDisplayTemplate>
                 </DxGridDataColumn>
             </Columns>

@@ -49,8 +49,10 @@
                 </label>
             </div>
             <div class="po-actions">
-                <DxButton Text="ล้างเงื่อนไข" RenderStyle="ButtonRenderStyle.Secondary" Click="ClearAsync" />
-                <DxButton Text="ค้นหา" RenderStyle="ButtonRenderStyle.Primary" Click="SearchAsync" />
+                <DxButton Text="ล้างเงื่อนไข" RenderStyle="ButtonRenderStyle.Secondary"
+                          CssClass="soat-btn" Click="ClearAsync" />
+                <DxButton Text="ค้นหา" RenderStyle="ButtonRenderStyle.Primary"
+                          CssClass="soat-btn" Click="SearchAsync" />
             </div>
         </div>
 
@@ -96,7 +98,8 @@
                         <CellDisplayTemplate>
                             @{ var r = (ApplicationSummaryDto)context.DataItem; }
                             <DxButton Text="เปิด" RenderStyle="ButtonRenderStyle.Primary"
-                                      CssClass="po-openbtn" Click="() => SelectAsync(r.ApplicationFormNo)" />
+                                      CssClass="soat-btn po-openbtn"
+                                      Click="() => SelectAsync(r.ApplicationFormNo)" />
                         </CellDisplayTemplate>
                     </DxGridDataColumn>
                 </Columns>
@@ -111,7 +114,8 @@
         }
     </BodyContentTemplate>
     <FooterContentTemplate>
-        <DxButton Text="ปิดหน้าจอ" RenderStyle="ButtonRenderStyle.Secondary" Click="Close" />
+        <DxButton Text="ปิดหน้าจอ" RenderStyle="ButtonRenderStyle.Danger"
+                  CssClass="soat-btn soat-btn--danger" Click="Close" />
     </FooterContentTemplate>
 </DxPopup>
 

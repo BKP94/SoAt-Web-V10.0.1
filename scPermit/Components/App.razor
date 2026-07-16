@@ -22,6 +22,10 @@
         <link rel="stylesheet" href="_content/DevExpress.Blazor.Themes/@(Config["DevExpress:Theme"] ?? "office-white").bs5.min.css" />
     }
     <ResourcePreloader />
+    @* favicon = โลโก้ SO-AT (emblem) จุดเดียวจาก RCL SoAt.Blazor *@
+    <link rel="icon" type="image/png" href="@Assets["_content/SoAt.Blazor/favicon.png"]" />
+    @* มาตรฐานปุ่ม action กลาง (soat-btn) — จุดเดียวจาก RCL SoAt.Blazor *@
+    <link rel="stylesheet" href="@Assets["_content/SoAt.Blazor/soat.css"]" />
     <link rel="stylesheet" href="@Assets["app.css"]" />
     <link rel="stylesheet" href="@Assets["scPermit.styles.css"]" />
     <ImportMap />

@@ -1,0 +1,104 @@
+/* ── SoAt DxButton action standard (shared) ─────────────────────────────────
+   มาตรฐานปุ่ม action กลางของทุก module — approved Login-style visual language.
+   เดิม block นี้ถูก paste ซ้ำในทุก wwwroot/app.css (33 ไฟล์); ย้ายมาไว้จุดเดียว
+   ใน RCL SoAt.Blazor แล้วยิงผ่าน _content/SoAt.Blazor/soat.css (แก้ที่เดียวจบ).
+   ใช้งาน: CssClass="soat-btn" | เพิ่ม soat-btn--ghost / soat-btn--danger /
+   soat-btn--compact ตามลำดับความสำคัญและบริบทของปุ่ม. */
+
+.soat-btn.soat-btn {
+    min-width: 104px;
+    min-height: 44px;
+    margin: 3px;
+    padding: .65rem 1.1rem;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+/* Primary action visual. Secondary/ghost keeps the active DevExpress theme. */
+.soat-btn.soat-btn:not(.dxbl-btn-secondary):not(.soat-btn--ghost) {
+    --dxbl-btn-color: #fff;
+    --dxbl-btn-hover-color: #fff;
+    --dxbl-btn-active-color: #fff;
+    --dxbl-btn-border-color: transparent;
+    --dxbl-btn-hover-border-color: transparent;
+    --dxbl-btn-active-border-color: transparent;
+    border-color: transparent;
+    color: #fff;
+    background-color: #3f70e8;
+    background-image: linear-gradient(135deg, #3f70e8 0%, #5b7ff0 55%, #706ef1 100%);
+    box-shadow: 0 10px 22px rgba(65, 107, 219, .24);
+    transition: transform .16s ease, box-shadow .16s ease, filter .16s ease;
+}
+
+.soat-btn.soat-btn:not(.dxbl-btn-secondary):not(.soat-btn--ghost):not(.soat-btn--compact):hover:not(:disabled):not(.dxbl-disabled) {
+    filter: saturate(1.08) brightness(1.03);
+    transform: translateY(-1px);
+    box-shadow: 0 13px 26px rgba(65, 107, 219, .3);
+}
+
+.soat-btn.soat-btn:not(.dxbl-btn-secondary):not(.soat-btn--ghost):not(.soat-btn--compact):active:not(:disabled):not(.dxbl-disabled) {
+    transform: translateY(0);
+}
+
+/* Explicit light action: RenderStyle remains responsible for color and border. */
+.soat-btn.soat-btn--ghost {
+    background-image: none;
+    box-shadow: none;
+    filter: none;
+    transform: none;
+    transition: none;
+}
+
+.soat-btn--danger.soat-btn--danger {
+    background-color: #ef4444;
+    background-image: linear-gradient(135deg, #ef4444 0%, #f05a3c 52%, #f97316 100%);
+    box-shadow: 0 10px 22px rgba(226, 74, 43, .24);
+}
+
+.soat-btn--danger.soat-btn--danger:not(.soat-btn--compact):hover:not(:disabled):not(.dxbl-disabled) {
+    box-shadow: 0 13px 26px rgba(226, 74, 43, .3);
+}
+
+/* Raw gradient/shadow must not make a disabled action look clickable. */
+.soat-btn.soat-btn:disabled,
+.soat-btn.soat-btn.dxbl-disabled {
+    background-image: none;
+    box-shadow: none;
+    filter: none;
+    opacity: .55;
+    transform: none;
+    cursor: not-allowed;
+}
+
+/* Grid/table actions keep the approved shape without forcing cell overflow. */
+.soat-btn.soat-btn--compact {
+    box-sizing: border-box;
+    min-width: 0;
+    max-width: 100%;
+    min-height: 36px;
+    margin: 3px 0;
+    padding: .4rem .55rem;
+    box-shadow: none;
+    filter: none;
+    transform: none;
+    transition: none;
+}
+
+/* ปุ่มเปิด/เลือกต้องยืดตาม icon + text และไม่กลับไปใช้ความกว้าง 104px */
+.soat-btn.po-openbtn {
+    box-sizing: border-box;
+    width: auto;
+    min-width: 64px;
+    max-width: 100%;
+    min-height: 36px;
+    margin: 3px 0;
+    padding: .4rem .45rem;
+    box-shadow: none;
+    filter: none;
+    transform: none;
+    transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .soat-btn.soat-btn { transition: none; }
+}

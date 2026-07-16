@@ -327,7 +327,7 @@ else
                         var from = s.src;
                         <DxButton Text="@($"คัดลอก {s.label}")" RenderStyle="ButtonRenderStyle.Secondary"
                                   RenderStyleMode="ButtonRenderStyleMode.Outline" SizeMode="SizeMode.Small"
-                                  CssClass="soat-btn soat-btn--compact"
+                                  CssClass="soat-btn soat-btn--ghost soat-btn--compact"
                                   Click="@(() => CopyAddress(from, a))" />
                     }
                 </div>
@@ -588,8 +588,13 @@ else
 
     // ── คัดลอกที่อยู่ข้ามชุด (ปัจจุบัน ↔ ทะเบียนบ้าน ↔ ที่ทำงาน) ───────────────────
     // copy ทุก field ยกเว้น AddressType (คงประเภทของช่องปลายทาง)
-    private void CopyAddress(AppAddressDto from, AppAddressDto to)
+    private async Task CopyAddress(AppAddressDto from, AppAddressDto to)
     {
+        // ถ้าปลายทางมีข้อมูลอยู่แล้ว → ยืนยันก่อนเขียนทับ (กันข้อมูลหายโดยไม่ตั้งใจ)
+        if (Msg is not null && HasAddressData(to)
+            && !await Msg.Confirm("ที่อยู่ปลายทางมีข้อมูลอยู่แล้ว ,ต้องการเขียนทับหรือไม่?"))
+            return;
+
         to.AddressNo    = from.AddressNo;
         to.Moo          = from.Moo;
         to.Mooban       = from.Mooban;
@@ -601,6 +606,14 @@ else
         to.Postcode     = from.Postcode;
         to.Telephone    = from.Telephone;
     }
+
+    // ปลายทางมีข้อมูลที่ต้องกันเขียนทับหรือยัง (เว้น AddressType ที่คงประเภทช่องไว้)
+    private static bool HasAddressData(AppAddressDto a) =>
+        !string.IsNullOrWhiteSpace(a.AddressNo)    || !string.IsNullOrWhiteSpace(a.Moo)
+        || !string.IsNullOrWhiteSpace(a.Mooban)    || !string.IsNullOrWhiteSpace(a.Soi)
+        || !string.IsNullOrWhiteSpace(a.Road)      || !string.IsNullOrWhiteSpace(a.ProvinceCode)
+        || !string.IsNullOrWhiteSpace(a.DistrictCode) || !string.IsNullOrWhiteSpace(a.Tambol)
+        || !string.IsNullOrWhiteSpace(a.Postcode)  || !string.IsNullOrWhiteSpace(a.Telephone);
 
     private void OnProvinceChanged(AppAddressDto a, string? value)
     {

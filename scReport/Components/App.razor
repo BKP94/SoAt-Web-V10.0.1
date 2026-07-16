@@ -24,6 +24,10 @@
     @* DevExpress Reporting native viewer — CSS ที่ให้ icon toolbar (dxd-icon-*); ไม่งั้นปุ่มขนาด 0px มองไม่เห็น *@
     <link rel="stylesheet" href="_content/DevExpress.Blazor.Reporting.Viewer/css/dx-blazor-reporting-components.bs5.css" />
     <ResourcePreloader />
+    @* favicon = โลโก้ SO-AT (emblem) จุดเดียวจาก RCL SoAt.Blazor *@
+    <link rel="icon" type="image/png" href="@Assets["_content/SoAt.Blazor/favicon.png"]" />
+    @* มาตรฐานปุ่ม action กลาง (soat-btn) — จุดเดียวจาก RCL SoAt.Blazor *@
+    <link rel="stylesheet" href="@Assets["_content/SoAt.Blazor/soat.css"]" />
     <link rel="stylesheet" href="@Assets["app.css"]" />
     <link rel="stylesheet" href="@Assets["scReport.styles.css"]" />
     <ImportMap />

@@ -22,11 +22,11 @@
     <FooterContentTemplate>
         @if (_mode == ScMsgMode.Confirm)
         {
-            <DxButton Text="ยกเลิก" RenderStyle="ButtonRenderStyle.Danger"
+            <DxButton Text="ยกเลิก" RenderStyle="ButtonRenderStyle.Secondary"
                       RenderStyleMode="ButtonRenderStyleMode.Outline"
-                      CssClass="soat-btn soat-btn--danger" Click="() => Resolve(false)" />
-            <DxButton Text="ตกลง" RenderStyle="ButtonRenderStyle.Primary"
-                      CssClass="soat-btn" Click="() => Resolve(true)" />
+                      CssClass="soat-btn soat-btn--ghost" Click="() => Resolve(false)" />
+            <DxButton Text="ตกลง" RenderStyle="ButtonRenderStyle.Danger"
+                      CssClass="soat-btn soat-btn--danger" Click="() => Resolve(true)" />
         }
         else
         {

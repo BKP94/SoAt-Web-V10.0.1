@@ -11,6 +11,7 @@
     <ProjectReference Include="..\sc\SoAt.Application\SoAt.Application.csproj" />
     <ProjectReference Include="..\sc\SoAt.Infrastructure\SoAt.Infrastructure.csproj" />
     <ProjectReference Include="..\sc\SoAt.Core\SoAt.Core.csproj" />
+    <ProjectReference Include="..\sc\SoAt.Blazor\SoAt.Blazor.csproj" />
   </ItemGroup>
 
   <!-- ทำให้ Visual Studio รู้จักไฟล์รายงานเป็น XtraReport (เปิด Report Designer ได้) +

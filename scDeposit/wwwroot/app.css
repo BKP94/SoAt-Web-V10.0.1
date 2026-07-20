@@ -467,14 +467,25 @@ a.home-card:hover {
     border: none; cursor: pointer;
     display: grid; place-items: center;
     font-size: 1.4rem; line-height: 1;
-    background: var(--navy-700, #284b78); color: #fff;
+    /* สีและ interaction state ของปุ่ม Operate เป็นข้อยกเว้นที่เจ้าของโปรเจคระบุโดยตรง: น้ำเงิน→ม่วง และ Cancel ชมพู→แดง */
+    --op-btn-bg: #5b4cf0;
+    background: var(--op-btn-bg); color: #fff;
     box-shadow: 0 2px 6px rgba(16, 33, 60, .18);
     transition: transform .12s ease, box-shadow .12s ease, background .12s ease, opacity .12s ease;
+}
+.op-btn.op-btn {
+    /* กันสี state ของ RenderStyle (Primary / Outline Secondary) แทรกเมื่อปิด gradient */
+    --dxbl-btn-bg: var(--op-btn-bg);
+    --dxbl-btn-hover-bg: var(--op-btn-bg);
+    --dxbl-btn-active-bg: var(--op-btn-bg);
+    --dxbl-btn-focus-bg: var(--op-btn-bg);
+    --dxbl-btn-disabled-bg: var(--op-btn-bg);
 }
 .op-btn:hover { transform: translateY(-2px); box-shadow: 0 7px 16px rgba(16, 33, 60, .24); }
 .op-btn:active { transform: translateY(0); box-shadow: 0 2px 6px rgba(16, 33, 60, .18); }
 .op-btn:disabled { opacity: .45; cursor: default; transform: none; box-shadow: none; }
-.op-btn--danger { background: #e5484d; }
+.op-btn--cancel,
+.op-btn--danger { --op-btn-bg: #ff1f5a; background: var(--op-btn-bg); }
 .op-btn-label { font-size: .7rem; color: var(--ink-muted, #6b7787); }
 
 /* ── Bootstrap Icons — ขนาดมาตรฐาน (bi เป็น font → คุมขนาดด้วย font-size) ──

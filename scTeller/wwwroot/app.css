@@ -540,11 +540,12 @@ a.home-card:hover {
     min-height: 58px;
     padding: 0;
     border-radius: 50%;
-    /* สีปุ่มเป็นข้อยกเว้นที่เจ้าของโปรเจคระบุโดยตรง: น้ำเงิน→ม่วง และ Cancel ชมพู→แดง */
-    background-color: #5b4cf0;
-    background-image:
+    /* สีและ interaction state ของปุ่ม Operate เป็นข้อยกเว้นที่เจ้าของโปรเจคระบุโดยตรง: น้ำเงิน→ม่วง และ Cancel ชมพู→แดง */
+    --op-btn-bg: #5b4cf0;
+    background-color: var(--op-btn-bg);
+    /*background-image:
         radial-gradient(circle at 28% 20%, rgba(255, 255, 255, .34), transparent 34%),
-        linear-gradient(135deg, #1769ff 0%, #5b4cf0 52%, #842ee8 100%);
+        linear-gradient(135deg, #1769ff 0%, #5b4cf0 52%, #842ee8 100%);*/
     box-shadow:
         0 10px 20px -5px rgba(79, 70, 229, .58),
         inset 0 1px 0 rgba(255, 255, 255, .28);
@@ -553,6 +554,12 @@ a.home-card:hover {
 
 /* double class = specificity 0,2,0 — ชนะ outline theme (.dxbl-btn-secondary.dxbl-btn-outline) */
 .op-btn.op-btn {
+    /* กันสี state ของ RenderStyle (Primary / Outline Secondary) แทรกเมื่อปิด gradient */
+    --dxbl-btn-bg: var(--op-btn-bg);
+    --dxbl-btn-hover-bg: var(--op-btn-bg);
+    --dxbl-btn-active-bg: var(--op-btn-bg);
+    --dxbl-btn-focus-bg: var(--op-btn-bg);
+    --dxbl-btn-disabled-bg: var(--op-btn-bg);
     --dxbl-btn-color: #fff;
     --dxbl-btn-hover-color: #fff;
     --dxbl-btn-active-color: #fff;
@@ -587,10 +594,11 @@ a.home-card:hover {
 
 .op-btn--cancel,
 .op-btn--danger {
-    background-color: #ff1f5a;
-    background-image:
+    --op-btn-bg: #ff1f5a;
+    background-color: var(--op-btn-bg);
+    /*background-image:
         radial-gradient(circle at 28% 20%, rgba(255, 255, 255, .3), transparent 34%),
-        linear-gradient(135deg, #ff006e 0%, #ff1f5a 48%, #ff6254 100%);
+        linear-gradient(135deg, #ff006e 0%, #ff1f5a 48%, #ff6254 100%);*/
     box-shadow:
         0 10px 20px -5px rgba(255, 31, 90, .58),
         inset 0 1px 0 rgba(255, 255, 255, .26);

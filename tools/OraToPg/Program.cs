@@ -18,6 +18,8 @@ using Oracle.ManagedDataAccess.Types;
 // Usage:
 //   dotnet run                 -> full refresh: TRUNCATE all + reload 1388 tables
 //   dotnet run -- <table>      -> single table (proof / re-run a failed table)
+//   dotnet run -- --like <p>   -> refresh every table whose name starts with <p>
+//   dotnet run -- --after <t>  -> resume full refresh with tables AFTER <t> only
 //   dotnet run -- --list       -> list intersection tables + Oracle row counts
 //   dotnet run -- --reconcile  -> compare counts only (no writes)
 // ============================================================================
@@ -39,6 +41,22 @@ bool listOnly      = argList.Remove("--list");
 bool reconcileOnly = argList.Remove("--reconcile");
 bool restoreSiApps = argList.Remove("--restore-siapps");
 bool preflight     = argList.Remove("--preflight");
+string? afterTable = null;
+int afterIdx = argList.IndexOf("--after");
+if (afterIdx >= 0 && afterIdx + 1 < argList.Count)
+{
+    afterTable = argList[afterIdx + 1];
+    argList.RemoveRange(afterIdx, 2);
+}
+// --like <prefix>: refresh every table whose name starts with <prefix> (trailing
+// '*' or '%' optional). Group refresh, e.g. --like sc_fin_  reloads all sc_fin_*.
+string? likePrefix = null;
+int likeIdx = argList.IndexOf("--like");
+if (likeIdx >= 0 && likeIdx + 1 < argList.Count)
+{
+    likePrefix = argList[likeIdx + 1].TrimEnd('*', '%');
+    argList.RemoveRange(likeIdx, 2);
+}
 string? only = argList.FirstOrDefault(a => !a.StartsWith("--"));
 
 Console.OutputEncoding = Encoding.UTF8;
@@ -85,6 +103,33 @@ if (only != null)
         return 2;
     }
     targets = targets.Where(t => string.Equals(t, only, StringComparison.OrdinalIgnoreCase)).ToList();
+}
+
+// prefix-group refresh (--like). Filtered from the intersection AFTER the
+// si_security_ exclusion above, so an accidental --like si_security_ stays empty.
+if (likePrefix != null)
+{
+    targets = targets.Where(t => t.StartsWith(likePrefix, StringComparison.OrdinalIgnoreCase)).ToList();
+    if (targets.Count == 0)
+    {
+        Console.WriteLine($"!! --like '{likePrefix}' matched 0 tables in Oracle∩PG intersection. abort.");
+        return 2;
+    }
+    Console.WriteLine($"--like {likePrefix}: {targets.Count} matching table(s)");
+}
+
+// resume mode: keep only tables strictly AFTER the given one (same ordering as a
+// full run: PG table_name ASC). Loaded tables before it are left untouched.
+if (afterTable != null)
+{
+    int idx = targets.FindIndex(t => string.Equals(t, afterTable, StringComparison.OrdinalIgnoreCase));
+    if (idx < 0)
+    {
+        Console.WriteLine($"!! --after table '{afterTable}' not in target list. abort.");
+        return 2;
+    }
+    targets = targets.Skip(idx + 1).ToList();
+    Console.WriteLine($"--after {afterTable}: resuming with {targets.Count} remaining table(s)");
 }
 
 Console.WriteLine($"targets: {targets.Count} table(s)  (Oracle {oraTables.Count} / PG {pgTables.Count})");

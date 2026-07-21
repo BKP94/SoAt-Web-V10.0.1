@@ -1,6 +1,9 @@
 @inherits LayoutComponentBase
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
 @inject IConfiguration Config
 @inject SoAt.Application.Sc.IScAppService ScApps
+@inject AuthenticationStateProvider AuthState
 
 <div class="app-shell">
     @* CSS-only mobile drawer: desktop แสดง sidebar ค้าง, mobile ใช้ checkbox นี้เปิด/ปิด *@
@@ -54,13 +57,20 @@
 
             <AuthorizeView>
                 <Authorized>
-                    @* สถานะระบบ (เหมือน scCenter): วันที่การเงิน + ฐานข้อมูล — วางข้างชื่อผู้ใช้ *@
+                    @* สถานะระบบ (เหมือน scCenter): วันที่การเงิน + เงินสดในมือ + ฐานข้อมูล — วางข้างชื่อผู้ใช้ *@
                     <div class="app-status">
                         <span class="app-status-item">
                             <i class="bi bi-calendar3" aria-hidden="true"></i>
                             <span class="app-status-copy">
                                 <span class="app-status-k">วันที่การเงิน</span>
                                 <span class="app-status-v">@(_info?.FinanceDate ?? "—")</span>
+                            </span>
+                        </span>
+                        <span class="app-status-item">
+                            <i class="bi bi-cash-coin" aria-hidden="true"></i>
+                            <span class="app-status-copy">
+                                <span class="app-status-k">เงินสดในมือ</span>
+                                <span class="app-status-v">@(_info?.CashBalance ?? "-")</span>
                             </span>
                         </span>
                         <span class="app-status-item">
@@ -101,12 +111,23 @@
 @code {
     private string ScCenterUrl => Config["ScCenter:Url"] ?? "http://localhost:5100";
 
-    // แถบสถานะ (วันที่การเงิน + ฐานข้อมูล) — ดึงจากแหล่งเดียวกับ scCenter, guard ไว้ใน service แล้ว
+    // แถบสถานะ (วันที่การเงิน + เงินสดในมือ + ฐานข้อมูล) — ดึงจากแหล่งเดียวกับ scCenter, guard ไว้ใน service แล้ว
     private SoAt.Application.Sc.ScCenterInfoDto? _info;
 
     protected override async Task OnInitializedAsync()
     {
-        try { _info = await ScApps.GetCenterInfoAsync(); } catch { }
+        // อ่าน user จาก cookie claims (มีตอน static SSR) แล้วส่งเข้า service ตรงๆ —
+        //   getCashBalance() พึ่ง current_setting('app.login_*') ต้องมี userId/branchId ถึงจะ SET LOCAL
+        //   (ambient sc.appUser ไม่ถูกโหลดใน static SSR เพราะ AppUserCircuitHandler ทำงานเฉพาะ circuit)
+        string? uid = null, br = null;
+        var user = (await AuthState.GetAuthenticationStateAsync()).User;
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            uid = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            br  = user.FindFirst("branch_id")?.Value;
+        }
+
+        try { _info = await ScApps.GetCenterInfoAsync(uid, br); } catch { }
     }
 
     // ตัวอักษรแรกของชื่อ → avatar (ไทย/อังกฤษ)

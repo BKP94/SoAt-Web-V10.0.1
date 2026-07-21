@@ -5,5 +5,5 @@ public interface IScAppService
     Task<IEnumerable<ScAppDto>>      GetAppsAsync(int level = 1);
     Task<IEnumerable<ScMenuItemDto>> GetMenuAsync(string appName);
     Task<IEnumerable<ScBranchDto>>   GetBranchesAsync();
-    Task<ScCenterInfoDto>            GetCenterInfoAsync();
+    Task<ScCenterInfoDto>            GetCenterInfoAsync(string? userId = null, string? branchId = null);
 }

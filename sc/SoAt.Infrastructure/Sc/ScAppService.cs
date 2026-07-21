@@ -53,19 +53,24 @@ public class ScAppService(sc.dbFactory dbFactory) : IScAppService
 
     // แถบสถานะ scCenter (footer) — ดึงเท่าที่มี, แต่ละค่า guard ด้วย try/catch
     //   (finance date มาจาก PG stub function อาจยังไม่พร้อม → fallback null)
-    public async Task<ScCenterInfoDto> GetCenterInfoAsync()
+    // userId/branchId: ส่งตรงมาจาก caller (เช่น MainLayout อ่าน cookie claims ตอน static SSR)
+    //   เพราะ getCashBalance() พึ่ง current_setting('app.login_id'/'app.login_br') → ต้อง SET LOCAL
+    //   ให้ได้; ถ้าไม่ส่ง จะ fallback เป็น ambient sc.appUser (ทำงานเฉพาะใน interactive circuit)
+    public async Task<ScCenterInfoDto> GetCenterInfoAsync(string? userId = null, string? branchId = null)
     {
-        await using var scDb = dbFactory.create();
+        await using var scDb = dbFactory.create(userId, branchId);
         var coop = new sc.scCoop(scDb);
 
         // ฐานข้อมูล = ชื่อ DB ของ PG (จาก connection string ใน appsettings.json) ไม่ใช่ sys_name ใน sc_cnt_m_coop
-        string  sysName  = dbFactory.Database;
-        string  coopName = "";
-        string? finDate  = null;
+        string sysName = dbFactory.Database;
+        string coopName = "";
+        string? finDate = null;
+        string? cashBal = null;
 
-        try { coopName = coop.getCoopName();   } catch { }
-        try { finDate  = sc.value.toStringTH(coop.getFinanceDate()); } catch { }
+        try { coopName = coop.getCoopName(); } catch { }
+        try { finDate = sc.value.toStringTH(coop.getFinanceDate()); } catch { }
+        try { cashBal = sc.value.toStringF(coop.getCashBalance()); } catch { }
 
-        return new ScCenterInfoDto(coopName, sysName, finDate);
+        return new ScCenterInfoDto(coopName, sysName, finDate, cashBal);
     }
 }

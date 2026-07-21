@@ -30,5 +30,6 @@ public record ScBranchDto(
 public record ScCenterInfoDto(
     string  CoopName,      // coop_name (จาก sc_cnt_m_coop)
     string  SysName,       // ชื่อ database ของ PG (Database= ใน connection string จาก appsettings.json เช่น soatdb)
-    string? FinanceDate    // วันที่การเงิน (พ.ศ. แล้ว) — null ถ้าดึงไม่ได้
+    string? FinanceDate,    // วันที่การเงิน (พ.ศ. แล้ว) — null ถ้าดึงไม่ได้
+    string? CashBalance      // ยอดเงินคงเหลือของสหกรณ์ (จาก PG stub function) — null ถ้าดึงไม่ได้
 );

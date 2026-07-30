@@ -7,7 +7,8 @@ using Oracle.ManagedDataAccess.Client;
 using Oracle.ManagedDataAccess.Types;
 
 // ============================================================================
-// OraToPg — data-only full-refresh migrator: Oracle (PEAN) -> PostgreSQL (soatdb)
+// OraToPg — data-only full-refresh migrator: Oracle (TNMA) -> PostgreSQL (soatdb)
+//   NOTE: source เปลี่ยนเป็น TNMA ถาวร (2026-07-25) — เลิกใช้ PEAN แล้ว
 //
 // - PG schema is the AUTHORITY (target tables/columns/types already migrated).
 // - Copies data only. Does NOT touch functions/triggers/views/schema.
@@ -28,7 +29,7 @@ static string Env(string k, string d) => Environment.GetEnvironmentVariable(k) i
 
 string oraHost = Env("ORA_HOST", "192.168.101.29");
 string oraPort = Env("ORA_PORT", "1521");
-string oraSvc  = Env("ORA_SERVICE", "PEAN");
+string oraSvc  = Env("ORA_SERVICE", "TNMA");
 string oraUser = Env("ORA_USER", "dbo");
 string oraPwd  = Env("ORA_PWD", "xsqlx");
 // TNS descriptor (NOT EZConnect — Oracle.ManagedDataAccess.Core requires descriptor form)

@@ -31,9 +31,11 @@ scTeller/                  ← module ตัวอย่าง (port 5110), fold
 
 ## Oracle Database (Legacy — Read Only Reference)
 ```
-Host: 192.168.101.29  Port: 1521  SID: pean  User: dbo  Pass: (ดู dbConn.xml)
-sqlplus dbo/[password]@192.168.101.29:1521/pean
+Host: 192.168.101.29  Port: 1521  SERVICE_NAME: TNMA  User: dbo  Pass: (ดู dbConn.xml)
+sqlplus dbo/[password]@192.168.101.29:1521/TNMA
 ```
+> source เปลี่ยน PEAN → TNMA ถาวร (2026-07-25) — `appsettings.json` ทั้ง 33 ไฟล์ + `tools/OraToPg` ใช้ `SERVICE_NAME=TNMA` แล้ว
+> (ต้องเป็น TNS descriptor + `SERVICE_NAME` เท่านั้น — `Oracle.ManagedDataAccess.Core` ไม่รับ EZConnect)
 - ขนาด: 18.32 GB, 1,480 tables, 354 PL/SQL packages, 376 triggers
 - Module ใหญ่สุด: SC_MEM 233 / SC_LON 171 / SC_HR 122 / SC_WEF 81 / SC_ACC 74 / SC_FIN 70 tables
 - **Naming:** `sc_[module]_[type]_[name]` — type `m_`=Master/config, `t_`=Transaction (เช่น `sc_dep_m_creditor`, `sc_kep_t_monthly_receive`, `sc_cnt_m_coop`=coop config single-row)

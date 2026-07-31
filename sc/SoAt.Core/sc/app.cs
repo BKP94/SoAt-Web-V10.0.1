@@ -4,7 +4,7 @@ namespace sc
 {
     public class app
     {
-        public const string MAIN_SITE_NAME    = "PEAN";
+        public const string MAIN_SITE_NAME    = "TNMA";
         public const string MESSAGE_ERROR_MORE = "MESSAGE_ERROR_MORE";
 
         public enum attSeting { app, login, version, Error2Email, coop }

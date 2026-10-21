@@ -5,7 +5,16 @@
    ใช้งาน: CssClass="soat-btn" | เพิ่ม soat-btn--ghost / soat-btn--danger /
    soat-btn--compact ตามลำดับความสำคัญและบริบทของปุ่ม. */
 
+/* สีปุ่ม = primary/danger ของ Fluent (ข้อความขาวผ่าน AA ≥ 4.5:1 ทุกสถานะ)
+   default #0f6cbd 5.4:1 · hover #115ea3 6.7:1 · active #0c3b5e 11.7:1
+   danger  #c50f1f 6.1:1 · hover #b10e1c 7.0:1 · active #960b18 8.9:1
+   ห้ามกลับไปใช้ gradient/brightness — จุดสว่างของ gradient เดิมเหลือ 2.8–3.7:1 */
 .soat-btn.soat-btn {
+    --soat-btn-bg: #0f6cbd;
+    --soat-btn-hover-bg: #115ea3;
+    --soat-btn-active-bg: #0c3b5e;
+    --soat-btn-shadow: 0 2px 6px rgba(15, 108, 189, .22);
+    --soat-btn-hover-shadow: 0 4px 10px rgba(15, 108, 189, .28);
     min-width: 104px;
     min-height: 44px;
     margin: 3px;
@@ -14,30 +23,49 @@
     font-weight: 600;
 }
 
+.soat-btn--danger.soat-btn--danger {
+    --soat-btn-bg: #c50f1f;
+    --soat-btn-hover-bg: #b10e1c;
+    --soat-btn-active-bg: #960b18;
+    --soat-btn-shadow: 0 2px 6px rgba(197, 15, 31, .22);
+    --soat-btn-hover-shadow: 0 4px 10px rgba(197, 15, 31, .28);
+}
+
 /* Primary action visual. Secondary/ghost keeps the active DevExpress theme. */
 .soat-btn.soat-btn:not(.dxbl-btn-secondary):not(.soat-btn--ghost) {
     --dxbl-btn-color: #fff;
     --dxbl-btn-hover-color: #fff;
     --dxbl-btn-active-color: #fff;
+    --dxbl-btn-bg: var(--soat-btn-bg);
+    --dxbl-btn-hover-bg: var(--soat-btn-hover-bg);
+    --dxbl-btn-active-bg: var(--soat-btn-active-bg);
     --dxbl-btn-border-color: transparent;
     --dxbl-btn-hover-border-color: transparent;
     --dxbl-btn-active-border-color: transparent;
     border-color: transparent;
     color: #fff;
-    background-color: #3f70e8;
-    background-image: linear-gradient(135deg, #3f70e8 0%, #5b7ff0 55%, #706ef1 100%);
-    box-shadow: 0 10px 22px rgba(65, 107, 219, .24);
-    transition: transform .16s ease, box-shadow .16s ease, filter .16s ease;
+    background-color: var(--soat-btn-bg);
+    background-image: none;
+    box-shadow: var(--soat-btn-shadow);
+    transition: transform .16s ease, box-shadow .16s ease, background-color .16s ease;
+}
+
+.soat-btn.soat-btn:not(.dxbl-btn-secondary):not(.soat-btn--ghost):hover:not(:disabled):not(.dxbl-disabled) {
+    background-color: var(--soat-btn-hover-bg);
 }
 
 .soat-btn.soat-btn:not(.dxbl-btn-secondary):not(.soat-btn--ghost):not(.soat-btn--compact):hover:not(:disabled):not(.dxbl-disabled) {
-    filter: saturate(1.08) brightness(1.03);
     transform: translateY(-1px);
-    box-shadow: 0 13px 26px rgba(65, 107, 219, .3);
+    box-shadow: var(--soat-btn-hover-shadow);
+}
+
+.soat-btn.soat-btn:not(.dxbl-btn-secondary):not(.soat-btn--ghost):active:not(:disabled):not(.dxbl-disabled) {
+    background-color: var(--soat-btn-active-bg);
 }
 
 .soat-btn.soat-btn:not(.dxbl-btn-secondary):not(.soat-btn--ghost):not(.soat-btn--compact):active:not(:disabled):not(.dxbl-disabled) {
     transform: translateY(0);
+    box-shadow: var(--soat-btn-shadow);
 }
 
 /* Explicit light action: RenderStyle remains responsible for color and border. */
@@ -49,17 +77,7 @@
     transition: none;
 }
 
-.soat-btn--danger.soat-btn--danger {
-    background-color: #ef4444;
-    background-image: linear-gradient(135deg, #ef4444 0%, #f05a3c 52%, #f97316 100%);
-    box-shadow: 0 10px 22px rgba(226, 74, 43, .24);
-}
-
-.soat-btn--danger.soat-btn--danger:not(.soat-btn--compact):hover:not(:disabled):not(.dxbl-disabled) {
-    box-shadow: 0 13px 26px rgba(226, 74, 43, .3);
-}
-
-/* Raw gradient/shadow must not make a disabled action look clickable. */
+/* Shadow/lift must not make a disabled action look clickable. */
 .soat-btn.soat-btn:disabled,
 .soat-btn.soat-btn.dxbl-disabled {
     background-image: none;

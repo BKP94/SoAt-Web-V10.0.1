@@ -1,16 +1,16 @@
 ﻿@inject IConfiguration Config
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="/" />
     @* ฟอนต์ Prompt (self-host — ใช้ได้บน intranet ไม่พึ่ง Google CDN) *@
-    <link rel="stylesheet" href="fonts/prompt.css" />
-    <!-- Bootstrap Icons (self-host, intranet-friendly) — ใช้ class bi bi-* ได้ทุกที่ (inline / DevExpress IconCssClass) -->
-    <link rel="stylesheet" href="icons/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="@Assets["fonts/prompt.css"]" />
+    <!-- Bootstrap Icons (self-host, subset) — icon ใหม่ต้องรัน tools/bootstrap-icons/subset.py -->
+    <link rel="stylesheet" href="@Assets["icons/bootstrap-icons.min.css"]" />
     @* DevExpress theme — เปลี่ยน theme ที่ appsettings "DevExpress:Theme" จุดเดียว *@
     @if (string.Equals(Config["DevExpress:Theme"], "fluent", StringComparison.OrdinalIgnoreCase))
     {
@@ -25,6 +25,8 @@
     <link rel="icon" type="image/png" href="@Assets["_content/SoAt.Blazor/favicon.png"]" />
     @* มาตรฐานปุ่ม action กลาง (soat-btn) — จุดเดียวจาก RCL SoAt.Blazor *@
     <link rel="stylesheet" href="@Assets["_content/SoAt.Blazor/soat.css"]" />
+    @* design tokens ของ scCenter (สี/ฟอนต์/ระยะ) — โหลดก่อน app.css *@
+    <link rel="stylesheet" href="@Assets["tokens.css"]" />
     <link rel="stylesheet" href="@Assets["app.css"]" />
     <link rel="stylesheet" href="@Assets["scCenter.styles.css"]" />
     <ImportMap />
@@ -34,7 +36,7 @@
 <body>
     <Routes />
     <ReconnectModal />
-    <script src="js/portal.js"></script>
+    <script src="@Assets["js/portal.js"]"></script>
     <script src="@Assets["_framework/blazor.web.js"]"></script>
 </body>
 

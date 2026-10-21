@@ -2,7 +2,7 @@
 
 <div class="app-shell">
     <header class="app-topbar">
-        <a class="app-brand" href="/">SoAt</a>
+        <a class="app-brand" href="/" aria-label="กลับหน้าศูนย์รวมระบบงาน"><img src="ImgMenu/Logo_SoAt.png" alt="SO-AT Solution" width="66" height="32" /></a>
 
         <div class="app-topbar-spacer"></div>
 
@@ -11,7 +11,12 @@
                 <span class="app-user">@context.User.Identity?.Name</span>
                 <form method="post" action="/logout" class="app-logout-form">
                     <AntiforgeryToken />
-                    <button type="submit" class="app-logout">ออกจากระบบ</button>
+                    <DxButton CssClass="app-logout"
+                              Text="ออกจากระบบ"
+                              IconCssClass="bi bi-box-arrow-right"
+                              RenderStyle="ButtonRenderStyle.Secondary"
+                              RenderStyleMode="ButtonRenderStyleMode.Outline"
+                              SubmitFormOnClick="true" />
                 </form>
             </Authorized>
             <NotAuthorized>
@@ -25,8 +30,8 @@
     </main>
 </div>
 
-<div id="blazor-error-ui" data-nosnippet>
-    An unhandled error has occurred.
-    <a href="." class="reload">Reload</a>
-    <span class="dismiss">🗙</span>
+<div id="blazor-error-ui" data-nosnippet role="alert">
+    เกิดข้อผิดพลาดที่ไม่คาดคิด
+    <a href="." class="reload">โหลดหน้าใหม่</a>
+    <button type="button" class="dismiss" aria-label="ปิดข้อความ"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
 </div>

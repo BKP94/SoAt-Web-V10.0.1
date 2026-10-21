@@ -11,264 +11,269 @@
 @inject IAntiforgery Antiforgery
 @inject IHttpContextAccessor HttpAccessor
 @inject PersistentComponentState AppState
+@inject ILogger<Home> Log
 
 <PageTitle>ระบบบริหารงานสหกรณ์ออมทรัพย์ — SoAt</PageTitle>
 
-<div class="portal">
+@* prerender (ก่อน circuit ต่อ): dialog เปิดจาก query แล้ว → พื้นหลัง inert ด้วย HTML เลย
+   (หลัง interactive ให้ soatPortal.openModal คุมแทน) *@
+<div class="pt-shell" inert="@(_showLogin && !RendererInfo.IsInteractive)">
 
-    @* ── Header + hero ─────────────────────────────────────── *@
-    <header class="pt-header">
-        <div class="pt-header-inner">
-            <img class="pt-logo" src="ImgMenu/Logo_SoAt.png" alt="SO-AT Solution" />
+    @* ── Rail: ตัวตนระบบ + ผู้ใช้/สาขา + หมวดหมู่ (sticky บน desktop) ──────── *@
+    <aside class="pt-rail" aria-label="ข้อมูลระบบและหมวดหมู่">
+        <div class="pt-brand">
+            <img class="pt-logo" src="ImgMenu/Logo_SoAt.png" alt="SO-AT Solution" width="83" height="40" />
+            <h1 class="pt-title">ศูนย์รวมทุกระบบงาน</h1>
+            <p class="pt-lede">เข้าถึงทุกระบบงานได้อย่างง่ายดาย ครบจบในที่เดียว</p>
         </div>
 
-        <div class="pt-hero">
-            <div class="pt-hero-art pt-hero-art--left" aria-hidden="true">
-                <img src="ImgMenu/Image_1.png" alt="" />
-            </div>
+        <dl class="pt-session" aria-label="ข้อมูลการใช้งานระบบ">
+            <div><dt>ผู้ใช้งาน</dt><dd>@UserName</dd></div>
+            <div><dt>สาขา</dt><dd>@BranchId</dd></div>
+            <div><dt>วันที่การเงิน</dt><dd>@(_info?.FinanceDate ?? "—")</dd></div>
+            <div><dt>ฐานข้อมูล</dt><dd>@SysName</dd></div>
+        </dl>
 
-            <div class="pt-hero-content">
-                <div class="pt-kicker">SO-AT SOLUTION CENTER</div>
-                <h1>ศูนย์รวมทุกระบบงาน</h1>
-                <p>เข้าถึงทุกระบบงานได้อย่างง่ายดาย ครบจบในที่เดียว</p>
-
-                @* ค้นหาระบบ — กรองแบบ realtime ทั้ง grid หลัก + ปักหมุด (ทำงานร่วมกับปุ่มหมวดหมู่) *@
-                <div class="pt-search">
-                    <i class="bi bi-search" aria-hidden="true"></i>
-                    <DxTextBox @bind-Text="SearchText"
-                               BindValueMode="BindValueMode.OnInput"
-                               InputDelay="200"
-                               ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
-                               NullText="ค้นหาระบบที่คุณต้องการ..." />
-                </div>
-
-                <div class="pt-status" aria-label="ข้อมูลการใช้งานระบบ">
-                    <div class="pt-status-item">
-                        <i class="bi bi-person-circle" aria-hidden="true"></i>
-                        <span class="pt-status-label">ผู้ใช้งาน</span>
-                        <strong>@UserName</strong>
-                        <span class="pt-status-separator" aria-hidden="true">·</span>
-                        <span class="pt-status-label">สาขา</span>
-                        <strong>@BranchId</strong>
-                    </div>
-                    <div class="pt-status-item">
-                        <i class="bi bi-calendar3" aria-hidden="true"></i>
-                        <span class="pt-status-label">วันที่การเงิน</span>
-                        <strong>@(_info?.FinanceDate ?? "—")</strong>
-                    </div>
-                    <div class="pt-status-item">
-                        <i class="bi bi-database" aria-hidden="true"></i>
-                        <span class="pt-status-label">ฐานข้อมูล</span>
-                        <strong>@SysName</strong>
-                    </div>
-                </div>
-            </div>
-
-            <div class="pt-hero-art pt-hero-art--right" aria-hidden="true">
-                <img src="ImgMenu/Image_2.png" alt="" />
-            </div>
+        <div class="pt-account">
+            @if (_isAuthed)
+            {
+                <form method="post" action="/logout" onsubmit="soatPortal.lockSubmit(this)">
+                    <input type="hidden" name="__RequestVerificationToken" value="@_afToken" />
+                    <DxButton Text="ออกจากระบบ"
+                              IconCssClass="bi bi-box-arrow-right"
+                              RenderStyle="ButtonRenderStyle.Secondary"
+                              RenderStyleMode="ButtonRenderStyleMode.Outline"
+                              SubmitFormOnClick="true" />
+                </form>
+            }
+            else
+            {
+                @* pt-login = จุดคืน focus เมื่อ dialog เปิดจาก query (ไม่มีปุ่มเปิด) — ดู portal.js closeModal *@
+                <DxButton CssClass="soat-btn pt-login"
+                          Text="เข้าสู่ระบบ"
+                          IconCssClass="bi bi-box-arrow-in-right"
+                          RenderStyle="ButtonRenderStyle.Primary"
+                          Click="() => OpenLogin(null, null)" />
+            }
         </div>
-    </header>
 
-    @if (_apps is null)
-    {
-        <div class="pt-loading">กำลังโหลด…</div>
-    }
-    else
-    {
-        @* ── Pinned ───────────────────────────────────────── *@
-        @if (_favFiltered.Count > 0)
+        @if (_apps is not null)
         {
-            <section class="pt-section pt-section--pinned">
-                <h2 class="pt-h2"><span class="pt-h2-ic">★</span> ปักหมุด</h2>
-                <div class="pt-grid">
-                    @foreach (var app in _favFiltered) { @Card(app) }
-                </div>
-            </section>
+            @* ปุ่มกรอง ไม่ใช่การนำทาง → group ไม่ใช่ nav landmark *@
+            <div class="pt-cats" role="group" aria-label="หมวดหมู่ระบบ">
+                <h2 class="pt-cats-title">หมวดหมู่</h2>
+                @foreach (var c in CategoryNav)
+                {
+                    var selected = SelectedCat == c.Key;
+                    <DxButton RenderStyle="@(selected ? ButtonRenderStyle.Primary : ButtonRenderStyle.Secondary)"
+                              RenderStyleMode="@(selected ? ButtonRenderStyleMode.Contained : ButtonRenderStyleMode.Text)"
+                              aria-pressed="@(selected ? "true" : "false")"
+                              Click="() => SelectedCat = c.Key">
+                        @* มี ChildContent แล้ว DX ไม่ render IconCssClass (และติด class icon-only) → วาง icon เองใน content *@
+                        <i class="@c.Icon pt-cat-icon" aria-hidden="true"></i>
+                        <span class="pt-cat-name">@c.Label</span>
+                        <span class="pt-cat-count">@c.Count</span>
+                    </DxButton>
+                }
+            </div>
         }
 
-        @* ── Category buttons ──────────────────────────────── *@
-        <section class="pt-categories" aria-labelledby="category-title">
-            <h2 id="category-title">หมวดหมู่ระบบ</h2>
-            <nav class="pt-category-grid" aria-label="หมวดหมู่ระบบ">
-                <div class="pt-category-item">
-                    <DxButton Text="ทั้งหมด"
-                              IconCssClass="bi bi-grid"
-                              RenderStyle="@(SelectedCat is null ? ButtonRenderStyle.Primary : ButtonRenderStyle.Light)"
-                              RenderStyleMode="ButtonRenderStyleMode.Contained"
-                              Click="() => SelectedCat = null" />
-                </div>
-            @foreach (var c in _categories)
-            {
-                    <div class="pt-category-item">
-                        <DxButton Text="@c"
-                                  IconCssClass="@(c switch
-                                  {
-                                      "ผู้ดูแลระบบ" => "bi bi-shield-check",
-                                      "สมาชิก & สวัสดิการ" => "bi bi-people",
-                                      "หน้าเคาน์เตอร์" => "bi bi-gear",
-                                      "หลังบ้าน & รายงาน" => "bi bi-bar-chart",
-                                      _ => "bi bi-grid"
-                                  })"
-                                  RenderStyle="@(SelectedCat == c ? ButtonRenderStyle.Primary : ButtonRenderStyle.Light)"
-                                  RenderStyleMode="ButtonRenderStyleMode.Contained"
-                                  Click="() => SelectedCat = c" />
-                    </div>
-            }
-            </nav>
-        </section>
+        @if (!string.IsNullOrEmpty(Version))
+        {
+            <p class="pt-version">@Version</p>
+        }
+    </aside>
 
-        @* ── Main grid ────────────────────────────────────── *@
-        <section class="pt-section">
-            <div class="pt-grid">
-                @foreach (var app in Filtered) { @Card(app) }
+    @* ── Main: ค้นหา + ปักหมุด + รายการระบบแยกตามหมวด ─────────────────── *@
+    <main class="pt-main">
+        <div class="pt-toolbar">
+            <label class="pt-sr" for="pt-search-input">ค้นหาระบบ</label>
+            <div class="pt-search">
+                <i class="bi bi-search" aria-hidden="true"></i>
+                <DxTextBox @ref="_search"
+                           @bind-Text="SearchText"
+                           InputId="pt-search-input"
+                           BindValueMode="BindValueMode.OnInput"
+                           InputDelay="200"
+                           ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                           NullText="ค้นหาด้วยชื่อไทย อังกฤษ หรือรหัสระบบ" />
             </div>
+            @if (_apps is not null)
+            {
+                <p class="pt-result" aria-live="polite">@(SelectedCat ?? "ทุกหมวด") · @Filtered.Count() ระบบ</p>
+            }
+        </div>
+
+        @if (_loadFailed)
+        {
+            <div class="pt-failed" role="alert">
+                <p>โหลดรายการระบบไม่สำเร็จ — ระบบอาจเชื่อมต่อฐานข้อมูลไม่ได้ชั่วคราว</p>
+                <DxButton CssClass="soat-btn"
+                          Text="@(_loading ? "กำลังโหลด…" : "ลองอีกครั้ง")"
+                          IconCssClass="bi bi-arrow-clockwise"
+                          RenderStyle="ButtonRenderStyle.Primary"
+                          Enabled="!_loading"
+                          Click="LoadDataAsync" />
+            </div>
+        }
+        else if (_apps is null)
+        {
+            <p class="pt-loading" role="status">กำลังโหลด…</p>
+        }
+        else
+        {
+            @if (_favFiltered.Count > 0)
+            {
+                <section class="pt-group pt-group--pinned" aria-labelledby="grp-pinned">
+                    <h2 id="grp-pinned" class="pt-group-title">ปักหมุด <span>@_favFiltered.Count</span></h2>
+                    <ul class="pt-list">
+                        @foreach (var app in _favFiltered) { <li>@Card(app)</li> }
+                    </ul>
+                </section>
+            }
+
+            @foreach (var g in Groups)
+            {
+                var gid = $"grp-{g.Index}";
+                <section class="pt-group" aria-labelledby="@gid">
+                    <h2 id="@gid" class="pt-group-title">@g.Cat <span>@g.Apps.Count</span></h2>
+                    <ul class="pt-list">
+                        @foreach (var app in g.Apps) { <li>@Card(app)</li> }
+                    </ul>
+                </section>
+            }
+
             @if (!Filtered.Any())
             {
+                // ค้นภายในหมวด แต่ระบบอยู่หมวดอื่น → บอกตรงๆ + ทางไปทุกหมวด (กันผู้ใช้เข้าใจว่าไม่มีระบบ/ไม่มีสิทธิ์)
+                var q = SearchText?.Trim();
+                var elsewhere = SelectedCat is null || string.IsNullOrEmpty(q) ? 0 : _apps!.Count(MatchesSearch);
                 <div class="pt-empty">
-                    @(string.IsNullOrWhiteSpace(SearchText)
-                        ? "ไม่มีระบบงานในหมวดนี้"
-                        : $"ไม่พบระบบที่ตรงกับ \"{SearchText.Trim()}\"")
+                    <p>
+                        @(string.IsNullOrEmpty(q) ? "ไม่มีระบบงานในหมวดนี้"
+                          : SelectedCat is null   ? $"ไม่พบระบบที่ตรงกับ \"{q}\""
+                          : elsewhere > 0         ? $"ไม่พบ \"{q}\" ในหมวด{SelectedCat} — แต่พบ {elsewhere} ระบบในหมวดอื่น"
+                          :                         $"ไม่พบระบบที่ตรงกับ \"{q}\" ในทุกหมวด")
+                    </p>
+                    @if (elsewhere > 0)
+                    {
+                        <DxButton CssClass="soat-btn"
+                                  Text="ค้นหาทุกหมวด"
+                                  IconCssClass="bi bi-grid"
+                                  RenderStyle="ButtonRenderStyle.Primary"
+                                  Click="SearchAllCategoriesAsync" />
+                    }
+                    else if (!string.IsNullOrEmpty(q))
+                    {
+                        @* ไม่เจอที่ไหนเลย → บอกวิธีค้นที่ได้ผล + ทางกลับไปดูทั้งหมด (ไม่ปล่อยเป็นทางตัน) *@
+                        <p class="pt-empty-hint">ลองพิมพ์ให้สั้นลง หรือค้นด้วยรหัสระบบ เช่น scTeller</p>
+                        <DxButton CssClass="soat-btn"
+                                  Text="ล้างคำค้น"
+                                  IconCssClass="bi bi-x-lg"
+                                  RenderStyle="ButtonRenderStyle.Secondary"
+                                  RenderStyleMode="ButtonRenderStyleMode.Outline"
+                                  Click="ClearSearchAsync" />
+                    }
                 </div>
             }
-        </section>
-    }
+        }
+    </main>
 </div>
 
-@* ── Login overlay popup (เด้งทับ landing เมื่อคลิกระบบที่ยังไม่ login) ──────────
+@* ── Login dialog (เด้งทับ landing เมื่อคลิกระบบที่ยังไม่ login) ──────────────
    form เป็น native POST ไป /auth/login (full page) — antiforgery token มาจาก
    prerender ผ่าน PersistentComponentState (Home เป็น interactive จึงเรียก
    AntiforgeryToken component ตรงๆ ไม่ได้) *@
-<div class="lg-overlay @(_showLogin ? "is-open" : "")"
-     role="dialog"
-     aria-modal="true"
-     aria-labelledby="login-dialog-title">
-    <div class="lg-overlay-back" @onclick="CloseLogin"></div>
-    <div class="lg-pop">
-        <button type="button" class="lg-modal-x" @onclick="CloseLogin" aria-label="ปิด">
-            <i class="bi bi-x-lg" aria-hidden="true"></i>
-        </button>
-
-        @* ── แผงแบรนด์ (ซ้าย) ─────────────────────────────── *@
-        <aside class="lg-brand">
-            <div class="lg-brand-head">
-                <img class="lg-brand-logo" src="ImgMenu/Logo_SoAt.png" alt="SO-AT Solution" />
-                <span>SO-AT SOLUTION CENTER</span>
+@if (_showLogin)
+{
+    <div class="lg-overlay" @onkeydown="OnLoginKey">
+        <div class="lg-scrim" @onclick="CloseLogin"></div>
+        <div id="login-dialog" class="lg-dialog" role="dialog" aria-modal="true" aria-labelledby="login-dialog-title">
+            <div class="lg-head">
+                <img class="lg-logo" src="ImgMenu/Logo_SoAt.png" alt="" width="66" height="32" />
+                <DxButton CssClass="lg-close"
+                          IconCssClass="bi bi-x-lg"
+                          RenderStyle="ButtonRenderStyle.Secondary"
+                          RenderStyleMode="ButtonRenderStyleMode.Text"
+                          aria-label="ปิด"
+                          Click="CloseLogin" />
             </div>
 
-            <div class="lg-brand-copy">
-                <div class="lg-brand-chip">
-                    <i class="bi bi-shield-check" aria-hidden="true"></i>
-                    Secure workspace
-                </div>
-                <h2>ทุกระบบงาน<br /><span>เริ่มต้นที่นี่</span></h2>
-                <p>เชื่อมต่อระบบบริหารงานสหกรณ์ทั้งหมด<br />ด้วยบัญชีเดียวอย่างปลอดภัย</p>
-                <div class="lg-brand-benefits" aria-label="จุดเด่นของระบบ">
-                    <span><i class="bi bi-check-circle-fill" aria-hidden="true"></i> เข้าใช้งานง่าย</span>
-                    <span><i class="bi bi-check-circle-fill" aria-hidden="true"></i> ข้อมูลปลอดภัย</span>
-                </div>
-            </div>
+            <h2 id="login-dialog-title" class="lg-title">เข้าสู่ระบบ</h2>
+            <p class="lg-sub">
+                @(string.IsNullOrEmpty(_loginAppText) ? "ใช้บัญชีเดียวกันได้ทุกระบบงาน" : $"เพื่อใช้งาน{_loginAppText}")
+            </p>
 
-            <div class="lg-brand-art" aria-hidden="true">
-                <img src="ImgMenu/Image_2.png" alt="" />
-            </div>
-
-            <div class="lg-brand-foot">
-                <span class="lg-brand-status"><i aria-hidden="true"></i> ระบบพร้อมใช้งาน</span>
-                <span>© @DateTime.Now.Year SoAt Cooperative</span>
-            </div>
-        </aside>
-
-        @* ── แผงฟอร์ม (ขวา) ──────────────────────────────── *@
-        <section class="lg-form">
-            <div class="lg-form-head">
-                <span class="lg-form-kicker">เข้าสู่ระบบส่วนกลาง</span>
-                <h1 id="login-dialog-title" class="lg-title">ยินดีต้อนรับ</h1>
-                <p class="lg-sub">
-                    @(string.IsNullOrEmpty(_loginAppText) ? "กรอกข้อมูลของคุณเพื่อเข้าใช้งานระบบ" : $"เข้าสู่ระบบเพื่อใช้งาน{_loginAppText}")
-                </p>
-            </div>
-
-            <form class="lg-form-fields" method="post" action="/auth/login">
+            <form class="lg-form" method="post" action="/auth/login" onsubmit="soatPortal.lockSubmit(this)">
                 <input type="hidden" name="__RequestVerificationToken" value="@_afToken" />
                 <input type="hidden" name="returnUrl" value="@_loginTarget" />
 
                 @if (_hasError)
                 {
-                    <div class="lg-error">ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง</div>
+                    <p id="lg-error" class="lg-error" role="alert">
+                        <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+                        ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง
+                    </p>
                 }
 
                 <div class="lg-fld">
                     <label for="ov-user">ชื่อผู้ใช้</label>
-                    <div class="lg-input lg-input--user">
-                        <i class="bi bi-person" aria-hidden="true"></i>
-                        <input id="ov-user" name="userId" autocomplete="username"
-                               placeholder="รหัสผู้ใช้งาน" required />
-                    </div>
+                    <input id="ov-user" name="userId" autocomplete="username" required autofocus
+                           aria-invalid="@(_hasError ? "true" : null)"
+                           aria-describedby="@(_hasError ? "lg-error" : null)" />
                 </div>
 
                 <div class="lg-fld">
                     <label for="ov-pass">รหัสผ่าน</label>
-                    <div class="lg-input lg-input--lock">
-                        <i class="bi bi-lock" aria-hidden="true"></i>
-                        <input id="ov-pass" name="password" type="password"
-                               autocomplete="current-password" placeholder="••••••••" required />
-                    </div>
+                    <input id="ov-pass" name="password" type="password" autocomplete="current-password" required
+                           aria-invalid="@(_hasError ? "true" : null)"
+                           aria-describedby="@(_hasError ? "lg-error" : null)" />
                 </div>
 
                 <div class="lg-fld">
                     <label for="ov-branch">สาขา</label>
-                    <div class="lg-input lg-input--branch">
-                        <i class="bi bi-building" aria-hidden="true"></i>
-                        <select id="ov-branch" name="branchId" required>
-                            <option value="">— เลือกสาขา —</option>
-                            @foreach (var b in _branches)
-                            {
-                                <option value="@b.Code" selected="@(b.Code == DefaultBranchId)">@b.Code — @b.Name</option>
-                            }
-                        </select>
-                    </div>
+                    <select id="ov-branch" name="branchId" required>
+                        <option value="">— เลือกสาขา —</option>
+                        @foreach (var b in _branches)
+                        {
+                            <option value="@b.Code" selected="@(b.Code == DefaultBranchId)">@b.Code — @b.Name</option>
+                        }
+                    </select>
                 </div>
 
-                <div class="lg-row">
-                    <button type="button" class="lg-forgot" @onclick="() => _showForgot = true">
-                        <i class="bi bi-question-circle" aria-hidden="true"></i>
-                        ลืมรหัสผ่าน?
-                    </button>
-                </div>
+                <DxButton CssClass="soat-btn lg-submit"
+                          Text="เข้าสู่ระบบ"
+                          RenderStyle="ButtonRenderStyle.Primary"
+                          SubmitFormOnClick="true" />
 
-                <button type="submit" class="lg-btn">
-                    <span>เข้าสู่ระบบ</span>
-                    <i class="bi bi-arrow-right" aria-hidden="true"></i>
-                </button>
-
-                <p class="lg-secure-note">
-                    <i class="bi bi-shield-lock" aria-hidden="true"></i>
-                    ข้อมูลการเข้าสู่ระบบได้รับการปกป้องอย่างปลอดภัย
-                </p>
+                <DxButton CssClass="lg-forgot"
+                          Text="ลืมรหัสผ่าน?"
+                          RenderStyle="ButtonRenderStyle.Secondary"
+                          RenderStyleMode="ButtonRenderStyleMode.Text"
+                          Click="() => _showForgot = true" />
             </form>
-        </section>
+        </div>
     </div>
-</div>
+}
 
-@* ── Modal "ลืมรหัสผ่าน" (popup ในตัว — เปิดทับ overlay login) ───────────── *@
+@* ── Dialog "ลืมรหัสผ่าน" (เปิดทับ login dialog) ───────────── *@
 @if (_showForgot)
 {
-    <div class="lg-modal is-open">
-        <div class="lg-modal-back" @onclick="() => _showForgot = false"></div>
-        <div class="lg-modal-card">
-            <button type="button" class="lg-modal-x" @onclick="() => _showForgot = false" aria-label="ปิด">
-                <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M4.08859 4.21569L4.14645 4.14645C4.32001 3.97288 4.58944 3.9536 4.78431 4.08859L4.85355 4.14645L10 9.293L15.1464 4.14645C15.32 3.97288 15.5894 3.9536 15.7843 4.08859L15.8536 4.14645C16.0271 4.32001 16.0464 4.58944 15.9114 4.78431L15.8536 4.85355L10.707 10L15.8536 15.1464C16.0271 15.32 16.0464 15.5894 15.9114 15.7843L15.8536 15.8536C15.68 16.0271 15.4106 16.0464 15.2157 15.9114L15.1464 15.8536L10 10.707L4.85355 15.8536C4.67999 16.0271 4.41056 16.0464 4.21569 15.9114L4.14645 15.8536C3.97288 15.68 3.9536 15.4106 4.08859 15.2157L4.14645 15.1464L9.293 10L4.14645 4.85355C3.97288 4.67999 3.9536 4.41056 4.08859 4.21569Z"/></svg>
-            </button>
-            <div class="lg-modal-icon">🔑</div>
-            <h3>ลืมรหัสผ่าน?</h3>
-            <p>ด้วยเหตุผลด้านความปลอดภัย การรีเซ็ตรหัสผ่านต้องดำเนินการโดยผู้ดูแลระบบ
+    <div class="lg-overlay lg-overlay--top" @onkeydown="OnForgotKey">
+        <div class="lg-scrim" @onclick="() => _showForgot = false"></div>
+        <div id="forgot-dialog" class="lg-dialog lg-dialog--note" role="dialog" aria-modal="true" aria-labelledby="forgot-title">
+            <h2 id="forgot-title" class="lg-title">
+                <i class="bi bi-key" aria-hidden="true"></i> ลืมรหัสผ่าน?
+            </h2>
+            <p class="lg-sub">ด้วยเหตุผลด้านความปลอดภัย การรีเซ็ตรหัสผ่านต้องดำเนินการโดยผู้ดูแลระบบ
                กรุณาติดต่อเจ้าหน้าที่ฝ่ายไอทีของสหกรณ์เพื่อขอรหัสผ่านใหม่</p>
-            <ul class="lg-modal-contact">
-                <li><span>โทรภายใน</span><strong>ต่อ 1234</strong></li>
-                <li><span>อีเมล</span><strong>it-support@soat.coop</strong></li>
-            </ul>
-            <button type="button" class="lg-btn lg-btn--ghost" @onclick="() => _showForgot = false">เข้าใจแล้ว</button>
+            <dl class="lg-contact">
+                <div><dt>โทรศัพท์</dt><dd><a href="tel:+6620590511">02 059 0511</a></dd></div>
+            </dl>
+            <DxButton CssClass="soat-btn lg-submit"
+                      Text="เข้าใจแล้ว"
+                      RenderStyle="ButtonRenderStyle.Primary"
+                      Click="() => _showForgot = false" />
         </div>
     </div>
 }
@@ -283,6 +288,8 @@
 
     private IReadOnlyList<ScAppDto>? _apps;
     private ScCenterInfoDto?         _info;
+    private bool _loadFailed;         // DB/service ล่ม → แสดง error + ปุ่มลองใหม่ แทนหน้าค้าง "กำลังโหลด"
+    private bool _loading;
     private string UserName = "ผู้เยี่ยมชม";
     private string BranchId = "—";
 
@@ -291,8 +298,7 @@
     private string? SelectedCat;
     private string? SearchText;
 
-    private List<string> _favs   = new();
-    private List<string> _recent = new();
+    private List<string> _favs = new();
 
     // ── login overlay state ──
     private bool   _isAuthed;
@@ -301,26 +307,49 @@
     private string? _loginAppText;    // ชื่อระบบ (แสดงใน popup)
     private bool   _hasError;         // login ล้มเหลว (จาก query error=1)
     private bool   _showForgot;       // modal "ลืมรหัสผ่าน"
+    private int    _modalDepth;       // จำนวน dialog ที่ JS จัดการ focus/inert แล้ว (sync หลัง render)
     private List<sc.ComboItem> _branches = [];
     private const string DefaultBranchId = "01";   // สาขา default ที่เลือกไว้ใน popup login
     private string? _afToken;         // antiforgery token (จาก prerender)
     private PersistingComponentStateSubscription _persistSub;
 
+    private const string OtherCat = "อื่นๆ";
+
     private string Version  => Config["App:Version"] ?? "";
     private string SysName  => string.IsNullOrEmpty(_info?.SysName) ? "—" : _info!.SysName;
 
-    private string Greeting
-    {
-        get
-        {
-            var h = DateTime.Now.Hour;
-            var part = h < 12 ? "สวัสดีตอนเช้า" : h < 17 ? "สวัสดีตอนบ่าย" : "สวัสดีตอนเย็น";
-            return UserName == "ผู้เยี่ยมชม" ? $"{part} 👋" : $"{part}, คุณ{UserName} 👋";
-        }
-    }
+    private IEnumerable<ScAppDto> Filtered => _apps!.Where(InScope);
 
-    private IEnumerable<ScAppDto> Filtered =>
-        _apps!.Where(a => (SelectedCat is null || CatOf(a.AppName) == SelectedCat) && MatchesSearch(a));
+    // หมวดที่เลือก + คำค้น ใช้กับทุกกลุ่ม (รวมปักหมุด) — จำนวนผลลัพธ์/ข้อความ "ไม่พบ" จึงตรงกับที่เห็นเสมอ
+    private bool InScope(ScAppDto a) =>
+        (SelectedCat is null || CatOf(a.AppName) == SelectedCat) && MatchesSearch(a);
+
+    // รายการระบบแยกตามหมวด (ลำดับตาม config Categories, "อื่นๆ" ท้ายสุด) — ซ่อนหมวดที่ว่าง
+    private IEnumerable<(int Index, string Cat, List<ScAppDto> Apps)> Groups =>
+        _categories.Append(OtherCat)
+            .Select((c, i) => (i, c, Filtered.Where(a => CatOf(a.AppName) == c).ToList()))
+            .Where(g => g.Item3.Count > 0);
+
+    // ปุ่มหมวดใน rail: (null = ทั้งหมด) + จำนวนระบบจริงในหมวด — ซ่อนหมวดที่ไม่มีระบบ
+    private IEnumerable<(string? Key, string Label, string Icon, int Count)> CategoryNav =>
+        new (string? Key, string Label, string Icon, int Count)[] { (null, "ทั้งหมด", "bi bi-grid", _apps!.Count) }
+            .Concat(_categories.Append(OtherCat)
+                .Select(c => ((string?)c, c, CatIcon(c), _apps!.Count(a => CatOf(a.AppName) == c)))
+                .Where(c => c.Item4 > 0));
+
+    private static string CatIcon(string cat) => cat switch
+    {
+        "ผู้ดูแลระบบ"        => "bi bi-shield-check",
+        "สมาชิก & สวัสดิการ" => "bi bi-people",
+        "หน้าเคาน์เตอร์"     => "bi bi-shop",
+        "หลังบ้าน & รายงาน"  => "bi bi-bar-chart",
+        _                    => "bi bi-three-dots"
+    };
+
+    // icon_name ใน DB เก็บแบบ legacy "../imgMenu/X.png" → ใช้แค่ชื่อไฟล์ ชี้ ImgMenu/ ตรง
+    //   (กัน path "ImgMenu/../imgMenu/" ที่ resolve ได้เฉพาะ filesystem ไม่สน case)
+    private static string IconSrc(string iconName) =>
+        "ImgMenu/" + Path.GetFileName(iconName.Replace('\\', '/'));
 
     // ค้นจากชื่อ app (scXxx), ชื่อไทย, ชื่ออังกฤษ — ไม่สน case
     private bool MatchesSearch(ScAppDto a)
@@ -332,15 +361,26 @@
             || a.AppTextEnglish.Contains(t, StringComparison.OrdinalIgnoreCase);
     }
 
-    private List<ScAppDto> _favFiltered => _favApps.Where(MatchesSearch).ToList();
+    private List<ScAppDto> _favFiltered => _favApps.Where(InScope).ToList();
+
+    private DxTextBox? _search;
+
+    // ปุ่มหายไปหลังกด → คืน focus ให้ช่องค้นหา (ผลใหม่ประกาศผ่าน pt-result aria-live)
+    private async Task SearchAllCategoriesAsync()
+    {
+        SelectedCat = null;
+        if (_search is not null) await _search.FocusAsync();
+    }
+
+    private async Task ClearSearchAsync()
+    {
+        SearchText = null;
+        if (_search is not null) await _search.FocusAsync();
+    }
 
     private List<ScAppDto> _favApps =>
         _favs.Select(n => _apps!.FirstOrDefault(a => string.Equals(a.AppName, n, StringComparison.OrdinalIgnoreCase)))
              .Where(a => a is not null).Cast<ScAppDto>().ToList();
-
-    private List<ScAppDto> _recentApps =>
-        _recent.Select(n => _apps!.FirstOrDefault(a => string.Equals(a.AppName, n, StringComparison.OrdinalIgnoreCase)))
-               .Where(a => a is not null).Cast<ScAppDto>().ToList();
 
     protected override void OnInitialized()
     {
@@ -354,22 +394,28 @@
         _persistSub = AppState.RegisterOnPersisting(() =>
         {
             AppState.PersistAsJson("af-token", _afToken);
+            if (_apps is not null)
+                AppState.PersistAsJson("home-data", new HomeData(_apps, _info, _branches, _favs));
             return Task.CompletedTask;
         });
     }
 
     public void Dispose() => _persistSub.Dispose();
 
+    // ข้อมูลรอบ prerender ส่งต่อให้ circuit — ไม่งั้นตอน circuit ต่อ หน้าจะว่างเป็น "กำลังโหลด…"
+    //   ชั่วครู่แล้วค่อยกลับมา (กระพริบทุกครั้งที่โหลดหน้า เช่นหลัง login)
+    private sealed record HomeData(IReadOnlyList<ScAppDto> Apps, ScCenterInfoDto? Info,
+                                   List<sc.ComboItem> Branches, List<string> Favs);
+
     protected override async Task OnInitializedAsync()
     {
-        _apps = (await ScApps.GetAppsAsync(level: 1))
-            .Where(a => !string.Equals(a.AppName, "scCenter", StringComparison.OrdinalIgnoreCase))
-            .ToList();
-        _info = await ScApps.GetCenterInfoAsync();
-
-        // สาขาสำหรับ dropdown ใน login overlay (combo code+name — ตาม Coding Guideline)
-        await using (var db = DbFactory.create())
-            _branches = await db.getComboAsync(sc.combo.sc_com_m_branch);
+        if (AppState.TryTakeFromJson<HomeData>("home-data", out var saved) && saved is not null)
+            (_apps, _info, _branches, _favs) = (saved.Apps, saved.Info, saved.Branches, saved.Favs);
+        else
+        {
+            await LoadDataAsync();
+            _favs = FavsFromCookie();
+        }
 
         // หมวด ← config Categories (สร้าง lookup AppName→หมวด)
         foreach (var cat in Config.GetSection("Categories").GetChildren())
@@ -401,31 +447,96 @@
     }
 
     // คลิกระบบที่ยังไม่ login → เปิด popup (returnUrl = URL ของ module ที่คลิก)
-    private async Task OpenLogin(string url, string appName, string appText)
+    //   ปุ่ม "เข้าสู่ระบบ" ใน rail ส่ง null ทั้งหมด → login แล้วกลับ landing
+    private void OpenLogin(string? url, string? appText)
     {
         _loginTarget  = url;
         _loginAppText = appText;
+        _hasError     = false;
         _showLogin    = true;
-        await JS.InvokeVoidAsync("soatPortal.pushRecent", appName);   // จำว่ากำลังจะเข้าระบบไหน
     }
 
     private void CloseLogin() => _showLogin = false;
 
+    // รายการระบบ + ข้อมูลศูนย์ + สาขา (ทั้งหมดมาจาก DB) — ล้มเหลวแล้วยังให้ลองใหม่ได้โดยไม่ reload
+    private async Task LoadDataAsync()
+    {
+        _loading = true;
+        try
+        {
+            _apps = (await ScApps.GetAppsAsync(level: 1))
+                .Where(a => !string.Equals(a.AppName, "scCenter", StringComparison.OrdinalIgnoreCase))
+                .ToList();
+            _info = await ScApps.GetCenterInfoAsync();
+
+            // สาขาสำหรับ dropdown ใน login overlay (combo code+name — ตาม Coding Guideline)
+            await using (var db = DbFactory.create())
+                _branches = await db.getComboAsync(sc.combo.sc_com_m_branch);
+
+            _loadFailed = false;
+        }
+        catch (Exception ex)
+        {
+            Log.LogError(ex, "scCenter: โหลดรายการระบบไม่สำเร็จ");
+            _apps = null;
+            _loadFailed = true;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void OnLoginKey(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape" && !_showForgot) CloseLogin();
+    }
+
+    private void OnForgotKey(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape") _showForgot = false;
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        // sync dialog ที่เปิดอยู่จริงกับ JS: เปิดใหม่ → inert พื้นหลัง + ขัง Tab, ปิด → คืน focus
+        var depth = (_showLogin ? 1 : 0) + (_showLogin && _showForgot ? 1 : 0);
+        // นับก่อน await — render รอบถัดไปเรียกซ้อนเข้ามาระหว่างรอ JS ได้ (กัน openModal ซ้ำ 2 ชั้น)
+        while (_modalDepth < depth)
+        {
+            var nth = _modalDepth++;
+            if (nth == 0) await JS.InvokeVoidAsync("soatPortal.openModal", "login-dialog", "ov-user");
+            else          await JS.InvokeVoidAsync("soatPortal.openModal", "forgot-dialog", null);
+        }
+        while (_modalDepth > depth)
+        {
+            _modalDepth--;
+            await JS.InvokeVoidAsync("soatPortal.closeModal");
+        }
+
         if (!firstRender) return;
-        // โหลด favorites/recent จาก localStorage (ทำได้หลัง interactive เท่านั้น)
-        _favs   = (await JS.InvokeAsync<string[]>("soatPortal.getFavorites")).ToList();
-        _recent = (await JS.InvokeAsync<string[]>("soatPortal.getRecent")).ToList();
-        StateHasChanged();
+        // โหลด favorites จาก localStorage (ทำได้หลัง interactive เท่านั้น) — ปกติตรงกับ cookie แล้ว ไม่ต้องวาดใหม่
+        var favs = (await JS.InvokeAsync<string[]>("soatPortal.getFavorites")).ToList();
+        if (!favs.SequenceEqual(_favs, StringComparer.OrdinalIgnoreCase))
+        {
+            _favs = favs;
+            StateHasChanged();
+        }
     }
+
+    // ปักหมุด: ตัวจริงอยู่ localStorage (อ่านได้หลัง interactive เท่านั้น) — portal.js เขียนสำเนาลง
+    //   cookie "soat.favs" ให้ prerender วาดกลุ่มปักหมุดได้ตั้งแต่แรก ไม่เด้งแทรกทีหลัง
+    private List<string> FavsFromCookie() =>
+        HttpAccessor.HttpContext?.Request.Cookies["soat.favs"] is { Length: > 0 } v
+            ? Uri.UnescapeDataString(v).Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList()
+            : [];
 
     private async Task ToggleFav(string appName)
     {
         _favs = (await JS.InvokeAsync<string[]>("soatPortal.toggleFavorite", appName)).ToList();
     }
 
-    private string CatOf(string appName) => _catMap.TryGetValue(appName, out var c) ? c : "อื่นๆ";
+    private string CatOf(string appName) => _catMap.TryGetValue(appName, out var c) ? c : OtherCat;
     private bool   IsFav(string appName) => _favs.Contains(appName, StringComparer.OrdinalIgnoreCase);
 
     private string? ModuleUrl(string appName)
@@ -435,58 +546,63 @@
         @{
             var url       = ModuleUrl(app.AppName);
             var clickable = app.Active && url is not null;
-            var stateCss  = !app.Active ? "pt-card pt-inactive"
-                            : url is null ? "pt-card pt-soon"
+            var fav       = IsFav(app.AppName);
+            var stateCss  = !app.Active ? "pt-card is-inactive"
+                            : url is null ? "pt-card is-soon"
                             : "pt-card";
         }
         <div class="@stateCss">
-            <button class="pt-star @(IsFav(app.AppName) ? "on" : "")"
-                    title="@(IsFav(app.AppName) ? "เอาออกจากปักหมุด" : "ปักหมุด")"
-                    @onclick="() => ToggleFav(app.AppName)">★</button>
-
             @if (clickable && _isAuthed)
             {
                 @* login แล้ว → เข้า module ตรง (cross-app, cookie ใช้ร่วมกัน) *@
-                <a class="pt-card-link" href="@url" onclick="soatPortal.pushRecent('@app.AppName')">
-                    @CardInner(app)
+                <a class="pt-card-link" href="@url">
+                    @CardInner(app, url)
                 </a>
             }
             else if (clickable)
             {
-                @* ยังไม่ login → เด้ง popup login ทับ landing *@
+                @* ยังไม่ login → เด้ง dialog login ทับ landing *@
                 <button type="button" class="pt-card-link"
-                        @onclick="() => OpenLogin(url!, app.AppName, app.AppTextThai)">
-                    @CardInner(app)
+                        @onclick="() => OpenLogin(url!, app.AppTextThai)">
+                    @CardInner(app, url)
                 </button>
             }
             else
             {
-                <div class="pt-card-link">@CardInner(app)</div>
+                <div class="pt-card-link">@CardInner(app, url)</div>
             }
 
-            @if (!app.Active)
-            {
-                <span class="pt-badge">ปิดใช้งาน</span>
-            }
-            else if (url is null)
-            {
-                <span class="pt-badge pt-badge-soon">เร็วๆ นี้</span>
-            }
+            <DxButton CssClass="@(fav ? "pt-star is-on" : "pt-star")"
+                      IconCssClass="@(fav ? "bi bi-star-fill" : "bi bi-star")"
+                      RenderStyle="ButtonRenderStyle.Secondary"
+                      RenderStyleMode="ButtonRenderStyleMode.Text"
+                      aria-pressed="@(fav ? "true" : "false")"
+                      aria-label="@($"ปักหมุด {app.AppTextThai}")"
+                      title="@(fav ? "เอาออกจากปักหมุด" : "ปักหมุด")"
+                      Click="() => ToggleFav(app.AppName)" />
         </div>
     </text>;
 
-    private RenderFragment CardInner(ScAppDto app) => @<text>
-        <div class="pt-icon-wrap">
-            @if (!string.IsNullOrWhiteSpace(app.IconName))
-            {
-                <img class="pt-icon" src="ImgMenu/@app.IconName" alt="" />
-            }
-            else
-            {
-                <div class="pt-icon pt-icon-empty"></div>
-            }
-        </div>
-        <div class="pt-en">@app.AppTextEnglish</div>
-        <div class="pt-th">@app.AppTextThai</div>
+    private RenderFragment CardInner(ScAppDto app, string? url) => @<text>
+        @if (!string.IsNullOrWhiteSpace(app.IconName))
+        {
+            <img class="pt-icon" src="@IconSrc(app.IconName)" alt="" width="40" height="40" loading="lazy" decoding="async" />
+        }
+        else
+        {
+            <span class="pt-icon pt-icon-empty" aria-hidden="true"></span>
+        }
+        <span class="pt-names">
+            <span class="pt-th">@app.AppTextThai</span>
+            <span class="pt-en">@app.AppTextEnglish</span>
+        </span>
+        @if (!app.Active)
+        {
+            <span class="pt-badge">ปิดใช้งาน</span>
+        }
+        else if (url is null)
+        {
+            <span class="pt-badge">เร็วๆ นี้</span>
+        }
     </text>;
 }

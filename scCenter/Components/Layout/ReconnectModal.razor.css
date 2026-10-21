@@ -1,3 +1,5 @@
+/* Reconnect modal (Blazor Server) — โทนเดียวกับ .lg-dialog, สี/ระยะจาก tokens.css เท่านั้น
+ * กฎ display ด้านล่างคือ state machine ของ blazor.web.js — คงไว้ตาม scaffold */
 .components-reconnect-first-attempt-visible,
 .components-reconnect-repeated-attempt-visible,
 .components-reconnect-failed-visible,
@@ -19,139 +21,100 @@
     display: block;
 }
 
-
 #components-reconnect-modal {
-    background-color: white;
-    width: 20rem;
-    margin: 20vh auto;
-    padding: 2rem;
-    border: 0;
-    border-radius: 0.5rem;
-    box-shadow: 0 3px 6px 2px rgba(0, 0, 0, 0.3);
+    width: min(100% - 2rem, 22rem);
+    max-width: none;
+    margin: 20vh auto auto;
+    padding: var(--space-5);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-l);
+    background: var(--color-surface);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    box-shadow: var(--shadow-dialog);
     opacity: 0;
-    transition: display 0.5s allow-discrete, overlay 0.5s allow-discrete;
-    animation: components-reconnect-modal-fadeOutOpacity 0.5s both;
-    &[open]
-
-{
-    animation: components-reconnect-modal-slideUp 1.5s cubic-bezier(.05, .89, .25, 1.02) 0.3s, components-reconnect-modal-fadeInOpacity 0.5s ease-in-out 0.3s;
-    animation-fill-mode: both;
+    transition: display var(--dur-med) allow-discrete, overlay var(--dur-med) allow-discrete;
+    animation: rc-fade-out var(--dur-med) both;
 }
-
-}
+/* หน่วง 0.3s — หลุดแป๊บเดียวแล้วต่อได้ ผู้ใช้จะไม่เห็นกล่องกะพริบ */
+#components-reconnect-modal[open] { animation: rc-rise var(--dur-med) var(--ease-out) .3s both; }
 
 #components-reconnect-modal::backdrop {
-    background-color: rgba(0, 0, 0, 0.4);
-    animation: components-reconnect-modal-fadeInOpacity 0.5s ease-in-out;
-    opacity: 1;
-}
-
-@keyframes components-reconnect-modal-slideUp {
-    0% {
-        transform: translateY(30px) scale(0.95);
-    }
-
-    100% {
-        transform: translateY(0);
-    }
-}
-
-@keyframes components-reconnect-modal-fadeInOpacity {
-    0% {
-        opacity: 0;
-    }
-
-    100% {
-        opacity: 1;
-    }
-}
-
-@keyframes components-reconnect-modal-fadeOutOpacity {
-    0% {
-        opacity: 1;
-    }
-
-    100% {
-        opacity: 0;
-    }
+    background: var(--color-scrim);
+    animation: rc-fade-in var(--dur-med) var(--ease-out);
 }
 
 .components-reconnect-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1rem;
+    gap: var(--space-4);
 }
 
 #components-reconnect-modal p {
     margin: 0;
+    font-size: var(--text-m);
+    line-height: 1.6;
     text-align: center;
+    text-wrap: balance;
 }
+#components-seconds-to-next-attempt { font-variant-numeric: tabular-nums; }
 
 #components-reconnect-modal button {
+    min-width: 8rem;
+    min-height: 44px;
+    padding: 0 var(--space-5);
     border: 0;
-    background-color: #6b9ed2;
-    color: white;
-    padding: 4px 24px;
-    border-radius: 4px;
+    border-radius: var(--radius-s);
+    background: var(--color-accent);
+    color: var(--color-accent-ink);
+    font: inherit;
+    font-size: var(--text-m);
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color var(--dur-fast) var(--ease-out);
 }
+@media (hover: hover) {
+    #components-reconnect-modal button:hover { background: var(--color-accent-strong); }
+}
+#components-reconnect-modal button:active { background: var(--color-accent-strong); }
+#components-reconnect-modal button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
 
-    #components-reconnect-modal button:hover {
-        background-color: #3b6ea2;
-    }
-
-    #components-reconnect-modal button:active {
-        background-color: #6b9ed2;
-    }
-
+/* วงคลื่น "กำลังเชื่อมต่อ" — ขยายด้วย transform (ไม่แตะ layout) */
 .components-rejoining-animation {
     position: relative;
-    width: 80px;
-    height: 80px;
+    width: 56px;
+    height: 56px;
 }
+.components-rejoining-animation div {
+    position: absolute;
+    inset: 0;
+    border: 3px solid var(--color-accent);
+    border-radius: 50%;
+    opacity: 0;
+    animation: rc-ring 1.5s cubic-bezier(0, .2, .8, 1) infinite;
+}
+.components-rejoining-animation div:nth-child(2) { animation-delay: -.75s; }
 
-    .components-rejoining-animation div {
-        position: absolute;
-        border: 3px solid #0087ff;
-        opacity: 1;
-        border-radius: 50%;
-        animation: components-rejoining-animation 1.5s cubic-bezier(0, 0.2, 0.8, 1) infinite;
-    }
+@keyframes rc-ring {
+    from { transform: scale(0); opacity: 1; }
+    to   { transform: scale(1); opacity: 0; }
+}
+@keyframes rc-rise {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: none; }
+}
+@keyframes rc-fade-in  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes rc-fade-out { from { opacity: 1; } to { opacity: 0; } }
 
-        .components-rejoining-animation div:nth-child(2) {
-            animation-delay: -0.5s;
-        }
-
-@keyframes components-rejoining-animation {
-    0% {
-        top: 40px;
-        left: 40px;
-        width: 0;
-        height: 0;
-        opacity: 0;
-    }
-
-    4.9% {
-        top: 40px;
-        left: 40px;
-        width: 0;
-        height: 0;
-        opacity: 0;
-    }
-
-    5% {
-        top: 40px;
-        left: 40px;
-        width: 0;
-        height: 0;
-        opacity: 1;
-    }
-
-    100% {
-        top: 0px;
-        left: 0px;
-        width: 80px;
-        height: 80px;
-        opacity: 0;
-    }
+/* ลดการเคลื่อนไหว: ไม่เลื่อน/ไม่ขยาย — คงสัญญาณ "กำลังทำงาน" ด้วยวงนิ่งที่ค่อยๆ หรี่-สว่าง */
+@media (prefers-reduced-motion: reduce) {
+    #components-reconnect-modal[open] { animation: rc-fade-in var(--dur-fast) linear .3s both; }
+    #components-reconnect-modal button { transition: none; }
+    .components-rejoining-animation div { animation: rc-pulse 2s ease-in-out infinite; }
+    .components-rejoining-animation div:nth-child(2) { display: none; }
+}
+@keyframes rc-pulse {
+    0%, 100% { opacity: .35; }
+    50%      { opacity: 1; }
 }

@@ -1,0 +1,15 @@
+[
+  {
+    "date": "2026-10-21",
+    "verb": "redesign",
+    "target": "scCenter/Components/Pages/Home.razor",
+    "genre": "modern-minimal",
+    "mode": "operate",
+    "macrostructure": "Workbench (rail + indexed list)",
+    "theme": "custom (scCenter/wwwroot/tokens.css, Fluent-aligned neutrals)",
+    "fonts": ["Prompt"],
+    "nav": "N/A",
+    "footer": "none",
+    "critique": "P4 H4 E4 S4 R5 V4"
+  }
+]

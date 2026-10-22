@@ -31,9 +31,9 @@
     top: calc(var(--topbar-h, 54px) + 16px);
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 14px;
-    padding: 16px 0;
+    align-items: stretch;   /* Command Stack: ปุ่มเต็มความกว้างคอลัมน์ (soat.css .op-stack) */
+    gap: 8px;
+    padding: 8px;
     background: var(--card-bg, #fff);
     border: 1px solid var(--line, #e6e9ef);
     border-radius: var(--radius, 12px);

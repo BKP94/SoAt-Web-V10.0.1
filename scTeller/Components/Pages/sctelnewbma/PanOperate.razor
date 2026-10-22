@@ -1,42 +1,30 @@
-@* PanOperate — แถบปุ่ม Operate (แนวตั้ง, ขวาของหน้า) — New / Open / Save / Cancel
-   ปุ่ม raise EventCallback กลับให้ Page จัดการ logic (Page ถือ model) *@
+@* PanOperate — แถบคำสั่ง (Command Stack แนวตั้ง, ขวาของหน้า) — New / Open / Save / Cancel
+   ปุ่ม raise EventCallback กลับให้ Page จัดการ logic (Page ถือ model)
+   สไตล์ .op-stack/.op-cmd อยู่ที่ soat.css (RCL กลาง) — ปุ่มหลัก = บันทึก *@
 
-<div class="op-orbit-toolbar" role="toolbar" aria-label="เครื่องมือสมัครสมาชิก">
-    <span class="op-orbit-heading">เครื่องมือ</span>
+<div class="op-stack" role="toolbar" aria-orientation="vertical" aria-label="คำสั่งสมัครสมาชิก">
+    <DxButton RenderStyle="ButtonRenderStyle.Secondary"
+              RenderStyleMode="ButtonRenderStyleMode.Outline"
+              Text="เพิ่มใหม่" title="เพิ่มใหม่"
+              disabled="@Busy" @onclick="OnNew" CssClass="op-cmd"
+              IconCssClass="@sc.icon.FileEarmarkPlus" />
 
-    <div class="op-orbit-item op-orbit-item--primary">
-        <DxButton RenderStyle="ButtonRenderStyle.Primary"
-                  title="เพิ่มใหม่" aria-label="เพิ่มใหม่"
-                  disabled="@Busy" @onclick="OnNew" CssClass="op-btn"
-                  IconCssClass="bi bi-file-earmark-plus" />
-        <span class="op-orbit-label">เพิ่มใหม่</span>
-    </div>
+    <DxButton RenderStyle="ButtonRenderStyle.Secondary"
+              RenderStyleMode="ButtonRenderStyleMode.Outline"
+              Text="เปิด" title="เปิด / ค้นหา"
+              disabled="@Busy" @onclick="OnOpen" CssClass="op-cmd"
+              IconCssClass="@sc.icon.Folder2Open" />
 
-    <div class="op-orbit-item">
-        <DxButton RenderStyle="ButtonRenderStyle.Secondary"
-                  RenderStyleMode="ButtonRenderStyleMode.Outline"
-                  title="เปิด / ค้นหา" aria-label="เปิด / ค้นหา"
-                  disabled="@Busy" @onclick="OnOpen" CssClass="op-btn"
-                  IconCssClass="bi bi-folder2-open" />
-        <span class="op-orbit-label">เปิด</span>
-    </div>
+    <DxButton RenderStyle="ButtonRenderStyle.Primary"
+              Text="บันทึก" title="บันทึก"
+              disabled="@Busy" @onclick="OnSave" CssClass="op-cmd op-cmd--primary"
+              IconCssClass="@sc.icon.Floppy" />
 
-    <div class="op-orbit-item">
-        <DxButton RenderStyle="ButtonRenderStyle.Secondary"
-                  RenderStyleMode="ButtonRenderStyleMode.Outline"
-                  title="บันทึก" aria-label="บันทึก"
-                  disabled="@Busy" @onclick="OnSave" CssClass="op-btn"
-                  IconCssClass="bi bi-floppy" />
-        <span class="op-orbit-label">บันทึก</span>
-    </div>
-
-    <div class="op-orbit-item">
-        <DxButton RenderStyle="ButtonRenderStyle.Danger"
-                  title="ยกเลิก" aria-label="ยกเลิก"
-                  disabled="@Busy" @onclick="OnCancel" CssClass="op-btn op-btn--cancel"
-                  IconCssClass="bi bi-x-lg" />
-        <span class="op-orbit-label">ยกเลิก</span>
-    </div>
+    <DxButton RenderStyle="ButtonRenderStyle.Danger"
+              RenderStyleMode="ButtonRenderStyleMode.Outline"
+              Text="ยกเลิก" title="ยกเลิก"
+              disabled="@Busy" @onclick="OnCancel" CssClass="op-cmd op-cmd--danger"
+              IconCssClass="@sc.icon.XLg" />
 </div>
 
 @code {

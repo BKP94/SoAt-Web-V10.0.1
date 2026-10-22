@@ -1,45 +1,32 @@
-@* PanOperate (repHome) — แถบปุ่ม Operate แนวตั้ง ขวาของหน้า
+@* PanOperate (repHome) — แถบคำสั่ง (Command Stack แนวตั้ง ขวาของหน้า)
    เลียน legacy panOperate.ascx: btNew "เปิดรายงาน" + btFindReport "ค้นหารายงาน"
    (btProgram/btCategory = admin นอกสโคป Step 7)
-   ปุ่ม raise EventCallback กลับให้ Page จัดการ (Page ถือ selection) *@
+   ปุ่ม raise EventCallback กลับให้ Page จัดการ (Page ถือ selection)
+   สไตล์ .op-stack/.op-cmd อยู่ที่ soat.css — ไม่มีบันทึก → ปุ่มหลัก = เปิดรายงาน *@
 
-<div class="op-orbit-toolbar" role="toolbar" aria-label="เครื่องมือรายงาน">
-    <span class="op-orbit-heading">เครื่องมือ</span>
+<div class="op-stack" role="toolbar" aria-orientation="vertical" aria-label="คำสั่งรายงาน">
+    <DxButton RenderStyle="ButtonRenderStyle.Primary"
+              Text="เปิดรายงาน" title="เปิดรายงาน"
+              disabled="@(!CanOpen)" @onclick="OnOpen" CssClass="op-cmd op-cmd--primary"
+              IconCssClass="@sc.icon.Folder2Open" />
 
-    <div class="op-orbit-item op-orbit-item--primary">
-        <DxButton RenderStyle="ButtonRenderStyle.Primary"
-                  title="เปิดรายงาน" aria-label="เปิดรายงาน"
-                  disabled="@(!CanOpen)" @onclick="OnOpen" CssClass="op-btn"
-                  IconCssClass="bi bi-folder2-open" />
-        <span class="op-orbit-label">เปิดรายงาน</span>
-    </div>
+    <DxButton RenderStyle="ButtonRenderStyle.Secondary"
+              RenderStyleMode="ButtonRenderStyleMode.Outline"
+              Text="ค้นหา" title="ค้นหารายงาน"
+              @onclick="OnFind" CssClass="op-cmd"
+              IconCssClass="@sc.icon.Search" />
 
-    <div class="op-orbit-item">
-        <DxButton RenderStyle="ButtonRenderStyle.Secondary"
-                  RenderStyleMode="ButtonRenderStyleMode.Outline"
-                  title="ค้นหารายงาน" aria-label="ค้นหารายงาน"
-                  @onclick="OnFind" CssClass="op-btn"
-                  IconCssClass="bi bi-search" />
-        <span class="op-orbit-label">ค้นหา</span>
-    </div>
+    <DxButton RenderStyle="ButtonRenderStyle.Secondary"
+              RenderStyleMode="ButtonRenderStyleMode.Outline"
+              Text="จัดการรายงาน" title="จัดการไฟล์รายงาน (เปิดแท็บใหม่)"
+              disabled="@(!CanManage)" @onclick="OnManage" CssClass="op-cmd"
+              IconCssClass="@sc.icon.Tools" />
 
-    <div class="op-orbit-item">
-        <DxButton RenderStyle="ButtonRenderStyle.Secondary"
-                  RenderStyleMode="ButtonRenderStyleMode.Outline"
-                  title="จัดการไฟล์รายงาน (เปิดแท็บใหม่)" aria-label="จัดการไฟล์รายงาน"
-                  disabled="@(!CanManage)" @onclick="OnManage" CssClass="op-btn"
-                  IconCssClass="bi bi-tools" />
-        <span class="op-orbit-label">จัดการรายงาน</span>
-    </div>
-
-    <div class="op-orbit-item">
-        <DxButton RenderStyle="ButtonRenderStyle.Secondary"
-                  RenderStyleMode="ButtonRenderStyleMode.Outline"
-                  title="เพิ่ม/แก้ไขกลุ่มรายงาน (เปิดแท็บใหม่)" aria-label="เพิ่มหรือแก้ไขกลุ่มรายงาน"
-                  disabled="@(!CanCategory)" @onclick="OnCategory" CssClass="op-btn"
-                  IconCssClass="bi bi-folder-plus" />
-        <span class="op-orbit-label">จัดการกลุ่ม</span>
-    </div>
+    <DxButton RenderStyle="ButtonRenderStyle.Secondary"
+              RenderStyleMode="ButtonRenderStyleMode.Outline"
+              Text="จัดการกลุ่ม" title="เพิ่ม/แก้ไขกลุ่มรายงาน (เปิดแท็บใหม่)"
+              disabled="@(!CanCategory)" @onclick="OnCategory" CssClass="op-cmd"
+              IconCssClass="@sc.icon.FolderPlus" />
 </div>
 
 @code {

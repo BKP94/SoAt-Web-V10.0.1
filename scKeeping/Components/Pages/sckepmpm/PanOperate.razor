@@ -1,26 +1,19 @@
-@* ── PanOperate — แถบปุ่ม Operate (แนวตั้ง ขวาของหน้า) — New + Process ────────────────
+@* ── PanOperate — แถบคำสั่ง (Command Stack แนวตั้ง ขวาของหน้า) — New + Process ──────────
    legacy: panOperate.ascx (2 หน้าใช้คนละไฟล์ แต่ปุ่มเหมือนกัน ต่างที่ tooltip/label)
-   ยิง EventCallback กลับให้ Sckepmpm จัดการ (child ไม่ persist เอง) *@
+   ยิง EventCallback กลับให้ Sckepmpm จัดการ (child ไม่ persist เอง)
+   สไตล์ .op-stack/.op-cmd อยู่ที่ soat.css — ไม่มีบันทึก → ปุ่มหลัก = เริ่มใหม่ *@
 
-<div class="op-orbit-toolbar" role="toolbar" aria-label="เครื่องมือประมวลผล">
-    <span class="op-orbit-heading">เครื่องมือ</span>
+<div class="op-stack" role="toolbar" aria-orientation="vertical" aria-label="คำสั่งประมวลผล">
+    <DxButton RenderStyle="ButtonRenderStyle.Primary"
+              Text="เริ่มใหม่" title="เริ่มใหม่"
+              disabled="@Busy" @onclick="OnNew" CssClass="op-cmd op-cmd--primary"
+              IconCssClass="@sc.icon.FileEarmarkPlus" />
 
-    <div class="op-orbit-item op-orbit-item--primary">
-        <DxButton RenderStyle="ButtonRenderStyle.Primary"
-                  title="เริ่มใหม่" aria-label="เริ่มใหม่"
-                  disabled="@Busy" @onclick="OnNew" CssClass="op-btn"
-                  IconCssClass="bi bi-file-earmark-plus" />
-        <span class="op-orbit-label">เริ่มใหม่</span>
-    </div>
-
-    <div class="op-orbit-item">
-        <DxButton RenderStyle="ButtonRenderStyle.Secondary"
-                  RenderStyleMode="ButtonRenderStyleMode.Outline"
-                  title="@ProcTitle" aria-label="@ProcTitle"
-                  disabled="@Busy" @onclick="OnProcess" CssClass="op-btn"
-                  IconCssClass="bi bi-gear-wide-connected" />
-        <span class="op-orbit-label">@ProcLabel</span>
-    </div>
+    <DxButton RenderStyle="ButtonRenderStyle.Secondary"
+              RenderStyleMode="ButtonRenderStyleMode.Outline"
+              Text="@ProcLabel" title="@ProcTitle"
+              disabled="@Busy" @onclick="OnProcess" CssClass="op-cmd"
+              IconCssClass="@sc.icon.GearWideConnected" />
 </div>
 
 @code {

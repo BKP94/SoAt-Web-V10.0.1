@@ -1,54 +1,38 @@
-@* ── PanOperate (scteldet) — แถบปุ่มแนวตั้งขวา ────────────────────────────────────
+@* ── PanOperate (scteldet) — แถบคำสั่ง (Command Stack แนวตั้งขวา) ──────────────────────
    viewer (read-only) → ไม่มี Save/Cancel. ปุ่ม raise EventCallback กลับให้ Page
    เลียน legacy panOperate.ascx: New / ScanID / Signature / Memo / PrintTab
-   Signature/Memo/PrintTab/ScanID = stub รอบนี้ (ผูกระบบจริงภายหลัง) *@
+   Signature/Memo/PrintTab/ScanID = stub รอบนี้ (ผูกระบบจริงภายหลัง)
+   สไตล์ .op-stack/.op-cmd อยู่ที่ soat.css — ไม่มีบันทึก → ปุ่มหลัก = เพิ่มใหม่ *@
 
-<div class="op-orbit-toolbar" role="toolbar" aria-label="เครื่องมือสมาชิก">
-    <span class="op-orbit-heading">เครื่องมือ</span>
+<div class="op-stack" role="toolbar" aria-orientation="vertical" aria-label="คำสั่งสมาชิก">
+    <DxButton RenderStyle="ButtonRenderStyle.Primary"
+              Text="เพิ่มใหม่" title="เพิ่มใหม่ / ล้างหน้า"
+              disabled="@Busy" @onclick="OnNew" CssClass="op-cmd op-cmd--primary"
+              IconCssClass="@sc.icon.FileEarmarkPlus" />
 
-    <div class="op-orbit-item op-orbit-item--primary">
-        <DxButton RenderStyle="ButtonRenderStyle.Primary"
-                  title="เพิ่มใหม่ / ล้างหน้า" aria-label="เพิ่มใหม่ / ล้างหน้า"
-                  disabled="@Busy" @onclick="OnNew" CssClass="op-btn"
-                  IconCssClass="@sc.icon.FileEarmarkPlus" />
-        <span class="op-orbit-label">เพิ่มใหม่</span>
-    </div>
+    <DxButton RenderStyle="ButtonRenderStyle.Secondary"
+              RenderStyleMode="ButtonRenderStyleMode.Outline"
+              Text="อ่านบัตร" title="อ่านบัตรประชาชน"
+              disabled="@Busy" @onclick="OnScanCard" CssClass="op-cmd"
+              IconCssClass="@sc.icon.CreditCard2Front" />
 
-    <div class="op-orbit-item">
-        <DxButton RenderStyle="ButtonRenderStyle.Secondary"
-                  RenderStyleMode="ButtonRenderStyleMode.Outline"
-                  title="อ่านบัตรประชาชน" aria-label="อ่านบัตรประชาชน"
-                  disabled="@Busy" @onclick="OnScanCard" CssClass="op-btn"
-                  IconCssClass="bi bi-credit-card-2-front" />
-        <span class="op-orbit-label">อ่านบัตร</span>
-    </div>
+    <DxButton RenderStyle="ButtonRenderStyle.Secondary"
+              RenderStyleMode="ButtonRenderStyleMode.Outline"
+              Text="ลายเซ็น" title="แสดงลายเซ็น"
+              disabled="@Busy" @onclick="OnSignature" CssClass="op-cmd"
+              IconCssClass="@sc.icon.VectorPen" />
 
-    <div class="op-orbit-item">
-        <DxButton RenderStyle="ButtonRenderStyle.Secondary"
-                  RenderStyleMode="ButtonRenderStyleMode.Outline"
-                  title="แสดงลายเซ็น" aria-label="แสดงลายเซ็น"
-                  disabled="@Busy" @onclick="OnSignature" CssClass="op-btn"
-                  IconCssClass="bi bi-vector-pen" />
-        <span class="op-orbit-label">ลายเซ็น</span>
-    </div>
+    <DxButton RenderStyle="ButtonRenderStyle.Secondary"
+              RenderStyleMode="ButtonRenderStyleMode.Outline"
+              Text="Memo" title="บันทึกข้อความ (Memo)"
+              disabled="@Busy" @onclick="OnMemo" CssClass="op-cmd"
+              IconCssClass="@sc.icon.JournalText" />
 
-    <div class="op-orbit-item">
-        <DxButton RenderStyle="ButtonRenderStyle.Secondary"
-                  RenderStyleMode="ButtonRenderStyleMode.Outline"
-                  title="บันทึกข้อความ (Memo)" aria-label="บันทึกข้อความ Memo"
-                  disabled="@Busy" @onclick="OnMemo" CssClass="op-btn"
-                  IconCssClass="bi bi-journal-text" />
-        <span class="op-orbit-label">Memo</span>
-    </div>
-
-    <div class="op-orbit-item">
-        <DxButton RenderStyle="ButtonRenderStyle.Secondary"
-                  RenderStyleMode="ButtonRenderStyleMode.Outline"
-                  title="พิมพ์แท็บปัจจุบัน" aria-label="พิมพ์แท็บปัจจุบัน"
-                  disabled="@Busy" @onclick="OnPrintTab" CssClass="op-btn"
-                  IconCssClass="bi bi-printer" />
-        <span class="op-orbit-label">พิมพ์</span>
-    </div>
+    <DxButton RenderStyle="ButtonRenderStyle.Secondary"
+              RenderStyleMode="ButtonRenderStyleMode.Outline"
+              Text="พิมพ์" title="พิมพ์แท็บปัจจุบัน"
+              disabled="@Busy" @onclick="OnPrintTab" CssClass="op-cmd"
+              IconCssClass="@sc.icon.Printer" />
 </div>
 
 @code {

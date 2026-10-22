@@ -1,27 +1,20 @@
-@* PanOperate (repCategory) — แถบปุ่ม Operate แนวตั้ง ขวาของหน้า
+@* PanOperate (repCategory) — แถบคำสั่ง (Command Stack แนวตั้ง ขวาของหน้า)
    เลียน legacy panOperate.ascx: btSave "บันทึก" + btMove "ย้ายกลุ่ม"
    (btExport/btImport = เลื่อนไปเฟส 2)
-   ปุ่ม raise EventCallback กลับให้ Page จัดการ *@
+   ปุ่ม raise EventCallback กลับให้ Page จัดการ
+   สไตล์ .op-stack/.op-cmd อยู่ที่ soat.css — ปุ่มหลัก = บันทึก *@
 
-<div class="op-orbit-toolbar" role="toolbar" aria-label="เครื่องมือกลุ่มรายงาน">
-    <span class="op-orbit-heading">เครื่องมือ</span>
+<div class="op-stack" role="toolbar" aria-orientation="vertical" aria-label="คำสั่งกลุ่มรายงาน">
+    <DxButton RenderStyle="ButtonRenderStyle.Primary"
+              Text="บันทึก" title="บันทึก"
+              @onclick="OnSave" CssClass="op-cmd op-cmd--primary"
+              IconCssClass="@sc.icon.Floppy" />
 
-    <div class="op-orbit-item op-orbit-item--primary">
-        <DxButton RenderStyle="ButtonRenderStyle.Primary"
-                  title="บันทึก" aria-label="บันทึก"
-                  @onclick="OnSave" CssClass="op-btn"
-                  IconCssClass="bi bi-floppy" />
-        <span class="op-orbit-label">บันทึก</span>
-    </div>
-
-    <div class="op-orbit-item">
-        <DxButton RenderStyle="ButtonRenderStyle.Secondary"
-                  RenderStyleMode="ButtonRenderStyleMode.Outline"
-                  title="ย้ายข้อรายงานไปกลุ่มอื่น" aria-label="ย้ายข้อรายงานไปกลุ่มอื่น"
-                  disabled="@(!CanMove)" @onclick="OnMove" CssClass="op-btn"
-                  IconCssClass="bi bi-arrow-left-right" />
-        <span class="op-orbit-label">ย้ายกลุ่ม</span>
-    </div>
+    <DxButton RenderStyle="ButtonRenderStyle.Secondary"
+              RenderStyleMode="ButtonRenderStyleMode.Outline"
+              Text="ย้ายกลุ่ม" title="ย้ายข้อรายงานไปกลุ่มอื่น"
+              disabled="@(!CanMove)" @onclick="OnMove" CssClass="op-cmd"
+              IconCssClass="@sc.icon.ArrowLeftRight" />
 </div>
 
 @code {

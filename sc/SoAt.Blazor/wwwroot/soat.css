@@ -120,3 +120,60 @@
 @media (prefers-reduced-motion: reduce) {
     .soat-btn.soat-btn { transition: none; }
 }
+
+/* ── PanOperate "Command Stack" (shared) ────────────────────────────────────
+   แถบคำสั่งแนวตั้งขวาของทุกหน้าเมนู (คอลัมน์ 104px ของ PageRegions) — ดู DESIGN.md
+   ปุ่มเต็มความกว้าง ไอคอนบน + ป้ายล่าง; สีมาจาก RenderStyle ของ DevExpress Fluent ล้วน:
+     หลัก (1 ปุ่มต่อหน้า, บันทึกเมื่อมี) = Primary + op-cmd--primary
+     รอง = Secondary + Outline
+     ยกเลิก/ทำลาย = Danger + Outline + op-cmd--danger (เว้นระยะแยกจากกลุ่มคำสั่ง)
+   ที่นี่แตะแค่ layout/รูปทรง/เงาของปุ่มหลัก — ห้าม override สี --dxbl-btn-* */
+.op-stack {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    width: 100%;
+}
+
+.op-cmd.op-cmd {
+    box-sizing: border-box;
+    flex-direction: column;
+    gap: .25rem;
+    width: 100%;
+    min-height: 64px;
+    margin: 0;
+    padding: .5rem .25rem;
+    border-radius: 12px;
+    font-size: .8125rem;
+    font-weight: 500;
+    line-height: 1.25;
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.op-cmd.op-cmd .bi { font-size: 20px; }
+
+.op-cmd--primary.op-cmd--primary {
+    font-weight: 600;
+    box-shadow: 0 2px 6px rgba(15, 108, 189, .22);
+    transition: box-shadow .16s ease;
+}
+
+@media (hover: hover) {
+    .op-cmd--primary.op-cmd--primary:hover:not(:disabled):not(.dxbl-disabled) {
+        box-shadow: 0 4px 10px rgba(15, 108, 189, .28);
+    }
+}
+
+.op-cmd--danger.op-cmd--danger { margin-top: .5rem; }
+
+.op-cmd.op-cmd:disabled,
+.op-cmd.op-cmd.dxbl-disabled {
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .op-cmd--primary.op-cmd--primary { transition: none; }
+}

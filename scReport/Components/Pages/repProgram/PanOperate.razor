@@ -1,17 +1,13 @@
-@* PanOperate (repProgram) — แถบปุ่ม Operate แนวตั้ง ขวาของหน้า
+@* PanOperate (repProgram) — แถบคำสั่ง (Command Stack แนวตั้ง ขวาของหน้า)
    เลียน legacy panOperate ของ repProgram: ปุ่มบันทึก (ofSave)
-   ปุ่ม raise EventCallback กลับให้ Page จัดการ (Page ถือ model + guard C30) *@
+   ปุ่ม raise EventCallback กลับให้ Page จัดการ (Page ถือ model + guard C30)
+   สไตล์ .op-stack/.op-cmd อยู่ที่ soat.css — ปุ่มหลัก = บันทึก *@
 
-<div class="op-orbit-toolbar" role="toolbar" aria-label="เครื่องมือไฟล์รายงาน">
-    <span class="op-orbit-heading">เครื่องมือ</span>
-
-    <div class="op-orbit-item op-orbit-item--primary">
-        <DxButton RenderStyle="ButtonRenderStyle.Primary"
-                  title="บันทึกไฟล์รายงาน" aria-label="บันทึกไฟล์รายงาน"
-                  @onclick="OnSave" CssClass="op-btn"
-                  IconCssClass="bi bi-floppy" />
-        <span class="op-orbit-label">บันทึก</span>
-    </div>
+<div class="op-stack" role="toolbar" aria-orientation="vertical" aria-label="คำสั่งไฟล์รายงาน">
+    <DxButton RenderStyle="ButtonRenderStyle.Primary"
+              Text="บันทึก" title="บันทึกไฟล์รายงาน"
+              @onclick="OnSave" CssClass="op-cmd op-cmd--primary"
+              IconCssClass="@sc.icon.Floppy" />
 </div>
 
 @code {

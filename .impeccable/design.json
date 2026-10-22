@@ -1,0 +1,168 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-22T00:00:00+07:00",
+  "title": "Design System: SoAt",
+  "extensions": {
+    "colorMeta": {
+      "paper": { "role": "neutral", "displayName": "Desk Paper", "canonical": "oklch(0.975 0.003 250)", "tonalRamp": ["oklch(0.15 0.008 250)", "oklch(0.27 0.008 250)", "oklch(0.39 0.008 250)", "oklch(0.51 0.008 250)", "oklch(0.63 0.008 250)", "oklch(0.75 0.008 250)", "oklch(0.87 0.006 250)", "oklch(0.975 0.003 250)"] },
+      "surface": { "role": "neutral", "displayName": "Clean Sheet", "canonical": "oklch(1 0 0)" },
+      "sunken": { "role": "neutral", "displayName": "Recessed Tray", "canonical": "oklch(0.955 0.004 250)" },
+      "line": { "role": "neutral", "displayName": "Hairline", "canonical": "oklch(0.905 0.006 250)" },
+      "line-strong": { "role": "neutral", "displayName": "Firm Hairline", "canonical": "oklch(0.82 0.008 250)" },
+      "ink": { "role": "neutral", "displayName": "Ink", "canonical": "oklch(0.24 0.012 250)", "tonalRamp": ["oklch(0.15 0.012 250)", "oklch(0.24 0.012 250)", "oklch(0.40 0.012 250)", "oklch(0.48 0.012 250)", "oklch(0.63 0.010 250)", "oklch(0.75 0.008 250)", "oklch(0.87 0.006 250)", "oklch(0.95 0.004 250)"] },
+      "ink-2": { "role": "neutral", "displayName": "Ink Secondary", "canonical": "oklch(0.40 0.012 250)" },
+      "ink-3": { "role": "neutral", "displayName": "Ink Tertiary", "canonical": "oklch(0.48 0.012 250)" },
+      "accent": { "role": "primary", "displayName": "Fluent Working Blue", "canonical": "oklch(0.50 0.13 250)", "tonalRamp": ["oklch(0.15 0.06 250)", "oklch(0.27 0.10 250)", "oklch(0.39 0.13 250)", "oklch(0.50 0.13 250)", "oklch(0.63 0.12 250)", "oklch(0.75 0.08 250)", "oklch(0.87 0.04 250)", "oklch(0.955 0.02 250)"] },
+      "accent-strong": { "role": "primary", "displayName": "Fluent Working Blue (strong)", "canonical": "oklch(0.44 0.13 250)" },
+      "accent-ink": { "role": "primary", "displayName": "On Blue", "canonical": "oklch(1 0 0)" },
+      "accent-soft": { "role": "primary", "displayName": "Selected Wash", "canonical": "oklch(0.955 0.02 250)" },
+      "action-primary": { "role": "primary", "displayName": "Action Blue", "canonical": "oklch(0.52 0.14 253)", "tonalRamp": ["#061f36", "#0c3b5e", "#115ea3", "#0f6cbd", "#2886de", "#62abf5", "#b4d6fa", "#ebf3fc"] },
+      "action-primary-hover": { "role": "primary", "displayName": "Action Blue (hover)", "canonical": "#115ea3" },
+      "action-primary-active": { "role": "primary", "displayName": "Action Blue (pressed)", "canonical": "#0c3b5e" },
+      "action-danger": { "role": "danger", "displayName": "Danger Action", "canonical": "oklch(0.52 0.20 25)", "tonalRamp": ["#3b0509", "#6e0811", "#960b18", "#c50f1f", "#dc3545", "#ee8a93", "#f6c4c8", "#fdf3f4"] },
+      "action-danger-hover": { "role": "danger", "displayName": "Danger Action (hover)", "canonical": "#b10e1c" },
+      "action-danger-active": { "role": "danger", "displayName": "Danger Action (pressed)", "canonical": "#960b18" },
+      "danger": { "role": "danger", "displayName": "Alert Red", "canonical": "oklch(0.50 0.17 27)", "tonalRamp": ["oklch(0.15 0.06 27)", "oklch(0.27 0.11 27)", "oklch(0.39 0.15 27)", "oklch(0.50 0.17 27)", "oklch(0.63 0.15 27)", "oklch(0.75 0.10 27)", "oklch(0.87 0.05 27)", "oklch(0.96 0.02 27)"] },
+      "danger-soft": { "role": "danger", "displayName": "Alert Wash", "canonical": "oklch(0.96 0.02 27)" },
+      "success": { "role": "success", "displayName": "Confirm Green", "canonical": "oklch(0.55 0.14 150)", "tonalRamp": ["oklch(0.15 0.05 150)", "oklch(0.27 0.09 150)", "oklch(0.39 0.12 150)", "oklch(0.55 0.14 150)", "oklch(0.65 0.13 150)", "oklch(0.75 0.10 150)", "oklch(0.87 0.05 150)", "oklch(0.96 0.02 150)"] },
+      "focus": { "role": "primary", "displayName": "Focus Blue", "canonical": "oklch(0.55 0.16 250)" },
+      "star": { "role": "accent", "displayName": "Favorite Amber", "canonical": "oklch(0.62 0.15 70)", "tonalRamp": ["oklch(0.15 0.05 70)", "oklch(0.27 0.08 70)", "oklch(0.39 0.11 70)", "oklch(0.51 0.13 70)", "oklch(0.62 0.15 70)", "oklch(0.75 0.13 70)", "oklch(0.87 0.08 70)", "oklch(0.95 0.03 70)"] }
+    },
+    "typographyMeta": {
+      "headline": { "displayName": "Headline", "purpose": "ชื่อหน้า/ชื่อ dialog" },
+      "subhead": { "displayName": "Subhead", "purpose": "headline บนจอแคบ ≤ 960px" },
+      "title": { "displayName": "Title", "purpose": "หัวกลุ่มรายการ, ปุ่ม" },
+      "body": { "displayName": "Body", "purpose": "ชื่อรายการ, ข้อความหลัก, ช่องกรอก" },
+      "body-small": { "displayName": "Body Small", "purpose": "คำอธิบาย, label ฟอร์ม, ค่าใน panel ข้อมูลระบบ" },
+      "label": { "displayName": "Label", "purpose": "ป้ายรอง, จำนวน, badge, หัวหมวด" },
+      "mono": { "displayName": "Mono", "purpose": "รหัสอ้างอิงเท่านั้น (เช่น Request ID)" }
+    },
+    "shadows": [
+      { "name": "dialog-lift", "value": "0 24px 48px -16px oklch(0.22 0.02 250 / 0.28)", "purpose": "dialog/login ที่ลอยเหนือ scrim" },
+      { "name": "action-rest", "value": "0 2px 6px rgba(15,108,189,.22)", "purpose": "ปุ่ม soat-btn หลักขณะปกติ" },
+      { "name": "action-hover", "value": "0 4px 10px rgba(15,108,189,.28)", "purpose": "ปุ่ม soat-btn หลักขณะ hover (คู่กับ translateY(-1px))" }
+    ],
+    "motion": [
+      { "name": "ease-out", "value": "cubic-bezier(0.2, 0.7, 0.2, 1)", "purpose": "easing มาตรฐานทุก transition" },
+      { "name": "dur-fast", "value": "120ms", "purpose": "hover/ขอบ/พื้นของการ์ดและลิงก์" },
+      { "name": "dur-med", "value": "180ms", "purpose": "dialog เข้า (fade + rise 8px)" },
+      { "name": "button", "value": "160ms", "purpose": "พื้น/เงา/ยกของ soat-btn" }
+    ],
+    "breakpoints": [
+      { "name": "rail-stack", "value": "960px" },
+      { "name": "narrow", "value": "420px" },
+      { "name": "tiny", "value": "360px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "ปุ่มสั่งงานหลัก (DxButton CssClass=\"soat-btn\") — ยกเล็กน้อยเพื่อบอกว่ากดได้",
+      "html": "<button class=\"ds-btn-primary\">บันทึก</button>",
+      "css": ".ds-btn-primary { font-family: var(--font-body, Prompt, sans-serif); font-size: var(--text-m, .9375rem); font-weight: 600; color: #fff; background: #0f6cbd; border: 1px solid #0f6cbd; border-radius: 12px; min-width: 104px; min-height: 44px; padding: .65rem 1.1rem; box-shadow: 0 2px 6px rgba(15,108,189,.22); cursor: pointer; transition: background-color 160ms ease, box-shadow 160ms ease, transform 160ms ease; } .ds-btn-primary:hover { background: #115ea3; border-color: #115ea3; box-shadow: 0 4px 10px rgba(15,108,189,.28); transform: translateY(-1px); } .ds-btn-primary:active { background: #0c3b5e; border-color: #0c3b5e; transform: none; } .ds-btn-primary:focus-visible { outline: 2px solid var(--color-focus, oklch(0.55 0.16 250)); outline-offset: 2px; }"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "ปุ่มทำลาย/ยกเลิก (soat-btn--danger)",
+      "html": "<button class=\"ds-btn-danger\">ยกเลิก</button>",
+      "css": ".ds-btn-danger { font-family: var(--font-body, Prompt, sans-serif); font-size: var(--text-m, .9375rem); font-weight: 600; color: #fff; background: #c50f1f; border: 1px solid #c50f1f; border-radius: 12px; min-width: 104px; min-height: 44px; padding: .65rem 1.1rem; box-shadow: 0 2px 6px rgba(197,15,31,.22); cursor: pointer; transition: background-color 160ms ease, box-shadow 160ms ease, transform 160ms ease; } .ds-btn-danger:hover { background: #b10e1c; border-color: #b10e1c; box-shadow: 0 4px 10px rgba(197,15,31,.28); transform: translateY(-1px); } .ds-btn-danger:active { background: #960b18; border-color: #960b18; transform: none; } .ds-btn-danger:focus-visible { outline: 2px solid var(--color-focus, oklch(0.55 0.16 250)); outline-offset: 2px; }"
+    },
+    {
+      "name": "Compact Button",
+      "kind": "button",
+      "refersTo": "button-compact",
+      "description": "ปุ่มในตาราง/ปุ่มเปิด (soat-btn--compact) — สูง 36px ไม่มีเงา",
+      "html": "<button class=\"ds-btn-compact\">เปิด</button>",
+      "css": ".ds-btn-compact { font-family: var(--font-body, Prompt, sans-serif); font-size: var(--text-s, .8125rem); font-weight: 600; color: #fff; background: #0f6cbd; border: 1px solid #0f6cbd; border-radius: 12px; min-height: 36px; padding: .4rem .55rem; cursor: pointer; transition: background-color 160ms ease; } .ds-btn-compact:hover { background: #115ea3; } .ds-btn-compact:active { background: #0c3b5e; } .ds-btn-compact:focus-visible { outline: 2px solid var(--color-focus, oklch(0.55 0.16 250)); outline-offset: 2px; }"
+    },
+    {
+      "name": "Operate Command Stack",
+      "kind": "toolbar",
+      "refersTo": "operate-command",
+      "description": "แถบคำสั่ง PanOperate แนวตั้งขวา (.op-stack / .op-cmd ใน soat.css) — ปุ่มเต็มคอลัมน์ ไอคอนบน ป้ายล่าง; ปุ่มหลัก 1 ปุ่ม (บันทึกเมื่อมี), รอง Outline, ยกเลิก Danger Outline เว้นระยะแยก",
+      "html": "<div class=\"ds-op-stack\" role=\"toolbar\" aria-orientation=\"vertical\" aria-label=\"คำสั่ง\"><button class=\"ds-op-cmd\"><span aria-hidden=\"true\">＋</span>เพิ่มใหม่</button><button class=\"ds-op-cmd\"><span aria-hidden=\"true\">▤</span>เปิด</button><button class=\"ds-op-cmd ds-op-cmd--primary\"><span aria-hidden=\"true\">▣</span>บันทึก</button><button class=\"ds-op-cmd ds-op-cmd--danger\"><span aria-hidden=\"true\">✕</span>ยกเลิก</button></div>",
+      "css": ".ds-op-stack { display: flex; flex-direction: column; gap: .5rem; width: 88px; padding: 8px; background: #fff; border: 1px solid var(--color-line, #e6e9ef); border-radius: 10px; } .ds-op-cmd { display: flex; flex-direction: column; align-items: center; gap: .25rem; width: 100%; min-height: 64px; padding: .5rem .25rem; font-family: var(--font-body, Prompt, sans-serif); font-size: .8125rem; font-weight: 500; line-height: 1.25; color: #242424; background: transparent; border: 1px solid #d1d1d1; border-radius: 12px; cursor: pointer; overflow-wrap: anywhere; } .ds-op-cmd span { font-size: 20px; line-height: 1; } .ds-op-cmd:hover { background: #f5f5f5; } .ds-op-cmd--primary { font-weight: 600; color: #fff; background: #0f6cbd; border-color: #0f6cbd; box-shadow: 0 2px 6px rgba(15,108,189,.22); } .ds-op-cmd--primary:hover { background: #115ea3; box-shadow: 0 4px 10px rgba(15,108,189,.28); } .ds-op-cmd--danger { margin-top: .5rem; } .ds-op-cmd--danger:hover { color: #c50f1f; border-color: #c50f1f; background: transparent; } .ds-op-cmd:focus-visible { outline: 2px solid #242424; outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "ช่องกรอกที่สร้างเอง (login) — label อยู่เหนือช่อง",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">ชื่อผู้ใช้</span><input class=\"ds-input\" placeholder=\"กรอกชื่อผู้ใช้\"></label>",
+      "css": ".ds-field { display: grid; gap: var(--space-1, .25rem); font-family: var(--font-body, Prompt, sans-serif); } .ds-field-label { font-size: var(--text-s, .8125rem); font-weight: 500; color: var(--color-ink-2, oklch(0.40 0.012 250)); } .ds-input { font: inherit; font-size: var(--text-m, .9375rem); color: var(--color-ink, oklch(0.24 0.012 250)); background: var(--color-surface, #fff); border: 1px solid var(--color-line-strong, oklch(0.82 0.008 250)); border-radius: var(--radius-s, 6px); min-height: 44px; padding: 0 var(--space-3, .75rem); transition: border-color var(--dur-fast, 120ms) var(--ease-out, ease); } .ds-input:hover { border-color: var(--color-ink-3, oklch(0.48 0.012 250)); } .ds-input:focus-visible { outline: 2px solid var(--color-focus, oklch(0.55 0.16 250)); outline-offset: 1px; border-color: var(--color-focus, oklch(0.55 0.16 250)); }"
+    },
+    {
+      "name": "Launcher Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "การ์ดระบบงานใน launcher — แบน, hover เปลี่ยนขอบ+พื้น ไม่ยก",
+      "html": "<a class=\"ds-card\" href=\"#\"><span class=\"ds-card-icon\"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\"><rect x=\"3\" y=\"6\" width=\"18\" height=\"13\" rx=\"2\"/><path d=\"M3 10h18M8 15h3\"/></svg></span><span class=\"ds-card-text\"><span class=\"ds-card-th\">ระบบเงินฝาก</span><span class=\"ds-card-en\">scDeposit</span></span></a>",
+      "css": ".ds-card { display: flex; align-items: center; gap: var(--space-3, .75rem); min-height: 3.75rem; padding: var(--space-2, .5rem) var(--space-2, .5rem) var(--space-2, .5rem) var(--space-3, .75rem); font-family: var(--font-body, Prompt, sans-serif); color: var(--color-ink, oklch(0.24 0.012 250)); text-decoration: none; background: var(--color-surface, #fff); border: 1px solid var(--color-line, oklch(0.905 0.006 250)); border-radius: var(--radius-m, 10px); transition: border-color var(--dur-fast, 120ms) var(--ease-out, ease), background-color var(--dur-fast, 120ms) var(--ease-out, ease); } .ds-card:hover { border-color: var(--color-line-strong, oklch(0.82 0.008 250)); background: var(--color-sunken, oklch(0.955 0.004 250)); } .ds-card:focus-visible { outline: 2px solid var(--color-focus, oklch(0.55 0.16 250)); outline-offset: 2px; } .ds-card-icon { display: grid; place-items: center; width: 40px; height: 40px; flex: none; color: var(--color-accent, oklch(0.50 0.13 250)); background: var(--color-sunken, oklch(0.955 0.004 250)); border-radius: var(--radius-s, 6px); } .ds-card-text { display: grid; min-width: 0; } .ds-card-th { font-size: var(--text-m, .9375rem); font-weight: 500; line-height: 1.35; overflow-wrap: anywhere; } .ds-card-en { font-size: var(--text-xs, .75rem); color: var(--color-ink-3, oklch(0.48 0.012 250)); }"
+    },
+    {
+      "name": "Badge",
+      "kind": "chip",
+      "refersTo": "badge",
+      "description": "ป้ายสถานะ/จำนวน บนพื้น sunken",
+      "html": "<span class=\"ds-badge\">32 ระบบ</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; padding: 2px var(--space-2, .5rem); font-family: var(--font-body, Prompt, sans-serif); font-size: var(--text-xs, .75rem); font-weight: 500; font-variant-numeric: tabular-nums; color: var(--color-ink-2, oklch(0.40 0.012 250)); background: var(--color-sunken, oklch(0.955 0.004 250)); border-radius: var(--radius-s, 6px); }"
+    },
+    {
+      "name": "Session Panel",
+      "kind": "custom",
+      "refersTo": "session-panel",
+      "description": "signature: panel key–value บริบทผู้ใช้ (ผู้ใช้/สาขา/วันที่การเงิน/ฐานข้อมูล) ใช้ gap 1px บนพื้น line",
+      "html": "<dl class=\"ds-session\"><div><dt>ผู้ใช้งาน</dt><dd>orn</dd></div><div><dt>สาขา</dt><dd>001 สำนักงานใหญ่</dd></div><div><dt>วันที่การเงิน</dt><dd>22/10/2569</dd></div><div><dt>ฐานข้อมูล</dt><dd>soatdb</dd></div></dl>",
+      "css": ".ds-session { display: grid; gap: 1px; margin: 0; background: var(--color-line, oklch(0.905 0.006 250)); border: 1px solid var(--color-line, oklch(0.905 0.006 250)); border-radius: var(--radius-m, 10px); overflow: hidden; font-family: var(--font-body, Prompt, sans-serif); } .ds-session > div { display: flex; justify-content: space-between; gap: var(--space-3, .75rem); padding: var(--space-2, .5rem) var(--space-3, .75rem); background: var(--color-surface, #fff); } .ds-session dt { font-size: var(--text-xs, .75rem); color: var(--color-ink-3, oklch(0.48 0.012 250)); } .ds-session dd { margin: 0; font-size: var(--text-s, .8125rem); font-weight: 500; text-align: right; font-variant-numeric: tabular-nums; color: var(--color-ink, oklch(0.24 0.012 250)); }"
+    },
+    {
+      "name": "Dialog",
+      "kind": "custom",
+      "refersTo": "dialog",
+      "description": "dialog ของเราเอง (login) — มุม 14px, dialog-lift, เข้าด้วย fade + rise",
+      "html": "<div class=\"ds-dialog\"><h2 class=\"ds-dialog-title\">เข้าสู่ระบบ</h2><p class=\"ds-dialog-body\">กรอกชื่อผู้ใช้และรหัสผ่านเพื่อเข้าใช้งานระบบ</p></div>",
+      "css": ".ds-dialog { width: min(100%, 25rem); padding: var(--space-5, 1.5rem); font-family: var(--font-body, Prompt, sans-serif); color: var(--color-ink, oklch(0.24 0.012 250)); background: var(--color-surface, #fff); border-radius: var(--radius-l, 14px); box-shadow: var(--shadow-dialog, 0 24px 48px -16px oklch(0.22 0.02 250 / 0.28)); animation: ds-rise var(--dur-med, 180ms) var(--ease-out, ease) both; } .ds-dialog-title { margin: 0 0 var(--space-2, .5rem); font-size: var(--text-xl, 1.375rem); font-weight: 600; font-style: normal; line-height: 1.3; } .ds-dialog-body { margin: 0; font-size: var(--text-s, .8125rem); color: var(--color-ink-2, oklch(0.40 0.012 250)); } @keyframes ds-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } } @media (prefers-reduced-motion: reduce) { .ds-dialog { animation-duration: 1ms; } }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Cooperative Desk (โต๊ะทำงานสหกรณ์)",
+    "overview": "SoAt คือโต๊ะทำงานของเจ้าหน้าที่สหกรณ์ — เครื่องมือสำนักงานที่เป็นระเบียบ ใช้ต่อเนื่องทั้งวันได้โดยไม่ล้าตา พื้นผิวเป็นเทาอมฟ้าจางเกือบขาว แบ่งพื้นที่ด้วยเส้น 1px และระดับโทน ไม่ใช่เงาหรือไล่สี สีน้ำเงินเข้มของ Fluent ปรากฏเฉพาะจุดที่สั่งงาน (ปุ่มหลัก, ลิงก์, focus) เพื่อให้สายตาหาจุดลงมือได้ทันทีบนจอที่ข้อมูลหนาแน่น\n\nระบบนี้อยู่ใต้ DevExpress theme Fluent — component ของ DX (grid, form, combo, tabs, popup) เป็นผู้กำหนดหน้าตาส่วนใหญ่ และ SoAt เติมเฉพาะ chrome รอบๆ (rail, toolbar, การ์ด, กล่อง dialog ของเราเอง) ด้วย token ชุดเดียวที่โทนตรงกับ Fluent ความสวยวัดจากความแม่นยำ: ระยะ 4-pt, เป้ากด 44px, contrast ≥ 4.5:1 ทุกระดับตัวอักษร",
+    "keyCharacteristics": [
+      "แบนที่สภาวะปกติ — แยกชั้นด้วยโทน paper → surface → sunken และเส้น line",
+      "สีเน้นเดียว (น้ำเงิน Fluent) ใช้เฉพาะจุดสั่งงาน",
+      "ตัวอักษร Prompt ตัวเดียวทั้งระบบ, น้ำหนัก 400–600",
+      "เป้ากดขั้นต่ำ 44px, focus ring 2px ชัดเจน (keyboard-heavy)",
+      "DevExpress Fluent คุมสี/focus/shadow ของ component — SoAt แตะแค่ layout"
+    ],
+    "rules": [
+      { "name": "The One Blue Rule", "body": "สีน้ำเงินมีไว้บอกว่า \"กดตรงนี้\" เท่านั้น — ห้ามใช้เป็นพื้นตกแต่ง, ไล่สี, หรือแถบหัวการ์ด", "section": "colors" },
+      { "name": "The Token-Only Rule", "body": "หน้าและ component อ้างสีจาก token เท่านั้น — ห้าม hex/rgb inline ในหน้า (ยกเว้นตัวแปรปุ่มใน soat.css ซึ่งเป็นจุดเดียวที่ถือสี Fluent)", "section": "colors" },
+      { "name": "The Ink-Not-Opacity Rule", "body": "รายการที่ใช้ไม่ได้ ลดน้ำหนักด้วยการเปลี่ยนเป็น ink-2 ไม่ใช่ลด opacity ของข้อความ — contrast ต้องคงอยู่", "section": "colors" },
+      { "name": "The Tabular Numbers Rule", "body": "ตัวเลขที่เรียงหรือเทียบกัน (จำนวน, เบอร์โทร, ยอดเงิน) ใช้ font-variant-numeric: tabular-nums", "section": "typography" },
+      { "name": "The No Italic Rule", "body": "ภาษาไทยไม่ใช้ตัวเอียง — headline ตั้ง font-style: normal เสมอ", "section": "typography" },
+      { "name": "The Wrap-Don't-Truncate Rule", "body": "ชื่อ/ป้ายขึ้นบรรทัดใหม่ได้ (overflow-wrap: anywhere) แทนการตัด \"…\" เมื่อขยายตัวอักษร (WCAG 1.4.4)", "section": "typography" },
+      { "name": "The Flat-By-Default Rule", "body": "การ์ด, region, rail, toolbar ไม่มีเงา — hover ตอบด้วยขอบเข้มขึ้น + พื้น sunken ไม่ใช่การยก", "section": "elevation" },
+      { "name": "The No-Gradient Rule", "body": "ห้ามไล่สีบนปุ่มหรือพื้นผิว — จุดสว่างของ gradient เดิมทำ contrast ตกเหลือ 2.8–3.7:1", "section": "elevation" }
+    ],
+    "dos": [
+      "Do ใช้ DevExpress component ก่อนเสมอ และแตะแค่ layout/ขนาดผ่าน helper class global ใน app.css",
+      "Do อ้างสี/ฟอนต์/ระยะจาก token ใน tokens.css; ปุ่ม action ใช้ CssClass=\"soat-btn\" จาก soat.css (แก้สไตล์ปุ่มที่ไฟล์นั้นที่เดียว)",
+      "Do ให้ทุกเป้ากด ≥ 44px (compact ในตาราง ≥ 36px) และ element ที่สร้างเองมี :focus-visible outline 2px focus",
+      "Do ใส่ prefers-reduced-motion ปิด transition/animation ทุกจุดที่มีการเคลื่อนไหว (120–180ms, ease-out)",
+      "Do จำกัด hover ไว้ใต้ @media (hover: hover) เพื่อไม่ค้างสถานะบนจอสัมผัส"
+    ],
+    "donts": [
+      "Don't override --dxbl-* สี/focus/shadow ของ DevExpress (ยกเว้นภายใน soat-btn ที่กำหนดไว้แล้ว)",
+      "Don't ใช้ gradient, ลายจุด, แสงเรือง หรือพื้นกรมท่าไล่สี (ภาษาภาพ module shell เดิม) ในหน้าใหม่",
+      "Don't ใช้มุม 18px หรือเงาฟ้านุ่ม (0 8px 24px rgba(56,87,148,.06)) บนการ์ด/region",
+      "Don't ใช้ม่วง #5b4cf0 หรือชมพู #ff1f5a ที่ใดๆ",
+      "Don't ใช้ฟอนต์อื่นนอกจาก Prompt หรือตัวเอียงกับภาษาไทย",
+      "Don't ลด opacity ข้อความเพื่อแสดงสถานะใช้ไม่ได้ — เปลี่ยนเป็น ink-2",
+      "Don't แสดงโลโก้/ชื่อสหกรณ์ลูกค้าบนหน้าจองาน (อยู่ในหน้าตั้งค่าเท่านั้น)"
+    ]
+  }
+}
